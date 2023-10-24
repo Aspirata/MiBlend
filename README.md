@@ -15,3 +15,4 @@ Rewrite of Mcprep
 | Fix Materials | Alpha | It works with I think all minecraft blocks |
 | Swap Texture Pack | Not Started | Well, It's not started yet |
 | interface | Not Ready | I wrote some code, but it doesn't do anything |
+| Optimization | Not Started | I have some plans on how to optimize memory usage and face count |
