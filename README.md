@@ -7,10 +7,11 @@ Rewrite of Mcprep
 > [!NOTE]
 > Differences between Mcprep and Mcblend:
 > 1. Much less features, since It's in pre-alpha
-> 2. More optimized memory usage
 
 
-| Feature | State |
-| --- | --- |
-| Prep Materials\Upgrade Materials | Done 1% |
-| Swap Texture Pack | Not Started |
+| Feature | Stage | Current State |
+| --- | --- | --- |
+| Upgrade Materials | Not Ready | I wrote some code, but it doesn't do anything |
+| Fix Materials | Alpha | It works with I think all minecraft blocks |
+| Swap Texture Pack | Not Started | Well, It's not started yet |
+| interface | Not Ready | I wrote some code, but it doesn't do anything |
