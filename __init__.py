@@ -14,7 +14,7 @@ bl_info = {
 }
 
 class UpgradeMaterialsPanel(bpy.types.Panel):
-    bl_label = "Upgrade Materials"
+    bl_label = "Materials"
     bl_idname = "OBJECT_PT_upgrade_materials"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -24,7 +24,7 @@ class UpgradeMaterialsPanel(bpy.types.Panel):
         layout = self.layout
 
         row = layout.row()
-        row.operator("object.upgrade_materials", text="Upgrade")
+        row.operator("object.upgrade_materials", text="Fix Materials")
 
 class UpgradeMaterialsOperator(bpy.types.Operator):
     bl_idname = "object.upgrade_materials"

@@ -1,6 +1,6 @@
 import bpy
 
-selected_object = bpy.context.active_object
+#selected_object = bpy.context.active_object
 
 #Replace Materials
 
@@ -20,6 +20,7 @@ def replace_materials():
 
 #Fix materials
 def fix_materials():
+    selected_object = bpy.context.active_object
     for i, material in enumerate(selected_object.data.materials):
         for material in selected_object.data.materials:
             material.blend_method = 'HASHED'
@@ -41,6 +42,5 @@ def fix_materials():
             material.node_tree.nodes["Image Texture"].interpolation = 'Closest'
     selected_object.data.update()
 #
-selected_object.data.update()
+#selected_object.data.update()
 #replace_materials()
-#fix_materials()
