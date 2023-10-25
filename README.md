@@ -16,5 +16,5 @@ This is stable branch, well, this is stablest version of Mcblend
 | Upgrade Materials | Not Ready | I wrote some code, but it doesn't do anything |
 | Fix Materials | Alpha | It works with I think all minecraft blocks |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
-| interface | Not Ready | I wrote some code, but it doesn't do anything |
+| interface | Pre-Alpha | I wrote some code, but it doesn't do anything |
 | Optimization | Not Started | I have some plans on how to optimize memory usage and face count |
