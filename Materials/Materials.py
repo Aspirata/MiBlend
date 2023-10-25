@@ -1,11 +1,9 @@
 import bpy
-
 #selected_object = bpy.context.active_object
-
 #Replace Materials
 
-def replace_materials():
-
+def upgrade_materials():
+    selected_object = bpy.context.active_object
     #Andesite
     for i, material in enumerate(selected_object.data.materials):
         if material == bpy.data.materials.get("water_still"):
@@ -71,4 +69,4 @@ def fix_materials():
 
 #
 #selected_object.data.update()
-#replace_materials()
+#upgrade_materials()
