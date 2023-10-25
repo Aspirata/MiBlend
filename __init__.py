@@ -1,5 +1,5 @@
 import bpy
-import Mcblend.Materials
+import Materials
 
 bl_info = {
     "name": "Mcblend",
@@ -13,9 +13,10 @@ bl_info = {
     "category": "Add Mesh",
 }
 
-class UpgradeMaterialsPanel(bpy.types.Panel):
-    bl_label = "Materials"
-    bl_idname = "OBJECT_PT_upgrade_materials"
+# Fix World
+class FixWorldPanel(bpy.types.Panel):
+    bl_label = "World"
+    bl_idname = "OBJECT_PT_fix_world"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
@@ -24,23 +25,48 @@ class UpgradeMaterialsPanel(bpy.types.Panel):
         layout = self.layout
 
         row = layout.row()
-        row.operator("object.upgrade_materials", text="Fix Materials")
+        row.operator("object.fix_world", text="Fix World")
 
-class UpgradeMaterialsOperator(bpy.types.Operator):
-    bl_idname = "object.upgrade_materials"
-    bl_label = "Upgrade Materials"
+class FixWorldOperator(bpy.types.Operator):
+    bl_idname = "object.fix_world"
+    bl_label = "Fix World"
+
+    def execute(self, context):
+        Materials.fix_world()
+        return {'FINISHED'}
+#
+
+# Fix Materials
+class FixMaterialsPanel(bpy.types.Panel):
+    bl_label = "Materials"
+    bl_idname = "OBJECT_PT_fix_materials"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.operator("object.fix_materials", text="Fix Materials")
+
+class FixMaterialsOperator(bpy.types.Operator):
+    bl_idname = "object.fix_materials"
+    bl_label = "Fix Materials"
 
     def execute(self, context):
         Materials.fix_materials()
         return {'FINISHED'}
+#
 
+classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator]
 def register():
-    bpy.utils.register_class(UpgradeMaterialsPanel)
-    bpy.utils.register_class(UpgradeMaterialsOperator)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 def unregister():
-    bpy.utils.unregister_class(UpgradeMaterialsPanel)
-    bpy.utils.unregister_class(UpgradeMaterialsOperator)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
     register()
