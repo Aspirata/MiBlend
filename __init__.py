@@ -1,5 +1,5 @@
 import bpy
-import Materials
+import Mcblend.Materials
 
 bl_info = {
     "name": "Mcblend",
