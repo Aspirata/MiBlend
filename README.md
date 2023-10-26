@@ -1,5 +1,5 @@
 # Mcblend
-Rewrite of Mcprep
+Remake of Mcprep
 
 This brach contains almost realtime changes, so use it only if you want to test new features or help me with finding bugs
 
