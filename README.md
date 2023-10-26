@@ -1,5 +1,5 @@
 # Mcblend
-Rewrite of Mcprep
+Remake of Mcprep
 
 This brach contains almost realtime changes, so use it only if you want to test new features or help me with finding bugs
 
@@ -18,4 +18,4 @@ This brach contains almost realtime changes, so use it only if you want to test 
 | Fix Materials | Alpha | It works with I think all minecraft blocks |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
 | interface | Pre-alpha | There is only one button and it works properly |
-| Optimization | Not Started | I have some plans on how to optimize memory usage and face count |
+| Optimization | Not Ready | I have some plans on how to optimize memory usage and face count |
