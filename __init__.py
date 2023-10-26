@@ -1,5 +1,5 @@
 import bpy
-from .Materials import Materials
+#from .Materials import Materials
 
 bl_info = {
     "name": "Mcblend",
@@ -46,7 +46,7 @@ class FixMaterialsPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        
         row = layout.row()
         row.operator("object.fix_materials", text="Fix Materials")
 
@@ -59,12 +59,40 @@ class FixMaterialsOperator(bpy.types.Operator):
         return {'FINISHED'}
 #
 
-classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator]
+# Optimization
+class OptimizationPanel(bpy.types.Panel):
+    bl_label = "Optimization"
+    bl_idname = "OBJECT_PT_optimization"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.scene, "use_optimization", text="Use Optimization")
+        row = layout.row()
+        row.operator("object.optimization", text="Optimize")
+
+class OptimizeOperator(bpy.types.Operator):
+    bl_idname = "object.optimization"
+    bl_label = "Optimize"
+
+    def execute(self, context):
+        Optimize()
+        return {'FINISHED'}
+#
+
+classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, OptimizationPanel,OptimizeOperator]
 def register():
+    bpy.types.Scene.use_optimization = bpy.props.BoolProperty(
+        name="Use Optimization",
+        default=False,  # Установите значение по умолчанию
+    )
     for cls in classes:
         bpy.utils.register_class(cls)
 
 def unregister():
+    del bpy.types.Scene.use_optimization
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
