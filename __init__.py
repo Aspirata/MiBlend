@@ -1,5 +1,8 @@
 import bpy
-#from .Materials import Materials
+#import Materials
+#from Optimize import *
+from .Materials import Materials
+from .Optimization import Optimize
 
 bl_info = {
     "name": "Mcblend",
@@ -60,6 +63,13 @@ class FixMaterialsOperator(bpy.types.Operator):
 #
 
 # Optimization
+class BoolProperties(bpy.types.PropertyGroup):
+    use_optimization: bpy.props.BoolProperty(
+        name="Use Camea Culling",
+        default=True,
+        description="Enables Camera Culling"
+    )
+
 class OptimizationPanel(bpy.types.Panel):
     bl_label = "Optimization"
     bl_idname = "OBJECT_PT_optimization"
@@ -69,7 +79,7 @@ class OptimizationPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.scene, "use_optimization", text="Use Optimization")
+        layout.prop(context.scene.mcblend, "use_camera_culling", text="Use Optimization")
         row = layout.row()
         row.operator("object.optimization", text="Optimize")
 
@@ -78,21 +88,20 @@ class OptimizeOperator(bpy.types.Operator):
     bl_label = "Optimize"
 
     def execute(self, context):
-        Optimize()
+        Optimize.Optimize()
         return {'FINISHED'}
-#
 
-classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, OptimizationPanel,OptimizeOperator]
+classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, OptimizationPanel, OptimizeOperator]
+
 def register():
-    bpy.types.Scene.use_optimization = bpy.props.BoolProperty(
-        name="Use Optimization",
-        default=False,  # Установите значение по умолчанию
-    )
+    bpy.utils.register_class(BoolProperties)
+    bpy.types.Scene.mcblend = bpy.props.PointerProperty(type=BoolProperties)
     for cls in classes:
         bpy.utils.register_class(cls)
 
 def unregister():
-    del bpy.types.Scene.use_optimization
+    del bpy.types.Scene.mcblend
+    bpy.utils.unregister_class(BoolProperties)
     for cls in classes:
         bpy.utils.unregister_class(cls)
 

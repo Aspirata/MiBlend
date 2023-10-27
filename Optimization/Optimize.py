@@ -20,10 +20,7 @@ print(script_directory)
 
 def Optimize():
     selected_object = bpy.context.active_object
-    if scene.mcblend.use_optimization == True:
+    if scene.mcblend.use_camera_culling == True:
         geonodes_modifier = selected_object.modifiers.new('Camera Culling', type='NODES')
         geonodes_modifier.node_group = bpy.data.node_groups.get("Camera Culling")
-        geonodes_modifier["Input_2"] = 0.88
         geonodes_modifier["Input_3"] = bpy.context.scene.camera
-        geonodes_modifier.show_render = False
-Optimize()

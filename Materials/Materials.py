@@ -1,5 +1,7 @@
 import bpy
+from easybpy import *
 #selected_object = bpy.context.active_object
+
 #Replace Materials
 
 def upgrade_materials():
@@ -28,13 +30,12 @@ def upgrade_materials():
 
 #Fix materials
 def fix_world():
-    selected_object = bpy.context.active_object
-    for i, material in enumerate(selected_object.data.materials):
-        for material in selected_object.data.materials:
+    for i, material in enumerate(active_object().data.materials):
+        for material in active_object().data.materials:
             material.blend_method = 'HASHED'
             if material == bpy.data.materials.get("water_still") or material == bpy.data.materials.get("water_flow"):
-                selected_object.data.materials["water_still"].blend_method = 'BLEND'
-                selected_object.data.materials["water_flow"].blend_method = 'BLEND'
+                active_object().data.materials["water_still"].blend_method = 'BLEND'
+                active_object().data.materials["water_flow"].blend_method = 'BLEND'
             
             if material.node_tree.nodes.get("Image Texture.001"):
                 material.node_tree.nodes.remove(material.node_tree.nodes["Image Texture.001"])
@@ -43,12 +44,12 @@ def fix_world():
             principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
             
             if bpy.app.version < (4, 0, 0):
-                material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
+                create_node_link(image_texture_node.outputs[1], principled_bsdf_node.inputs[21])
             else:
-                material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
+                create_node_link(image_texture_node.outputs[1], principled_bsdf_node.inputs[4])
 
             material.node_tree.nodes["Image Texture"].interpolation = 'Closest'
-    selected_object.data.update()
+    active_object().data.update()
 
 def fix_materials():
     selected_object = bpy.context.active_object
@@ -69,4 +70,4 @@ def fix_materials():
 
 #
 #selected_object.data.update()
-#upgrade_materials()
+fix_world()
