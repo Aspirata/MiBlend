@@ -1,6 +1,6 @@
 import bpy
 #import Materials
-#from Optimize import *
+#import Optimize
 from .Materials import Materials
 from .Optimization import Optimize
 
@@ -63,8 +63,8 @@ class FixMaterialsOperator(bpy.types.Operator):
 #
 
 # Optimization
-class BoolProperties(bpy.types.PropertyGroup):
-    use_optimization: bpy.props.BoolProperty(
+class CameraCullingBool(bpy.types.PropertyGroup):
+    use_camera_culling: bpy.props.BoolProperty(
         name="Use Camea Culling",
         default=True,
         description="Enables Camera Culling"
@@ -79,7 +79,7 @@ class OptimizationPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.scene.mcblend, "use_camera_culling", text="Use Optimization")
+        layout.prop(context.scene.mcblend, "use_camera_culling", text="Use Camera Culling")
         row = layout.row()
         row.operator("object.optimization", text="Optimize")
 
@@ -94,8 +94,8 @@ class OptimizeOperator(bpy.types.Operator):
 classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, OptimizationPanel, OptimizeOperator]
 
 def register():
-    bpy.utils.register_class(BoolProperties)
-    bpy.types.Scene.mcblend = bpy.props.PointerProperty(type=BoolProperties)
+    bpy.utils.register_class(CameraCullingBool)
+    bpy.types.Scene.mcblend = bpy.props.PointerProperty(type=CameraCullingBool)
     for cls in classes:
         bpy.utils.register_class(cls)
 
