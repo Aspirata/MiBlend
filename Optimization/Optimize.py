@@ -3,6 +3,7 @@ import os
 
 script_directory = os.path.dirname(os.path.realpath(__file__))
 blend_file_path = os.path.join(script_directory, "Camera Culling.blend")
+node_tree_name = "Camera Culling"
 
 def Optimize():
     selected_object = bpy.context.active_object
