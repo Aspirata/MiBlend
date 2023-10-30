@@ -1,5 +1,6 @@
 import bpy
 import os
+from Data import *
 #Replace Materials
 
 script_directory = os.path.dirname(os.path.realpath(__file__))
@@ -31,7 +32,7 @@ def upgrade_materials():
 def fix_world():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
-            if "water".lower() in material.name.lower():
+            if material.name.lower() in Blend_Materials:
                 material.blend_method = 'BLEND'
             else:
                 material.blend_method = 'HASHED'
@@ -44,12 +45,12 @@ def fix_world():
                 
             if bpy.app.version < (4, 0, 0):
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
-                if material.name == "lantern" or material.name == "glow_lichen":
+                if material.name == Emissive_Materials:
                     material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[19])
             else:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
-                if material.name == "lantern" or material.name == "glow_lichen":
-                    material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsbsdf_node.inputs[27])
+                if material.name == Emissive_Materials:
+                    material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
 
             image_texture_node.interpolation = 'Closest'
 
