@@ -51,14 +51,26 @@ class FixMaterialsPanel(bpy.types.Panel):
         layout = self.layout
         
         row = layout.row()
+        row.operator("object.upgrade_materials", text="Upgrade Materials")
+        
+        
+        row = layout.row()
         row.operator("object.fix_materials", text="Fix Materials")
-
+        
 class FixMaterialsOperator(bpy.types.Operator):
     bl_idname = "object.fix_materials"
     bl_label = "Fix Materials"
 
     def execute(self, context):
         Materials.fix_materials()
+        return {'FINISHED'}
+    
+class UpgradeMaterialsOperator(bpy.types.Operator):
+    bl_idname = "object.upgrade_materials"
+    bl_label = "Upgrade Materials"
+
+    def execute(self, context):
+        Materials.upgrade_materials()
         return {'FINISHED'}
 #
 
@@ -90,8 +102,9 @@ class OptimizeOperator(bpy.types.Operator):
     def execute(self, context):
         Optimize.Optimize()
         return {'FINISHED'}
+#
 
-classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, OptimizationPanel, OptimizeOperator]
+classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator]
 
 def register():
     bpy.utils.register_class(CameraCullingBool)
