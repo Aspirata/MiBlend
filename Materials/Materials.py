@@ -6,27 +6,24 @@ from Data import *
 script_directory = os.path.dirname(os.path.realpath(__file__))
 blend_file_path = os.path.join(script_directory, "Materials.blend")
 
+def append_materials(upgraded_material_name, selected_object, i):
+    if upgraded_material_name not in bpy.data.materials:
+        with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+            data_to.materials = [upgraded_material_name]
+        appended_material = bpy.data.materials.get(upgraded_material_name)
+        selected_object.data.materials[i] = appended_material
+    else:
+        selected_object.data.materials[i] = bpy.data.materials[upgraded_material_name]
+
 def upgrade_materials():
     selected_object = bpy.context.active_object
-    # Water
     for i, material in enumerate(selected_object.data.materials):
-        if material == bpy.data.materials.get("water_still"):
-            if "Upgraded water still" not in bpy.data.materials:
-                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-                    data_to.materials = ["Upgraded water still"]
-                appended_material = bpy.data.materials.get("Upgraded water still")
-                selected_object.data.materials[i] = appended_material
+        if material.name == "water_still":
+            append_materials("Upgraded water still", selected_object, i)
+            
+        if material.name == "water_flow":
+            append_materials("Upgraded water flow", selected_object, i)
 
-        if material == bpy.data.materials.get("water_flow"):
-            if "Upgraded water flow" not in bpy.data.materials:
-                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-                    data_to.materials = ["Upgraded water flow"]
-                appended_material = bpy.data.materials.get("Upgraded water flow")
-                selected_object.data.materials[i] = appended_material
-    #
-
-    
-#
 
 #Fix materials
 def fix_world():
