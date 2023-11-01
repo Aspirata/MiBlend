@@ -2,10 +2,13 @@ Emissive_Materials = [
     "lantern",
     "glow_lichen",
     "torch",
-    "redstone_torch"
+    "torch"
 ]
 
-Blend_Materials = [
-    "water_still",
-    "water_flow"
+Backface_Culling_Materials = [
+    "glass"
+]
+
+Alpha_Blend_Materials = [
+    "water"
 ]
