@@ -42,21 +42,36 @@ def fix_world():
             
             if material.node_tree.nodes.get("Image Texture.001"):
                 material.node_tree.nodes.remove(material.node_tree.nodes["Image Texture.001"])
-                
-            
-            if material.node_tree.nodes.get("Principled BSDF") != None and material.node_tree.nodes.get("Image Texture") != None:
-                image_texture_node = material.node_tree.nodes.get("Image Texture")
+
+            if material.node_tree.nodes.get("Principled BSDF") != None:
                 principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
-                if bpy.app.version < (4, 0, 0):
-                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
-                    if material.name == Emissive_Materials:
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[19])
+                if material.node_tree.nodes.get("Diffuse Texture") != None:
+                    image_texture_node = material.node_tree.nodes.get("Diffuse Texture")
+                    if bpy.app.version < (4, 0, 0):
+                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
+                        if material.name == Emissive_Materials:
+                            material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[19])
+                    else:
+                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
+                        if material.name == Emissive_Materials:
+                            material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
                 else:
-                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
-                    if material.name == Emissive_Materials:
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
+                    print("Diffuse Texture Not Found")
+                
+                if material.node_tree.nodes.get("Image Texture") != None:
+                    image_texture_node = material.node_tree.nodes.get("Image Texture")
+                    if bpy.app.version < (4, 0, 0):
+                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
+                        if material.name == Emissive_Materials:
+                            material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[19])
+                    else:
+                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
+                        if material.name == Emissive_Materials:
+                            material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
+                else:
+                    print("Image Texture Not Found")
             else:
-                print("Principled BSDF or Image Texture not found")
+                print("Principled BSDF Not Found")
 
             image_texture_node.interpolation = 'Closest'
 
