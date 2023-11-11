@@ -3,18 +3,14 @@ Remake of Mcprep
 
 This is stable branch, well, this is stablest version of Mcblend
 
-> [!WARNING]
-> This addon is in pre-alpha, so expect a lot of bugs.
-
 > [!NOTE]
-> Differences between Mcprep and Mcblend:
-> 1. Much less features, since It's in pre-alpha
+> There aren't many functions in Mcblend right now (Below you can see the list of features that are already available and planned)
 
 
 | Feature | Stage | Current State |
 | --- | --- | --- |
-| Upgrade Materials | Not Ready | I wrote some code, but it doesn't do anything |
+| Upgrade Materials | Done | Upgrade materials function is fully working, but there is no built-in upgraded materials |
 | Fix Materials | Alpha | It works with I think all minecraft blocks |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
-| interface | Pre-Alpha | There is only two buttons |
-| Optimization | Not Started | I have some plans on how to optimize memory usage and face count |
+| interface | Pre-Alpha | There is only three buttons |
+| Optimization | Alpha | There are only one Optimizing option |
