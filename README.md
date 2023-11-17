@@ -14,3 +14,6 @@ This is stable branch, well, this is stablest version of Mcblend
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
 | interface | Pre-Alpha | There is only three buttons |
 | Optimization | Alpha | There are only one Optimizing option |
+
+Contributors:
+.anonim4ik - Camera Culling node
