@@ -8,7 +8,7 @@ bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
     "version": (0, 0, 1),
-    "blender": (2, 80, 0),
+    "blender": (4, 0, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "",
     "warning": "",
