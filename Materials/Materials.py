@@ -1,6 +1,6 @@
 import bpy
 import os
-from .Data import *
+from ..Data import *
 #Replace Materials
 
 script_directory = os.path.dirname(os.path.realpath(__file__))

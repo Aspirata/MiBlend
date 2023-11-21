@@ -2,7 +2,9 @@ import bpy
 import os
 
 def Camera_Culling(obj):
-
+    if obj.modifiers.get("Camera Culling") != None: 
+        return
+    
     script_directory = os.path.dirname(os.path.realpath(__file__))
     blend_file_path = os.path.join(script_directory, "Camera Culling.blend")
     node_tree_name = "Camera Culling"
@@ -24,4 +26,3 @@ def Optimize():
     if scene.mcblend.use_camera_culling == True:
         for obj in selected_objects:
             Camera_Culling(obj)
-    
