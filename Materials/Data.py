@@ -12,3 +12,19 @@ Backface_Culling_Materials = [
 Alpha_Blend_Materials = [
     "water"
 ]
+
+Materials = {
+    "bricks": "Upgraded Bricks",
+    "diamond_ore": "Upgraded Diamond Ore",
+    "glow_lichen": "Upgraded Glow Lichen",
+    "gold_block": "Upgraded Gold Block",
+    "iron_block": "Upgraded Iron Block",
+    "lantern": "Upgraded Lantern",
+    "obsidian": "Upgraded Obsidian",
+    "sand": "Upgraded Sand",
+    "sculk": "Upgraded Sculk",
+    "soul_lantern": "Upgraded Soul Lantern",
+    "stone": "Upgraded Stone",
+    "water_flow": "Upgraded Water Flow",
+    "water_still": "Upgraded Water Still"
+    }
