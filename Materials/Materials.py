@@ -24,6 +24,8 @@ def upgrade_materials():
 
 #Fix materials
 def fix_world():
+    image_texture_node = None
+    principled_bsdf_node = None
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
             
@@ -59,6 +61,7 @@ def fix_world():
 
 def fix_materials():
     image_texture_node = None
+    principled_bsdf_node = None
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
             material.blend_method = 'HASHED'
