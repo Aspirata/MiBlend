@@ -1,7 +1,8 @@
 Emissive_Materials = [
     "lantern",
     "glow_lichen",
-    "torch"
+    "torch",
+    "lava"
 ]
 
 Backface_Culling_Materials = [
