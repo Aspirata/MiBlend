@@ -24,8 +24,6 @@ def upgrade_materials():
 
 #Fix materials
 def fix_world():
-    image_texture_node = None
-    principled_bsdf_node = None
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
             
@@ -47,7 +45,7 @@ def fix_world():
             if material.node_tree.nodes.get("Principled BSDF") != None:
                 principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
 
-            if (image_texture_node and principled_bsdf_node) != None:
+            if image_texture_node and principled_bsdf_node:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
                 if material.name == Emissive_Materials:
                     material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
@@ -55,15 +53,14 @@ def fix_world():
             if material.node_tree.nodes.get("Image Texture.001"):
                 material.node_tree.nodes.remove(material.node_tree.nodes["Image Texture.001"])
 
-                
-
     selected_object.data.update()
 
 def fix_materials():
-    image_texture_node = None
-    principled_bsdf_node = None
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
+            image_texture_node = None
+            principled_bsdf_node = None
+
             material.blend_method = 'HASHED'
 
             for node in material.node_tree.nodes:
@@ -76,7 +73,7 @@ def fix_materials():
 
             if (image_texture_node and principled_bsdf_node) != None:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
-                
+
         selected_object.data.update()
 
 #
