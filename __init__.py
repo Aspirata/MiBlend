@@ -1,6 +1,7 @@
 import bpy
-#import Materials
-#import Optimize
+import os
+from .Data import *
+from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
 
@@ -8,7 +9,7 @@ bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
     "version": (0, 0, 1),
-    "blender": (2, 80, 0),
+    "blender": (4, 0, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "",
     "warning": "",
@@ -77,7 +78,7 @@ class UpgradeMaterialsOperator(bpy.types.Operator):
 # Optimization
 class CameraCullingBool(bpy.types.PropertyGroup):
     use_camera_culling: bpy.props.BoolProperty(
-        name="Use Camea Culling",
+        name="Use Camera Culling",
         default=True,
         description="Enables Camera Culling"
     )
@@ -104,17 +105,57 @@ class OptimizeOperator(bpy.types.Operator):
         return {'FINISHED'}
 #
 
-classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator]
+# Assets
+class AssetPanel(bpy.types.Panel):
+    bl_label = "Assets"
+    bl_idname = "OBJECT_PT_assets"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.prop(context.scene, "selected_rig")
+        row = layout.row()
+        row.operator("object.import_asset", text="Import Asset")
+
+class ImportAssetOperator(bpy.types.Operator):
+    bl_idname = "object.import_asset"
+    bl_label = "Import Asset"
+
+    def execute(self, context):
+        selected_rig_key = context.scene.selected_rig
+        if selected_rig_key in Rigs:
+            append_rig(Rigs[selected_rig_key])
+        return {'FINISHED'}
+
+def append_rig(rig_data):
+    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", "Rigs", rig_data[".blend_name"])
+    collection_name = rig_data["Collection_name"]
+
+    with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+        data_to.collections = [collection_name]
+
+    for collection in data_to.collections:
+        bpy.context.collection.children.link(collection)
+#
+
+classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     bpy.utils.register_class(CameraCullingBool)
     bpy.types.Scene.mcblend = bpy.props.PointerProperty(type=CameraCullingBool)
+    bpy.types.Scene.selected_rig = bpy.props.EnumProperty(
+        items=[(name, data["Name"], "") for name, data in Rigs.items()],
+        description="Select Rig to Import",
+    )
     for cls in classes:
         bpy.utils.register_class(cls)
 
 def unregister():
     del bpy.types.Scene.mcblend
-    bpy.utils.unregister_class(BoolProperties)
+    del bpy.types.Scene.selected_rig
     for cls in classes:
         bpy.utils.unregister_class(cls)
 

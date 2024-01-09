@@ -1,6 +1,6 @@
 import bpy
 import os
-from .Data import *
+from ..Data import *
 #Replace Materials
 
 script_directory = os.path.dirname(os.path.realpath(__file__))
@@ -16,14 +16,11 @@ def append_materials(upgraded_material_name, selected_object, i):
         selected_object.data.materials[i] = bpy.data.materials[upgraded_material_name]
 
 def upgrade_materials():
-    selected_object = bpy.context.active_object
-    for i, material in enumerate(selected_object.data.materials):
-        if "water_still" in material.name.lower():
-            append_materials("Upgraded water still", selected_object, i)
-            
-        if "water_flow" in material.name.lower():
-            append_materials("Upgraded water flow", selected_object, i)
-
+    for selected_object in bpy.context.selected_objects:
+        for i, material in enumerate(selected_object.data.materials):
+            for original_material, upgraded_material in Materials.items():
+                if original_material in material.name.lower():
+                    append_materials(upgraded_material, selected_object, i)
 
 #Fix materials
 def fix_world():
@@ -39,43 +36,43 @@ def fix_world():
                     material.blend_method = 'BLEND'
                 else:
                     material.blend_method = 'HASHED'
-            
-            if material.node_tree.nodes.get("Image Texture.001"):
-                material.node_tree.nodes.remove(material.node_tree.nodes["Image Texture.001"])
-                
-            
-            if material.node_tree.nodes.get("Principled BSDF") != None and material.node_tree.nodes.get("Image Texture") != None:
-                image_texture_node = material.node_tree.nodes.get("Image Texture")
-                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
-                if bpy.app.version < (4, 0, 0):
-                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
-                    if material.name == Emissive_Materials:
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[19])
-                else:
-                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
-                    if material.name == Emissive_Materials:
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
-            else:
-                print("Principled BSDF or Image Texture not found")
 
-            image_texture_node.interpolation = 'Closest'
+            if material.node_tree.nodes.get("Principled BSDF") != None:
+                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")    
+            
+            for node in material.node_tree.nodes:
+                if node.type == "TEX_IMAGE":
+                    image_texture_node = material.node_tree.nodes[node.name]
+                    material.node_tree.nodes[node.name].interpolation = "Closest"
+
+            print(bool(image_texture_node), bool(principled_bsdf_node))
+
+            if (image_texture_node and principled_bsdf_node) != None:
+                material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
+                if material.name == Emissive_Materials:
+                    material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
 
     selected_object.data.update()
 
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
-            material.blend_method = 'HASHED'
-                
-            if material.node_tree.nodes.get("Principled BSDF") != None and material.node_tree.nodes.get("Image Texture") != None:
-                image_texture_node = material.node_tree.nodes.get("Image Texture")
-                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
-                if bpy.app.version < (4, 0, 0):
-                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[21])
-                else:
-                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
+            image_texture_node = None
+            principled_bsdf_node = None
 
-            image_texture_node.interpolation = 'Closest'
-    selected_object.data.update()
+            material.blend_method = 'HASHED'
+
+            for node in material.node_tree.nodes:
+                if node.type == "TEX_IMAGE":
+                    image_texture_node = material.node_tree.nodes[node.name]
+                    material.node_tree.nodes[node.name].interpolation = "Closest" 
+            
+            if material.node_tree.nodes.get("Principled BSDF") != None:
+                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
+
+            if (image_texture_node and principled_bsdf_node) != None:
+                material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
+
+        selected_object.data.update()
 
 #
