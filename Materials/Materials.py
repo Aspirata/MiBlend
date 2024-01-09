@@ -36,22 +36,21 @@ def fix_world():
                     material.blend_method = 'BLEND'
                 else:
                     material.blend_method = 'HASHED'
+
+            if material.node_tree.nodes.get("Principled BSDF") != None:
+                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")    
             
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
                     image_texture_node = material.node_tree.nodes[node.name]
-                    material.node_tree.nodes[node.name].interpolation = "Closest" 
-            
-            if material.node_tree.nodes.get("Principled BSDF") != None:
-                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
+                    material.node_tree.nodes[node.name].interpolation = "Closest"
 
-            if image_texture_node and principled_bsdf_node:
+            print(bool(image_texture_node), bool(principled_bsdf_node))
+
+            if (image_texture_node and principled_bsdf_node) != None:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
                 if material.name == Emissive_Materials:
                     material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
-
-            if material.node_tree.nodes.get("Image Texture.001"):
-                material.node_tree.nodes.remove(material.node_tree.nodes["Image Texture.001"])
 
     selected_object.data.update()
 

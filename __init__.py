@@ -37,7 +37,6 @@ class FixWorldOperator(bpy.types.Operator):
 
     def execute(self, context):
         Materials.fix_world()
-        Materials.fix_world()
         return {'FINISHED'}
 #
 
