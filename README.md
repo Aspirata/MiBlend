@@ -9,9 +9,10 @@ This is an experimental branch. I'm testing new features here
 
 | Feature | Stage | Current State |
 | --- | --- | --- |
-| Upgrade Materials | Done | Upgrade materials function is fully working, but there is no built-in upgraded materials |
-| Fix Materials & Fix World | Done | It works with I think all minecraft blocks |
+| Upgrade Materials | Done | Upgrade materials function is fully working |
+| Fix Materials & Fix World | Done | It works ig |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
+| Assets | Done | It works, but there is only SRE in built-in assets |
 | Optimization | WIP | There are only one Optimizing option |
 
 Contributors:
