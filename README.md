@@ -9,8 +9,8 @@ This is stable branch, well, this is stablest version of Mcblend
 
 | Feature | Stage | Current State |
 | --- | --- | --- |
-| Upgrade Materials | Done | Upgrade materials function is fully working, but there is no built-in upgraded materials |
-| Fix Materials & Fix Materials | Done | It works with I think all minecraft blocks |
+| Upgrade Materials | Done | Upgrade materials function is fully working |
+| Fix Materials & Fix Materials | Done | It works ig |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
 | Optimization | WIP | There are only one Optimizing option |
 
