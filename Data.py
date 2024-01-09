@@ -6,7 +6,8 @@ Emissive_Materials = [
 ]
 
 Backface_Culling_Materials = [
-    "glass"
+    "glass",
+    "door"
 ]
 
 Alpha_Blend_Materials = [
@@ -15,6 +16,7 @@ Alpha_Blend_Materials = [
 
 Materials = {
     "bricks": "Upgraded Bricks",
+    "cobblestone": "cobblestone",
     "diamond_ore": "Upgraded Diamond Ore",
     "deepslate_diamond_ore": "deepslate_diamond_ore",
     "glow_lichen": "Upgraded Glow Lichen",
