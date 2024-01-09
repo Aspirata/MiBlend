@@ -55,7 +55,6 @@ Materials = {
     "blackstone_stairs": "blackstone_stairs",
     "blackstone_wall": "blackstone_wall",
     "water_flow": "Upgraded Water Flow",
-    "water_still": "Upgraded Water Still",
     "chiseled_red_sandstone_bricks": "chiseled_red_sandstone_bricks",
     "cracked_deepslate_bricks": "cracked_deepslate_bricks",
     "cracked_nether_bricks": "cracked_nether_bricks",
@@ -72,7 +71,7 @@ Materials = {
 Rigs = {
     "SRE": {
         "Name": "Simple Character Rig",
-        ".blend_name": "Simple edit V2.0b721.blend",
+        ".blend_name": "Simple_edit_V2.0.blend",
         "Collection_name": "SRE rig"
     }
 }
