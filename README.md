@@ -1,7 +1,7 @@
 # Mcblend
 Remake of Mcprep
 
-This is stable branch, well, this is stablest version of Mcblend
+This is stable branch, well, this is the stablest version of Mcblend
 
 > [!NOTE]
 > There aren't many functions in Mcblend right now (Below you can see the list of features that are already available and planned)
