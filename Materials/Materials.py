@@ -51,14 +51,14 @@ def fix_world():
                     if keyword in material.name.lower():
                         material.use_backface_culling = True
                         geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
-                        geometry_node.location = (-500, 0)
+                        geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
+                        invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
+                        invert_node.location = (image_texture_node.location.x + 260, image_texture_node.location.y - 200)
                         mix_node = material.node_tree.nodes.new(type='ShaderNodeMix')
-                        mix_node.location = (-170, 200)
+                        mix_node.location = (invert_node.location.x + 170, image_texture_node.location.y - 110)
                         mix_node.blend_type = 'MULTIPLY'
                         mix_node.data_type =  'RGBA'
                         mix_node.inputs[0].default_value = 1
-                        invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
-                        invert_node.location = (-350, 0)
                         material.node_tree.links.new(geometry_node.outputs["Backfacing"], invert_node.inputs[1])
                         material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
