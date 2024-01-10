@@ -26,11 +26,7 @@ def upgrade_materials():
 def fix_world():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
-            
-            for keyword in Backface_Culling_Materials:
-                if keyword in material.name.lower():
-                    material.use_backface_culling = True
-                
+
             for keyword in Alpha_Blend_Materials:
                 if keyword in material.name.lower():
                     material.blend_method = 'BLEND'
@@ -39,18 +35,34 @@ def fix_world():
 
             if material.node_tree.nodes.get("Principled BSDF") != None:
                 principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")    
-            
+
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
                     image_texture_node = material.node_tree.nodes[node.name]
                     material.node_tree.nodes[node.name].interpolation = "Closest"
 
-            print(bool(image_texture_node), bool(principled_bsdf_node))
-
             if (image_texture_node and principled_bsdf_node) != None:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], principled_bsdf_node.inputs[4])
-                if material.name == Emissive_Materials:
-                    material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[27])
+                for keyword in Emissive_Materials:
+                    if keyword in material.name.lower():
+                        material.node_tree.links.new(image_texture_node.outputs["Color"], principled_bsdf_node.inputs[26])
+
+                for keyword in Backface_Culling_Materials:
+                    if keyword in material.name.lower():
+                        material.use_backface_culling = True
+                        geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
+                        geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
+                        invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
+                        invert_node.location = (image_texture_node.location.x + 260, image_texture_node.location.y - 200)
+                        mix_node = material.node_tree.nodes.new(type='ShaderNodeMix')
+                        mix_node.location = (invert_node.location.x + 170, image_texture_node.location.y - 110)
+                        mix_node.blend_type = 'MULTIPLY'
+                        mix_node.data_type =  'RGBA'
+                        mix_node.inputs[0].default_value = 1
+                        material.node_tree.links.new(geometry_node.outputs["Backfacing"], invert_node.inputs[1])
+                        material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
+                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
+                        material.node_tree.links.new(mix_node.outputs["Result"], principled_bsdf_node.inputs["Alpha"])
 
     selected_object.data.update()
 
