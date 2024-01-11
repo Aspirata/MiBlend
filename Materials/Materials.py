@@ -22,7 +22,7 @@ def upgrade_materials():
                 if original_material in material.name.lower():
                     append_materials(upgraded_material, selected_object, i)
 
-#Fix materials
+# Fix World
 def fix_world():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
@@ -66,6 +66,8 @@ def fix_world():
 
     selected_object.data.update()
 
+# Fix materials
+    
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
@@ -87,4 +89,26 @@ def fix_materials():
 
         selected_object.data.update()
 
+#
+        
+# Set Procedural PBR
+        
+def setproceduralpbr():
+     for selected_object in bpy.context.selected_objects:
+        for material in selected_object.data.materials:
+            principled_bsdf_node = None
+
+            if material.node_tree.nodes.get("Principled BSDF") is not None:
+                principled_bsdf_node = material.node_tree.nodes.get("Principled BSDF")
+
+                for keyword in Metal:
+                    if keyword in material.name.lower():
+                        principled_bsdf_node.inputs["Roughness"].default_value = 0.2
+                        principled_bsdf_node.inputs["Metallic"].default_value = 0.1  
+
+                for keyword in Glass:
+                    if keyword in material.name.lower():
+                        principled_bsdf_node.inputs["Roughness"].default_value = 0.1
+
+                principled_bsdf_node.inputs[12].default_value = 0.4 # Specular
 #

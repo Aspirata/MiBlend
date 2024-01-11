@@ -18,7 +18,7 @@ bl_info = {
 }
 
 # Fix World
-class FixWorldPanel(bpy.types.Panel):
+class WorldPanel(bpy.types.Panel):
     bl_label = "World"
     bl_idname = "OBJECT_PT_fix_world"
     bl_space_type = 'VIEW_3D'
@@ -30,6 +30,8 @@ class FixWorldPanel(bpy.types.Panel):
 
         row = layout.row()
         row.operator("object.fix_world", text="Fix World")
+        row = layout.row()
+        row.operator("object.setproceduralpbr", text="Set Procedural PBR")
 
 class FixWorldOperator(bpy.types.Operator):
     bl_idname = "object.fix_world"
@@ -38,6 +40,18 @@ class FixWorldOperator(bpy.types.Operator):
     def execute(self, context):
         Materials.fix_world()
         return {'FINISHED'}
+    
+class SetProceduralPBROperator(bpy.types.Operator):
+    bl_idname = "object.setproceduralpbr"
+    bl_label = "Set Procedural PBR"
+
+    def execute(self, context):
+        Materials.setproceduralpbr()
+        return {'FINISHED'}
+#
+    
+# Swap Texture-pack
+
 #
 
 # Fix Materials
@@ -141,7 +155,7 @@ def append_rig(rig_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [WorldPanel, FixWorldOperator, SetProceduralPBROperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     bpy.utils.register_class(CameraCullingBool)

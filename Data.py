@@ -14,6 +14,17 @@ Alpha_Blend_Materials = [
     "water"
 ]
 
+Metal = [
+    "iron",
+    "gold",
+    "copper",
+    "diamond"
+]
+
+Glass = [
+    "glass"
+]
+
 Materials = {
     "bricks": "Upgraded Bricks",
     "cobblestone": "cobblestone",
