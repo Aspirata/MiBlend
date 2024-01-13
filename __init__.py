@@ -18,6 +18,14 @@ bl_info = {
 }
 
 # Fix World
+
+class BumpBool(bpy.types.PropertyGroup):
+    use_bump: bpy.props.BoolProperty(
+        name="Use Bump",
+        default=False,
+        description="Enables Bump In Materials"
+    )
+
 class WorldPanel(bpy.types.Panel):
     bl_label = "World"
     bl_idname = "OBJECT_PT_fix_world"
@@ -28,10 +36,19 @@ class WorldPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        row = layout.row()
+        box = layout.box()
+        row = box.row()
         row.operator("object.fix_world", text="Fix World")
-        row = layout.row()
+        box = layout.box()
+        row = box.row()
+        row.label(text="Procedural PBR", icon="NODE_MATERIAL")
+        row = box.row()
+        row.prop(context.scene.bump, "use_bump", text="Use Bump")
+        row = box.row()
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
+        row = box.row()
+        #row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
+        #row = box.row()
 
 class FixWorldOperator(bpy.types.Operator):
     bl_idname = "object.fix_world"
@@ -65,11 +82,10 @@ class FixMaterialsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
-        row = layout.row()
+        box = layout.box()
+        row = box.row()
         row.operator("object.upgrade_materials", text="Upgrade Materials")
-        
-        
-        row = layout.row()
+        row = box.row()
         row.operator("object.fix_materials", text="Fix Materials")
         
 class FixMaterialsOperator(bpy.types.Operator):
@@ -106,8 +122,11 @@ class OptimizationPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.scene.mcblend, "use_camera_culling", text="Use Camera Culling")
-        row = layout.row()
+
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene.camera_culling, "use_camera_culling", text="Use Camera Culling")
+        row = box.row()
         row.operator("object.optimization", text="Optimize")
 
 class OptimizeOperator(bpy.types.Operator):
@@ -130,7 +149,7 @@ class AssetPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(context.scene, "selected_rig")
+        layout.prop(context.scene, "selected_rig", text="Selected Rig:")
         row = layout.row()
         row.operator("object.import_asset", text="Import Asset")
 
@@ -158,17 +177,23 @@ def append_rig(rig_data):
 classes = [WorldPanel, FixWorldOperator, SetProceduralPBROperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
+    bpy.utils.register_class(BumpBool)
     bpy.utils.register_class(CameraCullingBool)
-    bpy.types.Scene.mcblend = bpy.props.PointerProperty(type=CameraCullingBool)
+    bpy.types.Scene.bump = bpy.props.PointerProperty(type=BumpBool)
+    bpy.types.Scene.camera_culling = bpy.props.PointerProperty(type=CameraCullingBool)
     bpy.types.Scene.selected_rig = bpy.props.EnumProperty(
         items=[(name, data["Name"], "") for name, data in Rigs.items()],
         description="Select Rig to Import",
     )
     for cls in classes:
         bpy.utils.register_class(cls)
+        
 
 def unregister():
-    del bpy.types.Scene.mcblend
+    bpy.utils.unregister_class(BumpBool)
+    bpy.utils.unregister_class(CameraCullingBool)
+    del bpy.types.Scene.bump
+    del bpy.types.Scene.camera_culling
     del bpy.types.Scene.selected_rig
     for cls in classes:
         bpy.utils.unregister_class(cls)

@@ -18,7 +18,13 @@ Metal = [
     "iron",
     "gold",
     "copper",
-    "diamond"
+    "diamond",
+    "netherite",
+    "minecart",
+    "lantern",
+    "anvil",
+    "clock",
+    "cauldron"
 ]
 
 Glass = [

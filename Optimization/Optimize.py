@@ -23,6 +23,6 @@ def Camera_Culling(obj):
 def Optimize():
     selected_objects = bpy.context.selected_objects
     scene = bpy.context.scene
-    if scene.mcblend.use_camera_culling == True:
+    if scene.camera_culling.use_camera_culling == True:
         for obj in selected_objects:
             Camera_Culling(obj)
