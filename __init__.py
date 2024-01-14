@@ -209,6 +209,5 @@ if __name__ == "__main__":
     register()
 
 # TODO
-    # - Починить Set render settings
     # - Починить Create Sky
     # - Починить bump
