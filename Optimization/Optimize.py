@@ -26,3 +26,17 @@ def Optimize():
     if scene.camera_culling.use_camera_culling == True:
         for obj in selected_objects:
             Camera_Culling(obj)
+    
+    if scene.render_settings.set_render_settings == True:
+       scene.cycles.use_preview_adaptive_sampling = True
+       scene.cycles.preview_adaptive_threshold = 0.1
+       scene.cycles.preview_samples = 128
+       scene.cycles.preview_adaptive_min_samples = 0
+
+       scene.cycles.use_adaptive_sampling = True
+       scene.cycles.adaptive_threshold = 0.01
+       scene.cycles.samples = 128
+       scene.cycles.adaptive_min_samples = 40
+       scene.cycles.use_denoising = True
+       scene.cycles.denoiser = 'OPENIMAGE'
+       scene.render.use_persistent_data = True

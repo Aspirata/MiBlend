@@ -71,6 +71,18 @@ def fix_world():
 
         selected_object.data.update()
 
+def create_sky():
+    world_material_name = "Mcblend World"
+
+    if world_material_name not in bpy.data.materials:
+        with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+            data_to.materials = [world_material_name]
+        appended_world_material = bpy.context.scene.world.get(world_material_name)
+    else:
+        appended_world_material = bpy.data.materials[world_material_name]
+
+        bpy.context.scene.world = appended_world_material
+
 # Fix materials
     
 def fix_materials():
@@ -116,7 +128,7 @@ def setproceduralpbr():
                         PBSDF.inputs["Roughness"].default_value = 0.2
                         PBSDF.inputs["Metallic"].default_value = 0.7
 
-                if MaterialIn(Glass, material):
+                if MaterialIn(Reflective, material):
                     PBSDF.inputs["Roughness"].default_value = 0.1
 
                 for node in material.node_tree.nodes:
@@ -130,6 +142,5 @@ def setproceduralpbr():
                     material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
                     bump_node.inputs[0].default_value = 0.4
                 
-
         selected_object.data.update()
 #

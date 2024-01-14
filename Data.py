@@ -24,11 +24,16 @@ Metal = [
     "lantern",
     "anvil",
     "clock",
-    "cauldron"
+    "cauldron",
+    "spyglass"
 ]
 
-Glass = [
-    "glass"
+Reflective = [
+    "glass",
+    "ender",
+    "amethyst",
+    "chain",
+    "water"
 ]
 
 Materials = {
@@ -87,9 +92,10 @@ Materials = {
     "warped_wart_block_bricks": "warped_wart_block_bricks"
     }
 
-Rigs = {
+Assets = {
     "SRE": {
-        "Name": "Simple Character Rig",
+        "Name": "Simple Player Rig",
+        "Type": "Rigs",
         ".blend_name": "Simple_edit_V2.0.blend",
         "Collection_name": "SRE rig"
     }

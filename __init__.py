@@ -16,8 +16,7 @@ bl_info = {
     "doc_url": "",
     "category": "Add Mesh",
 }
-
-# Fix World
+# World & Materials
 
 class BumpBool(bpy.types.PropertyGroup):
     use_bump: bpy.props.BoolProperty(
@@ -26,19 +25,37 @@ class BumpBool(bpy.types.PropertyGroup):
         description="Enables Bump In Materials"
     )
 
-class WorldPanel(bpy.types.Panel):
-    bl_label = "World"
-    bl_idname = "OBJECT_PT_fix_world"
+class WorldAndMaterialsPanel(bpy.types.Panel):
+    bl_label = "World & Materials"
+    bl_idname = "OBJECT_PT_fix_materials"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
 
     def draw(self, context):
         layout = self.layout
+        col = layout.column()
 
         box = layout.box()
         row = box.row()
+        row.label(text="World", icon="WORLD_DATA")
+        row = box.row()
         row.operator("object.fix_world", text="Fix World")
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
+        row = box.row()
+        row.operator("object.create_sky", text="Create Sky")
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="Materials", icon="MATERIAL_DATA")
+        row = box.row()
+        row.operator("object.upgrade_materials", text="Upgrade Materials")
+        row = box.row()
+        row.operator("object.fix_materials", text="Fix Materials")
+        
         box = layout.box()
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
@@ -46,9 +63,6 @@ class WorldPanel(bpy.types.Panel):
         row.prop(context.scene.bump, "use_bump", text="Use Bump")
         row = box.row()
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
-        row = box.row()
-        #row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
-        #row = box.row()
 
 class FixWorldOperator(bpy.types.Operator):
     bl_idname = "object.fix_world"
@@ -58,36 +72,22 @@ class FixWorldOperator(bpy.types.Operator):
         Materials.fix_world()
         return {'FINISHED'}
     
-class SetProceduralPBROperator(bpy.types.Operator):
-    bl_idname = "object.setproceduralpbr"
-    bl_label = "Set Procedural PBR"
+class CreateSkyOperator(bpy.types.Operator):
+    bl_idname = "object.create_sky"
+    bl_label = "Create Sky"
 
     def execute(self, context):
-        Materials.setproceduralpbr()
+        Materials.create_sky()
         return {'FINISHED'}
-#
-    
-# Swap Texture-pack
-
-#
-
-# Fix Materials
-class FixMaterialsPanel(bpy.types.Panel):
-    bl_label = "Materials"
-    bl_idname = "OBJECT_PT_fix_materials"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'Mcblend'
-
-    def draw(self, context):
-        layout = self.layout
         
-        box = layout.box()
-        row = box.row()
-        row.operator("object.upgrade_materials", text="Upgrade Materials")
-        row = box.row()
-        row.operator("object.fix_materials", text="Fix Materials")
-        
+class UpgradeMaterialsOperator(bpy.types.Operator):
+    bl_idname = "object.upgrade_materials"
+    bl_label = "Upgrade Materials"
+
+    def execute(self, context):
+        Materials.upgrade_materials()
+        return {'FINISHED'}
+
 class FixMaterialsOperator(bpy.types.Operator):
     bl_idname = "object.fix_materials"
     bl_label = "Fix Materials"
@@ -96,13 +96,14 @@ class FixMaterialsOperator(bpy.types.Operator):
         Materials.fix_materials()
         return {'FINISHED'}
     
-class UpgradeMaterialsOperator(bpy.types.Operator):
-    bl_idname = "object.upgrade_materials"
-    bl_label = "Upgrade Materials"
+class SetProceduralPBROperator(bpy.types.Operator):
+    bl_idname = "object.setproceduralpbr"
+    bl_label = "Set Procedural PBR"
 
     def execute(self, context):
-        Materials.upgrade_materials()
+        Materials.setproceduralpbr()
         return {'FINISHED'}
+
 #
 
 # Optimization
@@ -111,6 +112,13 @@ class CameraCullingBool(bpy.types.PropertyGroup):
         name="Use Camera Culling",
         default=True,
         description="Enables Camera Culling"
+    )
+
+class RenderSettingsBool(bpy.types.PropertyGroup):
+    set_render_settings: bpy.props.BoolProperty(
+        name="Set Render Settings",
+        default=False,
+        description=""
     )
 
 class OptimizationPanel(bpy.types.Panel):
@@ -126,6 +134,8 @@ class OptimizationPanel(bpy.types.Panel):
         box = layout.box()
         row = box.row()
         row.prop(context.scene.camera_culling, "use_camera_culling", text="Use Camera Culling")
+        row = box.row()
+        row.prop(context.scene.render_settings, "set_render_settings", text="Set Render Settings")
         row = box.row()
         row.operator("object.optimization", text="Optimize")
 
@@ -149,7 +159,7 @@ class AssetPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(context.scene, "selected_rig", text="Selected Rig:")
+        layout.prop(context.scene, "selected_asset", text="Selected Asset:")
         row = layout.row()
         row.operator("object.import_asset", text="Import Asset")
 
@@ -158,14 +168,14 @@ class ImportAssetOperator(bpy.types.Operator):
     bl_label = "Import Asset"
 
     def execute(self, context):
-        selected_rig_key = context.scene.selected_rig
-        if selected_rig_key in Rigs:
-            append_rig(Rigs[selected_rig_key])
+        selected_asset_key = context.scene.selected_asset
+        if selected_asset_key in Assets:
+            append_asset(Assets[selected_asset_key])
         return {'FINISHED'}
 
-def append_rig(rig_data):
-    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", "Rigs", rig_data[".blend_name"])
-    collection_name = rig_data["Collection_name"]
+def append_asset(asset_data):
+    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data[".blend_name"])
+    collection_name = asset_data["Collection_name"]
 
     with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
         data_to.collections = [collection_name]
@@ -174,29 +184,31 @@ def append_rig(rig_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [WorldPanel, FixWorldOperator, SetProceduralPBROperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [BumpBool, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
-    bpy.utils.register_class(BumpBool)
-    bpy.utils.register_class(CameraCullingBool)
-    bpy.types.Scene.bump = bpy.props.PointerProperty(type=BumpBool)
-    bpy.types.Scene.camera_culling = bpy.props.PointerProperty(type=CameraCullingBool)
-    bpy.types.Scene.selected_rig = bpy.props.EnumProperty(
-        items=[(name, data["Name"], "") for name, data in Rigs.items()],
-        description="Select Rig to Import",
-    )
     for cls in classes:
         bpy.utils.register_class(cls)
-        
+    bpy.types.Scene.bump = bpy.props.PointerProperty(type=BumpBool)
+    bpy.types.Scene.camera_culling = bpy.props.PointerProperty(type=CameraCullingBool)
+    bpy.types.Scene.render_settings = bpy.props.PointerProperty(type=RenderSettingsBool)
+    bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
+        items=[(name, data["Name"], "") for name, data in Assets.items()],
+        description="Select Asset to Import",
+    )    
 
 def unregister():
-    bpy.utils.unregister_class(BumpBool)
-    bpy.utils.unregister_class(CameraCullingBool)
-    del bpy.types.Scene.bump
-    del bpy.types.Scene.camera_culling
-    del bpy.types.Scene.selected_rig
     for cls in classes:
         bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.bump
+    del bpy.types.Scene.camera_culling
+    del bpy.types.Scene.render_settings
+    del bpy.types.Scene.selected_asset
 
 if __name__ == "__main__":
     register()
+
+# TODO
+    # - Починить Set render settings
+    # - Починить Create Sky
+    # - Починить bump
