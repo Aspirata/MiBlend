@@ -116,6 +116,8 @@ def setproceduralpbr():
             scene = bpy.context.scene
             image_texture_node = None
             PBSDF = None
+            bump_node = None
+            
 
             if material.node_tree.nodes.get("Principled BSDF") is not None:
                 PBSDF = material.node_tree.nodes.get("Principled BSDF")
@@ -134,13 +136,15 @@ def setproceduralpbr():
                 for node in material.node_tree.nodes:
                     if node.type == "TEX_IMAGE":
                         image_texture_node = material.node_tree.nodes[node.name]
+                    if node.type == "BUMP":
+                        bump_node = material.node_tree.nodes[node.name]
 
-                if scene.bump.use_bump == True and image_texture_node:
+                if scene.bump.use_bump == True and image_texture_node and bump_node == None:
                     bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
-                    bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 200)
+                    bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
                     material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
                     material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                    bump_node.inputs[0].default_value = 0.4
+                    bump_node.inputs[0].default_value = 0.2
                 
         selected_object.data.update()
 #

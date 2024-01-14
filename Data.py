@@ -22,6 +22,7 @@ Metal = [
     "netherite",
     "minecart",
     "lantern",
+    "chain",
     "anvil",
     "clock",
     "cauldron",
@@ -32,7 +33,6 @@ Reflective = [
     "glass",
     "ender",
     "amethyst",
-    "chain",
     "water"
 ]
 

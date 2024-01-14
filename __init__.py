@@ -210,4 +210,3 @@ if __name__ == "__main__":
 
 # TODO
     # - Починить Create Sky
-    # - Починить bump
