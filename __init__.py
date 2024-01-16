@@ -35,6 +35,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
+        world_material_name = "Mcblend World"
 
         box = layout.box()
         row = box.row()
@@ -46,7 +47,13 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        row.operator("object.create_sky", text="Create Sky")
+        if not hasattr(bpy.context.scene.world, 'Rotation'):
+            row.operator("object.create_sky", text="Create Sky")
+        else:
+            if hasattr(bpy.context.scene.world, 'Rotation'):
+                row.prop(bpy.context.scene.world, "Rotation", text="Rotation")
+                row = box.row()
+            row.operator("object.create_sky", text="Recreate Sky")
         
         box = layout.box()
         row = box.row()
@@ -159,8 +166,10 @@ class AssetPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(context.scene, "selected_asset", text="Selected Asset:")
-        row = layout.row()
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene, "selected_asset", text="Selected Asset:")
+        row = box.row()
         row.operator("object.import_asset", text="Import Asset")
 
 class ImportAssetOperator(bpy.types.Operator):
@@ -207,6 +216,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-# TODO
-    # - Починить Create Sky
