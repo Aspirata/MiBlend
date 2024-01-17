@@ -4,6 +4,7 @@ from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
+from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 
 bl_info = {
     "name": "Mcblend",
@@ -16,14 +17,73 @@ bl_info = {
     "doc_url": "",
     "category": "Add Mesh",
 }
-# World & Materials
 
+# World & Materials
 class BumpBool(bpy.types.PropertyGroup):
     use_bump: bpy.props.BoolProperty(
         name="Use Bump",
         default=False,
         description="Enables Bump In Materials"
     )
+
+class RecreateSky(bpy.types.Operator):
+    bl_label = "Recreate Sky"
+    bl_idname = "wm.recreate_sky"
+    
+    reset_settings: BoolProperty(
+        name="Reset Settings",
+        description="Resets the settings",
+        default=True
+    )
+    
+    reappend_material: BoolProperty(
+        name="Reappend Material",
+        description="Reappends Material",
+        default=True
+    )
+
+    def execute(self, context):
+        
+        script_directory = os.path.dirname(os.path.realpath(__file__))
+        blend_file_path = os.path.join(script_directory, "Materials", "Materials.blend")
+
+        world = bpy.context.scene.world
+        world_material_name = "Mcblend World"
+        
+        if self.reset_settings == True:
+            if not hasattr(bpy.context.scene.world, 'Rotation'):
+                del world["Rotation"]
+
+            world["Rotation"] = 0.0
+            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, max=960.0, subtype='ANGLE')
+
+            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+            
+        if self.reappend_material == True:
+            with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                data_to.worlds = [world_material_name]
+            appended_world_material = bpy.data.worlds.get(world_material_name)
+
+            bpy.context.scene.world = appended_world_material
+        
+        return {'FINISHED'}
+        
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=560)
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="WARNING !", icon='ERROR')
+        row = box.row()
+        row.label(text="This option should be used only if something is broken, as this option will reset material and settings")
+        box = layout.box()
+        box.prop(self, "reset_settings")
+        row = box.row()
+        box.prop(self, "reappend_material")
+
 
 class WorldAndMaterialsPanel(bpy.types.Panel):
     bl_label = "World & Materials"
@@ -154,6 +214,26 @@ class OptimizeOperator(bpy.types.Operator):
         Optimize.Optimize()
         return {'FINISHED'}
 #
+    
+#
+    
+class UtilsPanel(bpy.types.Panel):
+    bl_label = "Utils"
+    bl_idname = "OBJECT_PT_utils"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+
+    def draw(self, context):
+        layout = self.layout
+
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene.camera_culling, "use_camera_culling", text="Use Camera Culling")
+        row = box.row()
+        row.prop(context.scene.render_settings, "set_render_settings", text="Set Render Settings")
+        row = box.row()
+        row.operator("object.optimization", text="Optimize")
 
 # Assets
 class AssetPanel(bpy.types.Panel):
@@ -193,7 +273,7 @@ def append_asset(asset_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [BumpBool, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [BumpBool, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
@@ -216,3 +296,8 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
+# TODO:
+    # - Utils - Сделать удалятор пустых фейсов
+    # - Utils - Сделать удалятор пустых фейсов
+    # - World & Materials - Сделать ветер

@@ -13,7 +13,7 @@ def MaterialIn(Array, material):
             return True
         else:
             return False
-    
+            
 def append_materials(upgraded_material_name, selected_object, i):
     if upgraded_material_name not in bpy.data.materials:
         with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
@@ -72,65 +72,14 @@ def fix_world():
 
         selected_object.data.update()
 
-class RecreateSky(bpy.types.Operator):
-    bl_label = "Recreate Sky"
-    bl_idname = "wm.recreate_sky"
-    
-    def execute(self, context):
-
-        world = bpy.context.scene.world
-        world_material_name = "Mcblend World"
-        
-        if hasattr(bpy.context.scene.world, 'Rotation'):
-            del world["Rotation"]
-        else:
-            world["Rotation"] = 0.0
-            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, max=960.0, subtype='ANGLE')
-            
-        bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-        
-        with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-            data_to.worlds = [world_material_name]
-        appended_world_material = bpy.data.worlds.get(world_material_name)
-
-        bpy.context.scene.world = appended_world_material
-            
-        
-        return {'FINISHED'}
-        
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=560)
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        box = layout.box()
-        row = box.row()
-        row.label(text="WARNING !", icon='ERROR')
-        row = box.row()
-        row.label(text="This option should be used only if something is broken, as this option will reset material and settings")
-
-classes = [RecreateSky]
-
-def register():
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
-if __name__ == "__main__":
-    register()
-
-
 def create_sky():
 
     world_material_name = "Mcblend World"
     world = bpy.context.scene.world
     bpy.types.World.Rotation = None
     
-    if hasattr(bpy.context.scene.world, 'Rotation') and bpy.context.scene.world == bpy.data.worlds[world_material_name]:
+    
+    if not hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world == bpy.data.worlds[world_material_name]:
         bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
     else:
         world["Rotation"] = 0.0
