@@ -76,10 +76,8 @@ def create_sky():
 
     world_material_name = "Mcblend World"
     world = bpy.context.scene.world
-    bpy.types.World.Rotation = None
     
-    
-    if not hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world == bpy.data.worlds[world_material_name]:
+    if hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world == bpy.data.worlds[world_material_name]:
         bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
     else:
         world["Rotation"] = 0.0
@@ -136,12 +134,18 @@ def setproceduralpbr():
             if material.node_tree.nodes.get("Principled BSDF") is not None:
                 PBSDF = material.node_tree.nodes.get("Principled BSDF")
 
+                if MaterialIn(Metal, material):
+
                 PBSDF.inputs["Roughness"].default_value = 0.6
                 PBSDF.inputs[12].default_value = 0.4 # Specular
-
-                if MaterialIn(Metal, material):
-                    PBSDF.inputs["Roughness"].default_value = 0.2
-                    PBSDF.inputs["Metallic"].default_value = 0.7
+                
+                if scene.metal.make_metal == True:
+                    if MaterialIn(Metal, material):
+                        PBSDF.inputs["Roughness"].default_value = 0.2
+                        PBSDF.inputs["Metallic"].default_value = 0.7
+                else:
+                    if MaterialIn(Metal, material):
+                        PBSDF.inputs["Metallic"].default_value = 0.0
 
                 if MaterialIn(Reflective, material):
                     PBSDF.inputs["Roughness"].default_value = 0.1

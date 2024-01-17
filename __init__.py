@@ -1,5 +1,6 @@
 import bpy
 import os
+import inspect
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
@@ -11,20 +12,11 @@ bl_info = {
     "author": "Aspirata",
     "version": (0, 0, 1),
     "blender": (4, 0, 0),
-    "location": "View3D > Add > Mesh > New Object",
+    "location": "View3D > Addons Tab",
     "description": "",
-    "warning": "",
-    "doc_url": "",
-    "category": "Add Mesh",
 }
 
 # World & Materials
-class BumpBool(bpy.types.PropertyGroup):
-    use_bump: bpy.props.BoolProperty(
-        name="Use Bump",
-        default=False,
-        description="Enables Bump In Materials"
-    )
 
 class RecreateSky(bpy.types.Operator):
     bl_label = "Recreate Sky"
@@ -51,7 +43,7 @@ class RecreateSky(bpy.types.Operator):
         world_material_name = "Mcblend World"
         
         if self.reset_settings == True:
-            if not hasattr(bpy.context.scene.world, 'Rotation'):
+            if hasattr(bpy.context.scene.world, 'Rotation'):
                 del world["Rotation"]
 
             world["Rotation"] = 0.0
@@ -60,6 +52,10 @@ class RecreateSky(bpy.types.Operator):
             bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
             
         if self.reappend_material == True:
+            if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
+                bpy.data.worlds.get(world_material_name)
+                bpy.context.scene.world = None
+
             with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
                 data_to.worlds = [world_material_name]
             appended_world_material = bpy.data.worlds.get(world_material_name)
@@ -81,8 +77,23 @@ class RecreateSky(bpy.types.Operator):
         row.label(text="This option should be used only if something is broken, as this option will reset material and settings")
         box = layout.box()
         box.prop(self, "reset_settings")
-        row = box.row()
         box.prop(self, "reappend_material")
+
+class BumpBool(bpy.types.PropertyGroup):
+    use_bump: bpy.props.BoolProperty(
+        name="Use Bump",
+        default=False,
+        description="Enables Bump In Materials"
+    )
+
+class MetalBool(bpy.types.PropertyGroup):
+    make_metal: bpy.props.BoolProperty(
+        name="Make_Metal",
+        default=False,
+        description="Enambles PBR For Metallic Materials"
+    )
+
+
 
 
 class WorldAndMaterialsPanel(bpy.types.Panel):
@@ -107,12 +118,11 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        if not hasattr(bpy.context.scene.world, 'Rotation'):
+        if not hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world != bpy.data.worlds[world_material_name]:
             row.operator("object.create_sky", text="Create Sky")
         else:
-            if hasattr(bpy.context.scene.world, 'Rotation'):
-                row.prop(bpy.context.scene.world, "Rotation", text="Rotation")
-                row = box.row()
+            row.prop(bpy.context.scene.world, "Rotation", text="Rotation")
+            row = box.row()
             row.operator("object.create_sky", text="Recreate Sky")
         
         box = layout.box()
@@ -128,6 +138,8 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
         row.prop(context.scene.bump, "use_bump", text="Use Bump")
+        row = box.row()
+        row.prop(context.scene.metal, "make_metal", text="Make Metal")
         row = box.row()
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
 
@@ -215,7 +227,7 @@ class OptimizeOperator(bpy.types.Operator):
         return {'FINISHED'}
 #
     
-#
+# Utils
     
 class UtilsPanel(bpy.types.Panel):
     bl_label = "Utils"
@@ -229,11 +241,8 @@ class UtilsPanel(bpy.types.Panel):
 
         box = layout.box()
         row = box.row()
-        row.prop(context.scene.camera_culling, "use_camera_culling", text="Use Camera Culling")
-        row = box.row()
-        row.prop(context.scene.render_settings, "set_render_settings", text="Set Render Settings")
-        row = box.row()
-        row.operator("object.optimization", text="Optimize")
+
+        row.operator("object.optimization", text="Delete Alpha Faces")
 
 # Assets
 class AssetPanel(bpy.types.Panel):
@@ -273,12 +282,13 @@ def append_asset(asset_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [BumpBool, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [BumpBool, MetalBool, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.bump = bpy.props.PointerProperty(type=BumpBool)
+    bpy.types.Scene.metal = bpy.props.PointerProperty(type=MetalBool)
     bpy.types.Scene.camera_culling = bpy.props.PointerProperty(type=CameraCullingBool)
     bpy.types.Scene.render_settings = bpy.props.PointerProperty(type=RenderSettingsBool)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
@@ -289,6 +299,7 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.metal
     del bpy.types.Scene.bump
     del bpy.types.Scene.camera_culling
     del bpy.types.Scene.render_settings
