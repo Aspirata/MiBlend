@@ -53,8 +53,7 @@ class RecreateSky(bpy.types.Operator):
             
         if self.reappend_material == True:
             if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
-                bpy.data.worlds.get(world_material_name)
-                bpy.context.scene.world = None
+                bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
 
             with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
                 data_to.worlds = [world_material_name]
@@ -78,6 +77,7 @@ class RecreateSky(bpy.types.Operator):
         box = layout.box()
         box.prop(self, "reset_settings")
         box.prop(self, "reappend_material")
+
 
 class BumpBool(bpy.types.PropertyGroup):
     use_bump: bpy.props.BoolProperty(
@@ -118,7 +118,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        if not hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world != bpy.data.worlds[world_material_name]:
+        if not hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
             row.operator("object.create_sky", text="Create Sky")
         else:
             row.prop(bpy.context.scene.world, "Rotation", text="Rotation")
