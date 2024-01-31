@@ -86,15 +86,20 @@ class BumpBool(bpy.types.PropertyGroup):
         description="Enables Bump In Materials"
     )
 
+    bump_strenght: bpy.props.FloatProperty(
+        name="Bump Strenght",
+        default=0.2,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
 class MetalBool(bpy.types.PropertyGroup):
     make_metal: bpy.props.BoolProperty(
         name="Make_Metal",
         default=False,
         description="Enambles PBR For Metallic Materials"
     )
-
-
-
 
 class WorldAndMaterialsPanel(bpy.types.Panel):
     bl_label = "World & Materials"
@@ -138,6 +143,9 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
         row.prop(context.scene.bump, "use_bump", text="Use Bump")
+        if bpy.context.scene.bump.use_bump == True:
+            row = box.row()
+            row.prop(bpy.context.scene.bump, "bump_strenght", slider=True, text="Bump Strength")
         row = box.row()
         row.prop(context.scene.metal, "make_metal", text="Make Metal")
         row = box.row()
