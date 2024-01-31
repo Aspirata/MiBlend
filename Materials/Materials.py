@@ -34,9 +34,9 @@ def upgrade_materials():
                         
 def fix_world():
     for selected_object in bpy.context.selected_objects:
-        if material in selected_object.data.materials != None:
-            for material in selected_object.data.materials:
-                PBSDF = None
+        for material in selected_object.data.materials:
+            PBSDF = None
+            if material != None:
                 if MaterialIn(Alpha_Blend_Materials, material):
                     material.blend_method = 'BLEND'
                 else:
@@ -70,10 +70,9 @@ def fix_world():
                         material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
                         material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
-
-            selected_object.data.update()
-        else:
-            raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
+                selected_object.data.update()
+            else:
+                raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
 
 def create_sky():
 
@@ -131,49 +130,52 @@ def fix_materials():
 def setproceduralpbr():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
-            scene = bpy.context.scene
-            image_texture_node = None
-            PBSDF = None
-            bump_node = None
-            
-
-            if material.node_tree.nodes.get("Principled BSDF") is not None:
-                PBSDF = material.node_tree.nodes.get("Principled BSDF")
-
-                PBSDF.inputs["Roughness"].default_value = 0.6
-                PBSDF.inputs[12].default_value = 0.4 # Specular
+            if material != None:
+                scene = bpy.context.scene
+                image_texture_node = None
+                PBSDF = None
+                bump_node = None
                 
-                if scene.metal.make_metal == True:
-                    if MaterialIn(Metal, material):
-                        PBSDF.inputs["Roughness"].default_value = 0.2
-                        PBSDF.inputs["Metallic"].default_value = 0.7
-                else:
-                    if MaterialIn(Metal, material):
-                        PBSDF.inputs["Metallic"].default_value = 0.0
 
-                if MaterialIn(Reflective, material):
-                    PBSDF.inputs["Roughness"].default_value = 0.1
+                if material.node_tree.nodes.get("Principled BSDF") is not None:
+                    PBSDF = material.node_tree.nodes.get("Principled BSDF")
 
-                for node in material.node_tree.nodes:
-                    if node.type == "TEX_IMAGE":
-                        image_texture_node = material.node_tree.nodes[node.name]
-                    if node.type == "BUMP":
-                        bump_node = material.node_tree.nodes[node.name]
+                    PBSDF.inputs["Roughness"].default_value = bpy.context.scene.ppbr_properties.roughness
+                    PBSDF.inputs[12].default_value = bpy.context.scene.ppbr_properties.specular
+                    
+                    if scene.ppbr_properties.make_metal == True:
+                        if MaterialIn(Metal, material):
+                            PBSDF.inputs["Roughness"].default_value = 0.2
+                            PBSDF.inputs["Metallic"].default_value = 0.7
+                    else:
+                        if MaterialIn(Metal, material):
+                            PBSDF.inputs["Metallic"].default_value = 0.0
 
-                if scene.bump.use_bump == True:
-                    if image_texture_node and bump_node == None:
-                        bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
-                        bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
-                        material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                        bump_node.inputs[0].default_value = bpy.context.scene.bump.bump_strenght
-                    if bump_node != None:
-                        bump_node.inputs[0].default_value = bpy.context.scene.bump.bump_strenght
-                else:
-                    if material.node_tree.nodes.get("Bump") is not None:
-                        bump_node = material.node_tree.nodes.get("Bump")
-                        material.node_tree.nodes.remove(bump_node)
-                        
+                    if MaterialIn(Reflective, material):
+                        PBSDF.inputs["Roughness"].default_value = 0.1
+
+                    for node in material.node_tree.nodes:
+                        if node.type == "TEX_IMAGE":
+                            image_texture_node = material.node_tree.nodes[node.name]
+                        if node.type == "BUMP":
+                            bump_node = material.node_tree.nodes[node.name]
+
+                    if scene.ppbr_properties.use_bump == True:
+                        if image_texture_node and bump_node == None:
+                            bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
+                            bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
+                            material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
+                            material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
+                            bump_node.inputs[0].default_value = bpy.context.scene.ppbr_properties.bump_strenght
+                        if bump_node != None:
+                            bump_node.inputs[0].default_value = bpy.context.scene.ppbr_properties.bump_strenght
+                    else:
+                        if material.node_tree.nodes.get("Bump") is not None:
+                            bump_node = material.node_tree.nodes.get("Bump")
+                            material.node_tree.nodes.remove(bump_node)
+            else:
+                raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
+            
         selected_object.data.update()
 #
         

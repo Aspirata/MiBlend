@@ -79,7 +79,7 @@ class RecreateSky(bpy.types.Operator):
         box.prop(self, "reappend_material")
 
 
-class BumpBool(bpy.types.PropertyGroup):
+class PPBRProperties(bpy.types.PropertyGroup):
     use_bump: bpy.props.BoolProperty(
         name="Use Bump",
         default=False,
@@ -94,11 +94,32 @@ class BumpBool(bpy.types.PropertyGroup):
         description=""
     )
 
-class MetalBool(bpy.types.PropertyGroup):
     make_metal: bpy.props.BoolProperty(
-        name="Make_Metal",
-        default=False,
-        description="Enambles PBR For Metallic Materials"
+    name="Make_Metal",
+    default=False,
+    description="Enambles PBR For Metallic Materials"
+    )
+
+    advanced_settings: bpy.props.BoolProperty(
+    name="Advanced Settings",
+    default=False,
+    description=""
+    )
+
+    specular: bpy.props.FloatProperty(
+    name="Specular",
+    default=0.4,
+    min=0.0,
+    max=1.0,
+    description=""
+    )
+
+    roughness: bpy.props.FloatProperty(
+    name="Roughness",
+    default=0.6,
+    min=0.0,
+    max=1.0,
+    description=""
     )
 
 class WorldAndMaterialsPanel(bpy.types.Panel):
@@ -142,12 +163,20 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
-        row.prop(context.scene.bump, "use_bump", text="Use Bump")
-        if bpy.context.scene.bump.use_bump == True:
+        row.prop(context.scene.ppbr_properties, "use_bump", text="Use Bump")
+        if bpy.context.scene.ppbr_properties.use_bump:
             row = box.row()
-            row.prop(bpy.context.scene.bump, "bump_strenght", slider=True, text="Bump Strength")
+            row.prop(bpy.context.scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
         row = box.row()
-        row.prop(context.scene.metal, "make_metal", text="Make Metal")
+        row.prop(context.scene.ppbr_properties, "make_metal", text="Make Metal")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+        if bpy.context.scene.ppbr_properties.advanced_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.prop(bpy.context.scene.ppbr_properties, "specular", slider=True, text="Specular")
+            row = sbox.row()
+            row.prop(bpy.context.scene.ppbr_properties, "roughness", slider=True, text="Roughness")
         row = box.row()
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
 
@@ -290,13 +319,12 @@ def append_asset(asset_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [BumpBool, MetalBool, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.bump = bpy.props.PointerProperty(type=BumpBool)
-    bpy.types.Scene.metal = bpy.props.PointerProperty(type=MetalBool)
+    bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.camera_culling = bpy.props.PointerProperty(type=CameraCullingBool)
     bpy.types.Scene.render_settings = bpy.props.PointerProperty(type=RenderSettingsBool)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
