@@ -105,22 +105,25 @@ def create_sky():
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
-            image_texture_node = None
-            PBSDF = None
+            if material != None:
+                image_texture_node = None
+                PBSDF = None
 
-            material.blend_method = 'HASHED'
+                material.blend_method = 'HASHED'
 
-            for node in material.node_tree.nodes:
-                if node.type == "TEX_IMAGE":
-                    image_texture_node = material.node_tree.nodes[node.name]
-                    material.node_tree.nodes[node.name].interpolation = "Closest" 
+                for node in material.node_tree.nodes:
+                    if node.type == "TEX_IMAGE":
+                        image_texture_node = material.node_tree.nodes[node.name]
+                        material.node_tree.nodes[node.name].interpolation = "Closest" 
+                
+                if material.node_tree.nodes.get("Principled BSDF") != None:
+                    PBSDF = material.node_tree.nodes.get("Principled BSDF")
+
+                if (image_texture_node and PBSDF) != None:
+                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
+            else:
+                raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
             
-            if material.node_tree.nodes.get("Principled BSDF") != None:
-                PBSDF = material.node_tree.nodes.get("Principled BSDF")
-
-            if (image_texture_node and PBSDF) != None:
-                material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
-
         selected_object.data.update()
 
 #
@@ -140,8 +143,9 @@ def setproceduralpbr():
                 if material.node_tree.nodes.get("Principled BSDF") is not None:
                     PBSDF = material.node_tree.nodes.get("Principled BSDF")
 
-                    PBSDF.inputs["Roughness"].default_value = bpy.context.scene.ppbr_properties.roughness
-                    PBSDF.inputs[12].default_value = bpy.context.scene.ppbr_properties.specular
+                    if scene.ppbr_properties.change_bsdf_settings:
+                        PBSDF.inputs["Roughness"].default_value = bpy.context.scene.ppbr_properties.roughness
+                        PBSDF.inputs[12].default_value = bpy.context.scene.ppbr_properties.specular
                     
                     if scene.ppbr_properties.make_metal == True:
                         if MaterialIn(Metal, material):
@@ -180,7 +184,6 @@ def setproceduralpbr():
 #
         
 # TODO:
-    # PPBR - Сделать так чтобы при отсутствии галочки на bump, bump бы удалялся
     # Upgrade World - Сделать так чтобы выбирались определённые фейсы у мира > они отделялись от него в отдельный объект > Как-то группировались > Производилась замена этих объектов на риги (Сундук)
     # Texture logic - Сделать использование текстур из папки, например из папки tex или из папки майнкрафта
     # Upgrade World - Сщединённое стекло: Импортировать текстуры соединённого > Выбираются фейсы с материалом стекла > Математически вычислить находятся ли стёкла рядом (if Glass.location.x + 1: поставить сообтветствующую текстуру стекла)

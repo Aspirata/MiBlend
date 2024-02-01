@@ -23,11 +23,11 @@ def Camera_Culling(obj):
 def Optimize():
     selected_objects = bpy.context.selected_objects
     scene = bpy.context.scene
-    if scene.camera_culling.use_camera_culling == True:
+    if scene.optimizationproperties.use_camera_culling == True:
         for obj in selected_objects:
             Camera_Culling(obj)
     
-    if scene.render_settings.set_render_settings == True and scene.render.engine == 'CYCLES':
+    if scene.optimizationproperties.set_render_settings == True and scene.render.engine == 'CYCLES':
         scene.cycles.use_preview_adaptive_sampling = True
         scene.cycles.preview_adaptive_threshold = 0.1
         scene.cycles.preview_samples = 128

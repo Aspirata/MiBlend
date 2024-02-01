@@ -96,13 +96,19 @@ class PPBRProperties(bpy.types.PropertyGroup):
 
     make_metal: bpy.props.BoolProperty(
     name="Make_Metal",
-    default=False,
+    default=True,
     description="Enambles PBR For Metallic Materials"
     )
 
     advanced_settings: bpy.props.BoolProperty(
     name="Advanced Settings",
     default=False,
+    description=""
+    )
+
+    change_bsdf_settings: bpy.props.BoolProperty(
+    name="Change Bsdf Settings",
+    default=True,
     description=""
     )
 
@@ -121,6 +127,7 @@ class PPBRProperties(bpy.types.PropertyGroup):
     max=1.0,
     description=""
     )
+
 
 class WorldAndMaterialsPanel(bpy.types.Panel):
     bl_label = "World & Materials"
@@ -174,9 +181,12 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         if bpy.context.scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
-            row.prop(bpy.context.scene.ppbr_properties, "specular", slider=True, text="Specular")
-            row = sbox.row()
-            row.prop(bpy.context.scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+            row.prop(context.scene.ppbr_properties, "change_bsdf_settings", text="Change Bsdf Settings")
+            if  bpy.context.scene.ppbr_properties.change_bsdf_settings:
+                row = sbox.row()
+                row.prop(bpy.context.scene.ppbr_properties, "specular", slider=True, text="Specular")
+                row = sbox.row()
+                row.prop(bpy.context.scene.ppbr_properties, "roughness", slider=True, text="Roughness")
         row = box.row()
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
 
@@ -223,14 +233,13 @@ class SetProceduralPBROperator(bpy.types.Operator):
 #
 
 # Optimization
-class CameraCullingBool(bpy.types.PropertyGroup):
+class OptimizationProperties(bpy.types.PropertyGroup):
     use_camera_culling: bpy.props.BoolProperty(
         name="Use Camera Culling",
         default=True,
         description="Enables Camera Culling"
     )
 
-class RenderSettingsBool(bpy.types.PropertyGroup):
     set_render_settings: bpy.props.BoolProperty(
         name="Set Render Settings",
         default=False,
@@ -279,7 +288,7 @@ class UtilsPanel(bpy.types.Panel):
         box = layout.box()
         row = box.row()
 
-        row.operator("object.optimization", text="Delete Alpha Faces")
+        row.operator("object.optimization", text="Turn On Contact Shadows")
 
 # Assets
 class AssetPanel(bpy.types.Panel):
@@ -319,14 +328,13 @@ def append_asset(asset_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, CameraCullingBool, RenderSettingsBool, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
-    bpy.types.Scene.camera_culling = bpy.props.PointerProperty(type=CameraCullingBool)
-    bpy.types.Scene.render_settings = bpy.props.PointerProperty(type=RenderSettingsBool)
+    bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
         items=[(name, data["Name"], "") for name, data in Assets.items()],
         description="Select Asset to Import",
