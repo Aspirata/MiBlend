@@ -5,6 +5,7 @@ from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
+from .Utils import *
 from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 
 bl_info = {
@@ -258,9 +259,9 @@ class OptimizationPanel(bpy.types.Panel):
 
         box = layout.box()
         row = box.row()
-        row.prop(context.scene.camera_culling, "use_camera_culling", text="Use Camera Culling")
+        row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
         row = box.row()
-        row.prop(context.scene.render_settings, "set_render_settings", text="Set Render Settings")
+        row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
         row = box.row()
         row.operator("object.optimization", text="Optimize")
 
@@ -287,8 +288,29 @@ class UtilsPanel(bpy.types.Panel):
 
         box = layout.box()
         row = box.row()
+        row.label(text="Rendering")
+        if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
+            row = box.row()
+            row.operator("object.cshadows", text="Turn On Contact Shadows")
+        
+        row = box.row()
+        row.operator("object.sleppafterrender", text="Sleep After Render")
 
-        row.operator("object.optimization", text="Turn On Contact Shadows")
+class SleepAfterRenderOperator(bpy.types.Operator):
+    bl_idname = "object.sleppafterrender"
+    bl_label = "Sleep After Render"
+
+    def execute(self, context):
+        sleep_after_render()
+        return {'FINISHED'}
+
+class CShadowsOperator(bpy.types.Operator):
+    bl_idname = "object.cshadows"
+    bl_label = "Contact Shadows"
+
+    def execute(self, context):
+        CShadows()
+        return {'FINISHED'}
 
 # Assets
 class AssetPanel(bpy.types.Panel):
@@ -328,7 +350,7 @@ def append_asset(asset_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
