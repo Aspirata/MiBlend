@@ -89,7 +89,7 @@ class PPBRProperties(bpy.types.PropertyGroup):
 
     bump_strenght: bpy.props.FloatProperty(
         name="Bump Strenght",
-        default=0.2,
+        default=0.4,
         min=0.0,
         max=1.0,
         description=""
@@ -108,7 +108,7 @@ class PPBRProperties(bpy.types.PropertyGroup):
     )
 
     change_bsdf_settings: bpy.props.BoolProperty(
-    name="Change Bsdf Settings",
+    name="Change BSDF Settings",
     default=True,
     description=""
     )
@@ -182,7 +182,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         if bpy.context.scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
-            row.prop(context.scene.ppbr_properties, "change_bsdf_settings", text="Change Bsdf Settings")
+            row.prop(context.scene.ppbr_properties, "change_bsdf_settings", text="Change BSDF Settings")
             if  bpy.context.scene.ppbr_properties.change_bsdf_settings:
                 row = sbox.row()
                 row.prop(bpy.context.scene.ppbr_properties, "specular", slider=True, text="Specular")
@@ -276,6 +276,13 @@ class OptimizeOperator(bpy.types.Operator):
     
 # Utils
     
+class UtilsProperties(bpy.types.PropertyGroup):
+    cshadowsselection: bpy.props.BoolProperty(
+        name="CShadows Selection",
+        default=False,
+        description=""
+    )
+
 class UtilsPanel(bpy.types.Panel):
     bl_label = "Utils"
     bl_idname = "OBJECT_PT_utils"
@@ -290,6 +297,9 @@ class UtilsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Rendering")
         if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
+            row = box.row()
+            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="All Objects", toggle=True)
+            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="Only Selected Objects", toggle=True)
             row = box.row()
             row.operator("object.cshadows", text="Turn On Contact Shadows")
         
@@ -350,11 +360,12 @@ def append_asset(asset_data):
         bpy.context.collection.children.link(collection)
 #
 
-classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    bpy.types.Scene.utils_properties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
@@ -365,10 +376,9 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-    del bpy.types.Scene.metal
-    del bpy.types.Scene.bump
-    del bpy.types.Scene.camera_culling
-    del bpy.types.Scene.render_settings
+    del bpy.types.Scene.utils_properties
+    del bpy.types.Scene.ppbr_properties
+    del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.selected_asset
 
 if __name__ == "__main__":
@@ -376,5 +386,5 @@ if __name__ == "__main__":
 
 # TODO:
     # - Utils - Сделать удалятор пустых фейсов
-    # - Utils - Сделать удалятор пустых фейсов
+    # - Utils - Сделать настройку для CShadows All Objects/Only Selected Objects
     # - World & Materials - Сделать ветер

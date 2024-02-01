@@ -12,8 +12,8 @@ This is an experimental branch. I'm testing new features here
 | Feature | Stage | Current State |
 | --- | --- | --- |
 | Upgrade Materials | Done | Upgrade materials function is fully working |
-| Procedural PBR | WIP | It works, but I'm still polishing Data.py |
-| Fix Materials & Fix World | Done | It works ig |
+| Procedural PBR | WIP | It works, but I'm still adding new setting and features |
+| Fix Materials & Fix World | Done | It works |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
 | Assets | Done | It works, but there is only SRE in built-in assets, also assets needs a better UI |
 | Optimization | WIP | There are only two Optimizing options |

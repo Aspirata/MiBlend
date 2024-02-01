@@ -12,7 +12,8 @@ Backface_Culling_Materials = [
 
 Alpha_Blend_Materials = [
     "water",
-    "glass"
+    "glass",
+    "ice"
 ]
 
 Metal = [
