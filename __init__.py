@@ -81,6 +81,7 @@ class RecreateSky(bpy.types.Operator):
 
 
 class PPBRProperties(bpy.types.PropertyGroup):
+
     use_bump: bpy.props.BoolProperty(
         name="Use Bump",
         default=False,
@@ -104,6 +105,12 @@ class PPBRProperties(bpy.types.PropertyGroup):
     advanced_settings: bpy.props.BoolProperty(
     name="Advanced Settings",
     default=False,
+    description=""
+    )
+
+    backface_culling: bpy.props.BoolProperty(
+    name="Backface Culling",
+    default=True,
     description=""
     )
 
@@ -142,12 +149,15 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         col = layout.column()
         world_material_name = "Mcblend World"
 
+        
+
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
         row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "backface_culling", text="Backface Culling")
+        row = box.row()
         row.operator("object.fix_world", text="Fix World")
-        
         box = layout.box()
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
@@ -171,12 +181,12 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
-        row.prop(context.scene.ppbr_properties, "use_bump", text="Use Bump")
+        row.prop(bpy.context.scene.ppbr_properties, "use_bump", text="Use Bump")
         if bpy.context.scene.ppbr_properties.use_bump:
             row = box.row()
             row.prop(bpy.context.scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
         row = box.row()
-        row.prop(context.scene.ppbr_properties, "make_metal", text="Make Metal")
+        row.prop(bpy.context.scene.ppbr_properties, "make_metal", text="Make Metal")
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
         if bpy.context.scene.ppbr_properties.advanced_settings:

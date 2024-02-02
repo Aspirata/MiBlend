@@ -56,7 +56,7 @@ def fix_world():
                     if MaterialIn(Emissive_Materials, material):
                         material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
-                    if MaterialIn(Backface_Culling_Materials, material):
+                    if MaterialIn(Backface_Culling_Materials, material) and bpy.context.scene.ppbr_properties.backface_culling:
                         material.use_backface_culling = True
                         geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
                         geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
