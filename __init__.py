@@ -357,6 +357,7 @@ class ImportAssetOperator(bpy.types.Operator):
         selected_asset_key = context.scene.selected_asset
         if selected_asset_key in Assets:
             append_asset(Assets[selected_asset_key])
+            context.view_layer.update()
         return {'FINISHED'}
 
 def append_asset(asset_data):
@@ -368,6 +369,7 @@ def append_asset(asset_data):
 
     for collection in data_to.collections:
         bpy.context.collection.children.link(collection)
+
 #
 
 classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
