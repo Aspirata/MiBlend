@@ -43,15 +43,6 @@ class RecreateSky(bpy.types.Operator):
         world = bpy.context.scene.world
         world_material_name = "Mcblend World"
         
-        if self.reset_settings == True:
-            if hasattr(bpy.context.scene.world, 'Rotation'):
-                del world["Rotation"]
-
-            world["Rotation"] = 0.0
-            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, max=960.0, subtype='ANGLE')
-
-            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-            
         if self.reappend_material == True:
             if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
                 bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
@@ -62,6 +53,15 @@ class RecreateSky(bpy.types.Operator):
 
             bpy.context.scene.world = appended_world_material
         
+        if self.reset_settings == True:
+            if hasattr(world, 'Rotation') and self.reappend_material == False:
+                del world["Rotation"]
+
+            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, subtype='ANGLE')
+            world["Rotation"] = 0.0
+
+            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+            
         return {'FINISHED'}
         
     def invoke(self, context, event):

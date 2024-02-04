@@ -80,12 +80,9 @@ def create_sky():
     world_material_name = "Mcblend World"
     world = bpy.context.scene.world
     
-    if hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
+    if hasattr(world, 'Rotation') or bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
         bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
     else:
-        world["Rotation"] = 0.0
-        bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, max=960.0, subtype='ANGLE')
-
         try:
             if world_material_name not in bpy.data.worlds:
                 with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
@@ -97,6 +94,8 @@ def create_sky():
 
         except FileNotFoundError as err:
             print(f"Не найден файл мира, код ошибки 003: {err}")
+
+        bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, max=960.0, subtype='ANGLE')
 
 #def create_clouds():
 
