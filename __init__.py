@@ -32,7 +32,7 @@ class RecreateSky(bpy.types.Operator):
     reappend_material: BoolProperty(
         name="Reappend Material",
         description="Reappends Material",
-        default=True
+        default=False
     )
 
     def execute(self, context):
@@ -44,6 +44,7 @@ class RecreateSky(bpy.types.Operator):
         world_material_name = "Mcblend World"
         
         if self.reappend_material == True:
+
             if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
                 bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
 
@@ -52,13 +53,23 @@ class RecreateSky(bpy.types.Operator):
             appended_world_material = bpy.data.worlds.get(world_material_name)
 
             bpy.context.scene.world = appended_world_material
+
+            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation Of World", default=0.0, min=0.0, subtype='ANGLE')
+            try:
+                if "Rotation" in world:
+                    world["Rotation"] = 0.0
+            except:
+                print("World Has No Rotation Property")
         
         if self.reset_settings == True:
-            if hasattr(world, 'Rotation') and self.reappend_material == False:
-                del world["Rotation"]
+            if self.reappend_material == False:
+                try:
+                    if "Rotation" in world:
+                        del world["Rotation"]
+                except:
+                    print("World Has No Rotation Property")
 
-            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, subtype='ANGLE')
-            world["Rotation"] = 0.0
+            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation Of World", default=0.0, min=0.0, subtype='ANGLE')
 
             bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
             
@@ -147,6 +158,8 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
+
+        world = bpy.context.scene.world
         world_material_name = "Mcblend World"
 
         
@@ -162,9 +175,9 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        if not hasattr(bpy.context.scene.world, 'Rotation') or bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
+        if "Rotation" not in world and bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
             row.operator("object.create_sky", text="Create Sky")
-        else:
+        if "Rotation" in world or bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
             row.prop(bpy.context.scene.world, "Rotation", text="Rotation")
             row = box.row()
             row.operator("object.create_sky", text="Recreate Sky")
