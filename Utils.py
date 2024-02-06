@@ -1,7 +1,7 @@
 import bpy
 import os
 def CShadows():
-    if bpy.context.scene.utilsproperties.cshadowsselection == True:
+    if bpy.context.scene.utils_properties.cshadowsselection == True:
         for obj in bpy.context.selected_objects:
             if hasattr(obj.data, 'use_contact_shadow'):
                 obj.data.use_contact_shadow = True

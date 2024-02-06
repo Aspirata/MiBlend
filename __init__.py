@@ -55,17 +55,19 @@ class RecreateSky(bpy.types.Operator):
             bpy.context.scene.world = appended_world_material
         
         if self.reset_settings == True:
-            if self.reappend_material == False:
-                try:
-                    if "Rotation" in world:
-                        del world["Rotation"]
-                except:
-                    print("World Has No Rotation Property")
+            world_material = bpy.context.scene.world.node_tree
 
-            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation Of World", default=0.0, min=0.0, subtype='ANGLE')
-
-            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-            
+            node_group = None
+            for node in world_material.nodes:
+                if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
+                    node_group = node
+                    break
+            node_group.inputs["Moon Strenght"].default_value = 200.0
+            node_group.inputs["Sun Strength"].default_value = 200.0
+            node_group.inputs["Stars Strength"].default_value = 800.0
+            node_group.inputs["Non-Camera Ambient Light Strenght"].default_value = 1.0
+            node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
+            node_group.inputs["Rotation"].default_value = 0
         return {'FINISHED'}
         
     def invoke(self, context, event):
@@ -140,6 +142,13 @@ class PPBRProperties(bpy.types.PropertyGroup):
     description=""
     )
 
+class CreateSkyProperties(bpy.types.PropertyGroup):
+
+    advanced_settings: bpy.props.BoolProperty(
+        name="Advanced Settings",
+        default=False,
+        description=""
+    )
 
 class WorldAndMaterialsPanel(bpy.types.Panel):
     bl_label = "World & Materials"
@@ -162,9 +171,6 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
                 node_group = node
                 break
 
-        if not node_group:
-            print("Группа нод 'Mcblend Sky' не найдена в материале мира.")
-
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
@@ -180,6 +186,20 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
             row.operator("object.create_sky", text="Create Sky")
         else:
             row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
+            row = box.row()
+            row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+            if bpy.context.scene.sky_properties.advanced_settings:
+                sbox = box.box()
+                row = sbox.row()
+                row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                row = sbox.row()
+                row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                row = sbox.row()
+                row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                row = sbox.row()
+                row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
+                row = sbox.row()
+                row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
             row = box.row()
             row.operator("object.create_sky", text="Recreate Sky")
         
@@ -322,8 +342,7 @@ class UtilsPanel(bpy.types.Panel):
         row.label(text="Rendering")
         if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
             row = box.row()
-            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="All Objects", toggle=True)
-            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="Only Selected Objects", toggle=True)
+            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="All Objects/Only Selected Objects", toggle=True)
             row = box.row()
             row.operator("object.cshadows", text="Turn On Contact Shadows")
         
@@ -386,11 +405,12 @@ def append_asset(asset_data):
 
 #
 
-classes = [PPBRProperties, RecreateSky, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
     bpy.types.Scene.utils_properties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
@@ -402,6 +422,7 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.sky_properties
     del bpy.types.Scene.utils_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
