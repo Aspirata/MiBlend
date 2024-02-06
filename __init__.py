@@ -11,7 +11,7 @@ from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "blender": (4, 0, 0),
     "location": "View3D > Addons Tab",
     "description": "",
