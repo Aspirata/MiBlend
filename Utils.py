@@ -12,5 +12,8 @@ def CShadows():
                 obj.data.use_contact_shadow = True
                 obj.data.contact_shadow_thickness = 0.01
 
-def sleep_after_render():
+def sleep_after_render(dummy):
     os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+    
+def sleep_detector():
+    bpy.app.handlers.render_complete.append(sleep_after_render)

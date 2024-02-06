@@ -355,7 +355,7 @@ class SleepAfterRenderOperator(bpy.types.Operator):
     bl_label = "Sleep After Render"
 
     def execute(self, context):
-        bpy.app.handlers.render_complete.append(sleep_after_render)
+        sleep_detector()
         return {'FINISHED'}
 
 class CShadowsOperator(bpy.types.Operator):
