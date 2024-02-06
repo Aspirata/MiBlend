@@ -53,13 +53,6 @@ class RecreateSky(bpy.types.Operator):
             appended_world_material = bpy.data.worlds.get(world_material_name)
 
             bpy.context.scene.world = appended_world_material
-
-            bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation Of World", default=0.0, min=0.0, subtype='ANGLE')
-            try:
-                if "Rotation" in world:
-                    world["Rotation"] = 0.0
-            except:
-                print("World Has No Rotation Property")
         
         if self.reset_settings == True:
             if self.reappend_material == False:
@@ -161,8 +154,16 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
 
         world = bpy.context.scene.world
         world_material_name = "Mcblend World"
+        world_material = bpy.context.scene.world.node_tree
 
-        
+        node_group = None
+        for node in world_material.nodes:
+            if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
+                node_group = node
+                break
+
+        if not node_group:
+            print("Группа нод 'Mcblend Sky' не найдена в материале мира.")
 
         box = layout.box()
         row = box.row()
@@ -175,10 +176,10 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        if "Rotation" not in world and bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
+        if bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
             row.operator("object.create_sky", text="Create Sky")
-        if "Rotation" in world or bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
-            row.prop(bpy.context.scene.world, "Rotation", text="Rotation")
+        else:
+            row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
             row = box.row()
             row.operator("object.create_sky", text="Recreate Sky")
         
