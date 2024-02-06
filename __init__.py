@@ -315,6 +315,7 @@ class OptimizeOperator(bpy.types.Operator):
 
     def execute(self, context):
         Optimize.Optimize()
+        context.view_layer.update()
         return {'FINISHED'}
 #
     
@@ -354,7 +355,7 @@ class SleepAfterRenderOperator(bpy.types.Operator):
     bl_label = "Sleep After Render"
 
     def execute(self, context):
-        sleep_after_render()
+        bpy.app.handlers.render_complete.append(sleep_after_render)
         return {'FINISHED'}
 
 class CShadowsOperator(bpy.types.Operator):
