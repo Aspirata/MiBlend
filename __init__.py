@@ -1,35 +1,239 @@
 import bpy
 import os
+import inspect
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
+from .Utils import *
+from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "blender": (4, 0, 0),
-    "location": "View3D > Add > Mesh > New Object",
+    "location": "View3D > Addons Tab",
     "description": "",
-    "warning": "",
-    "doc_url": "",
-    "category": "Add Mesh",
 }
 
-# Fix World
-class FixWorldPanel(bpy.types.Panel):
-    bl_label = "World"
-    bl_idname = "OBJECT_PT_fix_world"
+# World & Materials
+
+class RecreateSky(bpy.types.Operator):
+    bl_label = "Recreate Sky"
+    bl_idname = "wm.recreate_sky"
+    
+    reset_settings: BoolProperty(
+        name="Reset Settings",
+        description="Resets the settings",
+        default=True
+    )
+    
+    reappend_material: BoolProperty(
+        name="Reappend Material",
+        description="Reappends Material",
+        default=False
+    )
+
+    def execute(self, context):
+        
+        script_directory = os.path.dirname(os.path.realpath(__file__))
+        blend_file_path = os.path.join(script_directory, "Materials", "Materials.blend")
+
+        world = bpy.context.scene.world
+        world_material_name = "Mcblend World"
+        
+        if self.reappend_material == True:
+
+            if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
+                bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
+
+            with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                data_to.worlds = [world_material_name]
+            appended_world_material = bpy.data.worlds.get(world_material_name)
+
+            bpy.context.scene.world = appended_world_material
+        
+        if self.reset_settings == True:
+            world_material = bpy.context.scene.world.node_tree
+
+            node_group = None
+            for node in world_material.nodes:
+                if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
+                    node_group = node
+                    break
+            node_group.inputs["Moon Strenght"].default_value = 200.0
+            node_group.inputs["Sun Strength"].default_value = 200.0
+            node_group.inputs["Stars Strength"].default_value = 800.0
+            node_group.inputs["Non-Camera Ambient Light Strenght"].default_value = 1.0
+            node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
+            node_group.inputs["Rotation"].default_value = 0
+        return {'FINISHED'}
+        
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=560)
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="WARNING !", icon='ERROR')
+        row = box.row()
+        row.label(text="This option should be used only if something is broken, as this option will reset material and settings")
+        box = layout.box()
+        box.prop(self, "reset_settings")
+        box.prop(self, "reappend_material")
+
+
+class PPBRProperties(bpy.types.PropertyGroup):
+
+    use_bump: bpy.props.BoolProperty(
+        name="Use Bump",
+        default=False,
+        description="Enables Bump In Materials"
+    )
+
+    bump_strenght: bpy.props.FloatProperty(
+        name="Bump Strenght",
+        default=0.4,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    make_metal: bpy.props.BoolProperty(
+    name="Make_Metal",
+    default=True,
+    description="Enambles PBR For Metallic Materials"
+    )
+
+    advanced_settings: bpy.props.BoolProperty(
+    name="Advanced Settings",
+    default=False,
+    description=""
+    )
+
+    backface_culling: bpy.props.BoolProperty(
+    name="Backface Culling",
+    default=True,
+    description=""
+    )
+
+    change_bsdf_settings: bpy.props.BoolProperty(
+    name="Change BSDF Settings",
+    default=True,
+    description=""
+    )
+
+    specular: bpy.props.FloatProperty(
+    name="Specular",
+    default=0.4,
+    min=0.0,
+    max=1.0,
+    description=""
+    )
+
+    roughness: bpy.props.FloatProperty(
+    name="Roughness",
+    default=0.6,
+    min=0.0,
+    max=1.0,
+    description=""
+    )
+
+class CreateSkyProperties(bpy.types.PropertyGroup):
+
+    advanced_settings: bpy.props.BoolProperty(
+        name="Advanced Settings",
+        default=False,
+        description=""
+    )
+
+class WorldAndMaterialsPanel(bpy.types.Panel):
+    bl_label = "World & Materials"
+    bl_idname = "OBJECT_PT_fix_materials"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
 
     def draw(self, context):
         layout = self.layout
+        col = layout.column()
 
-        row = layout.row()
+        world = bpy.context.scene.world
+        world_material_name = "Mcblend World"
+        world_material = bpy.context.scene.world.node_tree
+
+        node_group = None
+        for node in world_material.nodes:
+            if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
+                node_group = node
+                break
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="World", icon="WORLD_DATA")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "backface_culling", text="Backface Culling")
+        row = box.row()
         row.operator("object.fix_world", text="Fix World")
+        box = layout.box()
+        row = box.row()
+        row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
+        row = box.row()
+        if bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
+            row.operator("object.create_sky", text="Create Sky")
+        else:
+            row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
+            row = box.row()
+            row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+            if bpy.context.scene.sky_properties.advanced_settings:
+                sbox = box.box()
+                row = sbox.row()
+                row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                row = sbox.row()
+                row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                row = sbox.row()
+                row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                row = sbox.row()
+                row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
+                row = sbox.row()
+                row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+            row = box.row()
+            row.operator("object.create_sky", text="Recreate Sky")
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="Materials", icon="MATERIAL_DATA")
+        row = box.row()
+        row.operator("object.upgrade_materials", text="Upgrade Materials")
+        row = box.row()
+        row.operator("object.fix_materials", text="Fix Materials")
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="Procedural PBR", icon="NODE_MATERIAL")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "use_bump", text="Use Bump")
+        if bpy.context.scene.ppbr_properties.use_bump:
+            row = box.row()
+            row.prop(bpy.context.scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "make_metal", text="Make Metal")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+        if bpy.context.scene.ppbr_properties.advanced_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.prop(context.scene.ppbr_properties, "change_bsdf_settings", text="Change BSDF Settings")
+            if  bpy.context.scene.ppbr_properties.change_bsdf_settings:
+                row = sbox.row()
+                row.prop(bpy.context.scene.ppbr_properties, "specular", slider=True, text="Specular")
+                row = sbox.row()
+                row.prop(bpy.context.scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+        row = box.row()
+        row.operator("object.setproceduralpbr", text="Set Procedural PBR")
 
 class FixWorldOperator(bpy.types.Operator):
     bl_idname = "object.fix_world"
@@ -38,26 +242,23 @@ class FixWorldOperator(bpy.types.Operator):
     def execute(self, context):
         Materials.fix_world()
         return {'FINISHED'}
-#
+    
+class CreateSkyOperator(bpy.types.Operator):
+    bl_idname = "object.create_sky"
+    bl_label = "Create Sky"
 
-# Fix Materials
-class FixMaterialsPanel(bpy.types.Panel):
-    bl_label = "Materials"
-    bl_idname = "OBJECT_PT_fix_materials"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'Mcblend'
+    def execute(self, context):
+        Materials.create_sky()
+        return {'FINISHED'}
+        
+class UpgradeMaterialsOperator(bpy.types.Operator):
+    bl_idname = "object.upgrade_materials"
+    bl_label = "Upgrade Materials"
 
-    def draw(self, context):
-        layout = self.layout
-        
-        row = layout.row()
-        row.operator("object.upgrade_materials", text="Upgrade Materials")
-        
-        
-        row = layout.row()
-        row.operator("object.fix_materials", text="Fix Materials")
-        
+    def execute(self, context):
+        Materials.upgrade_materials()
+        return {'FINISHED'}
+
 class FixMaterialsOperator(bpy.types.Operator):
     bl_idname = "object.fix_materials"
     bl_label = "Fix Materials"
@@ -66,21 +267,28 @@ class FixMaterialsOperator(bpy.types.Operator):
         Materials.fix_materials()
         return {'FINISHED'}
     
-class UpgradeMaterialsOperator(bpy.types.Operator):
-    bl_idname = "object.upgrade_materials"
-    bl_label = "Upgrade Materials"
+class SetProceduralPBROperator(bpy.types.Operator):
+    bl_idname = "object.setproceduralpbr"
+    bl_label = "Set Procedural PBR"
 
     def execute(self, context):
-        Materials.upgrade_materials()
+        Materials.setproceduralpbr()
         return {'FINISHED'}
+
 #
 
 # Optimization
-class CameraCullingBool(bpy.types.PropertyGroup):
+class OptimizationProperties(bpy.types.PropertyGroup):
     use_camera_culling: bpy.props.BoolProperty(
         name="Use Camera Culling",
         default=True,
         description="Enables Camera Culling"
+    )
+
+    set_render_settings: bpy.props.BoolProperty(
+        name="Set Render Settings",
+        default=False,
+        description=""
     )
 
 class OptimizationPanel(bpy.types.Panel):
@@ -92,8 +300,13 @@ class OptimizationPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.scene.mcblend, "use_camera_culling", text="Use Camera Culling")
-        row = layout.row()
+
+        box = layout.box()
+        row = box.row()
+        row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
+        row = box.row()
+        row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
+        row = box.row()
         row.operator("object.optimization", text="Optimize")
 
 class OptimizeOperator(bpy.types.Operator):
@@ -102,8 +315,56 @@ class OptimizeOperator(bpy.types.Operator):
 
     def execute(self, context):
         Optimize.Optimize()
+        context.view_layer.update()
         return {'FINISHED'}
 #
+    
+# Utils
+    
+class UtilsProperties(bpy.types.PropertyGroup):
+    cshadowsselection: bpy.props.BoolProperty(
+        name="CShadows Selection",
+        default=False,
+        description=""
+    )
+
+class UtilsPanel(bpy.types.Panel):
+    bl_label = "Utils"
+    bl_idname = "OBJECT_PT_utils"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+
+    def draw(self, context):
+        layout = self.layout
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Rendering")
+        if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
+            row = box.row()
+            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="All Objects/Only Selected Objects", toggle=True)
+            row = box.row()
+            row.operator("object.cshadows", text="Turn On Contact Shadows")
+        
+        row = box.row()
+        row.operator("object.sleppafterrender", text="Sleep After Render")
+
+class SleepAfterRenderOperator(bpy.types.Operator):
+    bl_idname = "object.sleppafterrender"
+    bl_label = "Sleep After Render"
+
+    def execute(self, context):
+        sleep_detector()
+        return {'FINISHED'}
+
+class CShadowsOperator(bpy.types.Operator):
+    bl_idname = "object.cshadows"
+    bl_label = "Contact Shadows"
+
+    def execute(self, context):
+        CShadows()
+        return {'FINISHED'}
 
 # Assets
 class AssetPanel(bpy.types.Panel):
@@ -116,8 +377,10 @@ class AssetPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(context.scene, "selected_rig")
-        row = layout.row()
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene, "selected_asset", text="Selected Asset:")
+        row = box.row()
         row.operator("object.import_asset", text="Import Asset")
 
 class ImportAssetOperator(bpy.types.Operator):
@@ -125,39 +388,51 @@ class ImportAssetOperator(bpy.types.Operator):
     bl_label = "Import Asset"
 
     def execute(self, context):
-        selected_rig_key = context.scene.selected_rig
-        if selected_rig_key in Rigs:
-            append_rig(Rigs[selected_rig_key])
+        selected_asset_key = context.scene.selected_asset
+        if selected_asset_key in Assets:
+            append_asset(Assets[selected_asset_key])
+            context.view_layer.update()
         return {'FINISHED'}
 
-def append_rig(rig_data):
-    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", "Rigs", rig_data[".blend_name"])
-    collection_name = rig_data["Collection_name"]
+def append_asset(asset_data):
+    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data[".blend_name"])
+    collection_name = asset_data["Collection_name"]
 
     with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
         data_to.collections = [collection_name]
 
     for collection in data_to.collections:
         bpy.context.collection.children.link(collection)
+
 #
 
-classes = [FixWorldPanel, FixWorldOperator, FixMaterialsPanel, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationPanel, OptimizeOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
 
 def register():
-    bpy.utils.register_class(CameraCullingBool)
-    bpy.types.Scene.mcblend = bpy.props.PointerProperty(type=CameraCullingBool)
-    bpy.types.Scene.selected_rig = bpy.props.EnumProperty(
-        items=[(name, data["Name"], "") for name, data in Rigs.items()],
-        description="Select Rig to Import",
-    )
     for cls in classes:
         bpy.utils.register_class(cls)
+    bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
+    bpy.types.Scene.utils_properties = bpy.props.PointerProperty(type=UtilsProperties)
+    bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
+    bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
+    bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
+        items=[(name, data["Name"], "") for name, data in Assets.items()],
+        description="Select Asset to Import",
+    )    
 
 def unregister():
-    del bpy.types.Scene.mcblend
-    del bpy.types.Scene.selected_rig
     for cls in classes:
         bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.sky_properties
+    del bpy.types.Scene.utils_properties
+    del bpy.types.Scene.ppbr_properties
+    del bpy.types.Scene.optimizationproperties
+    del bpy.types.Scene.selected_asset
 
 if __name__ == "__main__":
     register()
+
+# TODO:
+    # - Utils - Сделать удалятор пустых фейсов
+    # - Utils - Сделать настройку для CShadows All Objects/Only Selected Objects
+    # - World & Materials - Сделать ветер

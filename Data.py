@@ -11,6 +11,30 @@ Backface_Culling_Materials = [
 ]
 
 Alpha_Blend_Materials = [
+    "water",
+    "glass",
+    "ice"
+]
+
+Metal = [
+    "iron",
+    "gold",
+    "copper",
+    "diamond",
+    "netherite",
+    "minecart",
+    "lantern",
+    "chain",
+    "anvil",
+    "clock",
+    "cauldron",
+    "spyglass"
+]
+
+Reflective = [
+    "glass",
+    "ender",
+    "amethyst",
     "water"
 ]
 
@@ -70,9 +94,10 @@ Materials = {
     "warped_wart_block_bricks": "warped_wart_block_bricks"
     }
 
-Rigs = {
+Assets = {
     "SRE": {
-        "Name": "Simple Character Rig",
+        "Name": "Simple Player Rig",
+        "Type": "Rigs",
         ".blend_name": "Simple_edit_V2.0.blend",
         "Collection_name": "SRE rig"
     }
