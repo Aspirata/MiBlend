@@ -1,5 +1,5 @@
 # Mcblend
-Remake of Mcprep
+A useful tool for creating minecraft content in blender
 
 This is stable branch, well, this is the stablest version of Mcblend
 
