@@ -40,6 +40,7 @@ Reflective = [
 
 Materials = {
     "bricks": "Upgraded Bricks",
+    "mud_bricks": "mud_bricks",
     "cobblestone": "cobblestone",
     "diamond_ore": "Upgraded Diamond Ore",
     "deepslate_diamond_ore": "deepslate_diamond_ore",
