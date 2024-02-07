@@ -1,5 +1,5 @@
 # Mcblend
-Remake of Mcprep
+A useful tool for creating minecraft content in blender
 
 Mcblend is in the alpha state, so expect bugs and changes during development
 
