@@ -10,7 +10,8 @@ This is stable branch, well, this is the stablest version of Mcblend
 | Feature | Stage | Current State |
 | --- | --- | --- |
 | Upgrade Materials | Done | Upgrade materials function is fully working |
-| Fix Materials & Fix World | Done | It works ig |
+| Create Sky | WIP | It can create sky, but I'm also want to add "Create Clouds" as an option to "Create Sky" |
+| Fix Materials & Fix World | Done | It works |
 | Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
 | Assets | Done | It works, but there is only SRE in built-in assets |
 | Optimization | WIP | There are only one Optimizing option |
