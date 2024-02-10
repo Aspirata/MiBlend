@@ -100,5 +100,61 @@ Assets = {
         "Type": "Rigs",
         ".blend_name": "Simple_edit_V2.0.blend",
         "Collection_name": "SRE rig"
-    }
+    },
+
+    "Strider": {
+        "Name": "Strider",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Strider"
+    },
+
+    "Dolphin": {
+        "Name": "Dolphin",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Dolphin"
+    },
+
+    "Warden": {
+        "Name": "Warden",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Warden"
+    },
+
+    "Frog": {
+        "Name": "Frog",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Frog"
+    },
+
+    "Breeze": {
+        "Name": "Breeze",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Breeze"
+    },
+
+    "Shulker Box": {
+        "Name": "Shulker Box",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Shulker Box"
+    },
+
+    "Goat": {
+        "Name": "Goat",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Goat"
+    },
+
+    "Camel": {
+        "Name": "Camel",
+        "Type": "Rigs",
+        ".blend_name": "Edited Pooka's Rigs.blend",
+        "Collection_name": "Camel"
+    },
 }

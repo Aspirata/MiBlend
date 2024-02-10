@@ -22,3 +22,4 @@ If you want to be a contributor (Help me in rigging, coding or making materials)
 
 Contributors:
 .anonim4ik - Camera Culling node
+th3pooka - Rigs (linktr.ee/th3pooka)
