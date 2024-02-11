@@ -22,4 +22,5 @@ This is stable branch, well, this is the stablest version of Mcblend
 If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
 
 Contributors:
+
 .anonim4ik - Camera Culling node
