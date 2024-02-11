@@ -77,10 +77,13 @@ def fix_world():
 
 def create_sky():
 
+    script_directory = os.path.dirname(os.path.realpath(__file__))
+    node_tree_name = "Clouds Generator 2"
     world_material_name = "Mcblend World"
     world = bpy.context.scene.world
+    clouds_exists = False
     
-    if hasattr(world, 'Rotation') or bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
+    if world != None and world == bpy.data.worlds.get(world_material_name):
         bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
     else:
         try:
@@ -95,10 +98,25 @@ def create_sky():
         except FileNotFoundError as err:
             print(f"Не найден файл мира, код ошибки 003: {err}")
 
-        bpy.types.World.Rotation = FloatProperty(name="Rotation", description="Rotation For World", default=0.0, min=0.0, max=960.0, subtype='ANGLE')
+        if bpy.context.scene.sky_properties.create_clouds:                    
+            for obj in bpy.context.scene.objects:
+                if obj.name == "Clouds":
+                    clouds_exists = True
 
-#def create_clouds():
+            if clouds_exists == False:
+                if node_tree_name not in bpy.data.node_groups:
+                    with bpy.data.libraries.load(os.path.join(script_directory, "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [node_tree_name]
+                else:
+                    bpy.data.node_groups[node_tree_name]
 
+                bpy.ops.mesh.primitive_plane_add(size=500, enter_editmode=False, align='WORLD', location=(0, 0, 200))
+                bpy.context.object.name = "Clouds"
+                geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+                geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
+                geonodes_modifier["Socket_11"] = bpy.context.scene.camera
+
+            bpy.context.view_layer.update()
 
 # Fix materials
     

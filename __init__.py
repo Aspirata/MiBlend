@@ -150,6 +150,12 @@ class CreateSkyProperties(bpy.types.PropertyGroup):
         description=""
     )
 
+    create_clouds: bpy.props.BoolProperty(
+        name="Create Clouds",
+        default=True,
+        description=""
+    )
+
 class WorldAndMaterialsPanel(bpy.types.Panel):
     bl_label = "World & Materials"
     bl_idname = "OBJECT_PT_fix_materials"
@@ -163,13 +169,6 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
 
         world = bpy.context.scene.world
         world_material_name = "Mcblend World"
-        world_material = bpy.context.scene.world.node_tree
-
-        node_group = None
-        for node in world_material.nodes:
-            if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
-                node_group = node
-                break
 
         box = layout.box()
         row = box.row()
@@ -178,30 +177,39 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row.prop(bpy.context.scene.ppbr_properties, "backface_culling", text="Backface Culling")
         row = box.row()
         row.operator("object.fix_world", text="Fix World")
-        box = layout.box()
-        row = box.row()
-        row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
-        row = box.row()
-        if bpy.context.scene.world != bpy.data.worlds.get(world_material_name):
-            row.operator("object.create_sky", text="Create Sky")
-        else:
-            row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
+        if world != None:
+            world_material = bpy.context.scene.world.node_tree
+            node_group = None
+            for node in world_material.nodes:
+                if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
+                    node_group = node
+                    break
+            box = layout.box()
             row = box.row()
-            row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
-            if bpy.context.scene.sky_properties.advanced_settings:
-                sbox = box.box()
-                row = sbox.row()
-                row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
-                row = sbox.row()
-                row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
-                row = sbox.row()
-                row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
-                row = sbox.row()
-                row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
-                row = sbox.row()
-                row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+            row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
             row = box.row()
-            row.operator("object.create_sky", text="Recreate Sky")
+            row.prop(bpy.context.scene.sky_properties, "create_clouds", text="Create Clouds")
+            row = box.row()
+            if world != bpy.data.worlds.get(world_material_name):
+                row.operator("object.create_sky", text="Create Sky")
+            else:
+                row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
+                row = box.row()
+                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+                if bpy.context.scene.sky_properties.advanced_settings:
+                    sbox = box.box()
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+                row = box.row()
+                row.operator("object.create_sky", text="Recreate Sky")
         
         box = layout.box()
         row = box.row()
