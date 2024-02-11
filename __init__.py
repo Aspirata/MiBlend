@@ -35,6 +35,12 @@ class RecreateSky(bpy.types.Operator):
         default=False
     )
 
+    recreate_clouds: bpy.props.BoolProperty(
+        name="Create Clouds",
+        default=True,
+        description=""
+    )
+
     def execute(self, context):
         
         script_directory = os.path.dirname(os.path.realpath(__file__))
@@ -68,6 +74,26 @@ class RecreateSky(bpy.types.Operator):
             node_group.inputs["Non-Camera Ambient Light Strenght"].default_value = 1.0
             node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
             node_group.inputs["Rotation"].default_value = 0
+
+        if self.recreate_clouds == True:
+            for obj in bpy.context.scene.objects:
+                if obj.name == "Clouds":
+                    bpy.data.objects.remove(obj, do_unlink=True)
+
+            if node_tree_name not in bpy.data.node_groups:
+                with bpy.data.libraries.load(os.path.join(script_directory, "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                    data_to.node_groups = [node_tree_name]
+            else:
+                bpy.data.node_groups[node_tree_name]
+
+            bpy.ops.mesh.primitive_plane_add(size=500, enter_editmode=False, align='WORLD', location=(0, 0, 200))
+            bpy.context.object.name = "Clouds"
+            geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+            geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
+            geonodes_modifier["Socket_11"] = bpy.context.scene.camera
+
+            bpy.context.view_layer.update()
+
         return {'FINISHED'}
         
     def invoke(self, context, event):
@@ -80,10 +106,11 @@ class RecreateSky(bpy.types.Operator):
         row = box.row()
         row.label(text="WARNING !", icon='ERROR')
         row = box.row()
-        row.label(text="This option should be used only if something is broken, as this option will reset material and settings")
+        row.label(text="This option should be used only if something is broken, as this option can reset world material and it's settings")
         box = layout.box()
         box.prop(self, "reset_settings")
         box.prop(self, "reappend_material")
+        box.prop(self, "recreate_clouds")
 
 
 class PPBRProperties(bpy.types.PropertyGroup):
