@@ -110,7 +110,7 @@ def create_sky():
                 else:
                     bpy.data.node_groups[node_tree_name]
 
-                bpy.ops.mesh.primitive_plane_add(size=500, enter_editmode=False, align='WORLD', location=(0, 0, 200))
+                bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)

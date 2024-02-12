@@ -11,7 +11,7 @@ from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 0, 2),
+    "version": (0, 0, 3),
     "blender": (4, 0, 0),
     "location": "View3D > Addons Tab",
     "description": "",
@@ -36,7 +36,7 @@ class RecreateSky(bpy.types.Operator):
     )
 
     recreate_clouds: bpy.props.BoolProperty(
-        name="Create Clouds",
+        name="Recreate Clouds",
         default=True,
         description=""
     )
@@ -45,6 +45,7 @@ class RecreateSky(bpy.types.Operator):
         
         script_directory = os.path.dirname(os.path.realpath(__file__))
         blend_file_path = os.path.join(script_directory, "Materials", "Materials.blend")
+        node_tree_name = "Clouds Generator 2"
 
         world = bpy.context.scene.world
         world_material_name = "Mcblend World"
@@ -81,12 +82,12 @@ class RecreateSky(bpy.types.Operator):
                     bpy.data.objects.remove(obj, do_unlink=True)
 
             if node_tree_name not in bpy.data.node_groups:
-                with bpy.data.libraries.load(os.path.join(script_directory, "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                with bpy.data.libraries.load(os.path.join(script_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
                     data_to.node_groups = [node_tree_name]
             else:
                 bpy.data.node_groups[node_tree_name]
 
-            bpy.ops.mesh.primitive_plane_add(size=500, enter_editmode=False, align='WORLD', location=(0, 0, 200))
+            bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
@@ -469,5 +470,4 @@ if __name__ == "__main__":
 
 # TODO:
     # - Utils - Сделать удалятор пустых фейсов
-    # - Utils - Сделать настройку для CShadows All Objects/Only Selected Objects
     # - World & Materials - Сделать ветер
