@@ -89,6 +89,7 @@ class RecreateSky(bpy.types.Operator):
 
             bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
+            bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
             geonodes_modifier["Socket_11"] = bpy.context.scene.camera
@@ -134,6 +135,12 @@ class PPBRProperties(bpy.types.PropertyGroup):
     name="Make_Metal",
     default=True,
     description="Enambles PBR For Metallic Materials"
+    )
+
+    animate_textures: bpy.props.BoolProperty(
+    name="Animate textures",
+    default=True,
+    description=""
     )
 
     advanced_settings: bpy.props.BoolProperty(
@@ -223,7 +230,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
             else:
                 row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
                 row = box.row()
-                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("RIGHTARROW" if bpy.context.scene.sky_properties.advanced_settings else "DOWNARROW_HLT"))
                 if bpy.context.scene.sky_properties.advanced_settings:
                     sbox = box.box()
                     row = sbox.row()
@@ -258,7 +265,9 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "make_metal", text="Make Metal")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon="TRIA_DOWN")
+        row.prop(bpy.context.scene.ppbr_properties, "animate_textures", text="Animate Textures")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_RIGHT" if bpy.context.scene.sky_properties.advanced_settings else "TRIA_DOWN"))
         if bpy.context.scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
@@ -376,7 +385,7 @@ class UtilsPanel(bpy.types.Panel):
 
         box = layout.box()
         row = box.row()
-        row.label(text="Rendering")
+        row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
             row = box.row()
             row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="All Objects/Only Selected Objects", toggle=True)

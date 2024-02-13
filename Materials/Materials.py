@@ -50,6 +50,7 @@ def fix_world():
                     if node.type == "TEX_IMAGE":
                         image_texture_node = material.node_tree.nodes[node.name]
                         image_texture_node.interpolation = "Closest"
+                        break
 
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
@@ -112,6 +113,7 @@ def create_sky():
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
+                bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
                 geonodes_modifier["Socket_11"] = bpy.context.scene.camera
@@ -195,6 +197,28 @@ def setproceduralpbr():
                         if material.node_tree.nodes.get("Bump") is not None:
                             bump_node = material.node_tree.nodes.get("Bump")
                             material.node_tree.nodes.remove(bump_node)
+
+                    if scene.ppbr_properties.animate_textures == True:
+                        if material.name in Animatable_Materials.keys():
+                            node_tree_name = "Procedural Animation V1"
+
+                            if node_tree_name not in bpy.data.node_groups:
+                                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                                    data_to.node_groups = [node_tree_name]
+                            else:
+                                bpy.data.node_groups[node_tree_name]
+
+                            if node.type == 'GROUP' and node_tree_name in node.node_tree.name:
+                                node_group = node
+                            else:
+                                node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                node_group.node_tree = bpy.data.node_groups[node_tree_name]
+                                material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[27])
+                                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 300)
+
+                            for input_name, value in Animatable_Materials[material.name].items():
+                                node_group.inputs[input_name].default_value = value
+                            
             else:
                 raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
             

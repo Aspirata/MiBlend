@@ -38,6 +38,44 @@ Reflective = [
     "water"
 ]
 
+Animatable_Materials = {
+    "sculk": {
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+
+    "glow_lichen": {
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+
+    "lantern": {
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+
+    "torch": {
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    }
+}
+
 Materials = {
     "bricks": "Upgraded Bricks",
     "cobblestone": "cobblestone",
