@@ -230,7 +230,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
             else:
                 row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
                 row = box.row()
-                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("RIGHTARROW" if bpy.context.scene.sky_properties.advanced_settings else "DOWNARROW_HLT"))
+                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_RIGHT" if bpy.context.scene.sky_properties.advanced_settings else "TRIA_DOWN"))
                 if bpy.context.scene.sky_properties.advanced_settings:
                     sbox = box.box()
                     row = sbox.row()
@@ -267,7 +267,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "animate_textures", text="Animate Textures")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_RIGHT" if bpy.context.scene.sky_properties.advanced_settings else "TRIA_DOWN"))
+        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_RIGHT" if bpy.context.scene.ppbr_properties.advanced_settings else "TRIA_DOWN"))
         if bpy.context.scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()

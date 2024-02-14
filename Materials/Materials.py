@@ -50,31 +50,66 @@ def fix_world():
                     if node.type == "TEX_IMAGE":
                         image_texture_node = material.node_tree.nodes[node.name]
                         image_texture_node.interpolation = "Closest"
-                        break
-
+                        
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
                     if MaterialIn(Emissive_Materials, material):
                         material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
-                    if MaterialIn(Backface_Culling_Materials, material) and bpy.context.scene.ppbr_properties.backface_culling:
-                        material.use_backface_culling = True
-                        geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
-                        geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
-                        invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
-                        invert_node.location = (image_texture_node.location.x + 260, image_texture_node.location.y - 200)
-                        mix_node = material.node_tree.nodes.new(type='ShaderNodeMix')
-                        mix_node.location = (invert_node.location.x + 170, image_texture_node.location.y - 110)
-                        mix_node.blend_type = 'MULTIPLY'
-                        mix_node.data_type =  'RGBA'
-                        mix_node.inputs[0].default_value = 1
-                        material.node_tree.links.new(geometry_node.outputs["Backfacing"], invert_node.inputs[1])
-                        material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
-                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
-                        material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
+                    if bpy.context.scene.ppbr_properties.backface_culling:
+                        if MaterialIn(Backface_Culling_Materials, material):
+                            gemetry_exists = False
+                            invert_exists = False
+                            mix_exists = False
+
+                            material.use_backface_culling = True
+                            for node in material.node_tree.nodes:
+                                if node.name == "Geometry":
+                                    gemetry_exists = True
+                                    geometry_node = node
+
+                                if node.name == "Invert Color":
+                                    invert_exists = True
+                                    invert_node = node
+
+                                if node.name == "Mix":
+                                    mix_exists = True
+                                    mix_node = node
+                            
+                            if not gemetry_exists:
+                                geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
+                                geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
+                                gemetry_exists = True
+                            
+                            if not invert_exists:
+                                invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
+                                invert_node.location = (image_texture_node.location.x + 260, image_texture_node.location.y - 200)
+                                invert_exists = True
+
+                            if not mix_exists:
+                                mix_node = material.node_tree.nodes.new(type='ShaderNodeMix')
+                                mix_node.location = (invert_node.location.x + 170, image_texture_node.location.y - 110)
+                                mix_node.blend_type = 'MULTIPLY'
+                                mix_node.data_type =  'RGBA'
+                                mix_node.inputs[0].default_value = 1
+                                material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
+                                material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
+                                mix_exists = True
+                            else:
+                                material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
+                                material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
+                            
+                            if gemetry_exists and invert_exists:
+                                material.node_tree.links.new(geometry_node.outputs["Backfacing"], invert_node.inputs[1])
+
+                            if invert_exists and mix_exists:
+                                material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
+                    else:
+                        if MaterialIn(Backface_Culling_Materials, material):
+                            material.use_backface_culling = False
                 selected_object.data.update()
             else:
-                raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
+                raise ValueError("Material doesn't exist on one of the slots, error code: 002")
 
 def create_sky():
 
@@ -142,7 +177,7 @@ def fix_materials():
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
             else:
-                raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
+                raise ValueError("Material doesn't exist on one of the slots, error code: 002")
             
         selected_object.data.update()
 
@@ -167,13 +202,9 @@ def setproceduralpbr():
                         PBSDF.inputs["Roughness"].default_value = bpy.context.scene.ppbr_properties.roughness
                         PBSDF.inputs[12].default_value = bpy.context.scene.ppbr_properties.specular
                     
-                    if scene.ppbr_properties.make_metal == True:
-                        if MaterialIn(Metal, material):
-                            PBSDF.inputs["Roughness"].default_value = 0.2
-                            PBSDF.inputs["Metallic"].default_value = 0.7
-                    else:
-                        if MaterialIn(Metal, material):
-                            PBSDF.inputs["Metallic"].default_value = 0.0
+                    if scene.ppbr_properties.make_metal == True and MaterialIn(Metal, material):
+                        PBSDF.inputs["Roughness"].default_value = 0.2
+                        PBSDF.inputs["Metallic"].default_value = 0.7
 
                     if MaterialIn(Reflective, material):
                         PBSDF.inputs["Roughness"].default_value = 0.1
@@ -198,29 +229,27 @@ def setproceduralpbr():
                             bump_node = material.node_tree.nodes.get("Bump")
                             material.node_tree.nodes.remove(bump_node)
 
-                    if scene.ppbr_properties.animate_textures == True:
-                        if material.name in Animatable_Materials.keys():
-                            node_tree_name = "Procedural Animation V1"
+                    if scene.ppbr_properties.animate_textures == True and material.name in Animatable_Materials.keys():
+                        node_tree_name = "Procedural Animation V1"
 
+                        if node.type == 'GROUP' and node_tree_name in node.node_tree.name:
+                            node_group = node
+                        else:
                             if node_tree_name not in bpy.data.node_groups:
                                 with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
                                     data_to.node_groups = [node_tree_name]
                             else:
                                 bpy.data.node_groups[node_tree_name]
+                            node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                            node_group.node_tree = bpy.data.node_groups[node_tree_name]
+                            material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[27])
+                            node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 300)
 
-                            if node.type == 'GROUP' and node_tree_name in node.node_tree.name:
-                                node_group = node
-                            else:
-                                node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                node_group.node_tree = bpy.data.node_groups[node_tree_name]
-                                material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[27])
-                                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 300)
-
-                            for input_name, value in Animatable_Materials[material.name].items():
-                                node_group.inputs[input_name].default_value = value
+                        for input_name, value in Animatable_Materials[material.name].items():
+                            node_group.inputs[input_name].default_value = value
                             
             else:
-                raise ValueError("Материал на одном из слоёв не существует, код ошибки: 002")
+                raise ValueError("Material doesn't exist on one of the slots, error code: 002")
             
         selected_object.data.update()
 #
