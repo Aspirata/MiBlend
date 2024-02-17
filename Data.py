@@ -1,9 +1,36 @@
-Emissive_Materials = [
-    "lantern",
-    "glow_lichen",
-    "torch",
-    "lava"
-]
+Emissive_Materials = {
+    "lantern": {
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, 
+        2: 0.6,
+        3: 0,
+        4: 2,
+    },
+
+    "glow_lichen": {
+        "Interpolation": "Smooth step",
+        "From Min": 1,
+        "From Max": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "torch": {
+        "Interpolation": "Smooth step",
+        "From Min": 1,
+        "From Max": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "lava": {
+        "Interpolation": "Smooth step",
+        "From Min": 1,
+        "From Max": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+    }
+}
 
 Backface_Culling_Materials = [
     "glass",
@@ -60,10 +87,10 @@ Animatable_Materials = {
     "lantern": {
         "Multiplier": 1,
         "Middle Value": 0.4,
-        "To Min": 0,
-        "To Max": 1,
-        "Adder": 0.2,
-        "Divider": 50,
+        "To Min": 1,
+        "To Max": 1.5,
+        "Adder": 0.1,
+        "Divider": 80,
     },
 
     "torch": {

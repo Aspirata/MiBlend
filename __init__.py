@@ -132,9 +132,15 @@ class PPBRProperties(bpy.types.PropertyGroup):
     )
 
     make_metal: bpy.props.BoolProperty(
-    name="Make_Metal",
+    name="Make Metal",
     default=True,
     description="Enambles PBR For Metallic Materials"
+    )
+
+    make_better_emission: bpy.props.BoolProperty(
+    name="Make Better Emission",
+    default=True,
+    description=""
     )
 
     animate_textures: bpy.props.BoolProperty(
@@ -264,6 +270,8 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
             row.prop(bpy.context.scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "make_metal", text="Make Metal")
+        row = box.row()
+        row.prop(bpy.context.scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "animate_textures", text="Animate Textures")
         row = box.row()
