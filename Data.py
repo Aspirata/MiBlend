@@ -37,7 +37,7 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
-    },
+    }
 }
 
 Backface_Culling_Materials = [

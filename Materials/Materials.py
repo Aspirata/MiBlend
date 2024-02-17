@@ -55,8 +55,8 @@ def fix_world():
                         
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
-                    for material_name in Emissive_Materials.items():
-                        if material_name in material.name:
+                    for material_name, property_name in Emissive_Materials.items():
+                        if material_name in material.name.lower():
                             material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                     if bpy.context.scene.ppbr_properties.backface_culling:
@@ -254,12 +254,11 @@ def setproceduralpbr():
                                 map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
 
                             for material_name, material_properties in Emissive_Materials.items():
-                                if material.name == material_name:
-                                    for property_name, property_value in material_properties.items():
-                                        if property_name == "Interpolation Type":
-                                            map_range_node.interpolation_type = property_value
-                                        else:
-                                            map_range_node.inputs[property_name].default_value = property_value
+                                for property_name, property_value in material_properties.items():
+                                    if property_name == "Interpolation Type":
+                                        map_range_node.interpolation_type = property_value
+                                    else:
+                                        map_range_node.inputs[property_name].default_value = property_value
 
                             if math_node == None:
                                 math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
