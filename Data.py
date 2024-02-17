@@ -1,35 +1,43 @@
 Emissive_Materials = {
     "lantern": {
         "Interpolation Type": "SMOOTHSTEP",
-        1: 0, 
-        2: 0.6,
-        3: 0,
-        4: 2,
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
     },
 
     "glow_lichen": {
-        "Interpolation": "Smooth step",
-        "From Min": 1,
-        "From Max": 0.4,
-        "To Min": 0,
-        "To Max": 1,
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
     },
 
     "torch": {
-        "Interpolation": "Smooth step",
-        "From Min": 1,
-        "From Max": 0.4,
-        "To Min": 0,
-        "To Max": 1,
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
     },
 
     "lava": {
-        "Interpolation": "Smooth step",
-        "From Min": 1,
-        "From Max": 0.4,
-        "To Min": 0,
-        "To Max": 1,
-    }
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
+    },
+
+    "cave_vines_lit": {
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
+    },
 }
 
 Backface_Culling_Materials = [

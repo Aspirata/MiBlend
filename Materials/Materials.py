@@ -55,8 +55,9 @@ def fix_world():
                         
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
-                    if MaterialIn(Emissive_Materials, material):
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                    for material_name in Emissive_Materials.items():
+                        if material_name in material.name:
+                            material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                     if bpy.context.scene.ppbr_properties.backface_culling:
                         if MaterialIn(Backface_Culling_Materials, material):
@@ -248,9 +249,9 @@ def setproceduralpbr():
 
                             if map_range_node == None:
                                 map_range_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
-                                map_range_node.location = (PBSDF.location.x - 280, PBSDF.location.y - 250)
+                                map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
                             else:
-                                map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 300)
+                                map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
 
                             for material_name, material_properties in Emissive_Materials.items():
                                 if material.name == material_name:
@@ -272,7 +273,7 @@ def setproceduralpbr():
 
                     # Animate Textures
                     if scene.ppbr_properties.animate_textures == True and material.name in Animatable_Materials.keys():
-                        node_tree_name = "Procedural Animation V1"
+                        node_tree_name = "Procedural Animation V1.1"
                         
                         map_range_node = None
                         math_node = None
@@ -302,12 +303,10 @@ def setproceduralpbr():
 
                         if scene.ppbr_properties.make_better_emission == True or (map_range_node and math_node) != None:
                             material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])
-                            node_group.location = (PBSDF.location.x - 400, PBSDF.location.y - 400)
+                            node_group.location = (PBSDF.location.x - 400, PBSDF.location.y - 460)
                         else:
                             material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[27])
                             node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 300)
-
-                            
                             
             else:
                 raise ValueError("Material doesn't exist on one of the slots, error code: 002")
