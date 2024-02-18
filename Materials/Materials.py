@@ -28,7 +28,7 @@ def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
         for i, material in enumerate(selected_object.data.materials):
             for original_material, upgraded_material in Materials.items():
-                if original_material in material.name.lower():
+                if original_material in material.name.lower() and upgraded_material != "Exclude":
                     append_materials(upgraded_material, selected_object, i)
 
 # Fix World
@@ -60,6 +60,9 @@ def fix_world():
 
                     if bpy.context.scene.ppbr_properties.backface_culling:
                         if MaterialIn(Backface_Culling_Materials, material):
+                            geometry_node = None
+                            invert_node = None
+                            mix_node = None
 
                             material.use_backface_culling = True
                             for node in material.node_tree.nodes:
