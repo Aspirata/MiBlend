@@ -23,4 +23,8 @@ If you want to be a contributor (Help me in rigging, coding or making materials)
 Contributors:
 .anonim4ik - Camera Culling node
 
+humusus. - Help with Allay Rig
+
+zipi.zip - Creeper Rig (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+
 th3pooka - Rigs (linktr.ee/th3pooka)

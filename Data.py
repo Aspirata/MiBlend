@@ -175,6 +175,20 @@ Assets = {
         "Collection_name": "SRE rig"
     },
 
+    "Creeper": {
+        "Name": "Creeper",
+        "Type": "Rigs",
+        ".blend_name": "Rig-creeper.blend",
+        "Collection_name": "Creeper"
+    },
+
+    "Allay": {
+        "Name": "Allay Rig",
+        "Type": "Rigs",
+        ".blend_name": "Allay Rig.blend",
+        "Collection_name": "Simple Allay"
+    },
+
     "Strider": {
         "Name": "Strider",
         "Type": "Rigs",
