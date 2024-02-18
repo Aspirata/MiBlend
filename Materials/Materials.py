@@ -55,9 +55,8 @@ def fix_world():
                         
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
-                    for material_name, property_name in Emissive_Materials.items():
-                        if material_name in material.name.lower():
-                            material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                    if PBSDF.inputs[27].default_value != 0:
+                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                     if bpy.context.scene.ppbr_properties.backface_culling:
                         if MaterialIn(Backface_Culling_Materials, material):
@@ -226,7 +225,7 @@ def setproceduralpbr():
                             material.node_tree.nodes.remove(bump_node)
 
                     # Make Better Emission
-                    if scene.ppbr_properties.make_better_emission == True:
+                    if scene.ppbr_properties.make_better_emission == True and PBSDF.inputs[27].default_value != 0:
 
                         image_texture_node = None
 
@@ -271,7 +270,7 @@ def setproceduralpbr():
                             material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
 
                     # Animate Textures
-                    if scene.ppbr_properties.animate_textures == True and material.name in Animatable_Materials.keys():
+                    if scene.ppbr_properties.animate_textures == True and PBSDF.inputs[27].default_value != 0:
                         node_tree_name = "Procedural Animation V1.1"
                         
                         map_range_node = None
@@ -297,8 +296,9 @@ def setproceduralpbr():
                             node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
                             node_group.node_tree = bpy.data.node_groups[node_tree_name]
 
-                            for input_name, value in Animatable_Materials[material.name].items():
-                                node_group.inputs[input_name].default_value = value
+                            if material.name in Animatable_Materials.keys():
+                                for input_name, value in Animatable_Materials[material.name].items():
+                                    node_group.inputs[input_name].default_value = value
 
                         if scene.ppbr_properties.make_better_emission == True or (map_range_node and math_node) != None:
                             material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])
