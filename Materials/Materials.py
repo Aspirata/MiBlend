@@ -27,9 +27,29 @@ def append_materials(upgraded_material_name, selected_object, i):
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
         for i, material in enumerate(selected_object.data.materials):
-            for original_material, upgraded_material in Materials.items():
-                if original_material in material.name.lower() and upgraded_material != "Exclude":
-                    append_materials(upgraded_material, selected_object, i)
+            replace = False
+            for material_name, material_info in Materials.items():
+                for property_name, property_value in material_info.items():
+                    if property_name == "Upgraded Material":
+                        upgraded_material = property_value
+
+                    if property_name == "Original Material":
+                        original_material = property_value
+
+                    if original_material in material.name.lower():
+                        if property_name == "Exclude" and property_value != "None":
+                            for excluder in property_value.split(", "):
+                                if original_material in material.name.lower() and excluder not in material.name.lower():
+                                    replace = True
+                                    r_upgraded_material = upgraded_material
+                                        
+                                if original_material in material.name.lower() and excluder in material.name.lower():
+                                    replace = False
+                                    break
+                            
+            if replace == True:
+                append_materials(r_upgraded_material, selected_object, i)
+                selected_object.data.update()
 
 # Fix World
                         
@@ -104,7 +124,7 @@ def fix_world():
 
                 selected_object.data.update()
             else:
-                raise ValueError("Material doesn't exist on one of the slots, error code: 002")
+                raise ValueError("Material doesn't exist on one of the slots, error code: m002")
 
 def create_sky():
 
@@ -172,7 +192,7 @@ def fix_materials():
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
             else:
-                raise ValueError("Material doesn't exist on one of the slots, error code: 002")
+                raise ValueError("Material doesn't exist on one of the slots, error code: m002")
             
         selected_object.data.update()
 
@@ -311,7 +331,7 @@ def setproceduralpbr():
                             node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 300)
                             
             else:
-                raise ValueError("Material doesn't exist on one of the slots, error code: 002")
+                raise ValueError("Material doesn't exist on one of the slots, error code: m002")
             
         selected_object.data.update()
 #

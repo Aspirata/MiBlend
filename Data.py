@@ -112,60 +112,78 @@ Animatable_Materials = {
 }
 
 Materials = {
-    "bricks": "Upgraded Bricks",
-    "cobblestone": "Exclude",
-    "diamond_ore": "Upgraded Diamond Ore",
-    "deepslate_diamond_ore": "Exclude",
-    "glow_lichen": "Upgraded Glow Lichen",
-    "gold_block": "Upgraded Gold Block",
-    "iron_block": "Upgraded Iron Block",
-    "lantern": "Upgraded Lantern",
-    "obsidian": "Upgraded Obsidian",
-    "sand": "Upgraded Sand",
-    "red_sand": "Exclude",
-    "sandstone": "Exclude",
-    "chiseled_red_sandstone": "Exclude",
-    "cut_red_sandstone": "Exclude",
-    "smooth_red_sandstone": "Exclude",
-    "sandstone_slab": "Exclude",
-    "sandstone_stairs": "Exclude",
-    "sandstone_wall": "Exclude",
-    "red_sandstone_slab": "Exclude",
-    "red_sandstone_stairs": "Exclude",
-    "red_sandstone_wall": "Exclude",
-    "soul_sand": "Exclude",
-    "sculk": "Upgraded Sculk",
-    "sculk_catalyst": "Exclude",
-    "sculk_sensor": "Exclude",
-    "calibrated_sculk_sensor": "Exclude",
-    "sculk_shrieker": "Exclude",
-    "sculk_vein": "Exclude",
-    "soul_lantern": "Upgraded Soul Lantern",
-    "stone": "Upgraded Stone",
-    "smooth_stone": "Exclude",
-    "chiseled_stone_bricks": "Exclude",
-    "mossy_cobblestone": "Exclude",
-    "mossy_stone_bricks": "Exclude",
-    "smooth_red_sandstone": "Exclude",
-    "smooth_sandstone": "Exclude",
-    "stone_bricks": "Exclude",
-    "blackstone": "Exclude",
-    "blackstone_slab": "Exclude",
-    "blackstone_stairs": "Exclude",
-    "blackstone_wall": "Exclude",
-    "water_flow": "Upgraded Water Flow",
-    "chiseled_red_sandstone_bricks": "Exclude",
-    "cracked_deepslate_bricks": "Exclude",
-    "cracked_nether_bricks": "Exclude",
-    "cracked_polished_blackstone_bricks": "Exclude",
-    "mossy_cobblestone_bricks": "Exclude",
-    "mossy_stone_bricks": "Exclude",
-    "nether_bricks": "Exclude",
-    "polished_blackstone_bricks": "Exclude",
-    "red_nether_bricks": "Exclude",
-    "red_sandstone_bricks": "Exclude",
-    "warped_wart_block_bricks": "Exclude"
+    "Bricks": {
+        "Original Material": "bricks",
+        "Upgraded Material": "Upgraded Bricks",
+        "Exclude": "stone_bricks, nether_bricks, prismarine_bricks, deepslate_bricks, tuff_bricks, mud_bricks"
+    },
+
+    "Diamond Ore": {
+        "Original Material": "diamond_ore",
+        "Upgraded Material": "Upgraded Diamond Ore",
+        "Exclude": "deepslate_diamond_ore"
+    },
+
+    "Glow Lichen": {
+        "Original Material": "glow_lichen",
+        "Upgraded Material": "Upgraded Glow Lichen",
+        "Exclude": "None"
+    },
+
+    "Gold Block": {
+        "Original Material": "gold_block",
+        "Upgraded Material": "Upgraded Gold Block",
+        "Exclude": "None"
+    },
+
+    "Iron Block": {
+        "Original Material": "iron_block",
+        "Upgraded Material": "Upgraded Iron Block",
+        "Exclude": "None"
+    },
+
+    "Lantern": {
+        "Original Material": "lantern",
+        "Upgraded Material": "Upgraded Lantern",
+        "Exclude": "soul_lantern"
+    },
+
+    "Obsidian": {
+        "Original Material": "obsidian",
+        "Upgraded Material": "Upgraded Obsidian",
+        "Exclude": "crying_obsidian"
+    },
+
+    "Sand": {
+        "Original Material": "sand",
+        "Upgraded Material": "Upgraded Sand",
+        "Exclude": "red_sand, sandstone, soul_sand"
+    },
+
+    "Sculk": {
+        "Original Material": "sculk",
+        "Upgraded Material": "Upgraded Sculk",
+        "Exclude": "sculk_catalyst, sculk_sensor, sculk_shrieker, sculk_vein"
+    },
+
+    "Soul Lantern": {
+        "Original Material": "soul_lantern",
+        "Upgraded Material": "Upgraded Soul Lantern",
+        "Exclude": "None"
+    },
+
+    "Stone": {
+        "Original Material": "stone",
+        "Upgraded Material": "Upgraded Stone",
+        "Exclude": "cobblestone. smooth_stone, redstone, blackstone"
+    },
+
+    "Water Flow": {
+        "Original Material": "water_flow",
+        "Upgraded Material": "Upgraded Water Flow",
+        "Exclude": "None"
     }
+}
 
 Assets = {
     "SRE": {
@@ -178,14 +196,14 @@ Assets = {
     "Creeper": {
         "Name": "Creeper",
         "Type": "Rigs",
-        ".blend_name": "Rig-creeper.blend",
+        ".blend_name": "Creeper.blend",
         "Collection_name": "Creeper"
     },
 
     "Allay": {
         "Name": "Allay Rig",
         "Type": "Rigs",
-        ".blend_name": "Allay Rig.blend",
+        ".blend_name": "Allay.blend",
         "Collection_name": "Simple Allay"
     },
 
