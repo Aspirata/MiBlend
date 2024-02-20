@@ -1,7 +1,4 @@
-import bpy
-import os
 from ..Data import *
-from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 
 #Replace Materials
 
@@ -58,6 +55,7 @@ def fix_world():
         for material in selected_object.data.materials:
             PBSDF = None
             mix_node = None
+            scene = bpy.context.scene
 
             if material != None:
                 if MaterialIn(Alpha_Blend_Materials, material):
@@ -75,10 +73,20 @@ def fix_world():
                         
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
-                    if PBSDF.inputs[27].default_value != 0:
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                    for material_name, property_name in Emissive_Materials.items():
+                        if scene.emissiondetection == 'Automatic & Manual':
+                            if material_name in material.name.lower() or PBSDF.inputs[27].default_value != 0:
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                                PBSDF.inputs[27].default_value = 1
+                        if scene.emissiondetection == 'Automatic':
+                            if PBSDF.inputs[27].default_value != 0:
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                        if scene.emissiondetection == 'Manual':
+                            if material_name in material.name.lower():
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                                PBSDF.inputs[27].default_value = 1
 
-                    if bpy.context.scene.ppbr_properties.backface_culling:
+                    if scene.ppbr_properties.backface_culling:
                         if MaterialIn(Backface_Culling_Materials, material):
                             geometry_node = None
                             invert_node = None
@@ -129,10 +137,9 @@ def fix_world():
 def create_sky():
 
     script_directory = os.path.dirname(os.path.realpath(__file__))
-    node_tree_name = "Clouds Generator 2"
-    world_material_name = "Mcblend World"
-    world = bpy.context.scene.world
     clouds_exists = False
+    scene = bpy.context.scene
+    world = scene.world
     
     if world != None and world == bpy.data.worlds.get(world_material_name):
         bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
@@ -149,8 +156,8 @@ def create_sky():
         except FileNotFoundError as err:
             print(f"Не найден файл мира, код ошибки 003: {err}")
 
-        if bpy.context.scene.sky_properties.create_clouds:                    
-            for obj in bpy.context.scene.objects:
+        if scene.sky_properties.create_clouds:                    
+            for obj in scene.objects:
                 if obj.name == "Clouds":
                     clouds_exists = True
 
@@ -166,7 +173,7 @@ def create_sky():
                 bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
-                geonodes_modifier["Socket_11"] = bpy.context.scene.camera
+                geonodes_modifier["Socket_11"] = scene.camera
 
             bpy.context.view_layer.update()
 
@@ -204,10 +211,10 @@ def setproceduralpbr():
     for selected_object in bpy.context.selected_objects:
         for material in selected_object.data.materials:
             if material != None:
-                scene = bpy.context.scene
                 image_texture_node = None
                 PBSDF = None
                 bump_node = None
+                scene = bpy.context.scene
                 
 
                 if material.node_tree.nodes.get("Principled BSDF") is not None:
@@ -215,8 +222,8 @@ def setproceduralpbr():
 
                     # Change PBSDF Settings
                     if scene.ppbr_properties.change_bsdf_settings:
-                        PBSDF.inputs["Roughness"].default_value = bpy.context.scene.ppbr_properties.roughness
-                        PBSDF.inputs[12].default_value = bpy.context.scene.ppbr_properties.specular
+                        PBSDF.inputs["Roughness"].default_value = scene.ppbr_properties.roughness
+                        PBSDF.inputs[12].default_value = scene.ppbr_properties.specular
                     
                     # Make Metals
                     if scene.ppbr_properties.make_metal == True and MaterialIn(Metal, material):
@@ -239,9 +246,9 @@ def setproceduralpbr():
                             bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
                             material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
                             material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                            bump_node.inputs[0].default_value = bpy.context.scene.ppbr_properties.bump_strenght
+                            bump_node.inputs[0].default_value = scene.ppbr_properties.bump_strenght
                         if bump_node != None:
-                            bump_node.inputs[0].default_value = bpy.context.scene.ppbr_properties.bump_strenght
+                            bump_node.inputs[0].default_value = scene.ppbr_properties.bump_strenght
                     else:
                         if material.node_tree.nodes.get("Bump") is not None:
                             bump_node = material.node_tree.nodes.get("Bump")
@@ -294,7 +301,6 @@ def setproceduralpbr():
 
                     # Animate Textures
                     if scene.ppbr_properties.animate_textures == True and PBSDF.inputs[27].default_value != 0:
-                        node_tree_name = "Procedural Animation V1.1"
                         
                         map_range_node = None
                         math_node = None

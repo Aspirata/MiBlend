@@ -1,12 +1,8 @@
-import bpy
-import os
-import inspect
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
-from bpy.props import (IntProperty, BoolProperty, FloatProperty)
 
 bl_info = {
     "name": "Mcblend",
@@ -19,7 +15,7 @@ bl_info = {
 
 # World & Materials
 
-class RecreateSky(bpy.types.Operator):
+class RecreateSky(Operator):
     bl_label = "Recreate Sky"
     bl_idname = "wm.recreate_sky"
     
@@ -197,7 +193,7 @@ class CreateSkyProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-class WorldAndMaterialsPanel(bpy.types.Panel):
+class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"
     bl_idname = "OBJECT_PT_fix_materials"
     bl_space_type = 'VIEW_3D'
@@ -207,9 +203,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-
         world = bpy.context.scene.world
-        world_material_name = "Mcblend World"
 
         box = layout.box()
         row = box.row()
@@ -217,6 +211,9 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "backface_culling", text="Backface Culling")
         row = box.row()
+        row.prop(context.scene, "emissiondetection", text='emissiondetection', expand=True)
+        row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.fix_world", text="Fix World")
         if world != None:
             world_material = bpy.context.scene.world.node_tree
@@ -232,6 +229,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
             row.prop(bpy.context.scene.sky_properties, "create_clouds", text="Create Clouds")
             row = box.row()
             if world != bpy.data.worlds.get(world_material_name):
+                row.scale_y = Big_Button_Scale
                 row.operator("object.create_sky", text="Create Sky")
             else:
                 row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
@@ -250,6 +248,7 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
                     row = sbox.row()
                     row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
                 row = box.row()
+                row.scale_y = Big_Button_Scale
                 row.operator("object.create_sky", text="Recreate Sky")
         
         box = layout.box()
@@ -286,9 +285,10 @@ class WorldAndMaterialsPanel(bpy.types.Panel):
                 row = sbox.row()
                 row.prop(bpy.context.scene.ppbr_properties, "roughness", slider=True, text="Roughness")
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
 
-class FixWorldOperator(bpy.types.Operator):
+class FixWorldOperator(Operator):
     bl_idname = "object.fix_world"
     bl_label = "Fix World"
 
@@ -296,7 +296,7 @@ class FixWorldOperator(bpy.types.Operator):
         Materials.fix_world()
         return {'FINISHED'}
     
-class CreateSkyOperator(bpy.types.Operator):
+class CreateSkyOperator(Operator):
     bl_idname = "object.create_sky"
     bl_label = "Create Sky"
 
@@ -304,7 +304,7 @@ class CreateSkyOperator(bpy.types.Operator):
         Materials.create_sky()
         return {'FINISHED'}
         
-class UpgradeMaterialsOperator(bpy.types.Operator):
+class UpgradeMaterialsOperator(Operator):
     bl_idname = "object.upgrade_materials"
     bl_label = "Upgrade Materials"
 
@@ -312,7 +312,7 @@ class UpgradeMaterialsOperator(bpy.types.Operator):
         Materials.upgrade_materials()
         return {'FINISHED'}
 
-class FixMaterialsOperator(bpy.types.Operator):
+class FixMaterialsOperator(Operator):
     bl_idname = "object.fix_materials"
     bl_label = "Fix Materials"
 
@@ -320,7 +320,7 @@ class FixMaterialsOperator(bpy.types.Operator):
         Materials.fix_materials()
         return {'FINISHED'}
     
-class SetProceduralPBROperator(bpy.types.Operator):
+class SetProceduralPBROperator(Operator):
     bl_idname = "object.setproceduralpbr"
     bl_label = "Set Procedural PBR"
 
@@ -344,7 +344,7 @@ class OptimizationProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-class OptimizationPanel(bpy.types.Panel):
+class OptimizationPanel(Panel):
     bl_label = "Optimization"
     bl_idname = "OBJECT_PT_optimization"
     bl_space_type = 'VIEW_3D'
@@ -360,9 +360,10 @@ class OptimizationPanel(bpy.types.Panel):
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.optimization", text="Optimize")
 
-class OptimizeOperator(bpy.types.Operator):
+class OptimizeOperator(Operator):
     bl_idname = "object.optimization"
     bl_label = "Optimize"
 
@@ -373,15 +374,8 @@ class OptimizeOperator(bpy.types.Operator):
 #
     
 # Utils
-    
-class UtilsProperties(bpy.types.PropertyGroup):
-    cshadowsselection: bpy.props.BoolProperty(
-        name="CShadows Selection",
-        default=False,
-        description=""
-    )
 
-class UtilsPanel(bpy.types.Panel):
+class UtilsPanel(Panel):
     bl_label = "Utils"
     bl_idname = "OBJECT_PT_utils"
     bl_space_type = 'VIEW_3D'
@@ -396,14 +390,14 @@ class UtilsPanel(bpy.types.Panel):
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
             row = box.row()
-            row.prop(bpy.context.scene.utils_properties, "cshadowsselection", text="All Objects/Only Selected Objects", toggle=True)
+            row.prop(context.scene, "cshadowsselection", text='cshadowsselection', expand=True)
             row = box.row()
             row.operator("object.cshadows", text="Turn On Contact Shadows")
         
         row = box.row()
         row.operator("object.sleppafterrender", text="Sleep After Render")
 
-class SleepAfterRenderOperator(bpy.types.Operator):
+class SleepAfterRenderOperator(Operator):
     bl_idname = "object.sleppafterrender"
     bl_label = "Sleep After Render"
 
@@ -411,7 +405,7 @@ class SleepAfterRenderOperator(bpy.types.Operator):
         sleep_detector()
         return {'FINISHED'}
 
-class CShadowsOperator(bpy.types.Operator):
+class CShadowsOperator(Operator):
     bl_idname = "object.cshadows"
     bl_label = "Contact Shadows"
 
@@ -420,7 +414,7 @@ class CShadowsOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 # Assets
-class AssetPanel(bpy.types.Panel):
+class AssetPanel(Panel):
     bl_label = "Assets"
     bl_idname = "OBJECT_PT_assets"
     bl_space_type = 'VIEW_3D'
@@ -434,9 +428,10 @@ class AssetPanel(bpy.types.Panel):
         row = box.row()
         row.prop(context.scene, "selected_asset", text="Selected Asset:")
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.import_asset", text="Import Asset")
 
-class ImportAssetOperator(bpy.types.Operator):
+class ImportAssetOperator(Operator):
     bl_idname = "object.import_asset"
     bl_label = "Import Asset"
 
@@ -459,28 +454,45 @@ def append_asset(asset_data):
 
 #
 
-classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsPanel, 
+           SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
-    bpy.types.Scene.utils_properties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
         items=[(name, data["Name"], "") for name, data in Assets.items()],
         description="Select Asset to Import",
-    )    
+    )
+
+    bpy.types.Scene.cshadowsselection = EnumProperty(
+        items=[('All Objects', 'All Objects', ''), 
+               ('Only Selected Objects', 'Only Selected Objects', '')],
+        name="cshadowsselection"
+    )
+
+    bpy.types.Scene.emissiondetection = EnumProperty(
+    items=[('Automatic', 'Automatic', ''), 
+           ('Automatic & Manual', 'Automatic & Manual', 'Manual'),
+           ('Manual', 'Manual', '')],
+    name="emissiondetection"
+    )
+
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
     del bpy.types.Scene.sky_properties
     del bpy.types.Scene.utils_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.selected_asset
+    del bpy.types.Scene.emissiondetection
+
 
 if __name__ == "__main__":
     register()
