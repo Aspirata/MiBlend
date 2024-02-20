@@ -397,6 +397,20 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.sleppafterrender", text="Sleep After Render")
 
+        box = layout.box()
+        row = box.row()
+        row.label(text="Materials", icon="MATERIAL")
+        row = box.row()
+        row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
+
+class ConvertDBSDF2PBSDFOperator(Operator):
+    bl_idname = "object.convertdbsdf2pbsdf"
+    bl_label = "Convert DBSDF 2 PBSDF"
+
+    def execute(self, context):
+        ConvertDBSDF2PBSDF()
+        return {'FINISHED'}
+
 class SleepAfterRenderOperator(Operator):
     bl_idname = "object.sleppafterrender"
     bl_label = "Sleep After Render"
@@ -454,7 +468,7 @@ def append_asset(asset_data):
 
 #
 
-classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsPanel, 
+classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsPanel, ConvertDBSDF2PBSDFOperator,
            SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
 
 def register():
