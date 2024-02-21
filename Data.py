@@ -1,7 +1,7 @@
 # Properties
 import bpy
 import os
-from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty)
+from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 node_tree_name = "Clouds Generator 2"
 world_material_name = "Mcblend World"
 node_tree_name = "Procedural Animation V1.1"

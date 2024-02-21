@@ -375,6 +375,12 @@ class OptimizeOperator(Operator):
     
 # Utils
 
+class UtilsProperties(bpy.types.PropertyGroup):
+    vertex_group_name: bpy.props.StringProperty(
+        name="Vertex Group Name",
+        description=""
+    )
+
 class UtilsPanel(Panel):
     bl_label = "Utils"
     bl_idname = "OBJECT_PT_utils"
@@ -403,14 +409,29 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
 
-class ConvertDBSDF2PBSDFOperator(Operator):
-    bl_idname = "object.convertdbsdf2pbsdf"
-    bl_label = "Convert DBSDF 2 PBSDF"
+        box = layout.box()
+        row = box.row()
+        row.label(text="Mesh", icon="MESH_DATA")
+        row = box.row()
+        row.operator("object.fixautosmooth", text="Fix Shade Auto Smooth")
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Rigging", icon="ARMATURE_DATA")
+        row = box.row()
+        row.prop(bpy.context.scene.utilsproperties, "vertex_group_name", text="Vertex Group Name")
+        row = box.row()
+        row.operator("object.assingvertexgroup", text="Assing Vertex Group")
+
+
+class CShadowsOperator(Operator):
+    bl_idname = "object.cshadows"
+    bl_label = "Contact Shadows"
 
     def execute(self, context):
-        ConvertDBSDF2PBSDF()
+        CShadows()
         return {'FINISHED'}
-
+    
 class SleepAfterRenderOperator(Operator):
     bl_idname = "object.sleppafterrender"
     bl_label = "Sleep After Render"
@@ -419,12 +440,28 @@ class SleepAfterRenderOperator(Operator):
         sleep_detector()
         return {'FINISHED'}
 
-class CShadowsOperator(Operator):
-    bl_idname = "object.cshadows"
-    bl_label = "Contact Shadows"
+class ConvertDBSDF2PBSDFOperator(Operator):
+    bl_idname = "object.convertdbsdf2pbsdf"
+    bl_label = "Convert DBSDF 2 PBSDF"
 
     def execute(self, context):
-        CShadows()
+        ConvertDBSDF2PBSDF()
+        return {'FINISHED'}
+    
+class FixAutoSmoothOperator(Operator):
+    bl_idname = "object.fixautosmooth"
+    bl_label = "Fix Shade Auto Smooth"
+
+    def execute(self, context):
+        FixAutoSmooth()
+        return {'FINISHED'}
+    
+class AssingVertexGroupOperator(Operator):
+    bl_idname = "object.assingvertexgroup"
+    bl_label = "Assing Vertex Group"
+
+    def execute(self, context):
+        VertexRiggingTool()
         return {'FINISHED'}
 
 # Assets
@@ -468,8 +505,8 @@ def append_asset(asset_data):
 
 #
 
-classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsPanel, ConvertDBSDF2PBSDFOperator,
-           SleepAfterRenderOperator, CShadowsOperator, AssetPanel, ImportAssetOperator]
+classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
+           CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
@@ -477,6 +514,7 @@ def register():
     bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
+    bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
         items=[(name, data["Name"], "") for name, data in Assets.items()],
         description="Select Asset to Import",

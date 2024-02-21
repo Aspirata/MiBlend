@@ -22,7 +22,7 @@ def sleep_detector():
 def VertexRiggingTool():
     selected_objects = bpy.context.selected_objects
 
-    vertex_group_name = "R Leg IK"
+    vertex_group_name = bpy.context.scene.utilsproperties.vertex_group_name
 
     for obj in selected_objects:
 
@@ -77,3 +77,21 @@ def ConvertDBSDF2PBSDF():
                 material.node_tree.links.new(Texture.outputs["Alpha"], PBSDF.inputs[4])
                 material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
                 material.node_tree.links.new(Texture.outputs["Color"], PBSDF.inputs[0])
+
+def FixAutoSmooth():
+    for selected_object in bpy.context.selected_objects:
+        AutoSmoothed = False
+        if bpy.app.version < (4, 1, 0):
+            if selected_object.type == 'MESH':
+                for modifier in selected_object.modifiers:
+                    if modifier.type == 'NODES' and modifier.node_group == bpy.data.node_groups.get("Auto Smooth"):
+                        AutoSmoothed = True
+                        SmoothD = modifier["Socket_1"]
+
+                if AutoSmoothed == True:
+                    selected_object.data.use_auto_smooth = True
+                    selected_object.data.auto_smooth_angle= SmoothD
+        else:
+            if selected_object.modifiers.get("Smooth by Angle") != None: 
+                return
+            #selected_object.modifier_add(type='SUBSURF')
