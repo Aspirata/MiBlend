@@ -74,6 +74,8 @@ def fix_world():
                 if (image_texture_node and PBSDF) != None:
                     material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
                     for material_name, property_name in Emissive_Materials.items():
+
+                        # Emission
                         if scene.emissiondetection == 'Automatic & Manual':
                             if material_name in material.name.lower() or PBSDF.inputs[27].default_value != 0:
                                 material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
@@ -86,6 +88,7 @@ def fix_world():
                                 material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
                                 PBSDF.inputs[27].default_value = 1
 
+                    # Backface Culling
                     if scene.ppbr_properties.backface_culling:
                         if MaterialIn(Backface_Culling_Materials, material):
                             geometry_node = None

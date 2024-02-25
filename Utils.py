@@ -25,9 +25,8 @@ def VertexRiggingTool():
     vertex_group_name = bpy.context.scene.utilsproperties.vertex_group_name
 
     for obj in selected_objects:
-
         for vertex_group in obj.vertex_groups:
-            if vertex_group.name != vertex_group_name:
+            if vertex_group.name == vertex_group_name:
                 obj.vertex_groups.remove(vertex_group)
         
         vertex_group = obj.vertex_groups.new(name=vertex_group_name)

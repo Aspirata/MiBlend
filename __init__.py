@@ -523,14 +523,16 @@ def register():
     bpy.types.Scene.cshadowsselection = EnumProperty(
         items=[('All Objects', 'All Objects', ''), 
                ('Only Selected Objects', 'Only Selected Objects', '')],
-        name="cshadowsselection"
+        name="cshadowsselection",
+        default='All Objects'
     )
 
     bpy.types.Scene.emissiondetection = EnumProperty(
     items=[('Automatic', 'Automatic', ''), 
            ('Automatic & Manual', 'Automatic & Manual', 'Manual'),
            ('Manual', 'Manual', '')],
-    name="emissiondetection"
+    name="emissiondetection",
+    default='Automatic & Manual'
     )
 
 
