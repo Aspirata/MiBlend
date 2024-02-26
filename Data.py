@@ -16,6 +16,14 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
+        "Animate": True,
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 1,
+        "To Max": 1.5,
+        "Adder": 0.1,
+        "Divider": 80,
+        "Exclude": "None"
     },
 
     "glow_lichen": {
@@ -24,6 +32,14 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
+        "Animate": True,
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+        "Exclude": "None"
     },
 
     "torch": {
@@ -32,6 +48,14 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
+        "Animate": True,
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+        "Exclude": "None"
     },
 
     "lava": {
@@ -40,6 +64,8 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
+        "Animate": False,
+        "Exclude": "None"
     },
 
     "cave_vines_lit": {
@@ -48,6 +74,8 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
+        "Animate": False,
+        "Exclude": "None"
     },
 
     "sculk_sensor": {
@@ -56,6 +84,24 @@ Emissive_Materials = {
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max
+        "Animate": False,
+        "Exclude": "None"
+    },
+
+    "sculk": {
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
+        "Animate": True,
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+        "Exclude": "sculk_catalyst, sculk_sensor, sculk_shrieker, sculk_vein"
     }
 
 }
@@ -92,44 +138,6 @@ Reflective = [
     "amethyst",
     "water"
 ]
-
-Animatable_Materials = {
-    "sculk": {
-        "Multiplier": 1,
-        "Middle Value": 0.4,
-        "To Min": 0,
-        "To Max": 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "glow_lichen": {
-        "Multiplier": 1,
-        "Middle Value": 0.4,
-        "To Min": 0,
-        "To Max": 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "lantern": {
-        "Multiplier": 1,
-        "Middle Value": 0.4,
-        "To Min": 1,
-        "To Max": 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "torch": {
-        "Multiplier": 1,
-        "Middle Value": 0.4,
-        "To Min": 0,
-        "To Max": 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    }
-}
 
 Materials = {
     "Bricks": {

@@ -247,6 +247,8 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
                     row = sbox.row()
                     row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
                 row = box.row()
                 row.scale_y = Big_Button_Scale
                 row.operator("object.create_sky", text="Recreate Sky")
