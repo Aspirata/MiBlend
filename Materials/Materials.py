@@ -186,17 +186,17 @@ def create_sky():
                     clouds_exists = True
 
             if clouds_exists == False:
-                if node_tree_name not in bpy.data.node_groups:
+                if clouds_node_tree_name not in bpy.data.node_groups:
                     with bpy.data.libraries.load(os.path.join(script_directory, "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [node_tree_name]
+                        data_to.node_groups = [clouds_node_tree_name]
                 else:
-                    bpy.data.node_groups[node_tree_name]
+                    bpy.data.node_groups[clouds_node_tree_name]
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
                 bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
-                geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
+                geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
                 geonodes_modifier["Socket_11"] = scene.camera
 
             bpy.context.view_layer.update()
