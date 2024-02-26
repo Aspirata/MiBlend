@@ -35,47 +35,55 @@ def VertexRiggingTool():
 
 def ConvertDBSDF2PBSDF():
     for selected_object in bpy.context.selected_objects:
-        for material in selected_object.data.materials:
-            DBSDF = None
-            MixShader = None
-            TBSDF = None
-            PBSDF = None
+        if selected_object.material_slots:
+            for material in selected_object.data.materials:
+                if material != None:
+                    DBSDF = None
+                    MixShader = None
+                    TBSDF = None
+                    PBSDF = None
+                    Output = None
+                    Texture = None
 
-            for node in material.node_tree.nodes:
-                if node.type == "TEX_IMAGE":
-                    Texture = node
+                    for node in material.node_tree.nodes:
+                        if node.type == "TEX_IMAGE":
+                            Texture = node
 
-                if node.name == "Diffuse BSDF":
-                    DBSDF = node
+                        if node.name == "Diffuse BSDF":
+                            DBSDF = node
 
-                if node.name == "Mix Shader":
-                    MixShader = node
+                        if node.name == "Mix Shader":
+                            MixShader = node
 
-                if node.name == "Transparent BSDF":
-                    TBSDF = node
+                        if node.name == "Transparent BSDF":
+                            TBSDF = node
 
-                if node.name == "Principled BSDF":
-                    PBSDF = node
+                        if node.name == "Principled BSDF":
+                            PBSDF = node
 
-                if node.name == "Material Output":
-                    Output = node
+                        if node.name == "Material Output":
+                            Output = node
 
-            if DBSDF != None:
-                material.node_tree.nodes.remove(DBSDF)
+                    if DBSDF != None:
+                        material.node_tree.nodes.remove(DBSDF)
 
-            if MixShader != None:
-                material.node_tree.nodes.remove(MixShader)
+                    if MixShader != None:
+                        material.node_tree.nodes.remove(MixShader)
 
-            if TBSDF != None:
-                material.node_tree.nodes.remove(TBSDF)
-            
-            if Texture != None:
-                if PBSDF == None:
-                    PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-                    PBSDF.location = (Output.location.x - 100, Output.location.x - 5)
-                material.node_tree.links.new(Texture.outputs["Alpha"], PBSDF.inputs[4])
-                material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
-                material.node_tree.links.new(Texture.outputs["Color"], PBSDF.inputs[0])
+                    if TBSDF != None:
+                        material.node_tree.nodes.remove(TBSDF)
+                    
+                    if Texture != None:
+                        if PBSDF == None:
+                            PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                            PBSDF.location = (Output.location.x - 100, Output.location.x - 5)
+                        material.node_tree.links.new(Texture.outputs["Alpha"], PBSDF.inputs[4])
+                        material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
+                        material.node_tree.links.new(Texture.outputs["Color"], PBSDF.inputs[0])
+                else:
+                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+        else:
+            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")
 
 def FixAutoSmooth():
     for selected_object in bpy.context.selected_objects:

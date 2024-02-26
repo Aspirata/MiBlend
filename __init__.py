@@ -421,7 +421,7 @@ class UtilsPanel(Panel):
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "vertex_group_name", text="Vertex Group Name")
         row = box.row()
-        row.operator("object.assingvertexgroup", text="Assing Vertex Group")
+        row.operator("object.assingvertexgroup", text="Assign Vertex Group")
 
 
 class CShadowsOperator(Operator):
