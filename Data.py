@@ -88,6 +88,16 @@ Emissive_Materials = {
         "Exclude": "None"
     },
 
+    "glowstone": {
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 2, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
+        "Animate": False,
+        "Exclude": "None"
+    },
+
     "sculk": {
         "Interpolation Type": "SMOOTHSTEP",
         1: 0, # From Min
@@ -173,7 +183,7 @@ Materials = {
     "Lantern": {
         "Original Material": "lantern",
         "Upgraded Material": "Upgraded Lantern",
-        "Exclude": "soul_lantern"
+        "Exclude": "soul_lantern, redstone_lamp, sea_lantern"
     },
 
     "Obsidian": {
@@ -197,13 +207,13 @@ Materials = {
     "Soul Lantern": {
         "Original Material": "soul_lantern",
         "Upgraded Material": "Upgraded Soul Lantern",
-        "Exclude": "None"
+        "Exclude": "redstone_lamp"
     },
 
     "Stone": {
         "Original Material": "stone",
         "Upgraded Material": "Upgraded Stone",
-        "Exclude": "cobblestone. smooth_stone, redstone, blackstone"
+        "Exclude": "cobblestone. smooth_stone, redstone, blackstone, glowstone"
     },
 
     "Water Flow": {
