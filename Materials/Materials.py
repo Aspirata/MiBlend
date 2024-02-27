@@ -33,6 +33,7 @@ def EmissionMode(PBSDF, material):
                                 Excluded = False
                             else:
                                 Excluded = True
+                                break
                 else:
                     Excluded = False
 

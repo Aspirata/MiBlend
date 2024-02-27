@@ -21,10 +21,13 @@ This is an experimental branch. I'm testing new features here
 If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
 
 Contributors:
+
 .anonim4ik - Camera Culling node
 
-humusus. - Help with Allay Rig
-
 zipi.zip - Creeper Rig (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+
+jabady - Active Testing And Bug Reporting
+
+humusus. - Help with Allay Rig
 
 th3pooka - Rigs (linktr.ee/th3pooka)
