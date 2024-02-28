@@ -51,9 +51,12 @@ class RecreateSky(Operator):
             if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
                 bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
 
-            with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-                data_to.worlds = [world_material_name]
-            appended_world_material = bpy.data.worlds.get(world_material_name)
+            try:
+                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                    data_to.worlds = [world_material_name]
+                appended_world_material = bpy.data.worlds.get(world_material_name)
+            except:
+                print(f".blend not found, error code: 004")
 
             bpy.context.scene.world = appended_world_material
         
@@ -411,11 +414,11 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
 
-        box = layout.box()
-        row = box.row()
-        row.label(text="Mesh", icon="MESH_DATA")
-        row = box.row()
-        row.operator("object.fixautosmooth", text="Fix Shade Auto Smooth")
+        #box = layout.box()
+        #row = box.row()
+        #row.label(text="Mesh", icon="MESH_DATA")
+        #row = box.row()
+        #row.operator("object.fixautosmooth", text="Fix Shade Auto Smooth")
 
         box = layout.box()
         row = box.row()

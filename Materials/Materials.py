@@ -14,8 +14,11 @@ def MaterialIn(Array, material):
 
 def append_materials(upgraded_material_name, selected_object, i):
     if upgraded_material_name not in bpy.data.materials:
-        with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-            data_to.materials = [upgraded_material_name]
+        try:
+            with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                data_to.materials = [upgraded_material_name]
+        except:
+            print(f".blend not found, error code: 004")
         appended_material = bpy.data.materials.get(upgraded_material_name)
         selected_object.data.materials[i] = appended_material
     else:
@@ -82,6 +85,7 @@ def fix_world():
                 if material != None:
                     PBSDF = None
                     mix_node = None
+                    image_texture_node = None
                     scene = bpy.context.scene
 
                     if MaterialIn(Alpha_Blend_Materials, material):
@@ -111,44 +115,47 @@ def fix_world():
                         # Backface Culling
                         if scene.ppbr_properties.backface_culling:
                             if MaterialIn(Backface_Culling_Materials, material):
-                                geometry_node = None
-                                invert_node = None
-                                mix_node = None
+                                if bpy.context.scene.render.engine == 'CYCLES':
+                                    geometry_node = None
+                                    invert_node = None
+                                    mix_node = None
 
-                                material.use_backface_culling = True
-                                for node in material.node_tree.nodes:
-                                    if node.name == "Geometry":
-                                        geometry_node = node
+                                    
+                                    for node in material.node_tree.nodes:
+                                        if node.name == "Geometry":
+                                            geometry_node = node
 
-                                    if node.name == "Invert Color":
-                                        invert_node = node
+                                        if node.name == "Invert Color":
+                                            invert_node = node
 
-                                    if node.name == "Mix":
-                                        mix_node = node
-                                
-                                if geometry_node == None:
-                                    geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
-                                    geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
-                                    gemetry_exists = True
-                                
-                                if  invert_node == None:
-                                    invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
-                                    invert_node.location = (image_texture_node.location.x + 260, image_texture_node.location.y - 200)
+                                        if node.name == "Mix":
+                                            mix_node = node
+                                    
+                                    if geometry_node == None:
+                                        geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
+                                        geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
+                                        gemetry_exists = True
+                                    
+                                    if  invert_node == None:
+                                        invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
+                                        invert_node.location = (image_texture_node.location.x + 260, image_texture_node.location.y - 200)
 
-                                if mix_node == None:
-                                    mix_node = material.node_tree.nodes.new(type='ShaderNodeMix')
-                                    mix_node.location = (invert_node.location.x + 170, image_texture_node.location.y - 110)
-                                    mix_node.blend_type = 'MULTIPLY'
-                                    mix_node.data_type =  'RGBA'
-                                    mix_node.inputs[0].default_value = 1
-                                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
-                                    material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
+                                    if mix_node == None:
+                                        mix_node = material.node_tree.nodes.new(type='ShaderNodeMix')
+                                        mix_node.location = (invert_node.location.x + 170, image_texture_node.location.y - 110)
+                                        mix_node.blend_type = 'MULTIPLY'
+                                        mix_node.data_type =  'RGBA'
+                                        mix_node.inputs[0].default_value = 1
+                                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
+                                        material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
+                                    else:
+                                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
+                                        material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
+                                    
+                                    material.node_tree.links.new(geometry_node.outputs["Backfacing"], invert_node.inputs[1])
+                                    material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
                                 else:
-                                    material.node_tree.links.new(image_texture_node.outputs["Alpha"], mix_node.inputs["B"])
-                                    material.node_tree.links.new(mix_node.outputs["Result"], PBSDF.inputs["Alpha"])
-                                
-                                material.node_tree.links.new(geometry_node.outputs["Backfacing"], invert_node.inputs[1])
-                                material.node_tree.links.new(invert_node.outputs["Color"], mix_node.inputs["A"])
+                                    material.use_backface_culling = True
                         else:
                             if MaterialIn(Backface_Culling_Materials, material):
                                 material.use_backface_culling = False
@@ -177,9 +184,8 @@ def create_sky():
             else:
                 appended_world_material = bpy.data.worlds[world_material_name]
             bpy.context.scene.world = appended_world_material
-
-        except FileNotFoundError as err:
-            print(f"Не найден файл мира, код ошибки 003: {err}")
+        except:
+            print(f".blend not found, error code: 004")
 
         if scene.sky_properties.create_clouds:                    
             for obj in scene.objects:

@@ -24,10 +24,8 @@ Contributors:
 
 .anonim4ik - Camera Culling node
 
-zipi.zip - Creeper Rig (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+zipi.zip - Rigs (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
 jabady - Active Testing And Bug Reporting
 
 humusus. - Help with Allay Rig
-
-th3pooka - Rigs (linktr.ee/th3pooka)
