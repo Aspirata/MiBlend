@@ -24,3 +24,9 @@ If you want to be a contributor (Help me in rigging, coding or making materials)
 Contributors:
 
 .anonim4ik - Camera Culling node
+
+zipi.zip - Rigs (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+
+jabady - Active Testing And Bug Reporting
+
+humusus. - Help with Allay Rig
