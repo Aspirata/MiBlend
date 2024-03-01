@@ -141,13 +141,13 @@ def Enchant():
                         node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
                         material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
-                        node_group.inputs["Divider"].default_value = bpy.context.scene.utilsproperties.divider
+                        node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
                         node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
                         node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
                     else:
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
                         material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
-                        node_group.inputs["Divider"].default_value = bpy.context.scene.utilsproperties.divider
+                        node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
                         node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
                         node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
 

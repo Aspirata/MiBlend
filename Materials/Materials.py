@@ -370,7 +370,18 @@ def setproceduralpbr():
                                     for material_name, material_properties in Emissive_Materials.items():
                                         for property_name, property_value in material_properties.items():
                                             if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
-                                                node_group.inputs[property_name].default_value = property_value
+                                                if property_name == "Divider":
+                                                    node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
+                                                else:
+                                                        node_group.inputs[property_name].default_value = property_value
+                                else:
+                                    for material_name, material_properties in Emissive_Materials.items():
+                                        for property_name, property_value in material_properties.items():
+                                            if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
+                                                if property_name == "Divider":
+                                                    node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
+                                                else:
+                                                        node_group.inputs[property_name].default_value = property_value
 
                                 if scene.ppbr_properties.make_better_emission == True or (map_range_node and math_node) != None:
                                     material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])

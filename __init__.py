@@ -450,7 +450,7 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, text="Enchant Settings", icon=("TRIA_DOWN" if bpy.context.scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
+        row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, text="Enchant Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"))
         row = box.row()
         if bpy.context.scene.utilsproperties.enchant_settings == True:
             row.prop(bpy.context.scene.utilsproperties, "divider")
