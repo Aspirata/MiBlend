@@ -17,13 +17,11 @@ def Optimize():
         node_tree_name = "Camera Culling"
 
         if node_tree_name not in bpy.data.node_groups:
-            with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-                data_to.node_groups = [node_tree_name]
-        
-            if node_tree_name in bpy.data.node_groups:
-                appended_node_tree = bpy.data.node_groups[node_tree_name]
-            else:
-                print(f"Error loading: {node_tree_name}")
+            try:
+                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                    data_to.node_groups = [node_tree_name]
+            except:
+                raise ValueError(".blend not found, error code: 004")
 
         for obj in selected_objects:
             Camera_Culling(obj)

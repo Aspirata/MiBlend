@@ -1,5 +1,7 @@
 import bpy
 import os
+from .Data import *
+
 def CShadows():
     if bpy.context.scene.cshadowsselection == 'Only Selected Objects':
         for obj in bpy.context.selected_objects:
@@ -99,6 +101,48 @@ def FixAutoSmooth():
                     selected_object.data.use_auto_smooth = True
                     selected_object.data.auto_smooth_angle= SmoothD
         else:
-            if selected_object.modifiers.get("Smooth by Angle") != None: 
-                return
-            #selected_object.modifier_add(type='SUBSURF')
+            if selected_object.modifiers.get("Smooth by Angle") == None: 
+                if "Smooth by Angle" not in bpy.data.node_groups:
+                    try:
+                        with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Shade Auto Smooth.blend"), link=False) as (data_from, data_to):
+                            data_to.node_groups = ["Smooth by Angle"]
+                    except:
+                        raise ValueError(".blend not found, error code: 004")
+                    
+                geonodes_modifier = selected_object.modifiers.new('Shade Auto Smooth', type='NODES')
+                geonodes_modifier.node_group = bpy.data.node_groups.get("Smooth by Angle")
+
+def Enchant():
+    for selected_object in bpy.context.selected_objects:
+        if selected_object.material_slots:
+            for material in selected_object.data.materials:
+                if material != None:
+                    node_group = None
+
+                    for node in material.node_tree.nodes:
+                        if node.type == 'GROUP' and "Enchantment" in node.node_tree.name:
+                            node_group = node
+
+                        if node.name == "Principled BSDF":
+                            PBSDF = node
+
+                    if node_group == None:
+                        if "Enchantment" not in bpy.data.node_groups:
+                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                data_to.node_groups = ["Enchantment"]
+                        else:
+                            bpy.data.node_groups["Enchantment"]
+
+                        node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                        node_group.node_tree = bpy.data.node_groups["Enchantment"]
+                        node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
+                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
+                        material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+                    else:
+                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
+                        material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+
+                else:
+                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+        else:
+            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")

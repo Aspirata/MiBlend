@@ -2,9 +2,6 @@ from ..Data import *
 
 #Replace Materials
 
-script_directory = os.path.dirname(os.path.realpath(__file__))
-blend_file_path = os.path.join(script_directory, "Materials.blend")
-
 def MaterialIn(Array, material):
     for keyword in Array:
         if keyword in material.name.lower():
@@ -15,10 +12,10 @@ def MaterialIn(Array, material):
 def append_materials(upgraded_material_name, selected_object, i):
     if upgraded_material_name not in bpy.data.materials:
         try:
-            with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                 data_to.materials = [upgraded_material_name]
         except:
-            print(f".blend not found, error code: 004")
+            raise ValueError(f".blend not found, error code: 004")
         appended_material = bpy.data.materials.get(upgraded_material_name)
         selected_object.data.materials[i] = appended_material
     else:
@@ -53,7 +50,7 @@ def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
         for i, material in enumerate(selected_object.data.materials):
             replace = False
-            for material_name, material_info in Materials.items():
+            for material_name, material_info in Materials_Array.items():
                 for property_name, property_value in material_info.items():
                     if property_name == "Upgraded Material":
                         upgraded_material = property_value
@@ -168,7 +165,6 @@ def fix_world():
 
 def create_sky():
 
-    script_directory = os.path.dirname(os.path.realpath(__file__))
     clouds_exists = False
     scene = bpy.context.scene
     world = scene.world
@@ -178,14 +174,14 @@ def create_sky():
     else:
         try:
             if world_material_name not in bpy.data.worlds:
-                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                     data_to.worlds = [world_material_name]
                 appended_world_material = bpy.data.worlds.get(world_material_name)
             else:
                 appended_world_material = bpy.data.worlds[world_material_name]
             bpy.context.scene.world = appended_world_material
         except:
-            print(f".blend not found, error code: 004")
+            raise ValueError(".blend not found, error code: 004")
 
         if scene.sky_properties.create_clouds:                    
             for obj in scene.objects:
@@ -194,7 +190,7 @@ def create_sky():
 
             if clouds_exists == False:
                 if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(script_directory, "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
                 else:
                     bpy.data.node_groups[clouds_node_tree_name]
@@ -347,6 +343,7 @@ def setproceduralpbr():
                             if Animate == True:
                                 map_range_node = None
                                 math_node = None
+                                node_group = None
 
                                 for node in material.node_tree.nodes:
                                     if node.name == "Map Range":
@@ -355,12 +352,14 @@ def setproceduralpbr():
                                     if node.name == "Math":
                                         if node.operation == 'MULTIPLY':
                                             math_node = node
-                                
-                                if node.type == 'GROUP' and node_tree_name in node.node_tree.name:
+                                    
+                                    if node.type == 'GROUP' and node_tree_name in node.node_tree.name:
                                         node_group = node
-                                else:
+
+
+                                if node_group == None:
                                     if node_tree_name not in bpy.data.node_groups:
-                                        with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                             data_to.node_groups = [node_tree_name]
                                     else:
                                         bpy.data.node_groups[node_tree_name]

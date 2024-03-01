@@ -39,8 +39,6 @@ class RecreateSky(Operator):
 
     def execute(self, context):
         
-        script_directory = os.path.dirname(os.path.realpath(__file__))
-        blend_file_path = os.path.join(script_directory, "Materials", "Materials.blend")
         node_tree_name = "Clouds Generator 2"
 
         world = bpy.context.scene.world
@@ -52,28 +50,31 @@ class RecreateSky(Operator):
                 bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
 
             try:
-                with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                     data_to.worlds = [world_material_name]
                 appended_world_material = bpy.data.worlds.get(world_material_name)
             except:
-                print(f".blend not found, error code: 004")
+                raise ValueError(f".blend not found, error code: 004")
 
             bpy.context.scene.world = appended_world_material
         
         if self.reset_settings == True:
             world_material = bpy.context.scene.world.node_tree
-
             node_group = None
+
             for node in world_material.nodes:
                 if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
                     node_group = node
                     break
-            node_group.inputs["Moon Strenght"].default_value = 200.0
-            node_group.inputs["Sun Strength"].default_value = 200.0
-            node_group.inputs["Stars Strength"].default_value = 800.0
-            node_group.inputs["Non-Camera Ambient Light Strenght"].default_value = 1.0
-            node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
-            node_group.inputs["Rotation"].default_value = 0
+            if node_group != None:
+                node_group.inputs["Moon Strenght"].default_value = 200.0
+                node_group.inputs["Sun Strength"].default_value = 200.0
+                node_group.inputs["Stars Strength"].default_value = 800.0
+                node_group.inputs["Non-Camera Ambient Light Strenght"].default_value = 1.0
+                node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
+                node_group.inputs["Rotation"].default_value = 0
+            else:
+                raise ValueError("Mcblend Sky node not found, maybe you should recreate sky ? Error code: m005")
 
         if self.recreate_clouds == True:
             for obj in bpy.context.scene.objects:
@@ -81,7 +82,7 @@ class RecreateSky(Operator):
                     bpy.data.objects.remove(obj, do_unlink=True)
 
             if node_tree_name not in bpy.data.node_groups:
-                with bpy.data.libraries.load(os.path.join(script_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
                     data_to.node_groups = [node_tree_name]
             else:
                 bpy.data.node_groups[node_tree_name]
@@ -235,23 +236,26 @@ class WorldAndMaterialsPanel(Panel):
                 row.scale_y = Big_Button_Scale
                 row.operator("object.create_sky", text="Create Sky")
             else:
-                row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
-                row = box.row()
-                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_RIGHT" if bpy.context.scene.sky_properties.advanced_settings else "TRIA_DOWN"))
-                if bpy.context.scene.sky_properties.advanced_settings:
-                    sbox = box.box()
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                if node_group != None:
+                    row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
+                    row = box.row()
+                    row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if bpy.context.scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
+                    if bpy.context.scene.sky_properties.advanced_settings:
+                        sbox = box.box()
+                        row = sbox.row()
+                        row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                        row = sbox.row()
+                        row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                        row = sbox.row()
+                        row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                        row = sbox.row()
+                        row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
+                        row = sbox.row()
+                        row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+                        row = sbox.row()
+                        row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                else:
+                    row.label(text="Mcblend Sky node not found, maybe you should recreate sky ? Error code: m005", icon="ERROR")
                 row = box.row()
                 row.scale_y = Big_Button_Scale
                 row.operator("object.create_sky", text="Recreate Sky")
@@ -279,7 +283,7 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "animate_textures", text="Animate Textures")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_RIGHT" if bpy.context.scene.ppbr_properties.advanced_settings else "TRIA_DOWN"))
+        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if bpy.context.scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
         if bpy.context.scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
@@ -413,12 +417,14 @@ class UtilsPanel(Panel):
         row.label(text="Materials", icon="MATERIAL")
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
+        row = box.row()
+        row.operator("object.enchant", text="Enchant Objects")
 
-        #box = layout.box()
-        #row = box.row()
-        #row.label(text="Mesh", icon="MESH_DATA")
-        #row = box.row()
-        #row.operator("object.fixautosmooth", text="Fix Shade Auto Smooth")
+        box = layout.box()
+        row = box.row()
+        row.label(text="Mesh", icon="MESH_DATA")
+        row = box.row()
+        row.operator("object.fixautosmooth", text="Fix Shade Auto Smooth")
 
         box = layout.box()
         row = box.row()
@@ -451,6 +457,14 @@ class ConvertDBSDF2PBSDFOperator(Operator):
 
     def execute(self, context):
         ConvertDBSDF2PBSDF()
+        return {'FINISHED'}
+    
+class EnchantOperator(Operator):
+    bl_idname = "object.enchant"
+    bl_label = "Enchant Object"
+
+    def execute(self, context):
+        Enchant()
         return {'FINISHED'}
     
 class FixAutoSmoothOperator(Operator):
@@ -511,7 +525,7 @@ def append_asset(asset_data):
 #
 
 classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
-           CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
+           CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
@@ -534,7 +548,7 @@ def register():
 
     bpy.types.Scene.emissiondetection = EnumProperty(
     items=[('Automatic', 'Automatic', ''), 
-           ('Automatic & Manual', 'Automatic & Manual', 'Manual'),
+           ('Automatic & Manual', 'Automatic & Manual', ''),
            ('Manual', 'Manual', '')],
     name="emissiondetection",
     default='Automatic & Manual'
