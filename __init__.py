@@ -1,3 +1,4 @@
+from email.policy import default
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
@@ -385,6 +386,37 @@ class OptimizeOperator(Operator):
 # Utils
 
 class UtilsProperties(bpy.types.PropertyGroup):
+
+    enchant_settings: bpy.props.BoolProperty(
+        name="Enchant Settings",
+        default=False,
+        description=""
+    )
+
+    divider: bpy.props.FloatProperty(
+        name="Divider",
+        description="",
+        default=70.0,
+        min=0.0,
+        max=100000.0
+    )
+
+    camera_strenght: bpy.props.FloatProperty(
+        name="Camera Strenght",
+        description="",
+        default=1.0,
+        min=0.0,
+        max=1000000.0
+    )
+
+    non_camera_strenght: bpy.props.FloatProperty(
+        name="Non-Camera Strenght",
+        description="",
+        default=1.0,
+        min=0.0,
+        max=1000000.0
+    )
+
     vertex_group_name: bpy.props.StringProperty(
         name="Vertex Group Name",
         description=""
@@ -418,6 +450,16 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
+        row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, text="Enchant Settings", icon=("TRIA_DOWN" if bpy.context.scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
+        row = box.row()
+        if bpy.context.scene.utilsproperties.enchant_settings == True:
+            row.prop(bpy.context.scene.utilsproperties, "divider")
+            row = box.row()
+            row.prop(bpy.context.scene.utilsproperties, "camera_strenght")
+            row = box.row()
+            row.prop(bpy.context.scene.utilsproperties, "non_camera_strenght")
+            row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.enchant", text="Enchant Objects")
 
         box = layout.box()

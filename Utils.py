@@ -101,16 +101,19 @@ def FixAutoSmooth():
                     selected_object.data.use_auto_smooth = True
                     selected_object.data.auto_smooth_angle= SmoothD
         else:
-            if selected_object.modifiers.get("Smooth by Angle") == None: 
-                if "Smooth by Angle" not in bpy.data.node_groups:
-                    try:
-                        with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Shade Auto Smooth.blend"), link=False) as (data_from, data_to):
-                            data_to.node_groups = ["Smooth by Angle"]
-                    except:
-                        raise ValueError(".blend not found, error code: 004")
+            for modifier in selected_object.modifiers:
+                if modifier.type == 'NODES' and modifier.node_group == bpy.data.node_groups.get("Smooth by Angle"):
+                    return
+
+            if "Smooth by Angle" not in bpy.data.node_groups:
+                try:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Shade Auto Smooth.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = ["Smooth by Angle"]
+                except:
+                    raise ValueError(".blend not found, error code: 004")
                     
-                geonodes_modifier = selected_object.modifiers.new('Shade Auto Smooth', type='NODES')
-                geonodes_modifier.node_group = bpy.data.node_groups.get("Smooth by Angle")
+            geonodes_modifier = selected_object.modifiers.new('Shade Auto Smooth', type='NODES')
+            geonodes_modifier.node_group = bpy.data.node_groups.get("Smooth by Angle")
 
 def Enchant():
     for selected_object in bpy.context.selected_objects:
@@ -138,9 +141,15 @@ def Enchant():
                         node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
                         material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+                        node_group.inputs["Divider"].default_value = bpy.context.scene.utilsproperties.divider
+                        node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
+                        node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
                     else:
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
                         material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+                        node_group.inputs["Divider"].default_value = bpy.context.scene.utilsproperties.divider
+                        node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
+                        node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
 
                 else:
                     raise ValueError("Material doesn't exist on one of the slots, error code: m002")
