@@ -119,17 +119,17 @@ Emissive_Materials = {
 
     "end_rod": {
         "Interpolation Type": "SMOOTHSTEP",
-        1: 0.6, # From Min
+        1: 0.5, # From Min
         2: 0.6, # From Max
         3: 0, # To Min
-        4: 3.4, # To Max
+        4: 2, # To Max
         "Animate": True,
         "Multiplier": 1,
         "Middle Value": 0.4,
         "To Min": 0.7,
         "To Max": 1,
         "Adder": 0.2,
-        "Divider": 50,
+        "Divider": 80,
         "Exclude": "None"
     },
 
