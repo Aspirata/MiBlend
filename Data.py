@@ -3,6 +3,9 @@ import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 
+main_directory = os.path.dirname(os.path.realpath(__file__))
+materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
+
 clouds_node_tree_name = "Clouds Generator 2"
 world_material_name = "Mcblend World"
 node_tree_name = "Procedural Animation V1.1"
@@ -112,7 +115,23 @@ Emissive_Materials = {
         "Adder": 0.2,
         "Divider": 50,
         "Exclude": "sculk_catalyst, sculk_sensor, sculk_shrieker, sculk_vein"
-    }
+    },
+
+    "end_rod": {
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0.6, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 3.4, # To Max
+        "Animate": True,
+        "Multiplier": 1,
+        "Middle Value": 0.4,
+        "To Min": 0.7,
+        "To Max": 1,
+        "Adder": 0.2,
+        "Divider": 50,
+        "Exclude": "None"
+    },
 
 }
 
@@ -149,7 +168,7 @@ Reflective = [
     "water"
 ]
 
-Materials = {
+Materials_Array = {
     "Bricks": {
         "Original Material": "bricks",
         "Upgraded Material": "Upgraded Bricks",
