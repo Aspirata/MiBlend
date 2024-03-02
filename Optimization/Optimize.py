@@ -1,5 +1,6 @@
 import bpy
 import os
+from ..Data import *
 
 def Camera_Culling(obj):
     if obj.modifiers.get("Camera Culling") != None: 
@@ -21,7 +22,7 @@ def Optimize():
                 with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
                     data_to.node_groups = [node_tree_name]
             except:
-                raise ValueError(".blend not found, error code: 004")
+                CEH('004')
 
         for obj in selected_objects:
             Camera_Culling(obj)

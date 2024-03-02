@@ -12,6 +12,20 @@ node_tree_name = "Procedural Animation V1.1"
 
 Big_Button_Scale = 1.4
 
+def CEH(Error_Code, Data=None):
+
+    if  Error_Code == 'm002':
+        raise ValueError(f"Material doesn't exist on one of the slots, error code: {Error_Code}")
+    
+    if Error_Code == 'm003':
+        raise ValueError(f"Object: {Data.name} has no materials, error code: {Error_Code}")
+
+    if  Error_Code == '004':
+        raise ValueError(f"{os.path.basename(os.path.dirname(os.path.realpath(__file__)))}.blend not found, error code: {Error_Code}")
+    
+    if  Error_Code == 'm005':
+        raise ValueError(f"Mcblend Sky node not found, maybe you should recreate sky ? Error code: {Error_Code}")
+
 Emissive_Materials = {
     "lantern": {
         "Interpolation Type": "SMOOTHSTEP",

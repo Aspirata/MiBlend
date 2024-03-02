@@ -15,7 +15,7 @@ def append_materials(upgraded_material_name, selected_object, i):
             with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                 data_to.materials = [upgraded_material_name]
         except:
-            raise ValueError(f".blend not found, error code: 004")
+            CEH('004')
         appended_material = bpy.data.materials.get(upgraded_material_name)
         selected_object.data.materials[i] = appended_material
     else:
@@ -159,9 +159,9 @@ def fix_world():
 
                         selected_object.data.update()
                 else:
-                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+                    CEH('m002')
         else:
-            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")
+            CEH('m003', Data=selected_object)
 
 def create_sky():
 
@@ -181,7 +181,7 @@ def create_sky():
                 appended_world_material = bpy.data.worlds[world_material_name]
             bpy.context.scene.world = appended_world_material
         except:
-            raise ValueError(".blend not found, error code: 004")
+            raise ValueError("{os.path.basename(os.path.dirname(os.path.realpath(__file__)))} not found, error code: 004")
 
         if scene.sky_properties.create_clouds:                    
             for obj in scene.objects:
@@ -227,10 +227,10 @@ def fix_materials():
                     if (image_texture_node and PBSDF) != None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
                 else:
-                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+                    CEH('m002')
                 
         else:
-            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")
+            CEH('m003', Data=selected_object)
             
         selected_object.data.update()
 
@@ -373,17 +373,9 @@ def setproceduralpbr():
                                                 if property_name == "Divider":
                                                     node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
                                                 else:
-                                                        node_group.inputs[property_name].default_value = property_value
-                                else:
-                                    for material_name, material_properties in Emissive_Materials.items():
-                                        for property_name, property_value in material_properties.items():
-                                            if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
-                                                if property_name == "Divider":
-                                                    node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
-                                                else:
-                                                        node_group.inputs[property_name].default_value = property_value
+                                                    node_group.inputs[property_name].default_value = property_value
 
-                                if scene.ppbr_properties.make_better_emission == True or (map_range_node and math_node) != None:
+                                if scene.ppbr_properties.make_better_emission == True and (map_range_node and math_node) != None:
                                     material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])
                                     node_group.location = (PBSDF.location.x - 400, PBSDF.location.y - 460)
                                 else:
@@ -391,10 +383,10 @@ def setproceduralpbr():
                                     node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 300)
                                 
                 else:
-                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+                    CEH('m002')
                 
         else:
-            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")
+            CEH('m003', Data=selected_object)
             
         selected_object.data.update()
 #

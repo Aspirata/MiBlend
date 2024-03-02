@@ -8,7 +8,7 @@ from .Utils import *
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 0, 3),
+    "version": (0, 0, 31),
     "blender": (4, 0, 0),
     "location": "View3D > Addons Tab",
     "description": "",
@@ -55,7 +55,7 @@ class RecreateSky(Operator):
                     data_to.worlds = [world_material_name]
                 appended_world_material = bpy.data.worlds.get(world_material_name)
             except:
-                raise ValueError(f".blend not found, error code: 004")
+                CEH('004')
 
             bpy.context.scene.world = appended_world_material
         
@@ -75,7 +75,7 @@ class RecreateSky(Operator):
                 node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
                 node_group.inputs["Rotation"].default_value = 0
             else:
-                raise ValueError("Mcblend Sky node not found, maybe you should recreate sky ? Error code: m005")
+                CEH('m005')
 
         if self.recreate_clouds == True:
             for obj in bpy.context.scene.objects:

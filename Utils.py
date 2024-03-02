@@ -95,11 +95,11 @@ def FixAutoSmooth():
                 for modifier in selected_object.modifiers:
                     if modifier.type == 'NODES' and modifier.node_group == bpy.data.node_groups.get("Auto Smooth"):
                         AutoSmoothed = True
-                        SmoothD = modifier["Socket_1"]
+                        SmoothAngle = modifier["Socket_1"]
 
                 if AutoSmoothed == True:
                     selected_object.data.use_auto_smooth = True
-                    selected_object.data.auto_smooth_angle= SmoothD
+                    selected_object.data.auto_smooth_angle= SmoothAngle
         else:
             for modifier in selected_object.modifiers:
                 if modifier.type == 'NODES' and modifier.node_group == bpy.data.node_groups.get("Smooth by Angle"):
@@ -110,7 +110,7 @@ def FixAutoSmooth():
                     with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Shade Auto Smooth.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = ["Smooth by Angle"]
                 except:
-                    raise ValueError(".blend not found, error code: 004")
+                    raise ValueError(f"{os.path.basename(os.path.dirname(os.path.realpath(__file__)))} not found, error code: 004")
                     
             geonodes_modifier = selected_object.modifiers.new('Shade Auto Smooth', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get("Smooth by Angle")
