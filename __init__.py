@@ -348,6 +348,54 @@ class OptimizationProperties(bpy.types.PropertyGroup):
         description="Enables Camera Culling"
     )
 
+    camera_culling_settings: bpy.props.BoolProperty(
+        name="Camera Culling Settings",
+        default=False,
+        description=""
+    )
+
+    camera_culling_type: bpy.props.BoolProperty(
+        name="Raycast Camera Culling",
+        default=False,
+        description=""
+    )
+
+    merge_by_distance: bpy.props.BoolProperty(
+        name="Merge By Distance",
+        default=False,
+        description=""
+    )
+
+    merge_distance: bpy.props.FloatProperty(
+        name="Merge Distance",
+        default=50.0,
+        min=0.0,
+        max=1000000.0,
+        description=""
+    )
+
+    backface_culling_distance: bpy.props.FloatProperty(
+        name="Backface Culling Distance",
+        default=50.0,
+        min=0.0,
+        max=1000000.0,
+        description=""
+    )
+
+    threshold: bpy.props.FloatProperty(
+        name="Threshold",
+        default=0.8,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    backface_culling: bpy.props.BoolProperty(
+        name="Backface Culling",
+        default=True,
+        description=""
+    )
+
     set_render_settings: bpy.props.BoolProperty(
         name="Set Render Settings",
         default=False,
@@ -367,6 +415,34 @@ class OptimizationPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
+        row = box.row()
+        row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", text="Camera Culling Settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_RIGHT"))
+
+        # Camera Culling Settings
+        if bpy.context.scene.optimizationproperties.camera_culling_settings == True:
+            sbox = box.box()
+            row = sbox.row()
+            if bpy.app.version >= (4, 1, 0):
+                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text="Raycast Camera Culling")
+                
+                # Raycast Camera Culling Settings
+                if bpy.context.scene.optimizationproperties.camera_culling_type == True:
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
+                    
+                    if bpy.context.scene.optimizationproperties.merge_by_distance == True:
+                        row = sbox.row()
+                        row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
+
+            row = sbox.row()
+            row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+            if bpy.context.scene.optimizationproperties.backface_culling == True and bpy.context.scene.optimizationproperties.camera_culling_type == True and bpy.app.version >= (4, 1, 0):
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+                    
+            row = sbox.row()
+            row.prop(bpy.context.scene.optimizationproperties, "threshold", text="Threshold", slider=True)
+
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
         row = box.row()
@@ -451,14 +527,15 @@ class UtilsPanel(Panel):
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, text="Enchant Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"))
-        row = box.row()
         if bpy.context.scene.utilsproperties.enchant_settings == True:
+            sbox = box.box()
+            row = sbox.row()
             row.prop(bpy.context.scene.utilsproperties, "divider")
-            row = box.row()
+            row = sbox.row()
             row.prop(bpy.context.scene.utilsproperties, "camera_strenght")
-            row = box.row()
+            row = sbox.row()
             row.prop(bpy.context.scene.utilsproperties, "non_camera_strenght")
-            row = box.row()
+        row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.enchant", text="Enchant Objects")
 

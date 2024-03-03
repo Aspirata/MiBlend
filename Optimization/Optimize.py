@@ -2,13 +2,37 @@ import bpy
 import os
 from ..Data import *
 
-def Camera_Culling(obj):
-    if obj.modifiers.get("Camera Culling") != None: 
-        return
-    geonodes_modifier = obj.modifiers.new('Camera Culling', type='NODES')
-    geonodes_modifier.node_group = bpy.data.node_groups.get("Camera Culling")
-    geonodes_modifier["Input_3"] = bpy.context.scene.camera
 
+def Camera_Culling(obj):
+    if bpy.context.scene.optimizationproperties.camera_culling_type == False:
+
+        if obj.modifiers.get("Raycast Camera Culling") != None: 
+            obj.modifier_remove(modifier="Raycast Camera Culling")
+
+        if obj.modifiers.get("Camera Culling") == None: 
+            geonodes_modifier = obj.modifiers.new('Camera Culling', type='NODES')
+            geonodes_modifier.node_group = bpy.data.node_groups.get("Camera Culling")
+        else:
+            geonodes_modifier = obj.modifiers.get("Camera Culling")
+        
+        geonodes_modifier["Input_2"] = bpy.context.scene.optimizationproperties.threshold
+        geonodes_modifier["Input_3"] = bpy.context.scene.camera
+        #geonodes_modifier["Input_2"] = 0.9/(bpy.context.scene.camera.data.angle/2)
+
+    else:
+        if obj.modifiers.get("Camera Culling") != None: 
+            obj.modifier_remove(modifier="Camera Culling")
+
+        if obj.modifiers.get("Raycast Camera Culling") == None: 
+            geonodes_modifier = obj.modifiers.new('Raycast Camera Culling', type='NODES')
+            geonodes_modifier.node_group = bpy.data.node_groups.get("Raycast Camera Culling")
+        else:
+            geonodes_modifier = obj.modifiers.get("Raycast Camera Culling")
+        
+        geonodes_modifier["Socket_2"] = bpy.context.scene.camera
+        geonodes_modifier["Socket_5"] = bpy.context.scene.optimizationproperties.threshold
+
+    
 def Optimize():
     selected_objects = bpy.context.selected_objects
     scene = bpy.context.scene

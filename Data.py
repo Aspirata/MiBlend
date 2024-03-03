@@ -145,7 +145,7 @@ Emissive_Materials = {
         "Adder": 0.2,
         "Divider": 80,
         "Exclude": "None"
-    },
+    }
 
 }
 
