@@ -8,10 +8,10 @@ from .Utils import *
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 0, 31),
+    "version": (0, 4, 0),
     "blender": (4, 0, 0),
     "location": "View3D > Addons Tab",
-    "description": "",
+    "description": "A useful tool for creating minecraft content in blender",
 }
 
 # World & Materials
@@ -368,7 +368,7 @@ class OptimizationProperties(bpy.types.PropertyGroup):
 
     merge_distance: bpy.props.FloatProperty(
         name="Merge Distance",
-        default=50.0,
+        default=100.0,
         min=0.0,
         max=1000000.0,
         description=""
@@ -387,6 +387,14 @@ class OptimizationProperties(bpy.types.PropertyGroup):
         default=0.8,
         min=0.0,
         max=1.0,
+        description=""
+    )
+
+    scale: bpy.props.FloatProperty(
+        name="Scale",
+        default=1,
+        min=0.0,
+        max=100.0,
         description=""
     )
 
@@ -433,15 +441,21 @@ class OptimizationPanel(Panel):
                     if bpy.context.scene.optimizationproperties.merge_by_distance == True:
                         row = sbox.row()
                         row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
+            else:
+                bpy.context.scene.optimizationproperties.camera_culling_type = False
 
             row = sbox.row()
             row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-            if bpy.context.scene.optimizationproperties.backface_culling == True and bpy.context.scene.optimizationproperties.camera_culling_type == True and bpy.app.version >= (4, 1, 0):
+            if bpy.context.scene.optimizationproperties.backface_culling == True and bpy.context.scene.optimizationproperties.camera_culling_type == True:
                 row = sbox.row()
                 row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
                     
             row = sbox.row()
-            row.prop(bpy.context.scene.optimizationproperties, "threshold", text="Threshold", slider=True)
+            if bpy.context.scene.optimizationproperties.camera_culling_type == True:
+                row.prop(bpy.context.scene.optimizationproperties, "scale")
+            else:
+                row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
+                
 
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
@@ -455,7 +469,6 @@ class OptimizeOperator(Operator):
 
     def execute(self, context):
         Optimize.Optimize()
-        context.view_layer.update()
         return {'FINISHED'}
 #
     
