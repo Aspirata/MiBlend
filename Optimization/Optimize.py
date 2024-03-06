@@ -2,12 +2,13 @@ import bpy
 import os
 from ..Data import *
 
-
 def Camera_Culling(obj, OProperties):
-    if OProperties.camera_culling_type == False:
+    geonodes_modifier = None
+    
+    if OProperties.camera_culling_type == 'Vector':
 
         if obj.modifiers.get("Raycast Camera Culling") != None: 
-            obj.modifier_remove(modifier="Raycast Camera Culling")
+            obj.modifiers.remove(obj.modifiers.get("Raycast Camera Culling"))
 
         if obj.modifiers.get("Camera Culling") == None: 
             geonodes_modifier = obj.modifiers.new('Camera Culling', type='NODES')
@@ -22,19 +23,37 @@ def Camera_Culling(obj, OProperties):
 
     else:
         if obj.modifiers.get("Camera Culling") != None: 
-            obj.modifier_remove(modifier="Camera Culling")
+            obj.modifiers.remove(obj.modifiers.get("Camera Culling"))
 
         if obj.modifiers.get("Raycast Camera Culling") == None: 
             geonodes_modifier = obj.modifiers.new('Raycast Camera Culling', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get("Raycast Camera Culling")
         else:
             geonodes_modifier = obj.modifiers.get("Raycast Camera Culling")
-        
-        geonodes_modifier["Socket_5"] = OProperties.scale * (bpy.context.scene.camera.data.angle*1.5)
+
+        if OProperties.predict_fov == True:
+            max_fov = 0.0
+            current_frame = bpy.context.scene.frame_current
+
+            for frame in range(bpy.context.scene.frame_start, bpy.context.scene.frame_end + 1):
+                bpy.context.scene.frame_set(frame)
+                active_camera = bpy.context.scene.camera
+                if active_camera and active_camera.data.angle > max_fov:
+                    max_fov = active_camera.data.angle
+
+            bpy.context.scene.frame_set(current_frame)
+
+            geonodes_modifier["Socket_5"] = OProperties.scale * (max_fov*1.5)
+        else:
+            geonodes_modifier["Socket_5"] = OProperties.scale * (bpy.context.scene.camera.data.angle*1.5)
+            
         geonodes_modifier["Socket_6"] = OProperties.merge_distance
         geonodes_modifier["Socket_10"] = OProperties.backface_culling
         geonodes_modifier["Socket_11"] = OProperties.merge_by_distance
         geonodes_modifier["Socket_12"] = OProperties.backface_culling_distance
+        
+    bpy.ops.wm.redraw_timer()
+    obj.update_tag()
 
     
 def Optimize():
@@ -44,16 +63,17 @@ def Optimize():
     if OProperties.use_camera_culling == True:
         script_directory = os.path.dirname(os.path.realpath(__file__))
         
-        if "Camera Culling" not in bpy.data.node_groups:
-            if OProperties.camera_culling_type == False:
-                blend_file_path = os.path.join(script_directory, "Camera Culling.blend")
+        if OProperties.camera_culling_type == 'Vector':
+            blend_file_path = os.path.join(script_directory, "Camera Culling.blend")
+            if "Camera Culling" not in bpy.data.node_groups:
                 try:
                     with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
                         data_to.node_groups = ["Camera Culling"]
                 except:
                     CEH('004')
-            else:
-                blend_file_path = os.path.join(script_directory, "Raycast Camera Culling.blend")
+        else:
+            blend_file_path = os.path.join(script_directory, "Raycast Camera Culling.blend")
+            if "Raycast Camera Culling" not in bpy.data.node_groups:
                 try:
                     with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
                         data_to.node_groups = ["Raycast Camera Culling"]
@@ -62,7 +82,6 @@ def Optimize():
 
         for obj in selected_objects:
             Camera_Culling(obj, OProperties)
-            obj.data.update()
 
     if scene.optimizationproperties.set_render_settings == True and scene.render.engine == 'CYCLES':
         scene.cycles.use_preview_adaptive_sampling = True

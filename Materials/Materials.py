@@ -22,7 +22,6 @@ def append_materials(upgraded_material_name, selected_object, i):
         selected_object.data.materials[i] = bpy.data.materials[upgraded_material_name]
 
 def EmissionMode(PBSDF, material):
-    scene = bpy.context.scene
     for material_name, properties in Emissive_Materials.items():
         for property_name, property_value in properties.items():
             if property_name == "Exclude":
@@ -37,13 +36,13 @@ def EmissionMode(PBSDF, material):
                 else:
                     Excluded = False
 
-                if scene.emissiondetection == 'Automatic & Manual' and ((material_name in material.name.lower() and Excluded == False) or PBSDF.inputs[27].default_value != 0):
+                if bpy.context.scene.ppbr_properties.emissiondetection == 'Automatic & Manual' and ((material_name in material.name.lower() and Excluded == False) or PBSDF.inputs[27].default_value != 0):
                     return 1
 
-                if scene.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
+                if bpy.context.scene.ppbr_properties.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
                     return 2
 
-                if scene.emissiondetection == 'Manual' and (material_name in material.name.lower() and Excluded == False):
+                if bpy.context.scene.ppbr_properties.emissiondetection == 'Manual' and (material_name in material.name.lower() and Excluded == False):
                     return 3
 
 def upgrade_materials():

@@ -32,7 +32,7 @@ class RecreateSky(Operator):
         default=False
     )
 
-    recreate_clouds: bpy.props.BoolProperty(
+    recreate_clouds: BoolProperty(
         name="Recreate Clouds",
         default=True,
         description=""
@@ -118,13 +118,27 @@ class RecreateSky(Operator):
 
 class PPBRProperties(bpy.types.PropertyGroup):
 
-    use_bump: bpy.props.BoolProperty(
+    backface_culling: BoolProperty(
+        name="Backface Culling",
+        default=True,
+        description=""
+    )
+
+    emissiondetection: EnumProperty(
+        items=[('Automatic', 'Automatic', ''), 
+            ('Automatic & Manual', 'Automatic & Manual', ''),
+            ('Manual', 'Manual', '')],
+        name="emissiondetection",
+        default='Automatic & Manual'
+    )
+
+    use_bump: BoolProperty(
         name="Use Bump",
         default=False,
         description="Enables Bump In Materials"
     )
 
-    bump_strenght: bpy.props.FloatProperty(
+    bump_strenght: FloatProperty(
         name="Bump Strenght",
         default=0.4,
         min=0.0,
@@ -132,67 +146,61 @@ class PPBRProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-    make_metal: bpy.props.BoolProperty(
-    name="Make Metal",
-    default=True,
-    description="Enambles PBR For Metallic Materials"
+    make_metal: BoolProperty(
+        name="Make Metal",
+        default=True,
+        description="Enambles PBR For Metallic Materials"
     )
 
-    make_better_emission: bpy.props.BoolProperty(
-    name="Make Better Emission",
-    default=True,
-    description=""
+    make_better_emission: BoolProperty(
+        name="Make Better Emission",
+        default=True,
+        description=""
     )
 
-    animate_textures: bpy.props.BoolProperty(
-    name="Animate textures",
-    default=True,
-    description=""
+    animate_textures: BoolProperty(
+        name="Animate textures",
+        default=True,
+        description=""
     )
 
-    advanced_settings: bpy.props.BoolProperty(
-    name="Advanced Settings",
-    default=False,
-    description=""
-    )
-
-    backface_culling: bpy.props.BoolProperty(
-    name="Backface Culling",
-    default=True,
-    description=""
-    )
-
-    change_bsdf_settings: bpy.props.BoolProperty(
-    name="Change BSDF Settings",
-    default=True,
-    description=""
-    )
-
-    specular: bpy.props.FloatProperty(
-    name="Specular",
-    default=0.4,
-    min=0.0,
-    max=1.0,
-    description=""
-    )
-
-    roughness: bpy.props.FloatProperty(
-    name="Roughness",
-    default=0.6,
-    min=0.0,
-    max=1.0,
-    description=""
-    )
-
-class CreateSkyProperties(bpy.types.PropertyGroup):
-
-    advanced_settings: bpy.props.BoolProperty(
+    advanced_settings: BoolProperty(
         name="Advanced Settings",
         default=False,
         description=""
     )
 
-    create_clouds: bpy.props.BoolProperty(
+    change_bsdf_settings: BoolProperty(
+        name="Change BSDF Settings",
+        default=True,
+        description=""
+    )
+
+    specular: FloatProperty(
+        name="Specular",
+        default=0.4,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    roughness: FloatProperty(
+        name="Roughness",
+        default=0.6,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+class CreateSkyProperties(bpy.types.PropertyGroup):
+
+    advanced_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
+        description=""
+    )
+
+    create_clouds: BoolProperty(
         name="Create Clouds",
         default=True,
         description=""
@@ -216,7 +224,7 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(bpy.context.scene.ppbr_properties, "backface_culling", text="Backface Culling")
         row = box.row()
-        row.prop(context.scene, "emissiondetection", text='emissiondetection', expand=True)
+        row.prop(bpy.context.scene.ppbr_properties, "emissiondetection", text='emissiondetection', expand=True)
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.fix_world", text="Fix World")
@@ -342,31 +350,39 @@ class SetProceduralPBROperator(Operator):
 
 # Optimization
 class OptimizationProperties(bpy.types.PropertyGroup):
-    use_camera_culling: bpy.props.BoolProperty(
+
+    camera_culling_type: EnumProperty(
+        items=[('Vector', 'Vector', ''), 
+               ('Raycast', 'Raycast', '')],
+        name="camera_culling_type",
+        default='Raycast'
+    )
+
+    use_camera_culling: BoolProperty(
         name="Use Camera Culling",
         default=True,
         description="Enables Camera Culling"
     )
 
-    camera_culling_settings: bpy.props.BoolProperty(
+    camera_culling_settings: BoolProperty(
         name="Camera Culling Settings",
         default=False,
         description=""
     )
 
-    camera_culling_type: bpy.props.BoolProperty(
-        name="Raycast Camera Culling",
+    predict_fov: BoolProperty(
+        name="Predict FOV",
         default=False,
         description=""
     )
 
-    merge_by_distance: bpy.props.BoolProperty(
+    merge_by_distance: BoolProperty(
         name="Merge By Distance",
         default=False,
         description=""
     )
 
-    merge_distance: bpy.props.FloatProperty(
+    merge_distance: FloatProperty(
         name="Merge Distance",
         default=100.0,
         min=0.0,
@@ -374,15 +390,7 @@ class OptimizationProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-    backface_culling_distance: bpy.props.FloatProperty(
-        name="Backface Culling Distance",
-        default=50.0,
-        min=0.0,
-        max=1000000.0,
-        description=""
-    )
-
-    threshold: bpy.props.FloatProperty(
+    threshold: FloatProperty(
         name="Threshold",
         default=0.8,
         min=0.0,
@@ -390,7 +398,7 @@ class OptimizationProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-    scale: bpy.props.FloatProperty(
+    scale: FloatProperty(
         name="Scale",
         default=1,
         min=0.0,
@@ -398,13 +406,21 @@ class OptimizationProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-    backface_culling: bpy.props.BoolProperty(
+    backface_culling: BoolProperty(
         name="Backface Culling",
         default=True,
         description=""
     )
 
-    set_render_settings: bpy.props.BoolProperty(
+    backface_culling_distance: FloatProperty(
+        name="Backface Culling Distance",
+        default=50.0,
+        min=0.0,
+        max=1000000.0,
+        description=""
+    )
+
+    set_render_settings: BoolProperty(
         name="Set Render Settings",
         default=False,
         description=""
@@ -423,39 +439,45 @@ class OptimizationPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-        row = box.row()
-        row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", text="Camera Culling Settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_RIGHT"))
-
-        # Camera Culling Settings
-        if bpy.context.scene.optimizationproperties.camera_culling_settings == True:
-            sbox = box.box()
-            row = sbox.row()
+        if bpy.context.scene.optimizationproperties.use_camera_culling == True:
             if bpy.app.version >= (4, 1, 0):
-                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text="Raycast Camera Culling")
-                
-                # Raycast Camera Culling Settings
-                if bpy.context.scene.optimizationproperties.camera_culling_type == True:
+                row = box.row()
+                row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
+                row = box.row()
+                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
+            else:
+                bpy.context.scene.optimizationproperties.camera_culling_type = 'Vector'
+            row = box.row()
+            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", text="Camera Culling Settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_RIGHT"))
+
+            # Camera Culling Settings
+            if bpy.context.scene.optimizationproperties.camera_culling_settings == True:
+                sbox = box.box()
+                if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
+                    # Raycast Camera Culling Settings
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
                     row = sbox.row()
                     row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
-                    
+                        
                     if bpy.context.scene.optimizationproperties.merge_by_distance == True:
                         row = sbox.row()
                         row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
-            else:
-                bpy.context.scene.optimizationproperties.camera_culling_type = False
 
-            row = sbox.row()
-            row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-            if bpy.context.scene.optimizationproperties.backface_culling == True and bpy.context.scene.optimizationproperties.camera_culling_type == True:
-                row = sbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
-                    
-            row = sbox.row()
-            if bpy.context.scene.optimizationproperties.camera_culling_type == True:
-                row.prop(bpy.context.scene.optimizationproperties, "scale")
-            else:
-                row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
-                
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+
+                    if bpy.context.scene.optimizationproperties.backface_culling == True:
+                        row = sbox.row()
+                        row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "scale")
+                else:
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
 
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
@@ -476,13 +498,20 @@ class OptimizeOperator(Operator):
 
 class UtilsProperties(bpy.types.PropertyGroup):
 
-    enchant_settings: bpy.props.BoolProperty(
+    cshadowsselection: EnumProperty(
+        items=[('All Objects', 'All Objects', ''), 
+               ('Only Selected Objects', 'Only Selected Objects', '')],
+        name="cshadowsselection",
+        default='All Objects'
+    )
+
+    enchant_settings: BoolProperty(
         name="Enchant Settings",
         default=False,
         description=""
     )
 
-    divider: bpy.props.FloatProperty(
+    divider: FloatProperty(
         name="Divider",
         description="",
         default=70.0,
@@ -490,7 +519,7 @@ class UtilsProperties(bpy.types.PropertyGroup):
         max=100000.0
     )
 
-    camera_strenght: bpy.props.FloatProperty(
+    camera_strenght: FloatProperty(
         name="Camera Strenght",
         description="",
         default=1.0,
@@ -498,7 +527,7 @@ class UtilsProperties(bpy.types.PropertyGroup):
         max=1000000.0
     )
 
-    non_camera_strenght: bpy.props.FloatProperty(
+    non_camera_strenght: FloatProperty(
         name="Non-Camera Strenght",
         description="",
         default=1.0,
@@ -506,7 +535,7 @@ class UtilsProperties(bpy.types.PropertyGroup):
         max=1000000.0
     )
 
-    vertex_group_name: bpy.props.StringProperty(
+    vertex_group_name: StringProperty(
         name="Vertex Group Name",
         description=""
     )
@@ -526,7 +555,7 @@ class UtilsPanel(Panel):
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
             row = box.row()
-            row.prop(context.scene, "cshadowsselection", text='cshadowsselection', expand=True)
+            row.prop(bpy.context.scene.utilsproperties, "cshadowsselection", text='cshadowsselection', expand=True)
             row = box.row()
             row.operator("object.cshadows", text="Turn On Contact Shadows")
         
@@ -671,22 +700,6 @@ def register():
         description="Select Asset to Import",
     )
 
-    bpy.types.Scene.cshadowsselection = EnumProperty(
-        items=[('All Objects', 'All Objects', ''), 
-               ('Only Selected Objects', 'Only Selected Objects', '')],
-        name="cshadowsselection",
-        default='All Objects'
-    )
-
-    bpy.types.Scene.emissiondetection = EnumProperty(
-    items=[('Automatic', 'Automatic', ''), 
-           ('Automatic & Manual', 'Automatic & Manual', ''),
-           ('Manual', 'Manual', '')],
-    name="emissiondetection",
-    default='Automatic & Manual'
-    )
-
-
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
@@ -696,7 +709,6 @@ def unregister():
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.selected_asset
-    del bpy.types.Scene.emissiondetection
 
 
 if __name__ == "__main__":

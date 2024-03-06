@@ -3,7 +3,7 @@ import os
 from .Data import *
 
 def CShadows():
-    if bpy.context.scene.cshadowsselection == 'Only Selected Objects':
+    if bpy.context.scene.utilsproperties.cshadowsselection == 'Only Selected Objects':
         for obj in bpy.context.selected_objects:
             if hasattr(obj.data, 'use_contact_shadow'):
                 obj.data.use_contact_shadow = True
