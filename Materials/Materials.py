@@ -180,7 +180,7 @@ def create_sky():
                 appended_world_material = bpy.data.worlds[world_material_name]
             bpy.context.scene.world = appended_world_material
         except:
-            raise ValueError("{os.path.basename(os.path.dirname(os.path.realpath(__file__)))} not found, error code: 004")
+            CEH("004")
 
         if scene.sky_properties.create_clouds:                    
             for obj in scene.objects:
