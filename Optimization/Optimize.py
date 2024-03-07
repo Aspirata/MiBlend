@@ -52,8 +52,7 @@ def Camera_Culling(obj, OProperties):
         geonodes_modifier["Socket_11"] = OProperties.merge_by_distance
         geonodes_modifier["Socket_12"] = OProperties.backface_culling_distance
         
-    bpy.ops.wm.redraw_timer()
-    obj.update_tag()
+    bpy.context.view_layer.update()
 
     
 def Optimize():

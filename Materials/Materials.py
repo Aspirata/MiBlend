@@ -163,8 +163,6 @@ def fix_world():
             CEH('m003', Data=selected_object)
 
 def create_sky():
-
-    clouds_exists = False
     scene = bpy.context.scene
     world = scene.world
     
@@ -182,26 +180,28 @@ def create_sky():
         except:
             CEH("004")
 
-        if scene.sky_properties.create_clouds:                    
-            for obj in scene.objects:
-                if obj.name == "Clouds":
-                    clouds_exists = True
+        for obj in scene.objects:
+            if obj.name != "Clouds":
+                clouds_exists = False
+            else:
+                clouds_exists = True
+                break
 
-            if clouds_exists == False:
-                if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                else:
-                    bpy.data.node_groups[clouds_node_tree_name]
+        if scene.sky_properties.create_clouds and clouds_exists == False:                    
+            if clouds_node_tree_name not in bpy.data.node_groups:
+                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                    data_to.node_groups = [clouds_node_tree_name]
+            else:
+                bpy.data.node_groups[clouds_node_tree_name]
 
-                bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
-                bpy.context.object.name = "Clouds"
-                bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
-                geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
-                geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
-                geonodes_modifier["Socket_11"] = scene.camera
+            bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
+            bpy.context.object.name = "Clouds"
+            bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
+            geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+            geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+            geonodes_modifier["Socket_11"] = scene.camera
 
-            bpy.context.view_layer.update()
+        bpy.context.view_layer.update()
 
 # Fix materials
     
@@ -314,12 +314,22 @@ def setproceduralpbr():
                                         map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
 
                                     for material_name, material_properties in Emissive_Materials.items():
-                                        for property_name, property_value in material_properties.items():
-                                            if property_name == "Interpolation Type":
-                                                map_range_node.interpolation_type = property_value
+                                        if material_name in material.name:
+                                            for property_name, property_value in material_properties.items():
+                                                if property_name == "Interpolation Type":
+                                                    map_range_node.interpolation_type = property_value
 
-                                            if type(property_name) == int:
-                                                map_range_node.inputs[property_name].default_value = property_value
+                                                if type(property_name) == int:
+                                                    map_range_node.inputs[property_name].default_value = property_value
+                                        else:
+                                            if material_name == "Default":
+                                                for property_name, property_value in material_properties.items():
+                                                    if property_name == "Interpolation Type":
+                                                        map_range_node.interpolation_type = property_value
+
+                                                    if type(property_name) == int:
+                                                        map_range_node.inputs[property_name].default_value = property_value
+                                        
 
                                     if math_node == None:
                                         math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
@@ -367,12 +377,21 @@ def setproceduralpbr():
                                     node_group.node_tree = bpy.data.node_groups[node_tree_name]
 
                                     for material_name, material_properties in Emissive_Materials.items():
-                                        for property_name, property_value in material_properties.items():
-                                            if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
-                                                if property_name == "Divider":
-                                                    node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
-                                                else:
-                                                    node_group.inputs[property_name].default_value = property_value
+                                        if material_name in material.name:
+                                            for property_name, property_value in material_properties.items():
+                                                if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
+                                                    if property_name == "Divider":
+                                                        node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
+                                                    else:
+                                                        node_group.inputs[property_name].default_value = property_value
+                                        else:
+                                            if material_name == "Default":
+                                                for property_name, property_value in material_properties.items():
+                                                    if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
+                                                        if property_name == "Divider":
+                                                            node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
+                                                        else:
+                                                            node_group.inputs[property_name].default_value = property_value
 
                                 if scene.ppbr_properties.make_better_emission == True and (map_range_node and math_node) != None:
                                     material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])

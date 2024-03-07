@@ -29,6 +29,17 @@ def CEH(Error_Code, Data=None):
         raise ValueError(f"Mcblend Sky node not found, maybe you should recreate sky ? Error code: {Error_Code}")
 
 Emissive_Materials = {
+
+    "Default": {
+        "Interpolation Type": "SMOOTHSTEP",
+        1: 0, # From Min
+        2: 0.6, # From Max
+        3: 0, # To Min
+        4: 2, # To Max
+        "Animate": False,
+        "Exclude": "None"
+    },
+
     "lantern": {
         "Interpolation Type": "SMOOTHSTEP",
         1: 0, # From Min

@@ -121,6 +121,7 @@ def Enchant():
             for material in selected_object.data.materials:
                 if material != None:
                     node_group = None
+                    PBSDF = None
 
                     for node in material.node_tree.nodes:
                         if node.type == 'GROUP' and "Enchantment" in node.node_tree.name:

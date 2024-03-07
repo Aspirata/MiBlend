@@ -215,17 +215,17 @@ class WorldAndMaterialsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        col = layout.column()
         world = bpy.context.scene.world
+        scene = bpy.context.scene
 
         # World
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "backface_culling", text="Backface Culling")
+        row.prop(scene.ppbr_properties, "backface_culling", text="Backface Culling")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "emissiondetection", text='emissiondetection', expand=True)
+        row.prop(scene.ppbr_properties, "emissiondetection", text='emissiondetection', expand=True)
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.fix_world", text="Fix World")
@@ -235,13 +235,25 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        row.prop(bpy.context.scene.sky_properties, "create_clouds", text="Create Clouds")
+        row.prop(scene.sky_properties, "create_clouds", text="Create Clouds")
         row = box.row()
+        for obj in scene.objects:
+            if obj.name != "Clouds":
+                clouds_exists = False
+            else:
+                clouds_exists = True
+                geonodes_modifier = obj.modifiers.get("Clouds Generator")
+                break
+            
+        #if clouds_exists == True:
+            #row.prop(geonodes_modifier, ['Socket_2'], "default_value", text="Layers Count", slider=True)
+
+        #row = box.row()
         if world != bpy.data.worlds.get(world_material_name) or world == None:
             row.scale_y = Big_Button_Scale
             row.operator("object.create_sky", text="Create Sky")
         else:
-            world_material = bpy.context.scene.world.node_tree
+            world_material = scene.world.node_tree
             node_group = None
             for node in world_material.nodes:
                 if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
@@ -251,8 +263,8 @@ class WorldAndMaterialsPanel(Panel):
             if node_group != None:
                 row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
                 row = box.row()
-                row.prop(bpy.context.scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if bpy.context.scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
-                if bpy.context.scene.sky_properties.advanced_settings:
+                row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
+                if scene.sky_properties.advanced_settings:
                     sbox = box.box()
                     row = sbox.row()
                     row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
@@ -287,27 +299,28 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "use_bump", text="Use Bump")
-        if bpy.context.scene.ppbr_properties.use_bump:
+        row.prop(scene.ppbr_properties, "use_bump", text="Use Bump")
+        if scene.ppbr_properties.use_bump:
             row = box.row()
-            row.prop(bpy.context.scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
+            row.prop(scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "make_metal", text="Make Metal")
+        row.prop(scene.ppbr_properties, "make_metal", text="Make Metal")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
+        row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "animate_textures", text="Animate Textures")
+        row.prop(scene.ppbr_properties, "animate_textures", text="Animate Textures")
         row = box.row()
-        row.prop(bpy.context.scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if bpy.context.scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
-        if bpy.context.scene.ppbr_properties.advanced_settings:
+        row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
+        if scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
             row.prop(context.scene.ppbr_properties, "change_bsdf_settings", text="Change BSDF Settings")
-            if  bpy.context.scene.ppbr_properties.change_bsdf_settings:
+            if  scene.ppbr_properties.change_bsdf_settings:
                 row = sbox.row()
-                row.prop(bpy.context.scene.ppbr_properties, "specular", slider=True, text="Specular")
+                row.prop(scene.ppbr_properties, "specular", slider=True, text="Specular")
                 row = sbox.row()
-                row.prop(bpy.context.scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+                row.prop(scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+                
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.setproceduralpbr", text="Set Procedural PBR")
@@ -358,10 +371,9 @@ class SetProceduralPBROperator(Operator):
 class OptimizationProperties(bpy.types.PropertyGroup):
 
     camera_culling_type: EnumProperty(
-        items=[('Vector', 'Vector', ''), 
-               ('Raycast', 'Raycast', '')],
+        items=[('Vector', 'Vector', '') if bpy.app.version < (4, 1, 0) else ('Vector', 'Vector', ''), ('Raycast', 'Raycast', '')],
         name="camera_culling_type",
-        default='Raycast'
+        default='Vector' if bpy.app.version < (4, 1, 0) else 'Raycast'
     )
 
     use_camera_culling: BoolProperty(
@@ -446,13 +458,11 @@ class OptimizationPanel(Panel):
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
         if bpy.context.scene.optimizationproperties.use_camera_culling == True:
-            if bpy.app.version >= (4, 1, 0):
-                row = box.row()
-                row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
-                row = box.row()
-                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-            else:
-                bpy.context.scene.optimizationproperties.camera_culling_type = 'Vector'
+            row = box.row()
+            row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
+            row = box.row()
+            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
+
             row = box.row()
             row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", text="Camera Culling Settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_RIGHT"))
 
@@ -711,9 +721,9 @@ def unregister():
         bpy.utils.unregister_class(cls)
 
     del bpy.types.Scene.sky_properties
-    del bpy.types.Scene.utils_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
+    del bpy.types.Scene.utils_properties
     del bpy.types.Scene.selected_asset
 
 
