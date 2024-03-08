@@ -54,7 +54,7 @@ def ConvertDBSDF2PBSDF():
                         if node.type == "BSDF_DIFFUSE":
                             DBSDF = node
 
-                        if node.type == "SHADER_MIX":
+                        if node.type == "MIX_SHADER":
                             MixShader = node
 
                         if node.type == "BSDF_TRANSPARENT":

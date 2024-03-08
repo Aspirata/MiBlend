@@ -89,13 +89,12 @@ def fix_world():
                     else:
                         material.blend_method = 'HASHED'
 
-                    if material.node_tree.nodes.get("Principled BSDF") != None:
-                        PBSDF = material.node_tree.nodes.get("Principled BSDF")
-
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            image_texture_node = material.node_tree.nodes[node.name]
+                            image_texture_node = node
                             image_texture_node.interpolation = "Closest"
+                        if node.type == "BSDF_PRINCIPLED":
+                            PBSDF = node
                                 
                     if (image_texture_node and PBSDF) != None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
@@ -118,14 +117,14 @@ def fix_world():
 
                                     
                                     for node in material.node_tree.nodes:
-                                        if node.type == "GEOMETRY":
+                                        if node.type == "NEW_GEOMETRY":
                                             geometry_node = node
 
                                         if node.type == "INVERT":
                                             invert_node = node
 
                                         # DA
-                                        if node.name == "Mix":
+                                        if node.type == "MIX":
                                             mix_node = node
                                     
                                     if geometry_node == None:
@@ -217,11 +216,11 @@ def fix_materials():
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            image_texture_node = material.node_tree.nodes[node.name]
-                            material.node_tree.nodes[node.name].interpolation = "Closest" 
-                    
-                    if material.node_tree.nodes.get("Principled BSDF") != None:
-                        PBSDF = material.node_tree.nodes.get("Principled BSDF")
+                            image_texture_node = node
+                            node.interpolation = "Closest" 
+                        
+                        if node.type == "BSDF_PRINCIPLED":
+                            PBSDF = node
 
                     if (image_texture_node and PBSDF) != None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
@@ -246,11 +245,16 @@ def setproceduralpbr():
                     PBSDF = None
                     bump_node = None
                     scene = bpy.context.scene
-                    
 
-                    if material.node_tree.nodes.get("Principled BSDF") is not None:
-                        PBSDF = material.node_tree.nodes.get("Principled BSDF")
+                    for node in material.node_tree.nodes:
+                        if node.type == "TEX_IMAGE":
+                            image_texture_node = material.node_tree.nodes[node.name]
+                        if node.type == "BUMP":
+                            bump_node = material.node_tree.nodes[node.name]
+                        if node.type == "BSDF_PRINCIPLED":
+                            PBSDF = node
 
+                    if PBSDF != None:
                         # Change PBSDF Settings
                         if scene.ppbr_properties.change_bsdf_settings:
                             PBSDF.inputs["Roughness"].default_value = scene.ppbr_properties.roughness
@@ -263,12 +267,6 @@ def setproceduralpbr():
 
                         if MaterialIn(Reflective, material):
                             PBSDF.inputs["Roughness"].default_value = 0.1
-
-                        for node in material.node_tree.nodes:
-                            if node.type == "TEX_IMAGE":
-                                image_texture_node = material.node_tree.nodes[node.name]
-                            if node.type == "BUMP":
-                                bump_node = material.node_tree.nodes[node.name]
 
                         # Use Bump
                         if scene.ppbr_properties.use_bump == True:
@@ -292,7 +290,7 @@ def setproceduralpbr():
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "TEX_IMAGE":
-                                        image_texture_node = material.node_tree.nodes[node.name]
+                                        image_texture_node = node
 
                                 if image_texture_node != None:
 
