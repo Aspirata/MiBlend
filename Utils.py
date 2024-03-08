@@ -51,19 +51,19 @@ def ConvertDBSDF2PBSDF():
                         if node.type == "TEX_IMAGE":
                             Texture = node
 
-                        if node.name == "Diffuse BSDF":
+                        if node.type == "BSDF_DIFFUSE":
                             DBSDF = node
 
-                        if node.name == "Mix Shader":
+                        if node.type == "SHADER_MIX":
                             MixShader = node
 
-                        if node.name == "Transparent BSDF":
+                        if node.type == "BSDF_TRANSPARENT":
                             TBSDF = node
 
-                        if node.name == "Principled BSDF":
+                        if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
-                        if node.name == "Material Output":
+                        if node.type == "OUTPUT_MATERIAL":
                             Output = node
 
                     if DBSDF != None:
@@ -127,7 +127,7 @@ def Enchant():
                         if node.type == 'GROUP' and "Enchantment" in node.node_tree.name:
                             node_group = node
 
-                        if node.name == "Principled BSDF":
+                        if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
                     if node_group == None:

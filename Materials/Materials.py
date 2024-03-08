@@ -118,19 +118,19 @@ def fix_world():
 
                                     
                                     for node in material.node_tree.nodes:
-                                        if node.name == "Geometry":
+                                        if node.type == "GEOMETRY":
                                             geometry_node = node
 
-                                        if node.name == "Invert Color":
+                                        if node.type == "INVERT":
                                             invert_node = node
 
+                                        # DA
                                         if node.name == "Mix":
                                             mix_node = node
                                     
                                     if geometry_node == None:
                                         geometry_node = material.node_tree.nodes.new(type='ShaderNodeNewGeometry')
                                         geometry_node.location = (image_texture_node.location.x + 100, image_texture_node.location.y + 230)
-                                        gemetry_exists = True
                                     
                                     if  invert_node == None:
                                         invert_node = material.node_tree.nodes.new(type='ShaderNodeInvert')
@@ -300,10 +300,10 @@ def setproceduralpbr():
                                     map_range_node = None
 
                                     for node in material.node_tree.nodes:
-                                        if node.name == "Map Range":
+                                        if node.type == "MAP_RANGE":
                                             map_range_node = node
 
-                                        if node.name == "Math":
+                                        if node.type == "MATH":
                                             if node.operation == 'MULTIPLY':
                                                 math_node = node
 
@@ -355,10 +355,10 @@ def setproceduralpbr():
                                 node_group = None
 
                                 for node in material.node_tree.nodes:
-                                    if node.name == "Map Range":
+                                    if node.type == "MAP_RANGE":
                                         map_range_node = node
 
-                                    if node.name == "Math":
+                                    if node.type == "MATH":
                                         if node.operation == 'MULTIPLY':
                                             math_node = node
                                     
