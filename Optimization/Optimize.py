@@ -4,7 +4,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
     if OProperties.camera_culling_type == 'Vector':
         geonodes_modifier["Socket_17"] = 0
 
-        geonodes_modifier["Socket_11"] = OProperties.threshold
+        geonodes_modifier["Socket_21"] = OProperties.threshold
         geonodes_modifier["Socket_20"] = OProperties.backface_culling
         #geonodes_modifier["Input_2"] = 0.9/(bpy.context.scene.camera.data.angle/2)
 
@@ -69,7 +69,7 @@ def Optimize():
 
             Camera_Culling(obj, OProperties, geonodes_modifier)
 
-            bpy.context.view_layer.update()
+            obj.data.update()
 
     if scene.optimizationproperties.set_render_settings == True and scene.render.engine == 'CYCLES':
         scene.cycles.use_preview_adaptive_sampling = True

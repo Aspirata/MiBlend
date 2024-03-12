@@ -371,9 +371,9 @@ class SetProceduralPBROperator(Operator):
 class OptimizationProperties(bpy.types.PropertyGroup):
 
     camera_culling_type: EnumProperty(
-        items=[('Vector', 'Vector', '') if bpy.app.version < (4, 1, 0) else ('Vector', 'Vector', ''), ('Raycast', 'Raycast', '')],
+        items=[('Vector', 'Vector', ''), ('Raycast', 'Raycast', '')],
         name="camera_culling_type",
-        default='Vector' if bpy.app.version < (4, 1, 0) else 'Raycast'
+        default='Raycast'
     )
 
     use_camera_culling: BoolProperty(
@@ -459,16 +459,15 @@ class OptimizationPanel(Panel):
         row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
         if bpy.context.scene.optimizationproperties.use_camera_culling == True:
             row = box.row()
-            row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
-            row = box.row()
-            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-
-            row = box.row()
             row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", text="Camera Culling Settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_RIGHT"))
 
             # Camera Culling Settings
             if bpy.context.scene.optimizationproperties.camera_culling_settings == True:
                 sbox = box.box()
+                row = sbox.row()
+                row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
                 if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
                     # Raycast Camera Culling Settings
                     row = sbox.row()
