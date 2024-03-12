@@ -164,6 +164,7 @@ def fix_world():
 def create_sky():
     scene = bpy.context.scene
     world = scene.world
+    clouds_exists = False
     
     if world != None and world == bpy.data.worlds.get(world_material_name):
         bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
@@ -180,11 +181,11 @@ def create_sky():
             CEH("004")
 
         for obj in scene.objects:
-            if obj.name != "Clouds":
-                clouds_exists = False
-            else:
+            if obj.name == "Clouds":
                 clouds_exists = True
                 break
+            else:
+                clouds_exists = False
 
         if scene.sky_properties.create_clouds and clouds_exists == False:                    
             if clouds_node_tree_name not in bpy.data.node_groups:

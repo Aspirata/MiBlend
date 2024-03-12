@@ -2,17 +2,21 @@ import bpy
 import os
 from .Data import *
 
-def CShadows():
-    if bpy.context.scene.utilsproperties.cshadowsselection == 'Only Selected Objects':
+def CShadows(UProperties):
+    if bpy.context.scene.utilsproperties.cshadowsselection == 'Only Selected Light Sources':
         for obj in bpy.context.selected_objects:
             if hasattr(obj.data, 'use_contact_shadow'):
                 obj.data.use_contact_shadow = True
-                obj.data.contact_shadow_thickness = 0.01
+                obj.data.contact_shadow_distance = UProperties.distance
+                obj.data.contact_shadow_bias = UProperties.bias
+                obj.data.contact_shadow_thickness = UProperties.thickness
     else:
         for obj in bpy.context.scene.objects:
             if hasattr(obj.data, 'use_contact_shadow'):
                 obj.data.use_contact_shadow = True
-                obj.data.contact_shadow_thickness = 0.01
+                obj.data.contact_shadow_distance = UProperties.distance
+                obj.data.contact_shadow_bias = UProperties.bias
+                obj.data.contact_shadow_thickness = UProperties.thickness
 
 def sleep_after_render(dummy):
     os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")

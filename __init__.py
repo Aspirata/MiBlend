@@ -513,11 +513,41 @@ class OptimizeOperator(Operator):
 
 class UtilsProperties(bpy.types.PropertyGroup):
 
+    cs_settings: BoolProperty(
+        name="Contact Shadows Settings",
+        default=False,
+        description=""
+    )
+
     cshadowsselection: EnumProperty(
-        items=[('All Objects', 'All Objects', ''), 
-               ('Only Selected Objects', 'Only Selected Objects', '')],
+        items=[('All Light Sources', 'All Light Sources', ''), 
+               ('Only Selected Light Sources', 'Only Selected Light Sources', '')],
         name="cshadowsselection",
-        default='All Objects'
+        default='All Light Sources'
+    )
+
+    distance: FloatProperty(
+        name="Distance",
+        description="",
+        default=0.2,
+        min=0.0,
+        max=100000.0
+    )
+
+    bias: FloatProperty(
+        name="Bias",
+        description="",
+        default=0.03,
+        min=0.001,
+        max=5.0
+    )
+
+    thickness: FloatProperty(
+        name="Thickness",
+        description="",
+        default=0.01,
+        min=0.0,
+        max=100.0
     )
 
     enchant_settings: BoolProperty(
@@ -569,9 +599,24 @@ class UtilsPanel(Panel):
         row = box.row()
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
+            
             row = box.row()
-            row.prop(bpy.context.scene.utilsproperties, "cshadowsselection", text='cshadowsselection', expand=True)
+            row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, text="Contact Shadows Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"))
+            if bpy.context.scene.utilsproperties.cs_settings == True:
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text="Selection Mode:", icon="LIGHT_DATA")
+                row = sbox.row()
+                row.prop(bpy.context.scene.utilsproperties, "cshadowsselection", text='cshadowsselection', expand=True)
+                row = sbox.row()
+                row.prop(bpy.context.scene.utilsproperties, "distance")
+                row = sbox.row()
+                row.prop(bpy.context.scene.utilsproperties, "bias", slider=True)
+                row = sbox.row()
+                row.prop(bpy.context.scene.utilsproperties, "thickness", slider=True)
+                
             row = box.row()
+            row.scale_y = Big_Button_Scale
             row.operator("object.cshadows", text="Turn On Contact Shadows")
         
         row = box.row()
@@ -616,7 +661,8 @@ class CShadowsOperator(Operator):
     bl_label = "Contact Shadows"
 
     def execute(self, context):
-        CShadows()
+        UProperties = bpy.context.scene.utilsproperties
+        CShadows(UProperties)
         return {'FINISHED'}
     
 class SleepAfterRenderOperator(Operator):
