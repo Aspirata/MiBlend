@@ -6,8 +6,6 @@ def MaterialIn(Array, material):
     for keyword in Array:
         if keyword in material.name.lower():
             return True
-        else:
-            return False
 
 def append_materials(upgraded_material_name, selected_object, i):
     if upgraded_material_name not in bpy.data.materials:
@@ -47,30 +45,36 @@ def EmissionMode(PBSDF, material):
 
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
-        for i, material in enumerate(selected_object.data.materials):
-            replace = False
-            for material_name, material_info in Materials_Array.items():
-                for property_name, property_value in material_info.items():
-                    if property_name == "Upgraded Material":
-                        upgraded_material = property_value
+        if selected_object.material_slots:
+            for i, material in enumerate(selected_object.data.materials):
+                if i != None:
+                    replace = False
+                    for material_name, material_info in Materials_Array.items():
+                        for property_name, property_value in material_info.items():
+                            if property_name == "Upgraded Material":
+                                upgraded_material = property_value
 
-                    if property_name == "Original Material":
-                        original_material = property_value
+                            if property_name == "Original Material":
+                                original_material = property_value
 
-                    if original_material in material.name.lower():
-                        if property_name == "Exclude" and property_value != "None":
-                            for excluder in property_value.split(", "):
-                                if original_material in material.name.lower() and excluder not in material.name.lower():
-                                    replace = True
-                                    r_upgraded_material = upgraded_material
-                                        
-                                if original_material in material.name.lower() and excluder in material.name.lower():
-                                    replace = False
-                                    break
-                            
-            if replace == True:
-                append_materials(r_upgraded_material, selected_object, i)
-                selected_object.data.update()
+                            if original_material in material.name.lower():
+                                if property_name == "Exclude" and property_value != "None":
+                                    for excluder in property_value.split(", "):
+                                        if original_material in material.name.lower() and excluder not in material.name.lower():
+                                            replace = True
+                                            r_upgraded_material = upgraded_material
+                                                
+                                        if original_material in material.name.lower() and excluder in material.name.lower():
+                                            replace = False
+                                            break
+                                    
+                    if replace == True:
+                        append_materials(r_upgraded_material, selected_object, i)
+                        selected_object.data.update()
+            else:
+                CEH('m002')
+        else:
+            CEH('m003', Data=selected_object)
 
 # Fix World
                         

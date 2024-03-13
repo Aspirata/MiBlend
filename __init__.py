@@ -200,6 +200,24 @@ class CreateSkyProperties(bpy.types.PropertyGroup):
         description=""
     )
 
+    strenght_settings: BoolProperty(
+        name="Strenght Settings",
+        default=False,
+        description=""
+    )
+
+    colors_settings: BoolProperty(
+        name="Colors Settings",
+        default=False,
+        description=""
+    )
+
+    rotation_settings: BoolProperty(
+        name="Rotation Settings",
+        default=False,
+        description=""
+    )
+
     create_clouds: BoolProperty(
         name="Create Clouds",
         default=True,
@@ -261,23 +279,60 @@ class WorldAndMaterialsPanel(Panel):
                     break
 
             if node_group != None:
-                row.prop(node_group.inputs["Rotation"], "default_value", text="Rotation")
+                row.prop(node_group.inputs["Time"], "default_value", text="Time")
                 row = box.row()
                 row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
                 if scene.sky_properties.advanced_settings:
                     sbox = box.box()
                     row = sbox.row()
-                    row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                    row.label(text="Strenght:", icon="LIGHT_SUN")
+                    row.prop(scene.sky_properties, "strenght_settings", icon=("TRIA_DOWN" if scene.sky_properties.strenght_settings else "TRIA_RIGHT"), icon_only=True)
+                    if scene.sky_properties.strenght_settings:
+                        tbox = sbox.box()
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+                    
                     row = sbox.row()
-                    row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                    row.label(text="Colors:", icon="IMAGE")
+                    row.prop(scene.sky_properties, "colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.colors_settings else "TRIA_RIGHT"), icon_only=True)
+
+                    if scene.sky_properties.colors_settings:
+                        tbox = sbox.box()
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Sun Color 1"], "default_value", text="Sun Color 1")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Sun Color 2"], "default_value", text="Sun Color 2")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
+                    
                     row = sbox.row()
-                    row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
-                    row = sbox.row()
-                    row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+                    row.label(text="Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                    row.prop(scene.sky_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.sky_properties.rotation_settings else "TRIA_RIGHT"), icon_only=True)
+
+                    if scene.sky_properties.rotation_settings:
+                        tbox = sbox.box()
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
+                        
                     row = sbox.row()
                     row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                    row = sbox.row()
+                    row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
+
             else:
                 row.label(text="Mcblend Sky node not found, maybe you should recreate sky ?", icon="ERROR")
                 row = box.row()
@@ -620,6 +675,7 @@ class UtilsPanel(Panel):
             row.operator("object.cshadows", text="Turn On Contact Shadows")
         
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.sleppafterrender", text="Sleep After Render")
 
         box = layout.box()
@@ -653,6 +709,7 @@ class UtilsPanel(Panel):
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "vertex_group_name", text="Vertex Group Name")
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("object.assingvertexgroup", text="Assign Vertex Group")
 
 
