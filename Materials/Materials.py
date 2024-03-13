@@ -250,6 +250,7 @@ def setproceduralpbr():
                     PBSDF = None
                     bump_node = None
                     scene = bpy.context.scene
+                    PProperties = scene.ppbr_properties
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
@@ -267,11 +268,11 @@ def setproceduralpbr():
                         
                         # Make Metals
                         if scene.ppbr_properties.make_metal == True and MaterialIn(Metal, material):
-                            PBSDF.inputs["Roughness"].default_value = 0.2
-                            PBSDF.inputs["Metallic"].default_value = 0.7
+                            PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
+                            PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
 
-                        if MaterialIn(Reflective, material):
-                            PBSDF.inputs["Roughness"].default_value = 0.1
+                        if scene.ppbr_properties.make_reflections == True and MaterialIn(Reflective, material):
+                            PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
                         # Use Bump
                         if scene.ppbr_properties.use_bump == True:

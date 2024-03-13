@@ -152,6 +152,36 @@ class PPBRProperties(bpy.types.PropertyGroup):
         description="Enambles PBR For Metallic Materials"
     )
 
+    metal_metallic: FloatProperty(
+        name="Metal Metallic",
+        default=0.7,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    metal_roughness: FloatProperty(
+        name="Metal Roughness",
+        default=0.2,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    make_reflections: BoolProperty(
+        name="Make Reflections",
+        default=True,
+        description="Enambles PBR For Reflective Materials"
+    )
+
+    reflections_roughness: FloatProperty(
+        name="Reflections Roughness",
+        default=0.1,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
     make_better_emission: BoolProperty(
         name="Make Better Emission",
         default=True,
@@ -237,6 +267,7 @@ class WorldAndMaterialsPanel(Panel):
         scene = bpy.context.scene
 
         # World
+
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
@@ -249,6 +280,7 @@ class WorldAndMaterialsPanel(Panel):
         row.operator("object.fix_world", text="Fix World")
 
         # Sky
+
         box = layout.box()
         row = box.row()
         row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
@@ -327,7 +359,7 @@ class WorldAndMaterialsPanel(Panel):
                         row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
                         row = tbox.row()
                         row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
-                        
+
                     row = sbox.row()
                     row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
                     row = sbox.row()
@@ -342,6 +374,8 @@ class WorldAndMaterialsPanel(Panel):
             row.scale_y = Big_Button_Scale
             row.operator("object.create_sky", text="Recreate Sky")
         
+        # Materials
+            
         box = layout.box()
         row = box.row()
         row.label(text="Materials", icon="MATERIAL_DATA")
@@ -350,16 +384,37 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.operator("object.fix_materials", text="Fix Materials")
         
+        # PPBR
+
         box = layout.box()
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
         row.prop(scene.ppbr_properties, "use_bump", text="Use Bump")
         if scene.ppbr_properties.use_bump:
-            row = box.row()
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Bump Settings:", icon="MODIFIER")
+            row = sbox.row()
             row.prop(scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
         row = box.row()
         row.prop(scene.ppbr_properties, "make_metal", text="Make Metal")
+        if scene.ppbr_properties.make_metal:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Metallic Materials Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "metal_metallic", text="Metallic", slider=True)
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "metal_roughness", text="Roughness", slider=True)
+        row = box.row()
+        row.prop(scene.ppbr_properties, "make_reflections", text="Make Reflections")
+        if scene.ppbr_properties.make_reflections:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Reflective Materials Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
         row = box.row()
         row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
         row = box.row()
