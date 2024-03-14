@@ -127,7 +127,6 @@ def fix_world():
                                         if node.type == "INVERT":
                                             invert_node = node
 
-                                        # DA
                                         if node.type == "MIX":
                                             mix_node = node
                                     
@@ -208,8 +207,8 @@ def create_sky(self=None):
                                     node.inputs["Rotation"].default_value[2] = group.interface.items_tree[2].default_value[2]
                                     node.inputs["Pixelated Stars"].default_value = group.interface.items_tree[3].default_value
                                     node.inputs["Moon Color"].default_value = group.interface.items_tree[12].default_value
-                                    node.inputs["Sun Color 1"].default_value = group.interface.items_tree[13].default_value
-                                    node.inputs["Sun Color 2"].default_value = group.interface.items_tree[14].default_value
+                                    node.inputs["Sun Color"].default_value = group.interface.items_tree[13].default_value
+                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree[14].default_value
                                     node.inputs["Stars Color"].default_value  = group.interface.items_tree[15].default_value
                 
                 if Sky_Group == None:
@@ -401,6 +400,7 @@ def setproceduralpbr():
                                         math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
                                         math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                         math_node.operation = 'MULTIPLY'
+                                        math_node.inputs[1].default_value = 1.0
 
                                     math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                     material.node_tree.links.new(image_texture_node.outputs["Color"], map_range_node.inputs[0])

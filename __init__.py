@@ -287,9 +287,9 @@ class WorldAndMaterialsPanel(Panel):
                         row = tbox.row()
                         row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
                         row = tbox.row()
-                        row.prop(node_group.inputs["Sun Color 1"], "default_value", text="Sun Color 1")
+                        row.prop(node_group.inputs["Sun Color"], "default_value", text="Sun Color 1")
                         row = tbox.row()
-                        row.prop(node_group.inputs["Sun Color 2"], "default_value", text="Sun Color 2")
+                        row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color 2")
                         row = tbox.row()
                         row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
                     
