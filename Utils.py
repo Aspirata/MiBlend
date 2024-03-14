@@ -87,9 +87,9 @@ def ConvertDBSDF2PBSDF():
                         material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
                         material.node_tree.links.new(Texture.outputs["Color"], PBSDF.inputs[0])
                 else:
-                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+                    CEH("m002")
         else:
-            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")
+            CEH("m003")
 
 def FixAutoSmooth():
     for selected_object in bpy.context.selected_objects:
@@ -114,7 +114,7 @@ def FixAutoSmooth():
                     with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Shade Auto Smooth.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = ["Smooth by Angle"]
                 except:
-                    raise ValueError(f"{os.path.basename(os.path.dirname(os.path.realpath(__file__)))} not found, error code: 004")
+                    raise CEH("004")
                     
             geonodes_modifier = selected_object.modifiers.new('Shade Auto Smooth', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get("Smooth by Angle")
@@ -129,7 +129,7 @@ def Enchant():
 
                     for node in material.node_tree.nodes:
                         if node.type == 'GROUP':
-                            if "Enchantment" in node.name:
+                            if "Enchantment" in node.node_tree.name:
                                 node_group = node
 
                         if node.type == "BSDF_PRINCIPLED":
@@ -137,10 +137,11 @@ def Enchant():
 
                     if node_group == None:
                         if "Enchantment" not in bpy.data.node_groups:
-                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                data_to.node_groups = ["Enchantment"]
-                        else:
-                            bpy.data.node_groups["Enchantment"]
+                            try:
+                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                    data_to.node_groups = ["Enchantment"]
+                            except:
+                                CEH("004")
 
                         node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
                         node_group.node_tree = bpy.data.node_groups["Enchantment"]
@@ -158,6 +159,6 @@ def Enchant():
                         node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
 
                 else:
-                    raise ValueError("Material doesn't exist on one of the slots, error code: m002")
+                    CEH("m002")
         else:
-            raise ValueError("Object:", selected_object.name, "has no materials, error code: m003")
+            CEH("m003")

@@ -40,62 +40,7 @@ class RecreateSky(Operator):
 
     def execute(self, context):
 
-        node_tree_name = "Clouds Generator 2"
-
-        world = bpy.context.scene.world
-        world_material_name = "Mcblend World"
-        
-        if self.reappend_material == True:
-
-            if bpy.context.scene.world == bpy.data.worlds.get(world_material_name):
-                bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
-
-            try:
-                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                    data_to.worlds = [world_material_name]
-                appended_world_material = bpy.data.worlds.get(world_material_name)
-            except:
-                CEH('004')
-
-            bpy.context.scene.world = appended_world_material
-        
-        if self.reset_settings == True:
-            world_material = bpy.context.scene.world.node_tree
-            node_group = None
-
-            for node in world_material.nodes:
-                if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
-                    node_group = node
-                    break
-            if node_group != None:
-                node_group.inputs["Moon Strenght"].default_value = 200.0
-                node_group.inputs["Sun Strength"].default_value = 200.0
-                node_group.inputs["Stars Strength"].default_value = 800.0
-                node_group.inputs["Non-Camera Ambient Light Strenght"].default_value = 1.0
-                node_group.inputs["Camera Ambient Light Strenght"].default_value = 1.0
-                node_group.inputs["Rotation"].default_value = 0
-            else:
-                CEH('m005')
-
-        if self.recreate_clouds == True:
-            for obj in bpy.context.scene.objects:
-                if obj.name == "Clouds":
-                    bpy.data.objects.remove(obj, do_unlink=True)
-
-            if node_tree_name not in bpy.data.node_groups:
-                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                    data_to.node_groups = [node_tree_name]
-            else:
-                bpy.data.node_groups[node_tree_name]
-
-            bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
-            bpy.context.object.name = "Clouds"
-            bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
-            geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
-            geonodes_modifier.node_group = bpy.data.node_groups.get(node_tree_name)
-            geonodes_modifier["Socket_11"] = bpy.context.scene.camera
-
-            bpy.context.view_layer.update()
+        Materials.create_sky(self)
 
         return {'FINISHED'}
         
@@ -307,7 +252,7 @@ class WorldAndMaterialsPanel(Panel):
             node_group = None
             for node in world_material.nodes:
                 if node.type == 'GROUP':
-                    if "Mcblend Sky" in node.name:
+                    if "Mcblend Sky" in node.node_tree.name:
                         node_group = node
                         break
 
@@ -329,9 +274,9 @@ class WorldAndMaterialsPanel(Panel):
                         row = tbox.row()
                         row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
                         row = tbox.row()
-                        row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
-                        row = tbox.row()
                         row.prop(node_group.inputs["Camera Ambient Light Strenght"], "default_value", text="Camera Ambient Light Strenght")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Non-Camera Ambient Light Strenght"], "default_value", text="Non-Camera Ambient Light Strenght")
                     
                     row = sbox.row()
                     row.label(text="Colors:", icon="IMAGE")

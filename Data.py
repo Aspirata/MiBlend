@@ -26,7 +26,7 @@ def CEH(Error_Code, Data=None):
         raise ValueError(f"{os.path.basename(os.path.dirname(os.path.realpath(__file__)))}.blend not found, error code: {Error_Code}")
     
     if  Error_Code == 'm005':
-        raise ValueError(f"Mcblend Sky node not found, maybe you should recreate sky ? Error code: {Error_Code}")
+        raise ValueError(f"Mcblend Sky node not found, maybe you should reappend sky material ? Error code: {Error_Code}")
 
 Emissive_Materials = {
 
