@@ -10,7 +10,7 @@ optimization_folder = os.path.join(main_directory, "Optimization")
 
 clouds_node_tree_name = "Clouds Generator 2"
 world_material_name = "Mcblend World"
-node_tree_name = "Procedural Animation V1.1"
+PAGroup = "Procedural Animation V1.1"
 
 Big_Button_Scale = 1.4
 
