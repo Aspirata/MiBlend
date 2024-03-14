@@ -128,8 +128,9 @@ def Enchant():
                     PBSDF = None
 
                     for node in material.node_tree.nodes:
-                        if node.type == 'GROUP' and "Enchantment" in node.node_tree.name:
-                            node_group = node
+                        if node.type == 'GROUP':
+                            if "Enchantment" in node.name:
+                                node_group = node
 
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node

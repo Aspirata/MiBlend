@@ -306,9 +306,10 @@ class WorldAndMaterialsPanel(Panel):
             world_material = scene.world.node_tree
             node_group = None
             for node in world_material.nodes:
-                if node.type == 'GROUP' and "Mcblend Sky" in node.node_tree.name:
-                    node_group = node
-                    break
+                if node.type == 'GROUP':
+                    if "Mcblend Sky" in node.name:
+                        node_group = node
+                        break
 
             if node_group != None:
                 row.prop(node_group.inputs["Time"], "default_value", text="Time")
