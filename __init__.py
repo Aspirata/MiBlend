@@ -1,9 +1,9 @@
-from email.policy import default
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
+from .Translator import Translate
 
 bl_info = {
     "name": "Mcblend",
@@ -226,11 +226,11 @@ class WorldAndMaterialsPanel(Panel):
         row.prop(scene.ppbr_properties, "backface_culling")
         if scene.ppbr_properties.delete_useless_textures == True:
             row = box.row()
-            row.label(text="Warning !", icon="ERROR")
+            row.label(text=Translate("Warning !"), icon="ERROR")
             row = box.row()
-            row.label(text="This option should be used only if you just imported world")
+            row.label(text=Translate("This option should be turned on only if you didn't add any extra textures to the materials"))
             row = box.row()
-            row.label(text="This option can break your custom textures !")
+            row.label(text=Translate("This option can delete your custom textures !"))
         
         row = box.row()
         row.prop(scene.ppbr_properties, "delete_useless_textures")
