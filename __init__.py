@@ -69,6 +69,12 @@ class PPBRProperties(bpy.types.PropertyGroup):
         description=""
     )
 
+    delete_useless_textures: BoolProperty(
+        name="Delete Useless Textures",
+        default=True,
+        description=""
+    )
+
     emissiondetection: EnumProperty(
         items=[('Automatic', 'Automatic', ''), 
             ('Automatic & Manual', 'Automatic & Manual', ''),
@@ -217,7 +223,17 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
         row = box.row()
-        row.prop(scene.ppbr_properties, "backface_culling", text="Backface Culling")
+        row.prop(scene.ppbr_properties, "backface_culling")
+        if scene.ppbr_properties.delete_useless_textures == True:
+            row = box.row()
+            row.label(text="Warning !", icon="ERROR")
+            row = box.row()
+            row.label(text="This option should be used only if you just imported world")
+            row = box.row()
+            row.label(text="This option can break your custom textures !")
+        
+        row = box.row()
+        row.prop(scene.ppbr_properties, "delete_useless_textures")
         row = box.row()
         row.prop(scene.ppbr_properties, "emissiondetection", text='emissiondetection', expand=True)
         row = box.row()
