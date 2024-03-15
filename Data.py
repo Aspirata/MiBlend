@@ -53,12 +53,12 @@ Emissive_Materials = {
         "To Max": 1.5,
         "Adder": 0.1,
         "Divider": 80,
-        "Exclude": "None"
+        "Exclude": "sea_lantern"
     },
 
     "glow_lichen": {
         "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
+        1: 0.18, # From Min
         2: 0.6, # From Max
         3: 0, # To Min
         4: 2, # To Max

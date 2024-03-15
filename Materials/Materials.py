@@ -7,64 +7,108 @@ def MaterialIn(Array, material):
         if keyword in material.name.lower():
             return True
 
-def IsConnectedTo(NodeFromName, NodeFromType, index, nodeTo, NodeToName, NodeToType):
+def IsConnectedTo(NodeFromName, NodeFromType, index, nodeTo, NodeToName, NodeToType, type=None):
     if nodeTo is None:
         for selected_object in bpy.context.selected_objects:
             if selected_object.material_slots:
                 for material in selected_object.data.materials:
-                    if material is not None:
-                        for Node in material.node_tree.nodes:
+                    if material is not None:                                               # Materials Check
+                        for Node in material.node_tree.nodes:                              # Every Node in Material Check
                             if NodeToName is not None:
                                 if NodeToName in Node.name:
                             
                                     if NodeFromName is not None and NodeFromType is None:
                                         for link in Node.inputs[index].links:
                                             if NodeFromName in link.from_node.name:
-                                                return True
+                                                if type == "if":
+                                                    return True
+                                                else:
+                                                    return Node
                                     
                                     if NodeFromType is not None and NodeFromName is None:
                                         if NodeFromType == link.from_node.type:
-                                            return True
+                                            if type == "if":
+                                                return True
+                                            else:
+                                                return Node
                                         
                                     if NodeFromName is not None and NodeFromType is not None:
                                         if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                            return True
-
+                                            if type == "if":
+                                                return True
+                                            else:
+                                                return Node
+                                            
                             if NodeToType is not None:
                                 if NodeToType == Node.type:
-                                    node = Node
+                                    if NodeFromName is not None and NodeFromType is None:
+                                        for link in Node.inputs[index].links:
+                                            if NodeFromName in link.from_node.name:
+                                                if type == "if":
+                                                    return True
+                                                else:
+                                                    return Node
+                                    
+                                    if NodeFromType is not None and NodeFromName is None:
+                                        if NodeFromType == link.from_node.type:
+                                            if type == "if":
+                                                return True
+                                            else:
+                                                return Node
+                                        
+                                    if NodeFromName is not None and NodeFromType is not None:
+                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
+                                            if type == "if":
+                                                return True
+                                            else:
+                                                return Node
 
                             if NodeToName is not None and NodeToType is not None:
                                 if NodeToName == Node.name and NodeToType == Node.type:
-                                    node = Node
+                                    if NodeFromName is not None and NodeFromType is None:
+                                        for link in Node.inputs[index].links:
+                                            if NodeFromName in link.from_node.name:
+                                                if type == "if":
+                                                    return True
+                                                else:
+                                                    return Node
+                                    
+                                    if NodeFromType is not None and NodeFromName is None:
+                                        if NodeFromType == link.from_node.type:
+                                            if type == "if":
+                                                return True
+                                            else:
+                                                return Node
+                                        
+                                    if NodeFromName is not None and NodeFromType is not None:
+                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
+                                            if type == "if":
+                                                return True
+                                            else:
+                                                return Node
 
-    if node is not None:
+    else:
         for selected_object in bpy.context.selected_objects:
             if selected_object.material_slots:
                 for material in selected_object.data.materials:
                     if material is not None:
 
-                        for input_socket in nodeTo.inputs:
+                        for link in nodeTo.inputs[index].links:
                             if NodeFromName is None and NodeFromType is None:
-                                if input_socket.links:
                                     return True
 
                             else:
-                                if input_socket.links:
-                                    for link in input_socket.links:
-                                        if NodeFromName is not None and NodeFromType is None:
-                                            if NodeFromName in link.from_node.name:
-                                                return True
+                                if NodeFromName is not None and NodeFromType is None:
+                                    if NodeFromName in link.from_node.name:
+                                        return True
 
-                                        if NodeFromType is not None and NodeFromName is None:
-                                            if NodeFromType == link.from_node.type:
-                                                return True
+                                if NodeFromType is not None and NodeFromName is None:
+                                    if NodeFromType == link.from_node.type:
+                                        return True
 
-                                        if NodeFromName is not None and NodeFromType is not None:
-                                            if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
-
-    return False
+                                if NodeFromName is not None and NodeFromType is not None:
+                                    if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
+                                        return True
 
 def append_materials(upgraded_material_name, selected_object, i):
     if upgraded_material_name not in bpy.data.materials:
@@ -156,6 +200,7 @@ def fix_world():
                         if node.type == "TEX_IMAGE":
                             image_texture_node = node
                             image_texture_node.interpolation = "Closest"
+
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
                                 
@@ -429,13 +474,14 @@ def setproceduralpbr():
                                             if node.type == "MAP_RANGE":
                                                 map_range_node = node
 
-                                            if node.type == "MATH":
+                                            if node.type == "MATH" and "Mcblend's Node" in node.name:
                                                 if node.operation == 'MULTIPLY':
                                                     math_node = node
 
 
                                         if map_range_node == None:
                                             map_range_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                            map_range_node.name = "Mcblend's Node"
                                             map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
                                         else:
                                             map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
@@ -469,6 +515,9 @@ def setproceduralpbr():
                                         material.node_tree.links.new(image_texture_node.outputs["Color"], map_range_node.inputs[0])
                                         material.node_tree.links.new(map_range_node.outputs[0], math_node.inputs[0])
                                         material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
+
+                                        if not IsConnectedTo(None, None, 26, None, None, "BSDF_PRINCIPLED"):
+                                            material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
 
                         else:
                             for node in material.node_tree.nodes:
@@ -531,25 +580,45 @@ def setproceduralpbr():
                                                             else:
                                                                 node_group.inputs[property_name].default_value = property_value
 
-                                    if math_node != None and IsConnectedTo("Mcblend's Node", None, 0, math_node, None, None) and IsConnectedTo(None, None, 1, math_node, None, None):
-                                        
-                                        old_math_node = math_node
+                                    if math_node != None:
+                                        if IsConnectedTo("Mcblend's Node", None, 0, math_node, None, None) and IsConnectedTo(None, None, 1, math_node, None, None) and not IsConnectedTo("Mcblend's Node", 'GROUP', 1, math_node, None, None):
+                                            old_math_node = math_node
+                                            math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
+                                            math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
+                                            math_node.operation = 'MULTIPLY'
+                                            material.node_tree.links.new(old_math_node.outputs[0], math_node.inputs[0])
+                                            math_node.inputs[1].default_value = 1.0
+                                            math_node.name = "Mcblend's Node"
+                                            material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
+
+                                    else:
                                         math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
                                         math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                         math_node.operation = 'MULTIPLY'
-                                        material.node_tree.links.new(old_math_node.outputs[0], math_node.inputs[0])
+                                        math_node.inputs[0].default_value = 1.0
                                         math_node.inputs[1].default_value = 1.0
                                         math_node.name = "Mcblend's Node"
-                                    
+                                        material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
+
                                     material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])
                                     node_group.location = (PBSDF.location.x - 400, PBSDF.location.y - 460)
 
+                                    if not IsConnectedTo(None, None, 26, None, None, "BSDF_PRINCIPLED"):
+                                        material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
+
                         else:
                             for node in material.node_tree.nodes:
-                                if node.type == 'GROUP':
+                                if node.type == 'GROUP' and "Mcblend's Node" in node.name:
                                     if PAGroup in node.node_tree.name:
                                         material.node_tree.nodes.remove(node)
-                                
+                                #try:
+                            for node in material.node_tree.nodes:
+                                if node.type == "MATH" and "Mcblend's Node" in node.name:
+                                    if node.operation == 'MULTIPLY':
+                                        if not IsConnectedTo(None, None, 0, node, None, None) and not IsConnectedTo(None, None, 1, node, None, None):
+                                            material.node_tree.nodes.remove(node)
+                                #except:
+                                    #print("PPBR 621 Error Ingored LoL Do not report this")
                 else:
                     CEH('m002')
                 
