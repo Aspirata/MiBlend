@@ -402,8 +402,10 @@ def setproceduralpbr():
                         if node.type == "TEX_IMAGE":
                             if ".00" not in node.name:
                                 image_texture_node = node
+
                         if node.type == "BUMP":
                             bump_node = node
+
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
@@ -432,8 +434,7 @@ def setproceduralpbr():
                             if bump_node != None:
                                 bump_node.inputs[0].default_value = scene.ppbr_properties.bump_strenght
                         else:
-                            if material.node_tree.nodes.get("Bump") is not None:
-                                bump_node = material.node_tree.nodes.get("Bump")
+                            if bump_node is not None:
                                 material.node_tree.nodes.remove(bump_node)
 
                         # Make Better Emission
@@ -457,9 +458,10 @@ def setproceduralpbr():
                                             if node.type == "MAP_RANGE":
                                                 map_range_node = node
 
-                                            if node.type == "MATH" and "Mcblend's Node" in node.name:
+                                            math_nodes = []
+                                            if node.type == "MATH" and "Mcblend's Node Math Node" in node.name:
                                                 if node.operation == 'MULTIPLY':
-                                                    math_node = node
+                                                    math_nodes.append(node)
 
 
                                         if map_range_node == None:
@@ -487,17 +489,31 @@ def setproceduralpbr():
                                                             map_range_node.inputs[property_name].default_value = property_value
                                             
 
+                                        # Math Create
                                         if math_node == None:
                                             math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
                                             math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                             math_node.operation = 'MULTIPLY'
                                             math_node.inputs[1].default_value = 1.0
-                                            math_node.name = "Mcblend's Node"
+                                            math_node.name = "Mcblend's Math Node"
+
+                                        for node in math_nodes:
+                                            if not IsConnectedTo(None, None, None, None, 0, node):
+                                                material.node_tree.links.new(map_range_node.outputs[0], node.inputs[0])
+                                                break
+
+                                            if not IsConnectedTo(None, None, None, None, 1, node):
+                                                material.node_tree.links.new(map_range_node.outputs[0], node.inputs[1])
+                                                break
 
                                         math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                         material.node_tree.links.new(image_texture_node.outputs["Color"], map_range_node.inputs[0])
-                                        material.node_tree.links.new(map_range_node.outputs[0], math_node.inputs[0])
-                                        material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
+                                        if ".00" in math_nodes:
+                                            for node in math_nodes:
+                                                if ".00" in node.name:
+                                                    if node.name # Поставить типа максимум, у какой ноды больше цифра, ту и подключить
+                                        else:
+                                            material.node_tree.links.new(math_nodes.outputs[0], PBSDF.inputs[27])
 
                                         if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
                                             material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
@@ -526,7 +542,7 @@ def setproceduralpbr():
                                         if node.type == "MAP_RANGE":
                                             map_range_node = node
 
-                                        if node.type == "MATH" and "Mcblend's Node" in node.name:
+                                        if node.type == "MATH" and "Mcblend's Math Node" in node.name:
                                             if node.operation == 'MULTIPLY':
                                                 math_node = node
                                         
@@ -563,25 +579,27 @@ def setproceduralpbr():
                                                             else:
                                                                 node_group.inputs[property_name].default_value = property_value
 
-                                    if math_node != None:
-                                        if IsConnectedTo("Mcblend's Node", None, None, None, 0, math_node) and IsConnectedTo(None, None, None, None, 1, math_node) and not IsConnectedTo("Mcblend's Node", 'GROUP', None, None, 1, math_node):
-                                            old_math_node = math_node
+                                    # Math Create
+                                    if scene.ppbr_properties.make_better_emission == False:
+                                        if math_node != None:
+                                            if IsConnectedTo(None, None, None, None, 0, math_node) and IsConnectedTo(None, None, None, None, 1, math_node) and not IsConnectedTo("Mcblend's Node", 'GROUP', None, None, 1, math_node):
+                                                old_math_node = math_node
+                                                math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
+                                                math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
+                                                math_node.operation = 'MULTIPLY'
+                                                material.node_tree.links.new(old_math_node.outputs[0], math_node.inputs[0])
+                                                math_node.inputs[1].default_value = 1.0
+                                                math_node.name = "Mcblend's Math Node"
+                                                material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
+
+                                        else:
                                             math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
                                             math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                             math_node.operation = 'MULTIPLY'
-                                            material.node_tree.links.new(old_math_node.outputs[0], math_node.inputs[0])
+                                            math_node.inputs[0].default_value = 1.0
                                             math_node.inputs[1].default_value = 1.0
-                                            math_node.name = "Mcblend's Node"
+                                            math_node.name = "Mcblend's Math Node"
                                             material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
-
-                                    else:
-                                        math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
-                                        math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
-                                        math_node.operation = 'MULTIPLY'
-                                        math_node.inputs[0].default_value = 1.0
-                                        math_node.inputs[1].default_value = 1.0
-                                        math_node.name = "Mcblend's Node"
-                                        material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
 
                                     material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])
                                     node_group.location = (PBSDF.location.x - 400, PBSDF.location.y - 460)
@@ -596,7 +614,7 @@ def setproceduralpbr():
                                         material.node_tree.nodes.remove(node)
 
                             for node in material.node_tree.nodes:
-                                if node.type == "MATH" and "Mcblend's Node" in node.name:
+                                if node.type == "MATH" and "Mcblend's Math Node" in node.name:
                                     if node.operation == 'MULTIPLY':
                                         if not IsConnectedTo(None, None, None, None, 0, node) and not IsConnectedTo(None, None, None, None, 1, node):
                                             material.node_tree.nodes.remove(node)

@@ -11,7 +11,15 @@ Translations = {
 
     "This option can delete your custom textures !": {
         "ru_RU": "Эта настройка может удалить ваши текстуры"
-    }
+    },
+
+    "Use Bump": {
+        "ru_RU": "Использовать Bump"
+    },
+
+    "Bump Settings": {
+        "ru_RU": "Настройки Bump(а)"
+    },
 }
 
 def Translate(untranslated_string):

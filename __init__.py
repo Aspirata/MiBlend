@@ -84,9 +84,15 @@ class PPBRProperties(bpy.types.PropertyGroup):
     )
 
     use_bump: BoolProperty(
-        name="Use Bump",
+        name=Translate("Use Bump"),
         default=False,
         description="Enables Bump In Materials"
+    )
+
+    bump_settings: BoolProperty(
+        name=Translate("Bump Settings"),
+        default=False,
+        description=""
     )
 
     bump_strenght: FloatProperty(
@@ -101,6 +107,12 @@ class PPBRProperties(bpy.types.PropertyGroup):
         name="Make Metal",
         default=True,
         description="Enambles PBR For Metallic Materials"
+    )
+
+    metal_settings: BoolProperty(
+        name="Metal Settings",
+        default=False,
+        description=""
     )
 
     metal_metallic: FloatProperty(
@@ -123,6 +135,12 @@ class PPBRProperties(bpy.types.PropertyGroup):
         name="Make Reflections",
         default=True,
         description="Enambles PBR For Reflective Materials"
+    )
+
+    reflections_settings: BoolProperty(
+        name="Reflections Settings",
+        default=False,
+        description=""
     )
 
     reflections_roughness: FloatProperty(
@@ -275,12 +293,12 @@ class WorldAndMaterialsPanel(Panel):
             if node_group != None:
                 row.prop(node_group.inputs["Time"], "default_value", text="Time")
                 row = box.row()
-                row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
+                row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_LEFT"))
                 if scene.sky_properties.advanced_settings:
                     sbox = box.box()
                     row = sbox.row()
                     row.label(text="Strenght:", icon="LIGHT_SUN")
-                    row.prop(scene.sky_properties, "strenght_settings", icon=("TRIA_DOWN" if scene.sky_properties.strenght_settings else "TRIA_RIGHT"), icon_only=True)
+                    row.prop(scene.sky_properties, "strenght_settings", icon=("TRIA_DOWN" if scene.sky_properties.strenght_settings else "TRIA_LEFT"), icon_only=True)
                     if scene.sky_properties.strenght_settings:
                         tbox = sbox.box()
                         row = tbox.row()
@@ -296,7 +314,7 @@ class WorldAndMaterialsPanel(Panel):
                     
                     row = sbox.row()
                     row.label(text="Colors:", icon="IMAGE")
-                    row.prop(scene.sky_properties, "colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.colors_settings else "TRIA_RIGHT"), icon_only=True)
+                    row.prop(scene.sky_properties, "colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.sky_properties.colors_settings:
                         tbox = sbox.box()
@@ -311,7 +329,7 @@ class WorldAndMaterialsPanel(Panel):
                     
                     row = sbox.row()
                     row.label(text="Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                    row.prop(scene.sky_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.sky_properties.rotation_settings else "TRIA_RIGHT"), icon_only=True)
+                    row.prop(scene.sky_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.sky_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.sky_properties.rotation_settings:
                         tbox = sbox.box()
@@ -352,26 +370,29 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
-        row.prop(scene.ppbr_properties, "use_bump", text="Use Bump")
-        if scene.ppbr_properties.use_bump:
+        row.prop(scene.ppbr_properties, "use_bump")
+        row.prop(scene.ppbr_properties, "bump_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.bump_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.bump_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Bump Settings:", icon="MODIFIER")
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "bump_strenght", slider=True, text="Bump Strength")
+            row.prop(scene.ppbr_properties, "bump_strenght", slider=True)
         row = box.row()
-        row.prop(scene.ppbr_properties, "make_metal", text="Make Metal")
-        if scene.ppbr_properties.make_metal:
+        row.prop(scene.ppbr_properties, "make_metal")
+        row.prop(scene.ppbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.metal_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Metallic Materials Settings:", icon="MODIFIER")
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "metal_metallic", text="Metallic", slider=True)
+            row.prop(scene.ppbr_properties, "metal_metallic", slider=True)
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "metal_roughness", text="Roughness", slider=True)
+            row.prop(scene.ppbr_properties, "metal_roughness", slider=True)
         row = box.row()
-        row.prop(scene.ppbr_properties, "make_reflections", text="Make Reflections")
-        if scene.ppbr_properties.make_reflections:
+        row.prop(scene.ppbr_properties, "make_reflections")
+        row.prop(scene.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.reflections_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Reflective Materials Settings:", icon="MODIFIER")
@@ -529,42 +550,39 @@ class OptimizationPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-        if bpy.context.scene.optimizationproperties.use_camera_culling == True:
-            row = box.row()
-            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", text="Camera Culling Settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_RIGHT"))
-
-            # Camera Culling Settings
-            if bpy.context.scene.optimizationproperties.camera_culling_settings == True:
-                sbox = box.box()
+        row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
+        # Camera Culling Settings
+        if bpy.context.scene.optimizationproperties.camera_culling_settings == True:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Camera Culling Settings:", icon="CAMERA_DATA")
+            row = sbox.row()
+            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
+            if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
+                # Raycast Camera Culling Settings
                 row = sbox.row()
-                row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
+                row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
                 row = sbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-                if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
-                    # Raycast Camera Culling Settings
+                row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
+                    
+                if bpy.context.scene.optimizationproperties.merge_by_distance == True:
                     row = sbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
-                    row = sbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
-                        
-                    if bpy.context.scene.optimizationproperties.merge_by_distance == True:
-                        row = sbox.row()
-                        row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
+                    row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
 
-                    row = sbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
 
-                    if bpy.context.scene.optimizationproperties.backface_culling == True:
-                        row = sbox.row()
-                        row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+                if bpy.context.scene.optimizationproperties.backface_culling == True:
+                    row = sbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
 
-                    row = sbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "scale")
-                else:
-                    row = sbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-                    row = sbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "scale")
+            else:
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
 
         row = box.row()
         row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
@@ -670,26 +688,26 @@ class UtilsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
-        if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
-            
-            row = box.row()
-            row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, text="Contact Shadows Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"))
-            if bpy.context.scene.utilsproperties.cs_settings == True:
-                sbox = box.box()
-                row = sbox.row()
-                row.label(text="Selection Mode:", icon="LIGHT_DATA")
-                row = sbox.row()
-                row.prop(bpy.context.scene.utilsproperties, "cshadowsselection", text='cshadowsselection', expand=True)
-                row = sbox.row()
-                row.prop(bpy.context.scene.utilsproperties, "distance")
-                row = sbox.row()
-                row.prop(bpy.context.scene.utilsproperties, "bias", slider=True)
-                row = sbox.row()
-                row.prop(bpy.context.scene.utilsproperties, "thickness", slider=True)
+        row = box.row()
+        row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, text="Contact Shadows Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"))
+        if bpy.context.scene.utilsproperties.cs_settings == True:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Selection Mode:", icon="LIGHT_DATA")
+            row = sbox.row()
+            row.prop(bpy.context.scene.utilsproperties, "cshadowsselection", text='cshadowsselection', expand=True)
+            row = sbox.row()
+            row.prop(bpy.context.scene.utilsproperties, "distance")
+            row = sbox.row()
+            row.prop(bpy.context.scene.utilsproperties, "bias", slider=True)
+            row = sbox.row()
+            row.prop(bpy.context.scene.utilsproperties, "thickness", slider=True)
                 
-            row = box.row()
-            row.scale_y = Big_Button_Scale
-            row.operator("object.cshadows", text="Turn On Contact Shadows")
+        row = box.row()
+        row.label(text="This works only on eevee", icon="ERROR")
+        row = box.row()
+        row.scale_y = Big_Button_Scale
+        row.operator("object.cshadows", text="Turn On Contact Shadows")
         
         row = box.row()
         row.scale_y = Big_Button_Scale
