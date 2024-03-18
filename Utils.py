@@ -70,6 +70,12 @@ def ConvertDBSDF2PBSDF():
                         if node.type == "OUTPUT_MATERIAL":
                             Output = node
 
+                    if Texture != None:
+                        if PBSDF == None:
+                            PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                            PBSDF.location = (Output.location.x - 100, Output.location.x - 5)
+                            PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
+
                     if DBSDF != None:
                         material.node_tree.nodes.remove(DBSDF)
 
@@ -79,10 +85,7 @@ def ConvertDBSDF2PBSDF():
                     if TBSDF != None:
                         material.node_tree.nodes.remove(TBSDF)
                     
-                    if Texture != None:
-                        if PBSDF == None:
-                            PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-                            PBSDF.location = (Output.location.x - 100, Output.location.x - 5)
+                    
                         material.node_tree.links.new(Texture.outputs["Alpha"], PBSDF.inputs[4])
                         material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
                         material.node_tree.links.new(Texture.outputs["Color"], PBSDF.inputs[0])
