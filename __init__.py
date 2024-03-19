@@ -1,3 +1,4 @@
+from src.importer.prompts import BlockItemImporterPrompt
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
@@ -539,6 +540,7 @@ def register():
     name="emissiondetection",
     default='Automatic & Manual'
     )
+    BlockItemImporterPrompt.register()
 
 
 def unregister():
@@ -551,6 +553,7 @@ def unregister():
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.selected_asset
     del bpy.types.Scene.emissiondetection
+    BlockItemImporterPrompt.unregister()
 
 
 if __name__ == "__main__":
