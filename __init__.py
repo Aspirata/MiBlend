@@ -1,4 +1,4 @@
-from src.importer.prompts import BlockItemImporterPrompt
+from .src.importer.prompts.BlockItemImporterPrompt import ImporterPrompt
 from .Data import *
 from bpy.types import Panel, Operator
 from .Materials import Materials
@@ -485,6 +485,8 @@ class AssetPanel(Panel):
         row = box.row()
         row.prop(context.scene, "selected_asset", text="Selected Asset:")
         row = box.row()
+        row.operator("mcblend.import_blockitem", text="Import .json Model")
+        row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.import_asset", text="Import Asset")
 
@@ -540,7 +542,6 @@ def register():
     name="emissiondetection",
     default='Automatic & Manual'
     )
-    BlockItemImporterPrompt.register()
 
 
 def unregister():
@@ -553,7 +554,6 @@ def unregister():
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.selected_asset
     del bpy.types.Scene.emissiondetection
-    BlockItemImporterPrompt.unregister()
 
 
 if __name__ == "__main__":
