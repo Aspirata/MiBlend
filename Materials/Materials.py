@@ -2,11 +2,17 @@ from ..Data import *
 
 #Replace Materials
 
+# This function checks if a given material's name contains any of the keywords in the provided array. 
+# It returns True if a match is found, and False otherwise.
+
 def MaterialIn(Array, material):
     for keyword in Array:
         if keyword in material.name.lower():
             return True
 
+# This function checks if there is a connection between two nodes in a material's node tree based on the specified criteria. 
+# It returns True if a connection is found, and False otherwise.
+        
 def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nodeTo=None):
     if nodeTo is None:
         for selected_object in bpy.context.selected_objects:
@@ -84,6 +90,9 @@ def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nod
                                     if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
                                         return True
 
+# This function appends a material from an external .blend file to the current Blender scene 
+# and assigns it to a specific face of a 3D object.
+                                    
 def append_materials(upgraded_material_name, selected_object, i):
     if upgraded_material_name not in bpy.data.materials:
         try:
@@ -111,13 +120,13 @@ def EmissionMode(PBSDF, material):
                 else:
                     Excluded = False
 
-                if bpy.context.scene.ppbr_properties.emissiondetection == 'Automatic & Manual' and ((material_name in material.name.lower() and Excluded == False) or PBSDF.inputs[27].default_value != 0):
+                if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and ((material_name in material.name.lower() and Excluded == False) or PBSDF.inputs[27].default_value != 0):
                     return 1
 
-                if bpy.context.scene.ppbr_properties.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
+                if bpy.context.scene.world_properties.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
                     return 2
 
-                if bpy.context.scene.ppbr_properties.emissiondetection == 'Manual' and (material_name in material.name.lower() and Excluded == False):
+                if bpy.context.scene.world_properties.emissiondetection == 'Manual' and (material_name in material.name.lower() and Excluded == False):
                     return 3
 
 def upgrade_materials():
@@ -164,6 +173,7 @@ def fix_world():
                     mix_node = None
                     image_texture_node = None
                     scene = bpy.context.scene
+                    PProperties = scene.ppbr_properties
 
                     if MaterialIn(Alpha_Blend_Materials, material):
                         material.blend_method = 'BLEND'
@@ -171,7 +181,7 @@ def fix_world():
                         material.blend_method = 'HASHED'
 
                     for node in material.node_tree.nodes:
-                        if scene.ppbr_properties.delete_useless_textures:
+                        if PProperties.delete_useless_textures:
                             if node.type == "TEX_IMAGE" and ".00" in node.name:
                                 material.node_tree.nodes.remove(node)
 
@@ -196,7 +206,7 @@ def fix_world():
                             material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                         # Backface Culling
-                        if scene.ppbr_properties.backface_culling:
+                        if PProperties.backface_culling:
                             if MaterialIn(Backface_Culling_Materials, material):
                                 if bpy.context.scene.render.engine == 'CYCLES':
                                     geometry_node = None
@@ -395,6 +405,7 @@ def setproceduralpbr():
                     image_texture_node = None
                     PBSDF = None
                     bump_node = None
+                    math_nodes = []
                     scene = bpy.context.scene
                     PProperties = scene.ppbr_properties
 
@@ -410,35 +421,47 @@ def setproceduralpbr():
                             PBSDF = node
 
                     if PBSDF != None:
-                        # Change PBSDF Settings
-                        if scene.ppbr_properties.change_bsdf_settings:
-                            PBSDF.inputs["Roughness"].default_value = scene.ppbr_properties.roughness
-                            PBSDF.inputs[12].default_value = scene.ppbr_properties.specular
-                        
-                        # Make Metals
-                        if scene.ppbr_properties.make_metal == True and MaterialIn(Metal, material):
-                            PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
-                            PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
-
-                        if scene.ppbr_properties.make_reflections == True and MaterialIn(Reflective, material):
-                            PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
                         # Use Bump
-                        if scene.ppbr_properties.use_bump == True:
+                        if PProperties.use_bump == True:
                             if image_texture_node and bump_node == None:
                                 bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
                                 bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
                                 material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
                                 material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                                bump_node.inputs[0].default_value = scene.ppbr_properties.bump_strenght
+                                bump_node.inputs[0].default_value = PProperties.bump_strenght
                             if bump_node != None:
-                                bump_node.inputs[0].default_value = scene.ppbr_properties.bump_strenght
+                                bump_node.inputs[0].default_value = PProperties.bump_strenght
                         else:
                             if bump_node is not None:
                                 material.node_tree.nodes.remove(bump_node)
 
+                        # Use SSS
+                        if PProperties.use_sss  == True and MaterialIn(SSS_Materials, material):
+                            PBSDF.subsurface_method = PProperties.sss_type
+                            PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
+                            PBSDF.inputs["Subsurface Radius"].default_value[0] = 1.0
+                            PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
+                            PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
+                            PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
+
+                        # Make Metals
+                        if PProperties.make_metal == True and MaterialIn(Metal, material):
+                            PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
+                            PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
+                            
+                        # Make Reflections
+                        if PProperties.make_reflections == True and MaterialIn(Reflective, material):
+                            PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
+
+                        # Change PBSDF Settings
+                        if PProperties.change_bsdf_settings:
+                            PBSDF.inputs["Roughness"].default_value = PProperties.roughness
+                            PBSDF.inputs[12].default_value = PProperties.specular
+
+
                         # Make Better Emission
-                        if scene.ppbr_properties.make_better_emission == True:
+                        if PProperties.make_better_emission == True:
                                 
                                 if EmissionMode(PBSDF, material):
 
@@ -455,14 +478,12 @@ def setproceduralpbr():
                                         map_range_node = None
 
                                         for node in material.node_tree.nodes:
-                                            if node.type == "MAP_RANGE":
+                                            if node.type == "MAP_RANGE" and "Mcblend's Node" in node.name:
                                                 map_range_node = node
-
-                                            math_nodes = []
-                                            if node.type == "MATH" and "Mcblend's Node Math Node" in node.name:
+                                            
+                                            if node.type == "MATH" and "Mcblend's Math Node" in node.name:
                                                 if node.operation == 'MULTIPLY':
                                                     math_nodes.append(node)
-
 
                                         if map_range_node == None:
                                             map_range_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
@@ -490,30 +511,28 @@ def setproceduralpbr():
                                             
 
                                         # Math Create
-                                        if math_node == None:
+                                        if not math_nodes:
                                             math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
                                             math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
                                             math_node.operation = 'MULTIPLY'
                                             math_node.inputs[1].default_value = 1.0
                                             math_node.name = "Mcblend's Math Node"
-
-                                        for node in math_nodes:
-                                            if not IsConnectedTo(None, None, None, None, 0, node):
-                                                material.node_tree.links.new(map_range_node.outputs[0], node.inputs[0])
-                                                break
-
-                                            if not IsConnectedTo(None, None, None, None, 1, node):
-                                                material.node_tree.links.new(map_range_node.outputs[0], node.inputs[1])
-                                                break
-
-                                        math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], map_range_node.inputs[0])
-                                        if ".00" in math_nodes:
-                                            for node in math_nodes:
-                                                if ".00" in node.name:
-                                                    if node.name # Поставить типа максимум, у какой ноды больше цифра, ту и подключить
                                         else:
-                                            material.node_tree.links.new(math_nodes.outputs[0], PBSDF.inputs[27])
+
+                                            for node in math_nodes:
+                                                if ".00" in math_nodes:
+                                                    max_math_node = max(math_nodes, key=lambda node: float(node.name))
+                                                    material.node_tree.links.new(max_math_node.outputs[0], PBSDF.inputs[27])
+                                                else:
+                                                    material.node_tree.links.new(node.outputs[0], PBSDF.inputs[27])
+
+                                                if not IsConnectedTo(None, None, None, None, 0, node):
+                                                    material.node_tree.links.new(map_range_node.outputs[0], node.inputs[0])
+
+                                                if not IsConnectedTo(None, None, None, None, 1, node):
+                                                    material.node_tree.links.new(map_range_node.outputs[0], node.inputs[1])
+                                                
+                                        material.node_tree.links.new(image_texture_node.outputs["Color"], map_range_node.inputs[0])
 
                                         if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
                                             material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
@@ -524,7 +543,7 @@ def setproceduralpbr():
                                     material.node_tree.nodes.remove(node)
 
                         # Animate Textures
-                        if scene.ppbr_properties.animate_textures == True:
+                        if PProperties.animate_textures == True:
 
                             if EmissionMode(PBSDF, material):
 
@@ -580,7 +599,7 @@ def setproceduralpbr():
                                                                 node_group.inputs[property_name].default_value = property_value
 
                                     # Math Create
-                                    if scene.ppbr_properties.make_better_emission == False:
+                                    if PProperties.make_better_emission == False:
                                         if math_node != None:
                                             if IsConnectedTo(None, None, None, None, 0, math_node) and IsConnectedTo(None, None, None, None, 1, math_node) and not IsConnectedTo("Mcblend's Node", 'GROUP', None, None, 1, math_node):
                                                 old_math_node = math_node

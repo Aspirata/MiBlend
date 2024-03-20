@@ -60,8 +60,7 @@ class RecreateSky(Operator):
         box.prop(self, "reappend_material")
         box.prop(self, "recreate_clouds")
 
-
-class PPBRProperties(bpy.types.PropertyGroup):
+class FixWorldProperties(PropertyGroup):
 
     backface_culling: BoolProperty(
         name="Backface Culling",
@@ -83,6 +82,8 @@ class PPBRProperties(bpy.types.PropertyGroup):
         default='Automatic & Manual'
     )
 
+class PPBRProperties(PropertyGroup):
+
     use_bump: BoolProperty(
         name=Translate("Use Bump"),
         default=False,
@@ -100,6 +101,43 @@ class PPBRProperties(bpy.types.PropertyGroup):
         default=0.4,
         min=0.0,
         max=1.0,
+        description=""
+    )
+
+    use_sss: BoolProperty(
+        name=Translate("Use SSS"),
+        default=True,
+        description=""
+    )
+
+    sss_settings: BoolProperty(
+        name=Translate("SSS Settings"),
+        default=False,
+        description=""
+    )
+
+    sss_type: EnumProperty(
+        items=[('BURLEY', 'Christensen Burley', ''), 
+            ('RANDOM_WALK', 'Random Walk', ''),
+            ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')],
+        name="sss_type",
+        default='BURLEY'
+    )
+
+    sss_weight: FloatProperty(
+        name="SSS Weight",
+        default=1,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    sss_scale: FloatProperty(
+        name="SSS Scale",
+        default=0.05,
+        min=0.0,
+        max=10.0,
+        subtype='DISTANCE',
         description=""
     )
 
@@ -191,7 +229,7 @@ class PPBRProperties(bpy.types.PropertyGroup):
         description=""
     )
 
-class CreateSkyProperties(bpy.types.PropertyGroup):
+class CreateSkyProperties(PropertyGroup):
 
     advanced_settings: BoolProperty(
         name="Advanced Settings",
@@ -234,6 +272,7 @@ class WorldAndMaterialsPanel(Panel):
         layout = self.layout
         world = bpy.context.scene.world
         scene = bpy.context.scene
+        WProperties = scene.world_properties
 
         # World
 
@@ -241,8 +280,8 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
         row = box.row()
-        row.prop(scene.ppbr_properties, "backface_culling")
-        if scene.ppbr_properties.delete_useless_textures == True:
+        row.prop(WProperties, "backface_culling")
+        if WProperties.delete_useless_textures == True:
             row = box.row()
             row.label(text=Translate("Warning !"), icon="ERROR")
             row = box.row()
@@ -251,9 +290,9 @@ class WorldAndMaterialsPanel(Panel):
             row.label(text=Translate("This option can delete your custom textures !"))
         
         row = box.row()
-        row.prop(scene.ppbr_properties, "delete_useless_textures")
+        row.prop(WProperties, "delete_useless_textures")
         row = box.row()
-        row.prop(scene.ppbr_properties, "emissiondetection", text='emissiondetection', expand=True)
+        row.prop(WProperties, "emissiondetection", text='emissiondetection', expand=True)
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.fix_world", text="Fix World")
@@ -293,7 +332,7 @@ class WorldAndMaterialsPanel(Panel):
             if node_group != None:
                 row.prop(node_group.inputs["Time"], "default_value", text="Time")
                 row = box.row()
-                row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_LEFT"))
+                row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
                 if scene.sky_properties.advanced_settings:
                     sbox = box.box()
                     row = sbox.row()
@@ -379,6 +418,20 @@ class WorldAndMaterialsPanel(Panel):
             row = sbox.row()
             row.prop(scene.ppbr_properties, "bump_strenght", slider=True)
         row = box.row()
+        row.prop(scene.ppbr_properties, "use_sss")
+        row.prop(scene.ppbr_properties, "sss_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.sss_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.sss_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="SSS Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "sss_type", text="")
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "sss_weight", slider=True)
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "sss_scale", slider=True)
+
+        row = box.row()
         row.prop(scene.ppbr_properties, "make_metal")
         row.prop(scene.ppbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
         if scene.ppbr_properties.metal_settings:
@@ -461,7 +514,7 @@ class SetProceduralPBROperator(Operator):
 #
 
 # Optimization
-class OptimizationProperties(bpy.types.PropertyGroup):
+class OptimizationProperties(PropertyGroup):
 
     camera_culling_type: EnumProperty(
         items=[('Vector', 'Vector', ''), ('Raycast', 'Raycast', '')],
@@ -601,7 +654,7 @@ class OptimizeOperator(Operator):
     
 # Utils
 
-class UtilsProperties(bpy.types.PropertyGroup):
+class UtilsProperties(PropertyGroup):
 
     cs_settings: BoolProperty(
         name="Contact Shadows Settings",
@@ -689,7 +742,12 @@ class UtilsPanel(Panel):
         row = box.row()
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, text="Contact Shadows Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"))
+        row.label(text="This works only on eevee", icon="ERROR")
+        row = box.row()
+        row.scale_x = 1.4
+        row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"), icon_only=True)
+        row.scale_y = Big_Button_Scale
+        row.operator("object.cshadows", text="Turn On Contact Shadows")
         if bpy.context.scene.utilsproperties.cs_settings == True:
             sbox = box.box()
             row = sbox.row()
@@ -702,12 +760,6 @@ class UtilsPanel(Panel):
             row.prop(bpy.context.scene.utilsproperties, "bias", slider=True)
             row = sbox.row()
             row.prop(bpy.context.scene.utilsproperties, "thickness", slider=True)
-                
-        row = box.row()
-        row.label(text="This works only on eevee", icon="ERROR")
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("object.cshadows", text="Turn On Contact Shadows")
         
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -719,7 +771,10 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
+        row.scale_x = 1.4
         row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, text="Enchant Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"))
+        row.scale_y = Big_Button_Scale
+        row.operator("object.enchant", text="Enchant Objects")
         if bpy.context.scene.utilsproperties.enchant_settings == True:
             sbox = box.box()
             row = sbox.row()
@@ -728,9 +783,6 @@ class UtilsPanel(Panel):
             row.prop(bpy.context.scene.utilsproperties, "camera_strenght")
             row = sbox.row()
             row.prop(bpy.context.scene.utilsproperties, "non_camera_strenght")
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("object.enchant", text="Enchant Objects")
 
         box = layout.box()
         row = box.row()
@@ -838,12 +890,13 @@ def append_asset(asset_data):
 
 #
 
-classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
+classes = [RecreateSky, FixWorldProperties, CreateSkyProperties, PPBRProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
            CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=FixWorldProperties)
     bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)

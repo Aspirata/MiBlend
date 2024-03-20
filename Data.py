@@ -2,6 +2,7 @@
 import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
+from bpy.types import PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
@@ -171,6 +172,12 @@ Alpha_Blend_Materials = [
     "water",
     "glass",
     "ice"
+]
+
+SSS_Materials = [
+    "leaves",
+    "grass",
+    "tulip"
 ]
 
 Metal = [
