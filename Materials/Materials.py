@@ -436,6 +436,11 @@ def setproceduralpbr():
                             if bump_node is not None:
                                 material.node_tree.nodes.remove(bump_node)
 
+                        # Change PBSDF Settings
+                        if PProperties.change_bsdf:
+                            PBSDF.inputs["Roughness"].default_value = PProperties.roughness
+                            PBSDF.inputs["Specular IOR Level"].default_value = PProperties.specular
+
                         # Use SSS
                         if PProperties.use_sss  == True and MaterialIn(SSS_Materials, material):
                             PBSDF.subsurface_method = PProperties.sss_type
@@ -453,11 +458,6 @@ def setproceduralpbr():
                         # Make Reflections
                         if PProperties.make_reflections == True and MaterialIn(Reflective, material):
                             PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
-
-                        # Change PBSDF Settings
-                        if PProperties.change_bsdf_settings:
-                            PBSDF.inputs["Roughness"].default_value = PProperties.roughness
-                            PBSDF.inputs[12].default_value = PProperties.specular
 
 
                         # Make Better Emission

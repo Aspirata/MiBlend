@@ -207,9 +207,15 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    change_bsdf: BoolProperty(
+        name="Change BSDF",
+        default=True,
+        description=""
+    )
+
     change_bsdf_settings: BoolProperty(
         name="Change BSDF Settings",
-        default=True,
+        default=False,
         description=""
     )
 
@@ -417,40 +423,7 @@ class WorldAndMaterialsPanel(Panel):
             row.label(text="Bump Settings:", icon="MODIFIER")
             row = sbox.row()
             row.prop(scene.ppbr_properties, "bump_strenght", slider=True)
-        row = box.row()
-        row.prop(scene.ppbr_properties, "use_sss")
-        row.prop(scene.ppbr_properties, "sss_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.sss_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.sss_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="SSS Settings:", icon="MODIFIER")
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "sss_type", text="")
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "sss_weight", slider=True)
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "sss_scale", slider=True)
-
-        row = box.row()
-        row.prop(scene.ppbr_properties, "make_metal")
-        row.prop(scene.ppbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.metal_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Metallic Materials Settings:", icon="MODIFIER")
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "metal_metallic", slider=True)
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "metal_roughness", slider=True)
-        row = box.row()
-        row.prop(scene.ppbr_properties, "make_reflections")
-        row.prop(scene.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.reflections_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Reflective Materials Settings:", icon="MODIFIER")
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
+        
         row = box.row()
         row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
         row = box.row()
@@ -460,12 +433,50 @@ class WorldAndMaterialsPanel(Panel):
         if scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
-            row.prop(context.scene.ppbr_properties, "change_bsdf_settings", text="Change BSDF Settings")
+            row.prop(context.scene.ppbr_properties, "change_bsdf", text="Change BSDF Settings")
+            row.prop(scene.ppbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
             if  scene.ppbr_properties.change_bsdf_settings:
-                row = sbox.row()
+                tbox = sbox.box()
+                row = tbox.row()
                 row.prop(scene.ppbr_properties, "specular", slider=True, text="Specular")
-                row = sbox.row()
+                row = tbox.row()
                 row.prop(scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "use_sss")
+            row.prop(scene.ppbr_properties, "sss_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.sss_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.ppbr_properties.sss_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="SSS Settings:", icon="MODIFIER")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "sss_type", text="")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "sss_weight", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "sss_scale", slider=True)
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "make_metal")
+            row.prop(scene.ppbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.ppbr_properties.metal_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Metallic Materials Settings:", icon="MODIFIER")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "metal_metallic", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "metal_roughness", slider=True)
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "make_reflections")
+            row.prop(scene.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.ppbr_properties.reflections_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Reflective Materials Settings:", icon="MODIFIER")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
                 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -772,7 +783,7 @@ class UtilsPanel(Panel):
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
         row.scale_x = 1.4
-        row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, text="Enchant Settings", icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"))
+        row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"), icon_only=True)
         row.scale_y = Big_Button_Scale
         row.operator("object.enchant", text="Enchant Objects")
         if bpy.context.scene.utilsproperties.enchant_settings == True:
