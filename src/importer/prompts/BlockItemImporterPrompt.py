@@ -6,8 +6,8 @@ from bpy_extras.io_utils import ImportHelper
 from ..BlockItemImporter import importModel
 
 
-def runImporter(context, filepath, prompt):
-	importModel(prompt, filepath)
+def runImporter(context, filepath):
+	importModel(filepath)
 	return {'FINISHED'}
 
 
@@ -26,7 +26,7 @@ class ImporterPrompt(Operator, ImportHelper):
 	)
 
 	def execute(self, context):
-		return runImporter(context, self.filepath, self)
+		return runImporter(context, self.filepath)
 
 
 # Only needed if you want to add into a dynamic menu

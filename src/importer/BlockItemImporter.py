@@ -5,13 +5,12 @@ from mathutils import Vector, Euler
 from .utils import JsonUtils
 from .utils import GeoUtils
 import bpy
-from bpy.types import Operator
 
 from .utils.GeoUtils import CubeData, FaceData
 from .utils.JsonUtils import JsonObject
 
 
-def importModel(prompt: Operator, filepath):
+def importModel(filepath):
 	modelJsonObject = JsonUtils.load(filepath).asObject()
 
 	for element in modelJsonObject.get("elements").asArray().asList():
