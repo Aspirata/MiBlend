@@ -37,9 +37,9 @@ def menu_func_export(self, context):
 # Register and add to the "file selector" menu (required to use F3 search "Text Export Operator" for quick access).
 def register():
 	bpy.utils.register_class(ImporterPrompt)
-	bpy.types.TOPBAR_MT_file_import.append(menu_func_export)
+	# bpy.types.TOPBAR_MT_file_import.append(menu_func_export)
 
 
 def unregister():
 	bpy.utils.unregister_class(ImporterPrompt)
-	bpy.types.TOPBAR_MT_file_import.remove(menu_func_export)
+	# bpy.types.TOPBAR_MT_file_import.remove(menu_func_export)
