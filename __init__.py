@@ -470,6 +470,13 @@ class AssingVertexGroupOperator(Operator):
         VertexRiggingTool()
         return {'FINISHED'}
 
+
+class AssetsProperties(bpy.types.PropertyGroup):
+    separate_model_parts: bpy.props.BoolProperty(
+        name="Separate Model Parts",
+        description=""
+    )
+    
 # Assets
 class AssetPanel(Panel):
     bl_label = "Assets"
@@ -481,11 +488,23 @@ class AssetPanel(Panel):
     def draw(self, context):
         layout = self.layout
 
+
+        # .json Importer
         box = layout.box()
         row = box.row()
-        row.prop(context.scene, "selected_asset", text="Selected Asset:")
+        row.label(text="Importer", icon="IMPORT")
+        row = box.row()
+        row.prop(bpy.context.scene.assetsproperties, "separate_model_parts")
         row = box.row()
         row.operator("mcblend.import_blockitem", text="Import .json Model")
+
+
+        # Assets
+        box = layout.box()
+        row = box.row()
+        row.label(text="Assets", icon="ASSET_MANAGER")
+        row = box.row()
+        row.prop(context.scene, "selected_asset", text="Selected Asset:")
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.import_asset", text="Import Asset")
@@ -514,11 +533,13 @@ def append_asset(asset_data):
 #
 
 classes = [PPBRProperties, RecreateSky, CreateSkyProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
-           CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
+           CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    
+    bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
     bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
@@ -546,15 +567,16 @@ def register():
 
 
 def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
     del bpy.types.Scene.sky_properties
     del bpy.types.Scene.utils_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.selected_asset
     del bpy.types.Scene.emissiondetection
+
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
+
     BlockItemImporterPrompt.unregister()
 
 

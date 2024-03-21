@@ -13,8 +13,10 @@ import os
 
 def importModel(filepath):
 	modelJsonObject = JsonUtils.load(filepath).asObject()
+	elements = []
 
 	for element in modelJsonObject.get("elements").asArray().asList():
+		
 		elementJsonObject = element.asObject()
 		fromPos = []
 		toPos = []
@@ -65,6 +67,29 @@ def importModel(filepath):
 		col.objects.link(obj)
 		bpy.context.view_layer.objects.active = obj
 		obj.name = os.path.splitext(os.path.basename(filepath))[0]
+		elements.append(obj)
+	
+	# It doesn't work
+	if bpy.context.scene.assetsproperties.separate_model_parts == False:
+		if len(elements) >= 2:
+			main_object = elements[0]
+
+			# Цикл по остальным объектам в списке
+			for obj in elements[1:]:
+				# Выбираем объект в текущей итерации
+				bpy.context.view_layer.objects.active = obj
+					
+				# Выбираем все вершины в объекте
+				bpy.ops.object.mode_set(mode='OBJECT')
+				bpy.ops.object.select_all(action='DESELECT')
+				obj.select_set(True)
+				bpy.context.view_layer.objects.active = obj
+				bpy.ops.object.mode_set(mode='EDIT')
+				bpy.ops.mesh.select_all(action='SELECT')
+
+				# Объединяем объект с основным объектом
+				bpy.ops.object.mode_set(mode='OBJECT')
+				bpy.ops.object.join()
 
 
 def getFace(facesJsonObject: JsonObject, name: str) -> FaceData:
