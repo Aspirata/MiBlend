@@ -755,7 +755,7 @@ class UtilsPanel(Panel):
         row = box.row()
         row.label(text="This works only on eevee", icon="ERROR")
         row = box.row()
-        row.scale_x = 1.4
+        row.scale_x = 1.3
         row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"), icon_only=True)
         row.scale_y = Big_Button_Scale
         row.operator("object.cshadows", text="Turn On Contact Shadows")
@@ -782,7 +782,7 @@ class UtilsPanel(Panel):
         row = box.row()
         row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
-        row.scale_x = 1.4
+        row.scale_x = 1.3
         row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"), icon_only=True)
         row.scale_y = Big_Button_Scale
         row.operator("object.enchant", text="Enchant Objects")

@@ -173,7 +173,7 @@ def fix_world():
                     mix_node = None
                     image_texture_node = None
                     scene = bpy.context.scene
-                    PProperties = scene.ppbr_properties
+                    WProperties = scene.world_properties
 
                     if MaterialIn(Alpha_Blend_Materials, material):
                         material.blend_method = 'BLEND'
@@ -181,7 +181,7 @@ def fix_world():
                         material.blend_method = 'HASHED'
 
                     for node in material.node_tree.nodes:
-                        if PProperties.delete_useless_textures:
+                        if WProperties.delete_useless_textures:
                             if node.type == "TEX_IMAGE" and ".00" in node.name:
                                 material.node_tree.nodes.remove(node)
 
@@ -206,7 +206,7 @@ def fix_world():
                             material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                         # Backface Culling
-                        if PProperties.backface_culling:
+                        if WProperties.backface_culling:
                             if MaterialIn(Backface_Culling_Materials, material):
                                 if bpy.context.scene.render.engine == 'CYCLES':
                                     geometry_node = None
