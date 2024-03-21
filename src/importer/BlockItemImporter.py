@@ -1,5 +1,4 @@
 import math
-
 from mathutils import Vector, Euler
 
 from .utils import JsonUtils
@@ -8,6 +7,8 @@ import bpy
 
 from .utils.GeoUtils import CubeData, FaceData
 from .utils.JsonUtils import JsonObject
+
+import os
 
 
 def importModel(filepath):
@@ -63,6 +64,7 @@ def importModel(filepath):
 		col = bpy.context.scene.collection
 		col.objects.link(obj)
 		bpy.context.view_layer.objects.active = obj
+		obj.name = os.path.splitext(os.path.basename(filepath))[0]
 
 
 def getFace(facesJsonObject: JsonObject, name: str) -> FaceData:
