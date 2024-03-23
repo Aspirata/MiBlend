@@ -11,7 +11,7 @@ optimization_folder = os.path.join(main_directory, "Optimization")
 
 clouds_node_tree_name = "Clouds Generator 2"
 world_material_name = "Mcblend World"
-PAGroup = "Procedural Animation V1.1"
+BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
 
@@ -32,130 +32,105 @@ def CEH(Error_Code, Data=None):
 Emissive_Materials = {
 
     "Default": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": False,
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
         "Exclude": "None"
     },
 
     "lantern": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": True,
-        "Multiplier": 1,
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
         "Middle Value": 0.4,
-        "To Min": 1,
-        "To Max": 1.5,
+        9: 1,
+        10: 1.5,
         "Adder": 0.1,
         "Divider": 80,
         "Exclude": "sea_lantern"
     },
 
     "glow_lichen": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0.18, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": True,
-        "Multiplier": 1,
-        "Middle Value": 0.4,
+        "From Min": 0.18,
+        "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
+        "Middle Value": 0.4,
+        9: 0,
+        10: 1,
         "Adder": 0.2,
         "Divider": 50,
         "Exclude": "None"
     },
 
     "torch": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": True,
-        "Multiplier": 1,
-        "Middle Value": 0.4,
+        "From Min": 0,
+        "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
+        "Middle Value": 0.4,
+        9: 0,
+        10: 1,
         "Adder": 0.2,
         "Divider": 50,
         "Exclude": "None"
     },
 
     "lava": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": False,
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
         "Exclude": "None"
     },
 
     "cave_vines_lit": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": False,
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
         "Exclude": "None"
     },
 
     "sculk_sensor": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": False,
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
         "Exclude": "None"
     },
 
     "glowstone": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 2, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": False,
+        "From Min": 0,
+        "From Max": 2,
+        "To Min": 0,
+        "To Max": 1,
         "Exclude": "None"
     },
 
     "sculk": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": True,
-        "Multiplier": 1,
-        "Middle Value": 0.4,
+        "From Min": 0,
+        "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
+        "Middle Value": 0.4,
+        9: 0,
+        10: 1,
         "Adder": 0.2,
         "Divider": 50,
         "Exclude": "sculk_catalyst, sculk_sensor, sculk_shrieker, sculk_vein"
     },
 
     "end_rod": {
-        "Interpolation Type": "SMOOTHSTEP",
-        1: 0.5, # From Min
-        2: 0.6, # From Max
-        3: 0, # To Min
-        4: 2, # To Max
-        "Animate": True,
-        "Multiplier": 1,
-        "Middle Value": 0.4,
-        "To Min": 0.7,
+        "From Min": 0.5,
+        "From Max": 0.6,
+        "To Min": 0,
         "To Max": 1,
+        "Middle Value": 0.4,
+        9: 0.7,
+        10: 1,
         "Adder": 0.2,
         "Divider": 80,
         "Exclude": "None"
@@ -235,7 +210,7 @@ Materials_Array = {
     "Lantern": {
         "Original Material": "lantern",
         "Upgraded Material": "Upgraded Lantern",
-        "Exclude": "soul_lantern, redstone_lamp, sea_lantern"
+        "Exclude": "soul_lantern, redstone_lamp"
     },
 
     "Obsidian": {

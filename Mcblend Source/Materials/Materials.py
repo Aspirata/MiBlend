@@ -18,8 +18,8 @@ def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nod
         for selected_object in bpy.context.selected_objects:
             if selected_object.material_slots:
                 for material in selected_object.data.materials:
-                    if material is not None:                                               # Materials Check
-                        for Node in material.node_tree.nodes:                              # Every Node in Material Check
+                    if material is not None:                       # Materials Check
+                        for Node in material.node_tree.nodes:      # Every Node in Material Check
                             if NodeToName is not None:
                                 if NodeToName in Node.name:
                             
@@ -424,13 +424,15 @@ def setproceduralpbr():
                         else:
                             if bump_node is not None:
                                 material.node_tree.nodes.remove(bump_node)
+                                
 
-                        # Change PBSDF Settings
+                        # Change PBSDF Settings                                
                         if PProperties.change_bsdf:
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
                             PBSDF.inputs["Specular IOR Level"].default_value = PProperties.specular
 
-                        # Use SSS
+
+                        # Use SSS                            
                         if PProperties.use_sss  == True and MaterialIn(SSS_Materials, material):
                             PBSDF.subsurface_method = PProperties.sss_type
                             PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
@@ -439,193 +441,92 @@ def setproceduralpbr():
                             PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
                             PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
 
-                        # Make Metals
+
+                        # Make Metals                            
                         if PProperties.make_metal == True and MaterialIn(Metal, material):
                             PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
                             PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
+
                             
-                        # Make Reflections
+                        # Make Reflections                            
                         if PProperties.make_reflections == True and MaterialIn(Reflective, material):
                             PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
 
-                        # Make Better Emission
-                        if PProperties.make_better_emission == True:
-                                
-                                if EmissionMode(PBSDF, material):
-
-                                    image_texture_node = None
-
-                                    for node in material.node_tree.nodes:
-                                        if node.type == "TEX_IMAGE":
-                                            if ".00" not in node.name:
-                                                image_texture_node = node
-
-                                    if image_texture_node != None:
-
-                                        math_node = None
-                                        map_range_node = None
-
-                                        for node in material.node_tree.nodes:
-                                            if node.type == "MAP_RANGE" and "Mcblend's Node" in node.name:
-                                                map_range_node = node
-                                            
-                                            if node.type == "MATH" and "Mcblend's Math Node" in node.name:
-                                                if node.operation == 'MULTIPLY':
-                                                    math_nodes.append(node)
-
-                                        if map_range_node == None:
-                                            map_range_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
-                                            map_range_node.name = "Mcblend's Node"
-                                            map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
-                                        else:
-                                            map_range_node.location = (PBSDF.location.x - 400, PBSDF.location.y - 240)
-
-                                        for material_name, material_properties in Emissive_Materials.items():
-                                            if material_name in material.name:
-                                                for property_name, property_value in material_properties.items():
-                                                    if property_name == "Interpolation Type":
-                                                        map_range_node.interpolation_type = property_value
-
-                                                    if type(property_name) == int:
-                                                        map_range_node.inputs[property_name].default_value = property_value
-                                            else:
-                                                if material_name == "Default":
-                                                    for property_name, property_value in material_properties.items():
-                                                        if property_name == "Interpolation Type":
-                                                            map_range_node.interpolation_type = property_value
-
-                                                        if type(property_name) == int:
-                                                            map_range_node.inputs[property_name].default_value = property_value
-                                            
-
-                                        # Math Create
-                                        if not math_nodes:
-                                            math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
-                                            math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
-                                            math_node.operation = 'MULTIPLY'
-                                            math_node.inputs[1].default_value = 1.0
-                                            math_node.name = "Mcblend's Math Node"
-                                        else:
-
-                                            for node in math_nodes:
-                                                if ".00" in math_nodes:
-                                                    max_math_node = max(math_nodes, key=lambda node: float(node.name))
-                                                    material.node_tree.links.new(max_math_node.outputs[0], PBSDF.inputs[27])
-                                                else:
-                                                    material.node_tree.links.new(node.outputs[0], PBSDF.inputs[27])
-
-                                                if not IsConnectedTo(None, None, None, None, 0, node):
-                                                    material.node_tree.links.new(map_range_node.outputs[0], node.inputs[0])
-
-                                                if not IsConnectedTo(None, None, None, None, 1, node):
-                                                    material.node_tree.links.new(map_range_node.outputs[0], node.inputs[1])
-                                                
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], map_range_node.inputs[0])
-
-                                        if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
-                                            material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
-
-                        else:
+                        # Make Better Emission and Animate Textures                            
+                        if (PProperties.make_better_emission == True or PProperties.animate_textures == True) and EmissionMode(PBSDF, material):
+                            image_texture_node = None
+                            node_group = None
+                            Animate = False
+                            
+                            # Texture Check
                             for node in material.node_tree.nodes:
-                                if node.type == "MAP_RANGE":
-                                    material.node_tree.nodes.remove(node)
+                                if node.type == "TEX_IMAGE":
+                                    if ".00" not in node.name:
+                                        image_texture_node = node
 
-                        # Animate Textures
-                        if PProperties.animate_textures == True:
+                            # Main Thing
+                            if image_texture_node != None:
 
-                            if EmissionMode(PBSDF, material):
+                                for node in material.node_tree.nodes:
+                                    if node.type == 'GROUP':
+                                        if BATGroup in node.node_tree.name:
+                                            node_group = node
 
+                                # BATGroup Import if BATGroup isn't in File
+                                if node_group == None:
+                                    
+                                    if BATGroup not in bpy.data.node_groups:
+                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            data_to.node_groups = [BATGroup]
+
+                                    node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                    node_group.node_tree = bpy.data.node_groups[BATGroup]
+
+                                # Settings Set
                                 for material_name, material_properties in Emissive_Materials.items():
-                                    for property_name, property_value in material_properties.items():
-                                        if property_name == "Animate":
-                                            Animate = property_value
+                                    if material.name in Emissive_Materials:
+                                        if material_name in material.name.lower():
+                                            for property_name, property_value in material_properties.items():
+                                                    if property_name != "Exclude":
+                                                        node_group.inputs[property_name].default_value = property_value
 
-                                if Animate == True:
-                                    map_range_node = None
-                                    math_node = None
-                                    node_group = None
-
-                                    for node in material.node_tree.nodes:
-                                        if node.type == "MAP_RANGE":
-                                            map_range_node = node
-
-                                        if node.type == "MATH" and "Mcblend's Math Node" in node.name:
-                                            if node.operation == 'MULTIPLY':
-                                                math_node = node
+                                            if "Middle Value" in material_properties and 9 in material_properties and 10 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
+                                                Animate = True
                                         
-                                        if node.type == 'GROUP':
-                                            if PAGroup in node.node_tree.name:
-                                                node_group = node
+                                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                                            node_group.inputs["Animate Textures"].default_value = (PProperties.animate_textures and Animate)
 
+                                    else:
+                                        if material_name == "Default":
+                                             for property_name, property_value in material_properties.items():
+                                                if property_name != "Exclude":
+                                                    node_group.inputs[property_name].default_value = property_value
+                                
+                                # Color Connection if Nothing Connected
+                                if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
+                                    material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
 
-                                    if node_group == None:
-                                        if PAGroup not in bpy.data.node_groups:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                                data_to.node_groups = [PAGroup]
-                                        else:
-                                            bpy.data.node_groups[PAGroup]
+                                # Написать логику для присоединения к ноде IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 27)
+                                    
+                                for node in material.node_tree.nodes:
+                                    if node.type == "BSDF_PRINCIPLED":
+                                        for link in node.inputs[27].links:
+                                            if link.from_node != node_group:
+                                                for output in link.from_node.outputs:
+                                                    for link in output.links:
+                                                        if link.to_socket.node.name == node.name:
+                                                            material.node_tree.links.new(link.from_socket, node_group.inputs["Multiply"])
 
-                                        node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                        node_group.name = "Mcblend's Node"
-                                        node_group.node_tree = bpy.data.node_groups[PAGroup]
+                                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
+                                material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
+                                material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs[27])
 
-                                        for material_name, material_properties in Emissive_Materials.items():
-                                            if material_name in material.name:
-                                                for property_name, property_value in material_properties.items():
-                                                    if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
-                                                        if property_name == "Divider":
-                                                            node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
-                                                        else:
-                                                            node_group.inputs[property_name].default_value = property_value
-                                            else:
-                                                if material_name == "Default":
-                                                    for property_name, property_value in material_properties.items():
-                                                        if property_name != "Exclude" and property_name != "Interpolation Type" and property_name != "Animate" and type(property_name) == str:
-                                                            if property_name == "Divider":
-                                                                node_group.inputs[property_name].default_value = bpy.context.scene.render.fps/30 * property_value
-                                                            else:
-                                                                node_group.inputs[property_name].default_value = property_value
-
-                                    # Math Create
-                                    if PProperties.make_better_emission == False:
-                                        if math_node != None:
-                                            if IsConnectedTo(None, None, None, None, 0, math_node) and IsConnectedTo(None, None, None, None, 1, math_node) and not IsConnectedTo("Mcblend's Node", 'GROUP', None, None, 1, math_node):
-                                                old_math_node = math_node
-                                                math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
-                                                math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
-                                                math_node.operation = 'MULTIPLY'
-                                                material.node_tree.links.new(old_math_node.outputs[0], math_node.inputs[0])
-                                                math_node.inputs[1].default_value = 1.0
-                                                math_node.name = "Mcblend's Math Node"
-                                                material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
-
-                                        else:
-                                            math_node = material.node_tree.nodes.new(type='ShaderNodeMath')
-                                            math_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
-                                            math_node.operation = 'MULTIPLY'
-                                            math_node.inputs[0].default_value = 1.0
-                                            math_node.inputs[1].default_value = 1.0
-                                            math_node.name = "Mcblend's Math Node"
-                                            material.node_tree.links.new(math_node.outputs[0], PBSDF.inputs[27])
-
-                                    material.node_tree.links.new(node_group.outputs[0], math_node.inputs[1])
-                                    node_group.location = (PBSDF.location.x - 400, PBSDF.location.y - 460)
-
-                                    if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
-                                        material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
-
-                        else:
+                        if PProperties.make_better_emission == False and PProperties.animate_textures == False:
                             for node in material.node_tree.nodes:
-                                if node.type == 'GROUP' and "Mcblend's Node" in node.name:
-                                    if PAGroup in node.node_tree.name:
+                                if node.type == 'GROUP':
+                                    if BATGroup in node.node_tree.name:
                                         material.node_tree.nodes.remove(node)
-
-                            for node in material.node_tree.nodes:
-                                if node.type == "MATH" and "Mcblend's Math Node" in node.name:
-                                    if node.operation == 'MULTIPLY':
-                                        if not IsConnectedTo(None, None, None, None, 0, node) and not IsConnectedTo(None, None, None, None, 1, node):
-                                            material.node_tree.nodes.remove(node)
                 else:
                     CEH('m002')
                 
