@@ -34,42 +34,44 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
     
     if bpy.app.version < (4, 1, 0):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
-
     
 def Optimize():
     selected_objects = bpy.context.selected_objects
     scene = bpy.context.scene
     OProperties = bpy.context.scene.optimizationproperties
-    if OProperties.use_camera_culling == True:
-        script_directory = os.path.dirname(os.path.realpath(__file__))
+    if bpy.context.scene.camera != None:
+        if OProperties.use_camera_culling == True:
+            script_directory = os.path.dirname(os.path.realpath(__file__))
 
-        geonodes_modifier = None
+            geonodes_modifier = None
 
-        if bpy.app.version >= (4, 1, 0):
-            if "Universal Camera Culling" not in bpy.data.node_groups:
-                try:
-                    with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.1.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = ["Universal Camera Culling"]
-                except:
-                    CEH('004')
-        else:
-            if "Universal Camera Culling" not in bpy.data.node_groups:
-                try:
-                    with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.0.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = ["Universal Camera Culling"]
-                except:
-                    CEH('004')
-        
-        for obj in selected_objects:
-            if obj.modifiers.get("Universal Camera Culling") == None: 
-                geonodes_modifier = obj.modifiers.new('Universal Camera Culling', type='NODES')
-                geonodes_modifier.node_group = bpy.data.node_groups.get("Universal Camera Culling")
+            if bpy.app.version >= (4, 1, 0):
+                if "Universal Camera Culling" not in bpy.data.node_groups:
+                    try:
+                        with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.1.blend"), link=False) as (data_from, data_to):
+                            data_to.node_groups = ["Universal Camera Culling"]
+                    except:
+                        CEH('004')
             else:
-                geonodes_modifier = obj.modifiers.get("Universal Camera Culling")
+                if "Universal Camera Culling" not in bpy.data.node_groups:
+                    try:
+                        with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.0.blend"), link=False) as (data_from, data_to):
+                            data_to.node_groups = ["Universal Camera Culling"]
+                    except:
+                        CEH('004')
+            
+            for obj in selected_objects:
+                if obj.modifiers.get("Universal Camera Culling") == None: 
+                    geonodes_modifier = obj.modifiers.new('Universal Camera Culling', type='NODES')
+                    geonodes_modifier.node_group = bpy.data.node_groups.get("Universal Camera Culling")
+                else:
+                    geonodes_modifier = obj.modifiers.get("Universal Camera Culling")
 
-            Camera_Culling(obj, OProperties, geonodes_modifier)
+                Camera_Culling(obj, OProperties, geonodes_modifier)
 
-            obj.data.update()
+                obj.data.update()
+    else:
+        CEH("006")
 
     if scene.optimizationproperties.set_render_settings == True and scene.render.engine == 'CYCLES':
         scene.cycles.use_preview_adaptive_sampling = True

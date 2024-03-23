@@ -194,15 +194,17 @@ def fix_world():
                             PBSDF = node
                                 
                     if (image_texture_node and PBSDF) != None:
-                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
+                        if not IsConnectedTo(None, None, None, None, 4, PBSDF):
+                            material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
                         
                         # Emission
-                        if EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3:
-                            material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
-                            PBSDF.inputs[27].default_value = 1
+                        if not IsConnectedTo(None, None, None, None, 26, PBSDF):
+                            if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs[27].default_value == 0:
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                                PBSDF.inputs[27].default_value = 1
 
-                        if EmissionMode(PBSDF, material) == 2:
-                            material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                            if EmissionMode(PBSDF, material) == 2:
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                         # Backface Culling
                         if WProperties.backface_culling:
@@ -215,6 +217,7 @@ def fix_world():
                                     if node.type == "GROUP":
                                         if "Backface Culling" in node.node_tree.name:
                                             bfc_node = node
+                                            break
                                 
                                 if bfc_node == None:
                                     if "Backface Culling" not in bpy.data.node_groups:
@@ -227,9 +230,20 @@ def fix_world():
                                     bfc_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                                     bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
                                     bfc_node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
-                                material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs[4])
+
                                 material.node_tree.links.new(image_texture_node.outputs[1], bfc_node.inputs[0])
-                                
+
+                                for node in material.node_tree.nodes:
+                                    if node.type == "BSDF_PRINCIPLED":
+                                        for link in node.inputs[4].links:                                            
+                                            if link.from_node.name != bfc_node.name:                                                
+                                                for output in link.from_node.outputs:
+                                                    for link_out in output.links:
+                                                        if link_out.to_socket.node.name == node.name:                                                                                                                    
+                                                            material.node_tree.links.new(link_out.from_socket, bfc_node.inputs[0]) 
+                                                            break
+                            
+                                material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs[4])
                         else:
                             if MaterialIn(Backface_Culling_Materials, material):
                                 bfc_node = None
@@ -458,6 +472,7 @@ def setproceduralpbr():
                             image_texture_node = None
                             node_group = None
                             Animate = False
+                            MaterialIsInArray = False
                             
                             # Texture Check
                             for node in material.node_tree.nodes:
@@ -472,6 +487,7 @@ def setproceduralpbr():
                                     if node.type == 'GROUP':
                                         if BATGroup in node.node_tree.name:
                                             node_group = node
+                                            break
 
                                 # BATGroup Import if BATGroup isn't in File
                                 if node_group == None:
@@ -485,29 +501,31 @@ def setproceduralpbr():
 
                                 # Settings Set
                                 for material_name, material_properties in Emissive_Materials.items():
-                                    if material.name in Emissive_Materials:
+                                    if material_name in material.name:
+                                        MaterialIsInArray = True
+                                
+                                if MaterialIsInArray == True:
+                                    for material_name, material_properties in Emissive_Materials.items():
                                         if material_name in material.name.lower():
                                             for property_name, property_value in material_properties.items():
-                                                    if property_name != "Exclude":
-                                                        node_group.inputs[property_name].default_value = property_value
+                                                if property_name != "Exclude":
+                                                    print(property_name)
+                                                    node_group.inputs[property_name].default_value = property_value
 
                                             if "Middle Value" in material_properties and 9 in material_properties and 10 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
                                                 Animate = True
                                         
                                             node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-                                            node_group.inputs["Animate Textures"].default_value = (PProperties.animate_textures and Animate)
-
-                                    else:
-                                        if material_name == "Default":
-                                             for property_name, property_value in material_properties.items():
-                                                if property_name != "Exclude":
-                                                    node_group.inputs[property_name].default_value = property_value
+                                            node_group.inputs["Animate Textures"].default_value = (PProperties.animate_textures and Animate)                                    
+                                else:
+                                    if material_name == "Default":
+                                        for property_name, property_value in material_properties.items():
+                                            if property_name != "Exclude":
+                                                node_group.inputs[property_name].default_value = property_value
                                 
                                 # Color Connection if Nothing Connected
                                 if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
                                     material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
-
-                                # Написать логику для присоединения к ноде IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 27)
                                     
                                 for node in material.node_tree.nodes:
                                     if node.type == "BSDF_PRINCIPLED":
