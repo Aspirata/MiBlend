@@ -734,6 +734,20 @@ class UtilsProperties(PropertyGroup):
         max=1000000.0
     )
 
+    armature: bpy.props.PointerProperty(
+        name="Armature",
+        description="",
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type == 'ARMATURE'
+    )
+
+    lattice: bpy.props.PointerProperty(
+        name="Lattice",
+        description="",
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type == 'LATTICE'
+    )
+
     vertex_group_name: StringProperty(
         name="Vertex Group Name",
         description=""
@@ -805,10 +819,14 @@ class UtilsPanel(Panel):
         row = box.row()
         row.label(text="Rigging", icon="ARMATURE_DATA")
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "vertex_group_name", text="Vertex Group Name")
+        row.prop(bpy.context.scene.utilsproperties, "armature")
+        row = box.row()
+        row.prop(bpy.context.scene.utilsproperties, "lattice")
+        row = box.row()
+        row.prop(bpy.context.scene.utilsproperties, "vertex_group_name")
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.assingvertexgroup", text="Assign Vertex Group")
+        row.operator("object.assingvertexgroup")
 
 
 class CShadowsOperator(Operator):
@@ -919,10 +937,11 @@ def register():
 
 def unregister():
 
+    del bpy.types.Scene.world_properties
     del bpy.types.Scene.sky_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
-    del bpy.types.Scene.utils_properties
+    del bpy.types.Scene.utilsproperties
     del bpy.types.Scene.selected_asset
 
     for cls in classes:
