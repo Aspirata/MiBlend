@@ -39,8 +39,8 @@ def Optimize():
     selected_objects = bpy.context.selected_objects
     scene = bpy.context.scene
     OProperties = bpy.context.scene.optimizationproperties
-    if bpy.context.scene.camera != None:
-        if OProperties.use_camera_culling == True:
+    if OProperties.use_camera_culling == True:
+        if bpy.context.scene.camera != None:
             script_directory = os.path.dirname(os.path.realpath(__file__))
 
             geonodes_modifier = None
@@ -70,8 +70,8 @@ def Optimize():
                 Camera_Culling(obj, OProperties, geonodes_modifier)
 
                 obj.data.update()
-    else:
-        CEH("006")
+        else:
+            CEH("006")
 
     if scene.optimizationproperties.set_render_settings == True and scene.render.engine == 'CYCLES':
         scene.cycles.use_preview_adaptive_sampling = True

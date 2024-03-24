@@ -6,9 +6,16 @@ from ..Data import *
 # It returns True if a match is found, and False otherwise.
 
 def MaterialIn(Array, material):
-    for keyword in Array:
-        if keyword in material.name.lower():
-            return True
+    for material_part in material.name.lower().replace("-", ".").split("."):
+        try:
+            for keyword, other in Array.items():
+                if keyword == material_part:
+                    return True
+        except:
+            for keyword in Array:
+                if keyword in material_part:
+                    return True
+    return False
 
 # This function checks if there is a connection between two nodes in a material's node tree based on the specified criteria. 
 # It returns True if a connection is found, and False otherwise.
@@ -106,28 +113,15 @@ def append_materials(upgraded_material_name, selected_object, i):
         selected_object.data.materials[i] = bpy.data.materials[upgraded_material_name]
 
 def EmissionMode(PBSDF, material):
-    for material_name, properties in Emissive_Materials.items():
-        for property_name, property_value in properties.items():
-            if property_name == "Exclude":
-                if property_value != "None":
-                    for Excluder in property_value.split(", "):
-                        if material_name in material.name.lower():
-                            if Excluder not in material.name.lower():
-                                Excluded = False
-                            else:
-                                Excluded = True
-                                break
-                else:
-                    Excluded = False
+                
+        if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs[27].default_value != 0 or MaterialIn(Emissive_Materials, material)):
+            return 1
 
-                if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and ((material_name in material.name.lower() and Excluded == False) or PBSDF.inputs[27].default_value != 0):
-                    return 1
-
-                if bpy.context.scene.world_properties.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
-                    return 2
-
-                if bpy.context.scene.world_properties.emissiondetection == 'Manual' and (material_name in material.name.lower() and Excluded == False):
-                    return 3
+        if bpy.context.scene.world_properties.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
+            return 2
+        
+        if bpy.context.scene.world_properties.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials, material):
+            return 3
 
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
@@ -179,8 +173,8 @@ def fix_world():
                     else:
                         material.blend_method = 'HASHED'
 
-                    for node in material.node_tree.nodes:
-                        if WProperties.delete_useless_textures:
+                    if WProperties.delete_useless_textures:
+                        for node in material.node_tree.nodes:
                             if node.type == "TEX_IMAGE" and ".00" in node.name:
                                 material.node_tree.nodes.remove(node)
 
@@ -198,12 +192,15 @@ def fix_world():
                             material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
                         
                         # Emission
-                        if not IsConnectedTo(None, None, None, None, 26, PBSDF):
-                            if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs[27].default_value == 0:
+                        if EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3:
+                            if not IsConnectedTo(None, None, None, None, 26, PBSDF):
                                 material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+
+                            if PBSDF.inputs[27].default_value == 0:
                                 PBSDF.inputs[27].default_value = 1
 
-                            if EmissionMode(PBSDF, material) == 2:
+                        if EmissionMode(PBSDF, material) == 2:
+                            if not IsConnectedTo(None, None, None, None, 26, PBSDF):
                                 material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
 
                         # Backface Culling
@@ -250,7 +247,12 @@ def fix_world():
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "GROUP":
-                                        if "Backface Culling" in node.node_tree.name:
+                                        if "Backface Culling" in node.node_tree.name:                                            
+                                            for link in node.inputs[0].links:     
+                                                for output in link.from_node.outputs:
+                                                    for link_out in output.links:
+                                                        if link_out.to_socket.node.name == node.name:                                                                                                                    
+                                                            material.node_tree.links.new(link_out.from_socket, PBSDF.inputs[4])
                                             material.node_tree.nodes.remove(node)
 
                                 material.use_backface_culling = False
@@ -267,6 +269,8 @@ def create_sky(self=None):
     clouds_exists = False
     
     if world != None and world == bpy.data.worlds.get(world_material_name):
+
+        # Recreate Sky
         if self != None:
 
             if self.reappend_material == True:
@@ -321,16 +325,24 @@ def create_sky(self=None):
                         data_to.node_groups = [clouds_node_tree_name]
                 else:
                     bpy.data.node_groups[clouds_node_tree_name]
+                
+                if "Clouds" not in bpy.data.materials:
+                    with bpy.data.libraries.load(os.path.join(materials_file_path), link=False) as (data_from, data_to):
+                        data_to.materials = ["Clouds"]
+                else:
+                    bpy.data.materials["Clouds"]
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
                 bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
-                geonodes_modifier["Socket_11"] = bpy.context.scene.camera
         else:
             bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
+
     else:
+        
+        # Create Sky
         try:
             if world_material_name not in bpy.data.worlds:
                 with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
@@ -355,13 +367,18 @@ def create_sky(self=None):
                     data_to.node_groups = [clouds_node_tree_name]
             else:
                 bpy.data.node_groups[clouds_node_tree_name]
+            
+            if "Clouds" not in bpy.data.materials:
+                with bpy.data.libraries.load(os.path.join(materials_file_path), link=False) as (data_from, data_to):
+                    data_to.materials = ["Clouds"]
+            else:
+                bpy.data.materials["Clouds"]
 
             bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
             bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
-            geonodes_modifier["Socket_11"] = scene.camera
 
     bpy.context.view_layer.update()
 
@@ -471,8 +488,6 @@ def setproceduralpbr():
                         if (PProperties.make_better_emission == True or PProperties.animate_textures == True) and EmissionMode(PBSDF, material):
                             image_texture_node = None
                             node_group = None
-                            Animate = False
-                            MaterialIsInArray = False
                             
                             # Texture Check
                             for node in material.node_tree.nodes:
@@ -480,18 +495,17 @@ def setproceduralpbr():
                                     if ".00" not in node.name:
                                         image_texture_node = node
 
-                            # Main Thing
+                            # The Main Thing
                             if image_texture_node != None:
 
                                 for node in material.node_tree.nodes:
-                                    if node.type == 'GROUP':
+                                    if node.type == "GROUP":
                                         if BATGroup in node.node_tree.name:
                                             node_group = node
                                             break
 
                                 # BATGroup Import if BATGroup isn't in File
                                 if node_group == None:
-                                    
                                     if BATGroup not in bpy.data.node_groups:
                                         with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                             data_to.node_groups = [BATGroup]
@@ -500,28 +514,28 @@ def setproceduralpbr():
                                     node_group.node_tree = bpy.data.node_groups[BATGroup]
 
                                 # Settings Set
-                                for material_name, material_properties in Emissive_Materials.items():
-                                    if material_name in material.name:
-                                        MaterialIsInArray = True
-                                
-                                if MaterialIsInArray == True:
-                                    for material_name, material_properties in Emissive_Materials.items():
-                                        if material_name in material.name.lower():
-                                            for property_name, property_value in material_properties.items():
-                                                if property_name != "Exclude":
-                                                    print(property_name)
-                                                    node_group.inputs[property_name].default_value = property_value
+                                if MaterialIn(Emissive_Materials, material) == True:
+                                    for material_part in material.name.lower().replace("-", ".").split("."):
+                                        for material_name, material_properties in Emissive_Materials.items():
+                                            if material_name == material_part:
+                                                for property_name, property_value in material_properties.items():
+                                                    if property_name == "Divider":
+                                                        node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
+                                                    else:
+                                                        node_group.inputs[property_name].default_value = property_value
 
-                                            if "Middle Value" in material_properties and 9 in material_properties and 10 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
-                                                Animate = True
-                                        
-                                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-                                            node_group.inputs["Animate Textures"].default_value = (PProperties.animate_textures and Animate)                                    
+                                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+
+                                                if "Middle Value" in material_properties and 9 in material_properties and 10 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
+                                                    node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                                 else:
-                                    if material_name == "Default":
-                                        for property_name, property_value in material_properties.items():
-                                            if property_name != "Exclude":
+                                    for material_name, material_properties in Emissive_Materials.items():
+                                        if material_name == "Default":
+                                            for property_name, property_value in material_properties.items():
                                                 node_group.inputs[property_name].default_value = property_value
+
+                                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                                            node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                                 
                                 # Color Connection if Nothing Connected
                                 if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):

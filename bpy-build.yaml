@@ -1,0 +1,7 @@
+addon_folder: Mcblend Source
+build_name: Mcblend
+
+install_versions:
+  - 4.2
+  - 4.1
+  - 4.0

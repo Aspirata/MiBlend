@@ -3,6 +3,7 @@ import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
+import re
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
@@ -42,7 +43,18 @@ Emissive_Materials = {
         "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
-        "Exclude": "None"
+    },
+
+    "sea_lantern": {
+        "From Min": 0,
+        "From Max": 1,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        9: 1,
+        10: 1.5,
+        "Adder": 0.1,
+        "Divider": 80,
     },
 
     "lantern": {
@@ -55,7 +67,6 @@ Emissive_Materials = {
         10: 1.5,
         "Adder": 0.1,
         "Divider": 80,
-        "Exclude": "sea_lantern"
     },
 
     "glow_lichen": {
@@ -68,7 +79,6 @@ Emissive_Materials = {
         10: 1,
         "Adder": 0.2,
         "Divider": 50,
-        "Exclude": "None"
     },
 
     "torch": {
@@ -81,7 +91,6 @@ Emissive_Materials = {
         10: 1,
         "Adder": 0.2,
         "Divider": 50,
-        "Exclude": "None"
     },
 
     "lava": {
@@ -89,7 +98,6 @@ Emissive_Materials = {
         "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
-        "Exclude": "None"
     },
 
     "cave_vines_lit": {
@@ -97,7 +105,6 @@ Emissive_Materials = {
         "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
-        "Exclude": "None"
     },
 
     "sculk_sensor": {
@@ -105,7 +112,6 @@ Emissive_Materials = {
         "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
-        "Exclude": "None"
     },
 
     "glowstone": {
@@ -113,7 +119,6 @@ Emissive_Materials = {
         "From Max": 2,
         "To Min": 0,
         "To Max": 1,
-        "Exclude": "None"
     },
 
     "sculk": {
@@ -126,7 +131,6 @@ Emissive_Materials = {
         10: 1,
         "Adder": 0.2,
         "Divider": 50,
-        "Exclude": "sculk_catalyst, sculk_sensor, sculk_shrieker, sculk_vein"
     },
 
     "end_rod": {
@@ -139,7 +143,6 @@ Emissive_Materials = {
         10: 1,
         "Adder": 0.2,
         "Divider": 80,
-        "Exclude": "None"
     }
 
 }

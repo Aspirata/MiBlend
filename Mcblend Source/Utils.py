@@ -108,7 +108,7 @@ def ConvertDBSDF2PBSDF():
                     if Texture != None:
                         if PBSDF == None:
                             PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-                            PBSDF.location = (Output.location.x - 100, Output.location.x - 5)
+                            PBSDF.location = (Output.location.x - 280, Output.location.y)
                             PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
 
                     if DBSDF != None:
