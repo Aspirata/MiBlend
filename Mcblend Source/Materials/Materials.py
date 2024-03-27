@@ -112,7 +112,7 @@ def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
         if selected_object.material_slots:
             for i, material in enumerate(selected_object.data.materials):
-                if i:
+                if material != None:
                     for original_material, upgraded_material in Materials_Array.items():
                         for material_part in material.name.lower().replace("-", ".").split("."):
                             if original_material == material_part:
@@ -283,16 +283,19 @@ def create_sky(self=None):
                                     node.inputs["Stars Amount"].default_value = group.interface.items_tree[4].default_value
                                     node.inputs["Rain"].default_value = group.interface.items_tree[5].default_value
                                     node.inputs["End"].default_value = group.interface.items_tree[6].default_value
-                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree[7].default_value
-                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree[9].default_value
-                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree[10].default_value
-                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree[11].default_value
-                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree[12].default_value
-                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree[13].default_value
-                                    node.inputs["Moon Color"].default_value = group.interface.items_tree[15].default_value
-                                    node.inputs["Sun Color"].default_value = group.interface.items_tree[16].default_value
-                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree[17].default_value
-                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree[18].default_value
+                                    node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree[8].default_value[0]
+                                    node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree[8].default_value[1]
+                                    node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree[8].default_value[2]
+                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree[9].default_value
+                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree[14].default_value
+                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree[15].default_value
+                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree[16].default_value
+                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree[17].default_value
+                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree[18].default_value
+                                    node.inputs["Moon Color"].default_value = group.interface.items_tree[20].default_value
+                                    node.inputs["Sun Color"].default_value = group.interface.items_tree[21].default_value
+                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree[22].default_value
+                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree[23].default_value
                 
                 if Sky_Group == None:
                     CEH('m005')

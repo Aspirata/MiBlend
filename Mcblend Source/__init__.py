@@ -439,9 +439,7 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
                                 row = tbox.row()
                                 row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
-
-                            row = sbox.row()
-                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                                
                             row = sbox.row()
                             row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
 
