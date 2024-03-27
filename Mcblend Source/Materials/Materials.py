@@ -97,21 +97,6 @@ def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nod
                                     if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
                                         return True
 
-# This function appends a material from an external .blend file to the current Blender scene 
-# and assigns it to a specific face of a 3D object.
-                                    
-def append_materials(upgraded_material_name, selected_object, i):
-    if upgraded_material_name not in bpy.data.materials:
-        try:
-            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                data_to.materials = [upgraded_material_name]
-        except:
-            CEH('004')
-        appended_material = bpy.data.materials.get(upgraded_material_name)
-        selected_object.data.materials[i] = appended_material
-    else:
-        selected_object.data.materials[i] = bpy.data.materials[upgraded_material_name]
-
 def EmissionMode(PBSDF, material):
                 
         if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs[27].default_value != 0 or MaterialIn(Emissive_Materials, material)):
@@ -127,32 +112,25 @@ def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
         if selected_object.material_slots:
             for i, material in enumerate(selected_object.data.materials):
-                if i != None:
-                    replace = False
-                    for material_name, material_info in Materials_Array.items():
-                        for property_name, property_value in material_info.items():
-                            if property_name == "Upgraded Material":
-                                upgraded_material = property_value
+                if i:
+                    for original_material, upgraded_material in Materials_Array.items():
+                        for material_part in material.name.lower().replace("-", ".").split("."):
+                            if original_material == material_part:
+                                if upgraded_material not in bpy.data.materials:
+                                    try:
+                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            data_to.materials = [upgraded_material]
+                                    except:
+                                        CEH('004')
 
-                            if property_name == "Original Material":
-                                original_material = property_value
+                                    appended_material = bpy.data.materials.get(upgraded_material)
+                                    selected_object.data.materials[i] = appended_material
+                                else:
+                                    selected_object.data.materials[i] = bpy.data.materials[upgraded_material]
 
-                            if original_material in material.name.lower():
-                                if property_name == "Exclude" and property_value != "None":
-                                    for excluder in property_value.split(", "):
-                                        if original_material in material.name.lower() and excluder not in material.name.lower():
-                                            replace = True
-                                            r_upgraded_material = upgraded_material
-                                                
-                                        if original_material in material.name.lower() and excluder in material.name.lower():
-                                            replace = False
-                                            break
-                                    
-                    if replace == True:
-                        append_materials(r_upgraded_material, selected_object, i)
-                        selected_object.data.update()
-            else:
-                CEH('m002')
+                                selected_object.data.update()
+                else:
+                    CEH('m002')
         else:
             CEH('m003', Data=selected_object)
 
@@ -297,20 +275,24 @@ def create_sky(self=None):
                             Sky_Group = node
                             for group in bpy.data.node_groups:
                                 if node.node_tree.name in group.name:
-                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree[6].default_value
-                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree[7].default_value
-                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree[8].default_value
-                                    node.inputs["Camera Ambient Light Strenght"].default_value = group.interface.items_tree[9].default_value
-                                    node.inputs["Non-Camera Ambient Light Strenght"].default_value = group.interface.items_tree[10].default_value
                                     node.inputs["Time"].default_value = group.interface.items_tree[1].default_value
                                     node.inputs["Rotation"].default_value[0] = group.interface.items_tree[2].default_value[0]
                                     node.inputs["Rotation"].default_value[1] = group.interface.items_tree[2].default_value[1]
                                     node.inputs["Rotation"].default_value[2] = group.interface.items_tree[2].default_value[2]
                                     node.inputs["Pixelated Stars"].default_value = group.interface.items_tree[3].default_value
-                                    node.inputs["Moon Color"].default_value = group.interface.items_tree[12].default_value
-                                    node.inputs["Sun Color"].default_value = group.interface.items_tree[13].default_value
-                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree[14].default_value
-                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree[15].default_value
+                                    node.inputs["Stars Amount"].default_value = group.interface.items_tree[4].default_value
+                                    node.inputs["Rain"].default_value = group.interface.items_tree[5].default_value
+                                    node.inputs["End"].default_value = group.interface.items_tree[6].default_value
+                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree[7].default_value
+                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree[9].default_value
+                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree[10].default_value
+                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree[11].default_value
+                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree[12].default_value
+                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree[13].default_value
+                                    node.inputs["Moon Color"].default_value = group.interface.items_tree[15].default_value
+                                    node.inputs["Sun Color"].default_value = group.interface.items_tree[16].default_value
+                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree[17].default_value
+                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree[18].default_value
                 
                 if Sky_Group == None:
                     CEH('m005')
@@ -327,7 +309,7 @@ def create_sky(self=None):
                     bpy.data.node_groups[clouds_node_tree_name]
                 
                 if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(materials_file_path), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
                         data_to.materials = ["Clouds"]
                 else:
                     bpy.data.materials["Clouds"]
@@ -532,7 +514,10 @@ def setproceduralpbr():
                                     for material_name, material_properties in Emissive_Materials.items():
                                         if material_name == "Default":
                                             for property_name, property_value in material_properties.items():
-                                                node_group.inputs[property_name].default_value = property_value
+                                                if property_name == "Divider":
+                                                    node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
+                                                else:
+                                                    node_group.inputs[property_name].default_value = property_value
 
                                             node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
                                             node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures

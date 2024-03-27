@@ -1,9 +1,9 @@
 # Properties
 import bpy
 import os
+import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
-import re
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
@@ -153,8 +153,7 @@ Backface_Culling_Materials = [
 ]
 
 Alpha_Blend_Materials = [
-    "water",
-    "ice"
+    "water"
 ]
 
 SSS_Materials = [
@@ -175,7 +174,8 @@ Metal = [
     "anvil",
     "clock",
     "cauldron",
-    "spyglass"
+    "spyglass",
+    "rail"
 ]
 
 Reflective = [
@@ -186,77 +186,29 @@ Reflective = [
 ]
 
 Materials_Array = {
-    "Bricks": {
-        "Original Material": "bricks",
-        "Upgraded Material": "Upgraded Bricks",
-        "Exclude": "stone_bricks, nether_bricks, prismarine_bricks, deepslate_bricks, tuff_bricks, mud_bricks"
-    },
+    "bricks": "Upgraded Bricks",
 
-    "Diamond Ore": {
-        "Original Material": "diamond_ore",
-        "Upgraded Material": "Upgraded Diamond Ore",
-        "Exclude": "deepslate_diamond_ore"
-    },
+    "diamond_ore": "Upgraded Diamond Ore",
 
-    "Glow Lichen": {
-        "Original Material": "glow_lichen",
-        "Upgraded Material": "Upgraded Glow Lichen",
-        "Exclude": "None"
-    },
+    "glow_lichen": "Upgraded Glow Lichen",
 
-    "Gold Block": {
-        "Original Material": "gold_block",
-        "Upgraded Material": "Upgraded Gold Block",
-        "Exclude": "None"
-    },
+    "gold_block": "Upgraded Gold Block",
 
-    "Iron Block": {
-        "Original Material": "iron_block",
-        "Upgraded Material": "Upgraded Iron Block",
-        "Exclude": "None"
-    },
+    "iron_block": "Upgraded Iron Block",
 
-    "Lantern": {
-        "Original Material": "lantern",
-        "Upgraded Material": "Upgraded Lantern",
-        "Exclude": "soul_lantern, redstone_lamp"
-    },
+    "lantern": "Upgraded Lantern",
 
-    "Obsidian": {
-        "Original Material": "obsidian",
-        "Upgraded Material": "Upgraded Obsidian",
-        "Exclude": "crying_obsidian"
-    },
+    "obsidian": "Upgraded Obsidian",
 
-    "Sand": {
-        "Original Material": "sand",
-        "Upgraded Material": "Upgraded Sand",
-        "Exclude": "red_sand, sandstone, soul_sand"
-    },
+    "sand": "Upgraded Sand",
 
-    "Sculk": {
-        "Original Material": "sculk",
-        "Upgraded Material": "Upgraded Sculk",
-        "Exclude": "sculk_catalyst, sculk_sensor, sculk_shrieker, sculk_vein"
-    },
+    "sculk": "Upgraded Sculk",
 
-    "Soul Lantern": {
-        "Original Material": "soul_lantern",
-        "Upgraded Material": "Upgraded Soul Lantern",
-        "Exclude": "redstone_lamp"
-    },
+    "soul_lantern": "Upgraded Soul Lantern",
 
-    "Stone": {
-        "Original Material": "stone",
-        "Upgraded Material": "Upgraded Stone",
-        "Exclude": "cobblestone. smooth_stone, redstone, blackstone, glowstone, end_stone"
-    },
+    "stone": "Upgraded Stone",
 
-    "Water Flow": {
-        "Original Material": "water_flow",
-        "Upgraded Material": "Upgraded Water Flow",
-        "Exclude": "None"
-    }
+    "water_flow": "Upgraded Water Flow"
 }
 
 Assets = {

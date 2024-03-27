@@ -5,6 +5,8 @@ Mcblend is in the alpha state, so expect bugs and changes during development
 
 This is an experimental branch. I'm testing new features here
 
+To Install this brach as addon you need to download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in Mcblend Folder or you can pack Mcblend Source folder to .zip file and install it as addon
+
 > [!NOTE]
 > There aren't many functions in Mcblend right now (Below you can see the list of features that are already available and planned)
 
