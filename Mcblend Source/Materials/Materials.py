@@ -99,10 +99,10 @@ def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nod
 
 def EmissionMode(PBSDF, material):
                 
-        if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs[27].default_value != 0 or MaterialIn(Emissive_Materials, material)):
+        if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials, material)):
             return 1
 
-        if bpy.context.scene.world_properties.emissiondetection == 'Automatic' and PBSDF.inputs[27].default_value != 0:
+        if bpy.context.scene.world_properties.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
             return 2
         
         if bpy.context.scene.world_properties.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials, material):
@@ -166,20 +166,16 @@ def fix_world():
                             PBSDF = node
                                 
                     if (image_texture_node and PBSDF) != None:
-                        if not IsConnectedTo(None, None, None, None, 4, PBSDF):
-                            material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
+                        if not IsConnectedTo(None, None, None, None, "Alpha", PBSDF):
+                            material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                         
                         # Emission
-                        if EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3:
-                            if not IsConnectedTo(None, None, None, None, 26, PBSDF):
-                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                        if EmissionMode(PBSDF, material):
+                            if not IsConnectedTo(None, None, None, None, "Emission Color", PBSDF):
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
 
-                            if PBSDF.inputs[27].default_value == 0:
-                                PBSDF.inputs[27].default_value = 1
-
-                        if EmissionMode(PBSDF, material) == 2:
-                            if not IsConnectedTo(None, None, None, None, 26, PBSDF):
-                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[26])
+                            if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
+                                PBSDF.inputs["Emission Strength"].default_value = 1
 
                         # Backface Culling
                         if WProperties.backface_culling:
@@ -210,7 +206,7 @@ def fix_world():
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs[4].links:                                            
+                                        for link in node.inputs["Alpha"].links:                                            
                                             if link.from_node.name != bfc_node.name:                                                
                                                 for output in link.from_node.outputs:
                                                     for link_out in output.links:
@@ -218,7 +214,7 @@ def fix_world():
                                                             material.node_tree.links.new(link_out.from_socket, bfc_node.inputs[0]) 
                                                             break
                             
-                                material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs[4])
+                                material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
                         else:
                             if MaterialIn(Backface_Culling_Materials, material):
                                 bfc_node = None
@@ -230,7 +226,7 @@ def fix_world():
                                                 for output in link.from_node.outputs:
                                                     for link_out in output.links:
                                                         if link_out.to_socket.node.name == node.name:                                                                                                                    
-                                                            material.node_tree.links.new(link_out.from_socket, PBSDF.inputs[4])
+                                                            material.node_tree.links.new(link_out.from_socket, PBSDF.inputs["Alpha"])
                                             material.node_tree.nodes.remove(node)
 
                                 material.use_backface_culling = False
@@ -389,7 +385,7 @@ def fix_materials():
                             PBSDF = node
 
                     if (image_texture_node and PBSDF) != None:
-                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs[4])
+                        material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                 else:
                     CEH('m002')
                 
@@ -410,7 +406,6 @@ def setproceduralpbr():
                     image_texture_node = None
                     PBSDF = None
                     bump_node = None
-                    math_nodes = []
                     scene = bpy.context.scene
                     PProperties = scene.ppbr_properties
 
@@ -526,8 +521,8 @@ def setproceduralpbr():
                                             node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                                 
                                 # Color Connection if Nothing Connected
-                                if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", 26):
-                                    material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs[26])
+                                if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", "Emission Color"):
+                                    material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission Color"])
                                     
                                 for node in material.node_tree.nodes:
                                     if node.type == "BSDF_PRINCIPLED":
@@ -540,7 +535,7 @@ def setproceduralpbr():
 
                                 node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
                                 material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
-                                material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs[27])
+                                material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
                         if PProperties.make_better_emission == False and PProperties.animate_textures == False:
                             for node in material.node_tree.nodes:

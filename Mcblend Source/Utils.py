@@ -184,17 +184,35 @@ def Enchant():
                         node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
                         node_group.node_tree = bpy.data.node_groups["Enchantment"]
                         node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
-                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
-                        material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
-                        node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
-                        node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
-                        node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
-                    else:
-                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
-                        material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
-                        node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
-                        node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
-                        node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
+
+                    for node in material.node_tree.nodes:
+                        if node.type == "BSDF_PRINCIPLED":
+                            for link in node.inputs[26].links:                                            
+                                if link.from_node.name != node_group.name:                                                
+                                    for output in link.from_node.outputs:
+                                        for link_out in output.links:
+                                            if link_out.to_socket.node.name == node.name:                                                                                                                    
+                                                material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply"]) 
+                                                break
+
+                            for link in node.inputs[27].links:                                            
+                                if link.from_node.name != node_group.name:                                                
+                                    for output in link.from_node.outputs:
+                                        for link_out in output.links:
+                                            if link_out.to_socket.node.name == node.name:                                                                                                                    
+                                                material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply Color"]) 
+                                                break
+                                            
+                    material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
+                    material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+                    node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
+                    node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
+                    node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
+                    material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
+                    material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+                    node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
+                    node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
+                    node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
 
                 else:
                     CEH("m002")

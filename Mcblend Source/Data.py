@@ -1,7 +1,6 @@
 # Properties
 import bpy
 import os
-import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
 
