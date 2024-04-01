@@ -8,6 +8,9 @@ This is stable branch, well, this is the stablest version of Mcblend
 > [!NOTE]
 > There aren't many functions in Mcblend right now (Below you can see the list of features that are already available and planned)
 
+> [!WARNING]
+> The wiki and this table are outdated
+> 
 | Feature | Stage | Current State |
 | --- | --- | --- |
 | Upgrade Materials | Done | Upgrade materials function is fully working |
