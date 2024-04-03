@@ -4,7 +4,6 @@ from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
 from .Translator import Translate
-import datetime
 
 bl_info = {
     "name": "Mcblend",
@@ -256,6 +255,12 @@ class CreateSkyProperties(PropertyGroup):
         description=""
     )
 
+    ambient_colors_settings: BoolProperty(
+        name="Ambient Colors Settings",
+        default=False,
+        description=""
+    )
+
     rotation_settings: BoolProperty(
         name="Rotation Settings",
         default=False,
@@ -282,10 +287,6 @@ class WorldAndMaterialsPanel(Panel):
         WProperties = scene.world_properties
 
         # World
-
-        # April Fool XD
-        if datetime.datetime.now().date() == datetime.date(2024, 4, 1):
-            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
 
         box = layout.box()
         row = box.row()
@@ -367,6 +368,23 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+                            
+                            row = sbox.row()
+                            row.label(text="Ambient Light Colors:", icon="IMAGE")
+                            row.prop(scene.sky_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.sky_properties.ambient_colors_settings:
+                                for node in bpy.data.node_groups:
+                                    if node.name == "Ambient Color":
+                                        tbox = sbox.box()
+                                        
+                                        for Node in node.nodes:
+                                            if Node.type == "VALTORGB":
+                                                row = tbox.row()
+                                                row.label(text=f"{Node.name}:")
+                                                for element in Node.color_ramp.elements:                                                    
+                                                    row.prop(element, "color", icon_only=True)
+
+                                                    
                             
                             row = sbox.row()
                             row.label(text="Colors:", icon="IMAGE")
@@ -453,8 +471,8 @@ class WorldAndMaterialsPanel(Panel):
                     row = box.row()
                     row.label(text="Unknown Error Printed in Console. Report To Aspirata", icon="ERROR")
                     row = box.row()
-                    row.label(text="To Open console Press Window > Toggle System Console")
-                    print(traceback.format_exc())
+                    row.label(text="To Open Console Press Window > Toggle System Console")
+                    print(Error)
 
             else:
                 row.label(text="Mcblend Sky node not found, maybe you should recreate sky ?", icon="ERROR")

@@ -1,7 +1,5 @@
 from ..Data import *
 
-#Replace Materials
-
 # This function checks if a given material's name contains any of the keywords in the provided array. 
 # It returns True if a match is found, and False otherwise.
 
@@ -250,7 +248,24 @@ def create_sky(self=None):
             if self.reappend_material == True:
 
                 if world == bpy.data.worlds.get(world_material_name):
-                    bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name))
+
+                    all_node_groups = set()
+
+                    def traverse_node_group(node_group):
+                        for node in node_group.nodes:
+                            if node.type == 'GROUP':
+                                all_node_groups.add(node.node_tree)
+                                traverse_node_group(node.node_tree)
+
+                    if world.node_tree:
+                        traverse_node_group(world.node_tree)
+
+                    for node_group in all_node_groups:
+                        bpy.data.node_groups.remove(node_group)
+
+                    all_node_groups.clear()
+
+                    bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
 
                 try:
                     with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
@@ -271,27 +286,27 @@ def create_sky(self=None):
                             Sky_Group = node
                             for group in bpy.data.node_groups:
                                 if node.node_tree.name in group.name:
-                                    node.inputs["Time"].default_value = group.interface.items_tree[1].default_value
-                                    node.inputs["Rotation"].default_value[0] = group.interface.items_tree[2].default_value[0]
-                                    node.inputs["Rotation"].default_value[1] = group.interface.items_tree[2].default_value[1]
-                                    node.inputs["Rotation"].default_value[2] = group.interface.items_tree[2].default_value[2]
-                                    node.inputs["Pixelated Stars"].default_value = group.interface.items_tree[3].default_value
-                                    node.inputs["Stars Amount"].default_value = group.interface.items_tree[4].default_value
-                                    node.inputs["Rain"].default_value = group.interface.items_tree[5].default_value
-                                    node.inputs["End"].default_value = group.interface.items_tree[6].default_value
-                                    node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree[8].default_value[0]
-                                    node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree[8].default_value[1]
-                                    node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree[8].default_value[2]
-                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree[9].default_value
-                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree[14].default_value
-                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree[15].default_value
-                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree[16].default_value
-                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree[17].default_value
-                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree[18].default_value
-                                    node.inputs["Moon Color"].default_value = group.interface.items_tree[20].default_value
-                                    node.inputs["Sun Color"].default_value = group.interface.items_tree[21].default_value
-                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree[22].default_value
-                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree[23].default_value
+                                    node.inputs["Time"].default_value = group.interface.items_tree["Time"].default_value
+                                    node.inputs["Rotation"].default_value[0] = group.interface.items_tree["Rotation"].default_value[0]
+                                    node.inputs["Rotation"].default_value[1] = group.interface.items_tree["Rotation"].default_value[1]
+                                    node.inputs["Rotation"].default_value[2] = group.interface.items_tree["Rotation"].default_value[2]
+                                    node.inputs["Pixelated Stars"].default_value = group.interface.items_tree["Pixelated Stars"].default_value
+                                    node.inputs["Stars Amount"].default_value = group.interface.items_tree["Stars Amount"].default_value
+                                    node.inputs["Rain"].default_value = group.interface.items_tree["Rain"].default_value
+                                    node.inputs["End"].default_value = group.interface.items_tree["End"].default_value
+                                    node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree["End Stars Rotation"].default_value[0]
+                                    node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree["End Stars Rotation"].default_value[1]
+                                    node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree["End Stars Rotation"].default_value[2]
+                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree["End Stars Strength"].default_value
+                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree["Moon Strenght"].default_value
+                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree["Sun Strength"].default_value
+                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree["Stars Strength"].default_value
+                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree["Camera Ambient Light Strength"].default_value
+                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree["Non-Camera Ambient Light Strength"].default_value
+                                    node.inputs["Moon Color"].default_value = group.interface.items_tree["Moon Color"].default_value
+                                    node.inputs["Sun Color"].default_value = group.interface.items_tree["Sun Color"].default_value
+                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree["Sun Color In Sunset"].default_value
+                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree["Stars Color"].default_value
                 
                 if Sky_Group == None:
                     CEH('m005')
