@@ -9,38 +9,42 @@ bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
     "version": (0, 4, 0),
-    "blender": (4, 0, 0),
+    "blender": (3, 6, 0),
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
 }
 
 # World & Materials
 
-class RecreateSky(Operator):
+class RecreateEnvironment(Operator):
     bl_label = "Recreate Sky"
-    bl_idname = "wm.recreate_sky"
+    bl_idname = "wm.recreate_env"
     
     reset_settings: BoolProperty(
         name="Reset Settings",
         description="Resets the settings",
-        default=True
-    )
-    
-    reappend_material: BoolProperty(
-        name="Reappend Material",
-        description="Reappends Material",
         default=False
     )
 
-    recreate_clouds: BoolProperty(
-        name="Recreate Clouds",
-        default=True,
-        description=""
+    create_sky: EnumProperty(
+        items=[('None', 'None', ''),
+            ('Create Sky', 'Create Sky', 'Reuses Already Imported Sky Material'), 
+            ('Recreate Sky', 'Recreate Sky', 'Reappends Sky Material')],
+        name="create_sky",
+        default='None'
+    )
+    
+    create_clouds: EnumProperty(
+        items=[('None', 'None', ''),
+            ('Create Clouds', 'Create Clouds', ''), 
+            ('Recreate Clouds', 'Recreate Clouds', '')],
+        name="create_clouds",
+        default='None'
     )
 
     def execute(self, context):
 
-        Materials.create_sky(self)
+        Materials.create_env(self)
 
         return {'FINISHED'}
         
@@ -49,16 +53,27 @@ class RecreateSky(Operator):
     
     def draw(self, context):
         layout = self.layout
+        scene = bpy.context.scene
+        world = scene.world
         
         box = layout.box()
         row = box.row()
         row.label(text="WARNING !", icon='ERROR')
         row = box.row()
-        row.label(text="This option should be used only if something is broken, as this option can reset world material and it's settings")
+        row.label(text="This option should be used with caution")
         box = layout.box()
-        box.prop(self, "reset_settings")
-        box.prop(self, "reappend_material")
-        box.prop(self, "recreate_clouds")
+        row = box.row()
+
+        if world != None:
+            for node in world.node_tree.nodes:
+                if node.type == 'GROUP':
+                    if "Mcblend Sky" in node.node_tree.name:
+                        row.prop(self, "reset_settings")
+                        row = box.row()
+
+        row.prop(self, "create_sky", text='create_sky', expand=True)
+        row = box.row()
+        row.prop(self, "create_clouds", text='create_clouds', expand=True)
 
 class FixWorldProperties(PropertyGroup):
 
@@ -235,7 +250,7 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-class CreateSkyProperties(PropertyGroup):
+class CreateEnvProperties(PropertyGroup):
 
     advanced_settings: BoolProperty(
         name="Advanced Settings",
@@ -273,6 +288,12 @@ class CreateSkyProperties(PropertyGroup):
         description=""
     )
 
+    create_sky: BoolProperty(
+        name="Create Sky",
+        default=True,
+        description=""
+    )
+
 class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"
     bl_idname = "OBJECT_PT_fix_materials"
@@ -282,9 +303,11 @@ class WorldAndMaterialsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        world = bpy.context.scene.world
         scene = bpy.context.scene
+        world = scene.world
         WProperties = scene.world_properties
+        clouds_exists = False
+        sky_exists = False
 
         # World
 
@@ -315,10 +338,11 @@ class WorldAndMaterialsPanel(Panel):
         
         box = layout.box()
         row = box.row()
-        row.label(text="Sky", icon="OUTLINER_DATA_VOLUME")
+        row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
         row = box.row()
-        row.prop(scene.sky_properties, "create_clouds", text="Create Clouds")
+        row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
         row = box.row()
+        row.prop(scene.env_properties, "create_sky", text="Create Sky")
         for obj in scene.objects:
             if obj.name != "Clouds":
                 clouds_exists = False
@@ -330,11 +354,25 @@ class WorldAndMaterialsPanel(Panel):
         #if clouds_exists == True:
             #row.prop(geonodes_modifier, ['Socket_2'], "default_value", text="Layers Count", slider=True)
 
-        #row = box.row()
-        if world != bpy.data.worlds.get(world_material_name) or world == None:
+        for obj in scene.objects:
+            clouds_exists = False
+            if obj.get("Mcblend ID") == "Clouds":
+                clouds_exists = True
+                break
+
+        if world != None:
+            for node in world.node_tree.nodes:
+                if node.type == 'GROUP':
+                    if "Mcblend Sky" in node.node_tree.name:
+                        if world_material_name in bpy.data.worlds:
+                            sky_exists = True
+
+        if clouds_exists == False and sky_exists == False:
+            row = box.row()
             row.scale_y = Big_Button_Scale
-            row.operator("object.create_sky", text="Create Sky")
-        else:
+            row.operator("object.create_env")
+
+        if sky_exists == True:
             world_material = scene.world.node_tree
             node_group = None
             for node in world_material.nodes:
@@ -346,17 +384,18 @@ class WorldAndMaterialsPanel(Panel):
             if node_group != None:
                 try:
                     if node_group.inputs["End"].default_value == False:
+                        row = box.row()
                         row.prop(node_group.inputs["Time"], "default_value", text="Time")
                         row = box.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
                         row = box.row()
-                        row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
-                        if scene.sky_properties.advanced_settings:
+                        row.prop(scene.env_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.env_properties.advanced_settings else "TRIA_RIGHT"))
+                        if scene.env_properties.advanced_settings:
                             sbox = box.box()
                             row = sbox.row()
                             row.label(text="Strength:", icon="LIGHT_SUN")
-                            row.prop(scene.sky_properties, "strength_settings", icon=("TRIA_DOWN" if scene.sky_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.sky_properties.strength_settings:
+                            row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.strength_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
@@ -371,8 +410,8 @@ class WorldAndMaterialsPanel(Panel):
                             
                             row = sbox.row()
                             row.label(text="Ambient Light Colors:", icon="IMAGE")
-                            row.prop(scene.sky_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.sky_properties.ambient_colors_settings:
+                            row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.ambient_colors_settings:
                                 for node in bpy.data.node_groups:
                                     if node.name == "Ambient Color":
                                         tbox = sbox.box()
@@ -388,9 +427,9 @@ class WorldAndMaterialsPanel(Panel):
                             
                             row = sbox.row()
                             row.label(text="Colors:", icon="IMAGE")
-                            row.prop(scene.sky_properties, "colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
+                            row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
-                            if scene.sky_properties.colors_settings:
+                            if scene.env_properties.colors_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
@@ -403,9 +442,9 @@ class WorldAndMaterialsPanel(Panel):
                             
                             row = sbox.row()
                             row.label(text="Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                            row.prop(scene.sky_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.sky_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
+                            row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
-                            if scene.sky_properties.rotation_settings:
+                            if scene.env_properties.rotation_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
@@ -423,13 +462,13 @@ class WorldAndMaterialsPanel(Panel):
                         row = box.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
                         row = box.row()
-                        row.prop(scene.sky_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.sky_properties.advanced_settings else "TRIA_RIGHT"))
-                        if scene.sky_properties.advanced_settings:
+                        row.prop(scene.env_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.env_properties.advanced_settings else "TRIA_RIGHT"))
+                        if scene.env_properties.advanced_settings:
                             sbox = box.box()
                             row = sbox.row()
                             row.label(text="Strength:", icon="LIGHT_SUN")
-                            row.prop(scene.sky_properties, "strength_settings", icon=("TRIA_DOWN" if scene.sky_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.sky_properties.strength_settings:
+                            row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.strength_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
                                 row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
@@ -440,8 +479,8 @@ class WorldAndMaterialsPanel(Panel):
                             
                             row = sbox.row()
                             row.label(text="Colors:", icon="IMAGE")
-                            row.prop(scene.sky_properties, "colors_settings", icon=("TRIA_DOWN" if scene.sky_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.sky_properties.colors_settings:
+                            row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.colors_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
                                 row.prop(node_group.inputs["End Sky Upper Color"], "default_value", text="Sky Upper Color")
@@ -452,9 +491,9 @@ class WorldAndMaterialsPanel(Panel):
                             
                             row = sbox.row()
                             row.label(text="Star Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                            row.prop(scene.sky_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.sky_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
+                            row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
-                            if scene.sky_properties.rotation_settings:
+                            if scene.env_properties.rotation_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
                                 row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
@@ -478,10 +517,11 @@ class WorldAndMaterialsPanel(Panel):
                 row.label(text="Mcblend Sky node not found, maybe you should recreate sky ?", icon="ERROR")
                 row = box.row()
                 row.label(text="Error code: m005")
-                
+
+        if clouds_exists == True or sky_exists == True:
             row = box.row()
             row.scale_y = Big_Button_Scale
-            row.operator("object.create_sky", text="Recreate Sky")
+            row.operator("object.create_env", text="Recreate Environment")
         
         # Materials
             
@@ -519,7 +559,6 @@ class WorldAndMaterialsPanel(Panel):
             row = sbox.row()
             row.prop(context.scene.ppbr_properties, "change_bsdf", text="Change BSDF Settings")
             row.prop(scene.ppbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
-            # DA
             if  scene.ppbr_properties.change_bsdf_settings:
                 tbox = sbox.box()
                 row = tbox.row()
@@ -576,12 +615,12 @@ class FixWorldOperator(Operator):
         Materials.fix_world()
         return {'FINISHED'}
     
-class CreateSkyOperator(Operator):
-    bl_idname = "object.create_sky"
-    bl_label = "Create Sky"
+class CreateEnvOperator(Operator):
+    bl_idname = "object.create_env"
+    bl_label = "Create Environment"
 
     def execute(self, context):
-        Materials.create_sky()
+        Materials.create_env()
         return {'FINISHED'}
         
 class UpgradeMaterialsOperator(Operator):
@@ -1006,14 +1045,14 @@ def append_asset(asset_data):
 
 #
 
-classes = [RecreateSky, FixWorldProperties, CreateSkyProperties, PPBRProperties, WorldAndMaterialsPanel, CreateSkyOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
+classes = [RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
            CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=FixWorldProperties)
-    bpy.types.Scene.sky_properties = bpy.props.PointerProperty(type=CreateSkyProperties)
+    bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
@@ -1025,7 +1064,7 @@ def register():
 def unregister():
 
     del bpy.types.Scene.world_properties
-    del bpy.types.Scene.sky_properties
+    del bpy.types.Scene.env_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.utilsproperties

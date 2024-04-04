@@ -235,18 +235,61 @@ def fix_world():
         else:
             CEH('m003', Data=selected_object)
 
-def create_sky(self=None):
+def create_env(self=None):
     scene = bpy.context.scene
     world = scene.world
     clouds_exists = False
+    sky_exists = False
+
+    for obj in scene.objects:
+        clouds_exists = False
+        if obj.get("Mcblend ID") == "Clouds":
+            clouds_exists = True
+            break
+
+    if world != None:
+        for node in world.node_tree.nodes:
+            if node.type == 'GROUP':
+                if "Mcblend Sky" in node.node_tree.name:
+                    if world_material_name in bpy.data.worlds:
+                        sky_exists = True
     
-    if world != None and world == bpy.data.worlds.get(world_material_name):
+    if clouds_exists == True or sky_exists == True:
 
         # Recreate Sky
         if self != None:
 
-            if self.reappend_material == True:
+            if self.reset_settings == True:
+                world_material = bpy.context.scene.world.node_tree
 
+                for node in world_material.nodes:
+                    if node.type == 'GROUP':
+                        if "Mcblend Sky" in node.node_tree.name:
+                            for group in bpy.data.node_groups:
+                                if node.node_tree.name in group.name:
+                                    node.inputs["Time"].default_value = group.interface.items_tree["Time"].default_value
+                                    node.inputs["Rotation"].default_value[0] = group.interface.items_tree["Rotation"].default_value[0]
+                                    node.inputs["Rotation"].default_value[1] = group.interface.items_tree["Rotation"].default_value[1]
+                                    node.inputs["Rotation"].default_value[2] = group.interface.items_tree["Rotation"].default_value[2]
+                                    node.inputs["Pixelated Stars"].default_value = group.interface.items_tree["Pixelated Stars"].default_value
+                                    node.inputs["Stars Amount"].default_value = group.interface.items_tree["Stars Amount"].default_value
+                                    node.inputs["Rain"].default_value = group.interface.items_tree["Rain"].default_value
+                                    node.inputs["End"].default_value = group.interface.items_tree["End"].default_value
+                                    node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree["End Stars Rotation"].default_value[0]
+                                    node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree["End Stars Rotation"].default_value[1]
+                                    node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree["End Stars Rotation"].default_value[2]
+                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree["End Stars Strength"].default_value
+                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree["Moon Strenght"].default_value
+                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree["Sun Strength"].default_value
+                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree["Stars Strength"].default_value
+                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree["Camera Ambient Light Strength"].default_value
+                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree["Non-Camera Ambient Light Strength"].default_value
+                                    node.inputs["Moon Color"].default_value = group.interface.items_tree["Moon Color"].default_value
+                                    node.inputs["Sun Color"].default_value = group.interface.items_tree["Sun Color"].default_value
+                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree["Sun Color In Sunset"].default_value
+                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree["Stars Color"].default_value
+
+            if self.create_sky == 'Recreate Sky':
                 if world == bpy.data.worlds.get(world_material_name):
 
                     all_node_groups = set()
@@ -271,49 +314,27 @@ def create_sky(self=None):
                     with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
                     appended_world_material = bpy.data.worlds.get(world_material_name)
+                    bpy.context.scene.world = appended_world_material
                 except:
                     CEH('004')
 
-                bpy.context.scene.world = appended_world_material
-            
-            if self.reset_settings == True:
-                world_material = bpy.context.scene.world.node_tree
-                Sky_Group = None
+            if self.create_sky == 'Create Sky':
 
-                for node in world_material.nodes:
-                    if node.type == 'GROUP':
-                        if "Mcblend Sky" in node.node_tree.name:
-                            Sky_Group = node
-                            for group in bpy.data.node_groups:
-                                if node.node_tree.name in group.name:
-                                    node.inputs["Time"].default_value = group.interface.items_tree["Time"].default_value
-                                    node.inputs["Rotation"].default_value[0] = group.interface.items_tree["Rotation"].default_value[0]
-                                    node.inputs["Rotation"].default_value[1] = group.interface.items_tree["Rotation"].default_value[1]
-                                    node.inputs["Rotation"].default_value[2] = group.interface.items_tree["Rotation"].default_value[2]
-                                    node.inputs["Pixelated Stars"].default_value = group.interface.items_tree["Pixelated Stars"].default_value
-                                    node.inputs["Stars Amount"].default_value = group.interface.items_tree["Stars Amount"].default_value
-                                    node.inputs["Rain"].default_value = group.interface.items_tree["Rain"].default_value
-                                    node.inputs["End"].default_value = group.interface.items_tree["End"].default_value
-                                    node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree["End Stars Rotation"].default_value[0]
-                                    node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree["End Stars Rotation"].default_value[1]
-                                    node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree["End Stars Rotation"].default_value[2]
-                                    node.inputs["End Stars Strength"].default_value = group.interface.items_tree["End Stars Strength"].default_value
-                                    node.inputs["Moon Strenght"].default_value = group.interface.items_tree["Moon Strenght"].default_value
-                                    node.inputs["Sun Strength"].default_value = group.interface.items_tree["Sun Strength"].default_value
-                                    node.inputs["Stars Strength"].default_value = group.interface.items_tree["Stars Strength"].default_value
-                                    node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree["Camera Ambient Light Strength"].default_value
-                                    node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree["Non-Camera Ambient Light Strength"].default_value
-                                    node.inputs["Moon Color"].default_value = group.interface.items_tree["Moon Color"].default_value
-                                    node.inputs["Sun Color"].default_value = group.interface.items_tree["Sun Color"].default_value
-                                    node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree["Sun Color In Sunset"].default_value
-                                    node.inputs["Stars Color"].default_value  = group.interface.items_tree["Stars Color"].default_value
-                
-                if Sky_Group == None:
-                    CEH('m005')
+                try:
+                    if world_material_name not in bpy.data.worlds:
+                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                            data_to.worlds = [world_material_name]
+                        appended_world_material = bpy.data.worlds.get(world_material_name)
+                    else:
+                        appended_world_material = bpy.data.worlds[world_material_name]
 
-            if self.recreate_clouds == True:
-                for obj in bpy.context.scene.objects:
-                    if obj.name == "Clouds":
+                    bpy.context.scene.world = appended_world_material
+                except:
+                    CEH("004")
+
+            if self.create_clouds == 'Recreate Clouds':
+                for obj in scene.objects:
+                    if obj.get("Mcblend ID") == "Clouds":
                         bpy.data.objects.remove(obj, do_unlink=True)
 
                 if clouds_node_tree_name not in bpy.data.node_groups:
@@ -333,31 +354,58 @@ def create_sky(self=None):
                 bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+
+                bpy.context.object["Mcblend ID"] = "Clouds"
+                
+            if self.create_clouds == 'Create Clouds':
+
+                if clouds_node_tree_name not in bpy.data.node_groups:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [clouds_node_tree_name]
+                else:
+                    bpy.data.node_groups[clouds_node_tree_name]
+                
+                if "Clouds" not in bpy.data.materials:
+                    with bpy.data.libraries.load(os.path.join(materials_file_path), link=False) as (data_from, data_to):
+                        data_to.materials = ["Clouds"]
+                else:
+                    bpy.data.materials["Clouds"]
+
+                for obj in scene.objects:
+                    if obj.get("Mcblend ID") == "Clouds":
+                        clouds_exists =True
+
+                if clouds_exists == False:
+                    bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
+                    bpy.context.object.name = "Clouds"
+                    bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
+                    geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+                    geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+
+                    bpy.context.object["Mcblend ID"] = "Clouds"
         else:
-            bpy.ops.wm.recreate_sky('INVOKE_DEFAULT')
+            bpy.ops.wm.recreate_env('INVOKE_DEFAULT')
 
     else:
         
         # Create Sky
-        try:
-            if world_material_name not in bpy.data.worlds:
-                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                    data_to.worlds = [world_material_name]
-                appended_world_material = bpy.data.worlds.get(world_material_name)
-            else:
-                appended_world_material = bpy.data.worlds[world_material_name]
-            bpy.context.scene.world = appended_world_material
-        except:
-            CEH("004")
+        if scene.env_properties.create_sky:
+            try:
+                if world_material_name not in bpy.data.worlds:
+                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                        data_to.worlds = [world_material_name]
+                    appended_world_material = bpy.data.worlds.get(world_material_name)
+                else:
+                    appended_world_material = bpy.data.worlds[world_material_name]
+                bpy.context.scene.world = appended_world_material
+            except:
+                CEH("004")
 
         for obj in scene.objects:
-            if obj.name == "Clouds":
+            if obj.get("Mcblend ID") == "Clouds":
                 clouds_exists = True
-                break
-            else:
-                clouds_exists = False
 
-        if scene.sky_properties.create_clouds and clouds_exists == False:                    
+        if scene.env_properties.create_clouds and clouds_exists == False:                    
             if clouds_node_tree_name not in bpy.data.node_groups:
                 with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
                     data_to.node_groups = [clouds_node_tree_name]
@@ -375,6 +423,9 @@ def create_sky(self=None):
             bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+
+            bpy.context.object["Mcblend ID"] = "Clouds"
+            
 
     bpy.context.view_layer.update()
 
