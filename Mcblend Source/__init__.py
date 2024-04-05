@@ -17,7 +17,7 @@ bl_info = {
 # World & Materials
 
 class RecreateEnvironment(Operator):
-    bl_label = "Recreate Sky"
+    bl_label = "Recreate Environment"
     bl_idname = "wm.recreate_env"
     
     reset_settings: BoolProperty(
@@ -354,18 +354,12 @@ class WorldAndMaterialsPanel(Panel):
         #if clouds_exists == True:
             #row.prop(geonodes_modifier, ['Socket_2'], "default_value", text="Layers Count", slider=True)
 
-        for obj in scene.objects:
-            clouds_exists = False
-            if obj.get("Mcblend ID") == "Clouds":
-                clouds_exists = True
-                break
+        if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
+            clouds_exists = True
 
-        if world != None:
-            for node in world.node_tree.nodes:
-                if node.type == 'GROUP':
-                    if "Mcblend Sky" in node.node_tree.name:
-                        if world_material_name in bpy.data.worlds:
-                            sky_exists = True
+        if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+            if world_material_name in bpy.data.worlds:
+                sky_exists = True
 
         if clouds_exists == False and sky_exists == False:
             row = box.row()
@@ -422,8 +416,6 @@ class WorldAndMaterialsPanel(Panel):
                                                 row.label(text=f"{Node.name}:")
                                                 for element in Node.color_ramp.elements:                                                    
                                                     row.prop(element, "color", icon_only=True)
-
-                                                    
                             
                             row = sbox.row()
                             row.label(text="Colors:", icon="IMAGE")
@@ -458,6 +450,7 @@ class WorldAndMaterialsPanel(Panel):
                             row = sbox.row()
                             row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
                     else:
+                        row = box.row()
                         row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
                         row = box.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
@@ -477,17 +470,30 @@ class WorldAndMaterialsPanel(Panel):
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
                             
+
                             row = sbox.row()
                             row.label(text="Colors:", icon="IMAGE")
                             row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
                             if scene.env_properties.colors_settings:
                                 tbox = sbox.box()
                                 row = tbox.row()
-                                row.prop(node_group.inputs["End Sky Upper Color"], "default_value", text="Sky Upper Color")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["End Sky Lower Color"], "default_value", text="Sky Lower Color")
-                                row = tbox.row()
                                 row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
+
+                            # Нада исправить это под мир энда, так как я просто скопировал эту часть с Overworld 
+                            row = sbox.row()
+                            row.label(text="Ambient Light Colors:", icon="IMAGE")
+                            row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.ambient_colors_settings:
+                                for node in bpy.data.node_groups:
+                                    if node.name == "End":
+                                        tbox = sbox.box()
+                                        
+                                        for Node in node.nodes:
+                                            if Node.type == "VALTORGB":
+                                                row = tbox.row()
+                                                row.label(text=f"{Node.name}:")
+                                                for element in Node.color_ramp.elements:                                                    
+                                                    row.prop(element, "color", icon_only=True)
                             
                             row = sbox.row()
                             row.label(text="Star Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")

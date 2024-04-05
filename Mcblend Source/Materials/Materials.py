@@ -241,18 +241,12 @@ def create_env(self=None):
     clouds_exists = False
     sky_exists = False
 
-    for obj in scene.objects:
-        clouds_exists = False
-        if obj.get("Mcblend ID") == "Clouds":
-            clouds_exists = True
-            break
+    if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
+        clouds_exists = True
 
-    if world != None:
-        for node in world.node_tree.nodes:
-            if node.type == 'GROUP':
-                if "Mcblend Sky" in node.node_tree.name:
-                    if world_material_name in bpy.data.worlds:
-                        sky_exists = True
+    if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+        if world_material_name in bpy.data.worlds:
+            sky_exists = True
     
     if clouds_exists == True or sky_exists == True:
 
@@ -279,6 +273,7 @@ def create_env(self=None):
                                     node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree["End Stars Rotation"].default_value[1]
                                     node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree["End Stars Rotation"].default_value[2]
                                     node.inputs["End Stars Strength"].default_value = group.interface.items_tree["End Stars Strength"].default_value
+                                    node.inputs["End Stars Color"].default_value  = group.interface.items_tree["End Stars Color"].default_value
                                     node.inputs["Moon Strenght"].default_value = group.interface.items_tree["Moon Strenght"].default_value
                                     node.inputs["Sun Strength"].default_value = group.interface.items_tree["Sun Strength"].default_value
                                     node.inputs["Stars Strength"].default_value = group.interface.items_tree["Stars Strength"].default_value
@@ -320,34 +315,30 @@ def create_env(self=None):
 
             if self.create_sky == 'Create Sky':
 
-                try:
-                    if world_material_name not in bpy.data.worlds:
-                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                            data_to.worlds = [world_material_name]
-                        appended_world_material = bpy.data.worlds.get(world_material_name)
-                    else:
-                        appended_world_material = bpy.data.worlds[world_material_name]
-
-                    bpy.context.scene.world = appended_world_material
-                except:
-                    CEH("004")
+                if world_material_name in bpy.data.worlds:
+                    bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
+                else:
+                    print("World not found (Create Sky)")
 
             if self.create_clouds == 'Recreate Clouds':
                 for obj in scene.objects:
                     if obj.get("Mcblend ID") == "Clouds":
                         bpy.data.objects.remove(obj, do_unlink=True)
 
-                if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                else:
-                    bpy.data.node_groups[clouds_node_tree_name]
+                # Написать логику для удаления всего этого перед аппендом
                 
-                if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
-                else:
-                    bpy.data.materials["Clouds"]
+
+                if clouds_node_tree_name in bpy.data.node_groups:
+                    bpy.data.node_groups.remove(bpy.data.node_groups.get(clouds_node_tree_name))
+
+                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                    data_to.node_groups = [clouds_node_tree_name]
+                
+                if "Clouds" in bpy.data.materials:
+                    bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
+
+                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
+                    data_to.materials = ["Clouds"]
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
@@ -356,20 +347,20 @@ def create_env(self=None):
                 geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
                 bpy.context.object["Mcblend ID"] = "Clouds"
-                
+            
+            clouds_exists = False
+            
             if self.create_clouds == 'Create Clouds':
 
-                if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                else:
+                if clouds_node_tree_name in bpy.data.node_groups:
                     bpy.data.node_groups[clouds_node_tree_name]
-                
-                if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(materials_file_path), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
                 else:
+                    print("Clouds geometry nodes not found (Create Clouds)")
+                
+                if "Clouds" in bpy.data.materials:
                     bpy.data.materials["Clouds"]
+                else:
+                    print("Clouds material not found (Create Clouds)")
 
                 for obj in scene.objects:
                     if obj.get("Mcblend ID") == "Clouds":
