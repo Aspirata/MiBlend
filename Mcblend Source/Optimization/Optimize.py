@@ -36,8 +36,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
     
 def Optimize():
-    selected_objects = bpy.context.selected_objects
-    scene = bpy.context.scene
+    selected_objects = bpy.context.selected_object
     OProperties = bpy.context.scene.optimizationproperties
     if OProperties.use_camera_culling == True:
         if bpy.context.scene.camera != None:
@@ -72,17 +71,3 @@ def Optimize():
                 obj.data.update()
         else:
             CEH("006")
-
-    if scene.optimizationproperties.set_render_settings == True and scene.render.engine == 'CYCLES':
-        scene.cycles.use_preview_adaptive_sampling = True
-        scene.cycles.preview_adaptive_threshold = 0.1
-        scene.cycles.preview_samples = 128
-        scene.cycles.preview_adaptive_min_samples = 0
-
-        scene.cycles.use_adaptive_sampling = True
-        scene.cycles.adaptive_threshold = 0.01
-        scene.cycles.samples = 128
-        scene.cycles.adaptive_min_samples = 40
-        scene.cycles.use_denoising = True
-        scene.cycles.denoiser = 'OPENIMAGEDENOISE'
-        scene.render.use_persistent_data = True

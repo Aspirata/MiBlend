@@ -84,12 +84,8 @@ def ConvertDBSDF2PBSDF():
                     TBSDF = None
                     PBSDF = None
                     Output = None
-                    Texture = None
 
                     for node in material.node_tree.nodes:
-                        if node.type == "TEX_IMAGE":
-                            Texture = node
-
                         if node.type == "BSDF_DIFFUSE":
                             DBSDF = node
 
@@ -105,25 +101,37 @@ def ConvertDBSDF2PBSDF():
                         if node.type == "OUTPUT_MATERIAL":
                             Output = node
 
-                    if Texture != None:
-                        if PBSDF == None:
-                            PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-                            PBSDF.location = (Output.location.x - 280, Output.location.y)
-                            PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
+                    if PBSDF == None:
+                        PBSDF = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                        PBSDF.location = (Output.location.x - 280, Output.location.y)
+                        PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
+                    
+                    for node in material.node_tree.nodes:
+                        if node.type == "BSDF_DIFFUSE":
+                            for link in node.inputs[0].links:
+                                for output in link.from_node.outputs:
+                                    for link in output.links:
+                                        if link.to_socket.node.name == node.name:
+                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs["Base Color"])
 
-                    if DBSDF != None:
-                        material.node_tree.nodes.remove(DBSDF)
-
+                    for node in material.node_tree.nodes:
+                        if node.type == "MIX_SHADER":
+                            for link in node.inputs[0].links:
+                                for output in link.from_node.outputs:
+                                    for link in output.links:
+                                        if link.to_socket.node.name == node.name:
+                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs["Alpha"])
+                    
                     if MixShader != None:
                         material.node_tree.nodes.remove(MixShader)
 
                     if TBSDF != None:
                         material.node_tree.nodes.remove(TBSDF)
-                    
-                    
-                        material.node_tree.links.new(Texture.outputs["Alpha"], PBSDF.inputs[4])
-                        material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
-                        material.node_tree.links.new(Texture.outputs["Color"], PBSDF.inputs[0])
+
+                    if DBSDF != None:
+                        material.node_tree.nodes.remove(DBSDF)
+
+                    material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
                 else:
                     CEH("m002")
         else:
@@ -218,3 +226,12 @@ def Enchant():
                     CEH("m002")
         else:
             CEH("m003")
+        
+def SetRenderSettings(current_preset):
+    scene = bpy.context.scene
+
+    for preset, settings in Render_Settings.items():
+        if preset == current_preset:
+            for setting_name, value in settings.items():
+                sub_property, property_name = setting_name.split('.')
+                setattr(getattr(scene, sub_property), property_name, value)

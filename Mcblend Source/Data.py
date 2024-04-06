@@ -34,6 +34,20 @@ def CEH(Error_Code, Data=None):
     
     if Error_Code == '007':
         raise ValueError(f"Object {Data.name} has type {Data.type}, this type has no vertex groups. Error code: {Error_Code} DO NOT REPORT")
+    
+Render_Settings = {
+    
+    "Final Render Cycles": {
+        "cycles.use_adaptive_sampling": True,
+        "cycles.adaptive_threshold": 0.01,
+        "cycles.samples": 128,
+        "cycles.adaptive_min_samples": 40,
+        "cycles.use_denoising": True,
+        "cycles.denoiser": 'OPENIMAGEDENOISE',
+        "cycles.denoising_use_gpu": True,
+        "render.use_persistent_data": True,
+    },
+}
 
 Emissive_Materials = {
 
@@ -122,11 +136,23 @@ Emissive_Materials = {
 
     "sculk": {
         "From Min": 0,
+        "From Max": 0.4,
+        "To Min": 0,
+        "To Max": 20,
+        "Middle Value": 0.4,
+        9: 0,
+        10: 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+
+    "sculk_vein": {
+        "From Min": 0,
         "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: 0,
+        9: -0.5,
         10: 1,
         "Adder": 0.2,
         "Divider": 50,

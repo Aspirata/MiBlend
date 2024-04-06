@@ -726,12 +726,6 @@ class OptimizationProperties(PropertyGroup):
         description=""
     )
 
-    set_render_settings: BoolProperty(
-        name="Set Render Settings",
-        default=False,
-        description=""
-    )
-
 class OptimizationPanel(Panel):
     bl_label = "Optimization"
     bl_idname = "OBJECT_PT_optimization"
@@ -779,8 +773,6 @@ class OptimizationPanel(Panel):
                 row = sbox.row()
                 row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
 
-        row = box.row()
-        row.prop(bpy.context.scene.optimizationproperties, "set_render_settings", text="Set Render Settings")
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.optimization", text="Optimize")
@@ -833,6 +825,11 @@ class UtilsProperties(PropertyGroup):
         default=0.01,
         min=0.0,
         max=100.0
+    )
+
+    current_preset: EnumProperty(
+        items=[(name, name, "") for name, data in Render_Settings.items()],
+        description="Select Settings to Use",
     )
 
     enchant_settings: BoolProperty(
@@ -899,8 +896,9 @@ class UtilsPanel(Panel):
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         row = box.row()
         if bpy.context.scene.render.engine != 'BLENDER_EEVEE':
-            row.label(text="Works only on eevee", icon="ERROR")
+            row.label(text="Contact shadows exist only on eevee", icon="ERROR")
             row = box.row()
+
         row.scale_x = 1.3
         row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"), icon_only=True)
         row.scale_y = Big_Button_Scale
@@ -917,6 +915,12 @@ class UtilsPanel(Panel):
             row.prop(bpy.context.scene.utilsproperties, "bias", slider=True)
             row = sbox.row()
             row.prop(bpy.context.scene.utilsproperties, "thickness", slider=True)
+
+        row = box.row()
+        row.prop(bpy.context.scene.utilsproperties, "current_preset", text="Current Preset")
+        row = box.row()
+        row.scale_y = Big_Button_Scale
+        row.operator("object.setrendersettings")
         
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -978,6 +982,15 @@ class SleepAfterRenderOperator(Operator):
         sleep_detector()
         return {'FINISHED'}
 
+class SetRenderSettingsOperator(Operator):
+    bl_idname = "object.setrendersettings"
+    bl_label = "Set Render Settings"
+
+    def execute(self, context):
+        current_preset = bpy.context.scene.utilsproperties.current_preset
+        SetRenderSettings(current_preset)
+        return {'FINISHED'}
+
 class ConvertDBSDF2PBSDFOperator(Operator):
     bl_idname = "object.convertdbsdf2pbsdf"
     bl_label = "Convert DBSDF 2 PBSDF"
@@ -1023,7 +1036,7 @@ class AssetPanel(Panel):
 
         box = layout.box()
         row = box.row()
-        row.prop(context.scene, "selected_asset", text="Selected Asset:")
+        row.prop(context.scene, "selected_asset", text="Selected Asset")
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.import_asset", text="Import Asset")
@@ -1051,8 +1064,8 @@ def append_asset(asset_data):
 
 #
 
-classes = [RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator, UtilsProperties, UtilsPanel, 
-           CShadowsOperator, SleepAfterRenderOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
+classes = [RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
+           UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
