@@ -108,9 +108,11 @@ def EmissionMode(PBSDF, material):
 
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
+        slot = 0
         if selected_object.material_slots:
+            slot += 1
             for i, material in enumerate(selected_object.data.materials):
-                if material != None:
+                if material is not None:
                     for original_material, upgraded_material in Materials_Array.items():
                         for material_part in material.name.lower().replace("-", ".").split("."):
                             if original_material == material_part:
@@ -128,7 +130,7 @@ def upgrade_materials():
 
                                 selected_object.data.update()
                 else:
-                    CEH('m002')
+                    CEH('m002', slot)
         else:
             CEH('m003', Data=selected_object)
 
@@ -136,9 +138,11 @@ def upgrade_materials():
                         
 def fix_world():
     for selected_object in bpy.context.selected_objects:
+        slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
-                if material != None:
+                slot += 1
+                if material is not None:
                     PBSDF = None
                     image_texture_node = None
                     scene = bpy.context.scene
@@ -231,7 +235,7 @@ def fix_world():
 
                         selected_object.data.update()
                 else:
-                    CEH('m002')
+                    CEH('m002', slot)
         else:
             CEH('m003', Data=selected_object)
 
@@ -424,9 +428,11 @@ def create_env(self=None):
     
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
+        slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
-                if material != None:
+                slot += 1
+                if material is not None:
                     image_texture_node = None
                     PBSDF = None
 
@@ -444,10 +450,10 @@ def fix_materials():
                     if (image_texture_node and PBSDF) != None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                 else:
-                    CEH('m002')
+                    CEH('m002', slot)
                 
         else:
-            CEH('m003', Data=selected_object)
+            CEH('m003', selected_object)
             
         selected_object.data.update()
 
@@ -457,12 +463,16 @@ def fix_materials():
         
 def setproceduralpbr():
     for selected_object in bpy.context.selected_objects:
+        slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
-                if material != None:
+                slot += 1
+                if material is not None:
                     image_texture_node = None
                     PBSDF = None
                     bump_node = None
+                    PNormals = None
+                    Current_node_tree = None
                     scene = bpy.context.scene
                     PProperties = scene.ppbr_properties
 
@@ -474,26 +484,85 @@ def setproceduralpbr():
                         if node.type == "BUMP":
                             bump_node = node
 
+                        if node.type == "GROUP":
+                            if "PNormals" in node.node_tree.name:
+                                PNormals = node
+                                Current_node_tree = node.node_tree.name
+
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
-                    if PBSDF != None:
-
+                    if PBSDF is not None:
                         # Use Bump
-                        if PProperties.use_bump == True:
-                            if image_texture_node and bump_node == None:
-                                bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
-                                bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
-                                material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
-                                material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                                bump_node.inputs[0].default_value = PProperties.bump_strenght
-                            if bump_node != None:
-                                bump_node.inputs[0].default_value = PProperties.bump_strenght
-                        else:
-                            if bump_node is not None:
-                                material.node_tree.nodes.remove(bump_node)
+                        if PProperties.use_normals:
+
+                            if PProperties.normals_selector == 'Bump':
+                                if PNormals is not None:
+                                    material.node_tree.nodes.remove(PNormals)
+
+                                if image_texture_node and bump_node is None:
+                                    bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
+                                    bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
+                                    material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
+                                    material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
+                                    bump_node.inputs[0].default_value = PProperties.bump_strength
+
+                                if bump_node is not None:
+                                    bump_node.inputs[0].default_value = PProperties.bump_strength
+                            else:
+                                if bump_node is not None:
+                                    material.node_tree.nodes.remove(bump_node)
+                                
+                                if PNormals is None:
+                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        data_to.node_groups = ["PNormals"]
+
+                                    PNormals_nodes = []
+
+                                    for group_tree in [group.name for group in bpy.data.node_groups]:
+                                        if "." in group_tree and "PNormals" in group_tree:
+                                            PNormals_nodes.append(group_tree)
+
+                                    PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
+
+                                    try:
+                                        PNormals.node_tree = bpy.data.node_groups[max(PNormals_nodes)]
+                                        for node in bpy.data.node_groups[max(PNormals_nodes)].nodes:
+                                            if node.type == "TEX_IMAGE":
+                                                node.image = image_texture_node.image
+                                    except:
+                                        PNormals.node_tree = bpy.data.node_groups["PNormals"]
+                                        for node in bpy.data.node_groups["PNormals"].nodes:
+                                            if node.type == "TEX_IMAGE":
+                                                node.image = image_texture_node.image
+
+                                    PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
+                                    PNormals_nodes.clear()
+                                else:
+                                    for node in bpy.data.node_groups[Current_node_tree].nodes:
+                                        if node.type == "TEX_IMAGE":
+                                            node.image = image_texture_node.image
                                 
 
+                                PNormals.inputs["Size"].default_value = PProperties.pnormals_size
+                                PNormals.inputs["Blur"].default_value = PProperties.pnormals_blur
+                                PNormals.inputs["Strength"].default_value = PProperties.pnormals_strength
+                                PNormals.inputs["Exclude"].default_value = PProperties.pnormals_exclude
+                                PNormals.inputs["Min"].default_value = PProperties.pnormals_min
+                                PNormals.inputs["Max"].default_value = PProperties.pnormals_max
+                                PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier
+                                PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier
+
+                                material.node_tree.links.new(PNormals.outputs['Normal'], PBSDF.inputs['Normal'])
+                        else:
+                            
+                            if bump_node is not None:
+                                material.node_tree.nodes.remove(bump_node)
+                            
+                            if PNormals is not None:
+                                material.node_tree.nodes.remove(PNormals)
+
+                                
                         # Change PBSDF Settings                                
                         if PProperties.change_bsdf:
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
@@ -583,7 +652,7 @@ def setproceduralpbr():
                                     
                                 for node in material.node_tree.nodes:
                                     if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs[27].links:
+                                        for link in node.inputs["Emission Strength"].links:
                                             if link.from_node != node_group:
                                                 for output in link.from_node.outputs:
                                                     for link in output.links:
@@ -600,7 +669,7 @@ def setproceduralpbr():
                                     if BATGroup in node.node_tree.name:
                                         material.node_tree.nodes.remove(node)
                 else:
-                    CEH('m002')
+                    CEH('m002', slot)
                 
         else:
             CEH('m003', Data=selected_object)

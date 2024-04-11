@@ -36,7 +36,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
     
 def Optimize():
-    selected_objects = bpy.context.selected_object
+    selected_objects = bpy.context.selected_objects
     OProperties = bpy.context.scene.optimizationproperties
     if OProperties.use_camera_culling == True:
         if bpy.context.scene.camera != None:

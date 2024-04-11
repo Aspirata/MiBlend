@@ -1,7 +1,7 @@
 # Mcblend
 A useful tool for creating minecraft content in blender
 
-Mcblend is in the alpha state, so expect bugs and changes during development
+## Mcblend is in the alpha state, so expect bugs and changes during development
 
 This is an experimental branch. I'm testing new features here
 
@@ -20,14 +20,22 @@ To Install this brach as addon you need to download bab (https://github.com/Moo-
 | Assets | Done | It works, but there is only SRE in built-in assets |
 | Optimization | WIP | There are only two Optimizing option |
 
-If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
+### If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
 
-Contributors:
+## Contributors:
 
-.anonim4ik - Camera Culling node
+### .anonim4ik - Camera Culling node
 
-zipi.zip - Rigs (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+### zipi.zip - Rigs
 
-jabady - Active Testing And Bug Reporting
+Links:
+- https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg
 
-humusus. - Help with Allay Rig
+### jabady - Active Testing And Bug Reporting
+
+### humusus. - Help with Allay Rig
+
+### HeyItsAnjello - Procedural Normals Node
+
+Links:
+- https://twitter.com/HeyItsAnjello

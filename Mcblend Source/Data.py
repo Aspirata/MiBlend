@@ -2,7 +2,7 @@
 import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
-from bpy.types import PropertyGroup
+from bpy.types import Panel, Operator, AddonPreferences, PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
@@ -18,7 +18,7 @@ Big_Button_Scale = 1.4
 def CEH(Error_Code, Data=None):
 
     if Error_Code == 'm002':
-        raise ValueError(f"Material doesn't exist on one of the slots. Error code: {Error_Code} DO NOT REPORT")
+        raise ValueError(f"Material doesn't exist on slot {Data}. Error code: {Error_Code} DO NOT REPORT")
     
     if Error_Code == 'm003':
         raise ValueError(f"Object: {Data.name} has no materials. Error code: {Error_Code} DO NOT REPORT")

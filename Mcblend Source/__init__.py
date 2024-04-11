@@ -1,9 +1,9 @@
 from .Data import *
-from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
 from .Translator import Translate
+from .Preferences import *
 
 bl_info = {
     "name": "Mcblend",
@@ -19,6 +19,7 @@ bl_info = {
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
     bl_idname = "wm.recreate_env"
+    bl_options = {'REGISTER', 'UNDO'}
     
     reset_settings: BoolProperty(
         name="Reset Settings",
@@ -99,23 +100,94 @@ class FixWorldProperties(PropertyGroup):
 
 class PPBRProperties(PropertyGroup):
 
-    use_bump: BoolProperty(
-        name=Translate("Use Bump"),
+    use_normals: BoolProperty(
+        name=Translate("Use Normals"),
         default=False,
-        description="Enables Bump In Materials"
+        description="Enables Normals In Materials"
     )
 
-    bump_settings: BoolProperty(
-        name=Translate("Bump Settings"),
+    normals_selector: EnumProperty(
+        items=[('Bump', 'Bump', ''), 
+            ('Procedural Normals', 'Procedural Normals', '')],
+        name="normals_selector",
+        default='Bump'
+    )
+
+    normals_settings: BoolProperty(
+        name=Translate("Normals Settings"),
         default=False,
         description=""
     )
 
-    bump_strenght: FloatProperty(
-        name="Bump Strenght",
+    bump_strength: FloatProperty(
+        name="Bump Strength",
         default=0.4,
         min=0.0,
         max=1.0,
+        description=""
+    )
+
+    pnormals_size: FloatProperty(
+        name="PNormals Strength",
+        default=2,
+        min=0.0,
+        max=16.0,
+        description=""
+    )
+
+    pnormals_blur: FloatProperty(
+        name="PNormals Blur",
+        default=0,
+        min=0.0,
+        max=4.0,
+        description=""
+    )
+
+    pnormals_strength: FloatProperty(
+        name="PNormals Strength",
+        default=1,
+        min=-2.0,
+        max=2.0,
+        description=""
+    )
+
+    pnormals_exclude: FloatProperty(
+        name="PNormals Exclude",
+        default=0,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    pnormals_min: FloatProperty(
+        name="PNormals Min",
+        default=0,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    pnormals_max: FloatProperty(
+        name="PNormals Max",
+        default=1,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    pnormals_size_x_multiplier: FloatProperty(
+        name="PNormals Size X Multiplier",
+        default=1,
+        min=-2.0,
+        max=2.0,
+        description=""
+    )
+
+    pnormals_size_y_multiplier: FloatProperty(
+        name="PNormals Size Y Multiplier",
+        default=1,
+        min=-2.0,
+        max=2.0,
         description=""
     )
 
@@ -303,11 +375,17 @@ class WorldAndMaterialsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
         scene = bpy.context.scene
         world = scene.world
         WProperties = scene.world_properties
         clouds_exists = False
         sky_exists = False
+
+        if Preferences.transparent_ui:
+            self.bl_options = {'HIDE_HEADER'}
+        else:
+            self.bl_options = {'DEFAULT_CLOSED'}
 
         # World
 
@@ -316,7 +394,7 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="World", icon="WORLD_DATA")
         row = box.row()
         row.prop(WProperties, "backface_culling")
-        if WProperties.delete_useless_textures == True:
+        if WProperties.delete_useless_textures == True and Preferences.enable_warnings:
             row = box.row()
             row.label(text=Translate("Warning !"), icon="ERROR")
             row = box.row()
@@ -545,14 +623,40 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
         row = box.row()
-        row.prop(scene.ppbr_properties, "use_bump")
-        row.prop(scene.ppbr_properties, "bump_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.bump_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.bump_settings:
+        row.prop(scene.ppbr_properties, "use_normals")
+        row.prop(scene.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.normals_settings:
             sbox = box.box()
             row = sbox.row()
-            row.label(text="Bump Settings:", icon="MODIFIER")
+            row.label(text="Normals Type:", icon="NORMALS_FACE")
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "bump_strenght", slider=True)
+            row.prop(scene.ppbr_properties, "normals_selector", expand=True)
+            if scene.ppbr_properties.normals_selector == "Bump":
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Bump Settings:", icon="MODIFIER")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "bump_strength", slider=True)
+            else:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Procedural Normals Settings:", icon="MODIFIER")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_size", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_blur", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_strength", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_exclude", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_min", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_max", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_size_x_multiplier", slider=True)
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "pnormals_size_y_multiplier", slider=True)
         
         row = box.row()
         row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
@@ -616,6 +720,7 @@ class WorldAndMaterialsPanel(Panel):
 class FixWorldOperator(Operator):
     bl_idname = "object.fix_world"
     bl_label = "Fix World"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Materials.fix_world()
@@ -624,6 +729,7 @@ class FixWorldOperator(Operator):
 class CreateEnvOperator(Operator):
     bl_idname = "object.create_env"
     bl_label = "Create Environment"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Materials.create_env()
@@ -632,6 +738,7 @@ class CreateEnvOperator(Operator):
 class UpgradeMaterialsOperator(Operator):
     bl_idname = "object.upgrade_materials"
     bl_label = "Upgrade Materials"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Materials.upgrade_materials()
@@ -640,6 +747,7 @@ class UpgradeMaterialsOperator(Operator):
 class FixMaterialsOperator(Operator):
     bl_idname = "object.fix_materials"
     bl_label = "Fix Materials"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Materials.fix_materials()
@@ -648,6 +756,7 @@ class FixMaterialsOperator(Operator):
 class SetProceduralPBROperator(Operator):
     bl_idname = "object.setproceduralpbr"
     bl_label = "Set Procedural PBR"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Materials.setproceduralpbr()
@@ -735,6 +844,12 @@ class OptimizationPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+
+        if Preferences.transparent_ui:
+            self.bl_options = {'HIDE_HEADER'}
+        else:
+            self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
         row = box.row()
@@ -780,6 +895,7 @@ class OptimizationPanel(Panel):
 class OptimizeOperator(Operator):
     bl_idname = "object.optimization"
     bl_label = "Optimize"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Optimize.Optimize()
@@ -890,12 +1006,18 @@ class UtilsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+
+        if Preferences.transparent_ui:
+            self.bl_options = {'HIDE_HEADER'}
+        else:
+            self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
         row = box.row()
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
         row = box.row()
-        if bpy.context.scene.render.engine != 'BLENDER_EEVEE':
+        if bpy.context.scene.render.engine != 'BLENDER_EEVEE' and Preferences.enable_warnings:
             row.label(text="Contact shadows exist only on eevee", icon="ERROR")
             row = box.row()
 
@@ -968,6 +1090,7 @@ class UtilsPanel(Panel):
 class CShadowsOperator(Operator):
     bl_idname = "object.cshadows"
     bl_label = "Contact Shadows"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         UProperties = bpy.context.scene.utilsproperties
@@ -977,6 +1100,7 @@ class CShadowsOperator(Operator):
 class SleepAfterRenderOperator(Operator):
     bl_idname = "object.sleppafterrender"
     bl_label = "Sleep After Render"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         sleep_detector()
@@ -985,6 +1109,7 @@ class SleepAfterRenderOperator(Operator):
 class SetRenderSettingsOperator(Operator):
     bl_idname = "object.setrendersettings"
     bl_label = "Set Render Settings"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         current_preset = bpy.context.scene.utilsproperties.current_preset
@@ -994,6 +1119,7 @@ class SetRenderSettingsOperator(Operator):
 class ConvertDBSDF2PBSDFOperator(Operator):
     bl_idname = "object.convertdbsdf2pbsdf"
     bl_label = "Convert DBSDF 2 PBSDF"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         ConvertDBSDF2PBSDF()
@@ -1002,6 +1128,7 @@ class ConvertDBSDF2PBSDFOperator(Operator):
 class EnchantOperator(Operator):
     bl_idname = "object.enchant"
     bl_label = "Enchant Object"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         Enchant()
@@ -1010,6 +1137,7 @@ class EnchantOperator(Operator):
 class FixAutoSmoothOperator(Operator):
     bl_idname = "object.fixautosmooth"
     bl_label = "Fix Shade Auto Smooth"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         FixAutoSmooth()
@@ -1018,6 +1146,7 @@ class FixAutoSmoothOperator(Operator):
 class AssingVertexGroupOperator(Operator):
     bl_idname = "object.assingvertexgroup"
     bl_label = "Assing Vertex Group"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         VertexRiggingTool()
@@ -1033,6 +1162,12 @@ class AssetPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+
+        if Preferences.transparent_ui:
+            self.bl_options = {'HIDE_HEADER'}
+        else:
+            self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
         row = box.row()
@@ -1044,6 +1179,7 @@ class AssetPanel(Panel):
 class ImportAssetOperator(Operator):
     bl_idname = "object.import_asset"
     bl_label = "Import Asset"
+    
 
     def execute(self, context):
         selected_asset_key = context.scene.selected_asset
@@ -1064,7 +1200,7 @@ def append_asset(asset_data):
 
 #
 
-classes = [RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
+classes = [AddonPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
            UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
