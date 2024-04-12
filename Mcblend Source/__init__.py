@@ -57,12 +57,18 @@ class RecreateEnvironment(Operator):
         layout = self.layout
         scene = bpy.context.scene
         world = scene.world
+        try:
+            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        except:
+            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
         
-        box = layout.box()
-        row = box.row()
-        row.label(text="WARNING !", icon='ERROR')
-        row = box.row()
-        row.label(text="This option should be used with caution")
+        if Preferences.enable_warnings:
+            box = layout.box()
+            row = box.row()
+            row.label(text="WARNING !", icon='ERROR')
+            row = box.row()
+            row.label(text="This option should be used with caution")
+            
         box = layout.box()
         row = box.row()
 
