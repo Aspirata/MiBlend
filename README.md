@@ -5,7 +5,7 @@ A useful tool for creating minecraft content in blender
 
 This is an experimental branch. I'm testing new features here
 
-To Install this brach as addon you need to download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in Mcblend Folder or you can pack Mcblend Source folder to .zip file and install it as addon
+To Install this brach as addon you need to pack Mcblend Source folder to .zip file and install it as addon **OR** you can download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in Mcblend Folder
 
 > [!NOTE]
 > There aren't many functions in Mcblend right now (Below you can see the list of features that are already available and planned)
