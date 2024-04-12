@@ -13,13 +13,13 @@ Translations = {
         "ru_RU": "Эта настройка может удалить ваши текстуры"
     },
 
-    "Use Bump": {
-        "ru_RU": "Использовать Bump"
-    },
-
     "Bump Settings": {
-        "ru_RU": "Настройки Bump(а)"
+        "ru_RU": "Настройки Bump(a)"
     },
+}
+
+Availible_Translations = {
+    "Russian": "ru_RU",
 }
 
 def Translate(untranslated_string):
@@ -31,5 +31,5 @@ def Translate(untranslated_string):
                 for Language, Translated_String in Languages.items():
                     if Language == Current_Language:
                         return Translated_String
-                    
+                        
     return untranslated_string

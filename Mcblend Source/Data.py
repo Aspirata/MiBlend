@@ -1,8 +1,9 @@
 # Properties
 import bpy
 import os
+import json
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
-from bpy.types import Panel, Operator, AddonPreferences, PropertyGroup
+from bpy.types import Preferences, PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
@@ -34,10 +35,18 @@ def CEH(Error_Code, Data=None):
     
     if Error_Code == '007':
         raise ValueError(f"Object {Data.name} has type {Data.type}, this type has no vertex groups. Error code: {Error_Code} DO NOT REPORT")
+
+def checkconfig(name):
+    if name in Preferences:
+        return Preferences[name]
     
+Preferences = {
+    "transparent_ui": False
+}
+
 Render_Settings = {
     
-    "Final Render Cycles": {
+    "Aspirata Cycles": {
         "cycles.use_adaptive_sampling": True,
         "cycles.adaptive_threshold": 0.01,
         "cycles.samples": 128,
@@ -47,6 +56,7 @@ Render_Settings = {
         "cycles.denoising_use_gpu": True,
         "render.use_persistent_data": True,
     },
+
 }
 
 Emissive_Materials = {

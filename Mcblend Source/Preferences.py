@@ -1,11 +1,13 @@
 from .Data import *
+from bpy.types import AddonPreferences
+from .Translator import Availible_Translations
 
-class AddonPreferences(AddonPreferences):
+class McblendPreferences(AddonPreferences):
     bl_idname = "Mcblend"
 
     transparent_ui: BoolProperty(
         name="Transparent UI",
-        default=False
+        default= checkconfig("transparent_ui"),
     )
 
     enable_warnings: BoolProperty(
@@ -13,7 +15,20 @@ class AddonPreferences(AddonPreferences):
         default=True
     )
 
+    current_language: EnumProperty(
+        items=[(name, name, "") for name, data in Availible_Translations.items()],
+        description="",
+    )
+
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "transparent_ui")
-        layout.prop(self, "enable_warnings")
+        box = layout.box()
+        row = box.row()
+        if bpy.app.version >= (4, 1, 0):
+            row.prop(self, "transparent_ui")
+        else:
+            self.transparent_ui = False
+
+        row = box.row()
+        row.prop(self, "enable_warnings")
+    

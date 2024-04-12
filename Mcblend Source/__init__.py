@@ -4,6 +4,7 @@ from .Optimization import Optimize
 from .Utils import *
 from .Translator import Translate
 from .Preferences import *
+from bpy.types import Panel, Operator
 
 bl_info = {
     "name": "Mcblend",
@@ -128,7 +129,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     pnormals_size: FloatProperty(
-        name="PNormals Strength",
+        name="PNormals Size",
         default=2,
         min=0.0,
         max=16.0,
@@ -375,7 +376,11 @@ class WorldAndMaterialsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        try:
+            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        except:
+            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
+            
         scene = bpy.context.scene
         world = scene.world
         WProperties = scene.world_properties
@@ -844,7 +849,10 @@ class OptimizationPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        try:
+            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        except:
+            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -1006,7 +1014,10 @@ class UtilsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        try:
+            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        except:
+            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -1162,7 +1173,10 @@ class AssetPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        try:
+            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
+        except:
+            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -1200,12 +1214,13 @@ def append_asset(asset_data):
 
 #
 
-classes = [AddonPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
+classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
            UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+        
     bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=FixWorldProperties)
     bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
