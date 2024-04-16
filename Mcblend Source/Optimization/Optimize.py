@@ -31,6 +31,10 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
         geonodes_modifier["Socket_10"] = OProperties.backface_culling
         geonodes_modifier["Socket_11"] = OProperties.merge_by_distance
         geonodes_modifier["Socket_12"] = OProperties.backface_culling_distance
+        if OProperties.culling_mode == 'Simplify Faces':
+            geonodes_modifier["Socket_13"] = 1
+        else:
+            geonodes_modifier["Socket_13"] = 0
     
     if bpy.app.version < (4, 1, 0):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
@@ -71,3 +75,7 @@ def Optimize():
                 obj.data.update()
         else:
             CEH("006")
+    else:
+        for obj in selected_objects:
+            if obj.modifiers.get("Universal Camera Culling") != None:
+                obj.modifiers.remove(obj.modifiers['Universal Camera Culling'])

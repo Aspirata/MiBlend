@@ -15,6 +15,7 @@ world_material_name = "Mcblend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
+blender_version = bpy.app.version
 
 def CEH(Error_Code, Data=None):
 
@@ -47,14 +48,30 @@ Preferences = {
 Render_Settings = {
     
     "Aspirata Cycles": {
+        "cycles.use_preview_adaptive_sampling": False,
+        "cycles.preview_samples": 128,
+        "cycles.use_preview_denoising": True,
+        "cycles.preview_denoiser": 'OPENIMAGEDENOISE',
+        "cycles.preview_denoising_input_passes": 'RGB_ALBEDO_NORMAL',
+        "cycles.preview_denoising_prefilter": 'ACCURATE',
+        "cycles.preview_denoising_use_gpu": True,
         "cycles.use_adaptive_sampling": True,
         "cycles.adaptive_threshold": 0.01,
         "cycles.samples": 128,
         "cycles.adaptive_min_samples": 40,
         "cycles.use_denoising": True,
         "cycles.denoiser": 'OPENIMAGEDENOISE',
+        "cycles.preview_denoising_input_passes": 'RGB_ALBEDO_NORMAL',
+        "cycles.preview_denoising_prefilter": 'ACCURATE',
         "cycles.denoising_use_gpu": True,
         "render.use_persistent_data": True,
+        "cycles.max_bounces": 12,
+        "cycles.diffuse_bounces": 8,
+        "cycles.glossy_bounces": 8,
+        "cycles.volume_bounces": 4,
+        "cycles.transparent_max_bounces": 1024,
+        "render.preview_pixel_size": '2'
+
     },
 
 }
@@ -74,8 +91,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: 1,
-        10: 1.5,
+        11: 1,
+        12: 1.5,
         "Adder": 0.1,
         "Divider": 80,
     },
@@ -86,8 +103,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: 1,
-        10: 1.5,
+        11: 1,
+        12: 1.5,
         "Adder": 0.1,
         "Divider": 80,
     },
@@ -98,8 +115,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: 0,
-        10: 1,
+        11: 0,
+        12: 1,
         "Adder": 0.2,
         "Divider": 50,
     },
@@ -110,8 +127,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: 0,
-        10: 1,
+        11: 0,
+        12: 1,
         "Adder": 0.2,
         "Divider": 50,
     },
@@ -150,8 +167,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 20,
         "Middle Value": 0.4,
-        9: 0,
-        10: 1,
+        11: 0,
+        12: 1,
         "Adder": 0.2,
         "Divider": 50,
     },
@@ -162,8 +179,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: -0.5,
-        10: 1,
+        11: -0.5,
+        12: 1,
         "Adder": 0.2,
         "Divider": 50,
     },
@@ -174,8 +191,8 @@ Emissive_Materials = {
         "To Min": 0,
         "To Max": 1,
         "Middle Value": 0.4,
-        9: 0.7,
-        10: 1,
+        11: 0.7,
+        12: 1,
         "Adder": 0.2,
         "Divider": 80,
     }
@@ -184,7 +201,8 @@ Emissive_Materials = {
 
 Backface_Culling_Materials = [
     "glass",
-    "door"
+    "door",
+    "nether_portal",
 ]
 
 Alpha_Blend_Materials = [
@@ -194,7 +212,16 @@ Alpha_Blend_Materials = [
 SSS_Materials = [
     "leaves",
     "grass",
-    "tulip"
+    "tulip",
+    "oxeye_daisy",
+    "dandelion",
+    "poppy",
+    "blue_orchid",
+    "torchflower",
+    "lily_of_the_valley",
+    "cornflower",
+    "allium",
+    "azure bluet",
 ]
 
 Metal = [
@@ -210,17 +237,19 @@ Metal = [
     "clock",
     "cauldron",
     "spyglass",
-    "rail"
+    "rail",
 ]
 
 Reflective = [
     "glass",
     "ender",
     "amethyst",
-    "water"
+    "water",
+    "emerald",
 ]
 
 Materials_Array = {
+    
     "bricks": "Upgraded Bricks",
 
     "diamond_ore": "Upgraded Diamond Ore",

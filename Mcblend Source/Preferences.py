@@ -23,8 +23,8 @@ class McblendPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        row = box.row()
         if bpy.app.version >= (4, 1, 0):
+            row = box.row()
             row.prop(self, "transparent_ui")
         else:
             self.transparent_ui = False
