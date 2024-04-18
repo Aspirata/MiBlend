@@ -142,7 +142,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     connect_texture: BoolProperty(
-        name="Connect Texture To Radius",
+        name="Connect Texture To The Radius",
         default=False,
         description=""
     )

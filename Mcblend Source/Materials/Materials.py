@@ -333,9 +333,6 @@ def create_env(self=None):
                     if obj.get("Mcblend ID") == "Clouds":
                         bpy.data.objects.remove(obj, do_unlink=True)
 
-                # Написать логику для удаления всего этого перед аппендом
-                
-
                 if clouds_node_tree_name in bpy.data.node_groups:
                     bpy.data.node_groups.remove(bpy.data.node_groups.get(clouds_node_tree_name))
 
@@ -607,7 +604,14 @@ def setproceduralpbr():
 
                         # Use SSS                            
                         if PProperties.use_sss  == True and MaterialIn(SSS_Materials, material):
-                            PBSDF.subsurface_method = PProperties.sss_type
+                            if blender_version >= (4,0,0):
+                                PBSDF.subsurface_method = PProperties.sss_type
+                            else:
+                                if PProperties.sss_type == 'RANDOM_WALK_SKIN':
+                                    PBSDF.subsurface_method = 'RANDOM_WALK_FIXED_RADIUS'
+                                else:
+                                    PBSDF.subsurface_method = PProperties.sss_type
+
                             if PProperties.connect_texture:
                                 for node in material.node_tree.nodes:
                                     if node.type == "BSDF_PRINCIPLED":
@@ -615,11 +619,18 @@ def setproceduralpbr():
                                             for output in link.from_node.outputs:
                                                 for link in output.links:
                                                     if link.to_socket.node.name == node.name:
-                                                        material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
+                                                        if blender_version >= (4,0,0): 
+                                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
+                                                        else:
+                                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Color'])
                             else:
                                 for link in material.node_tree.links:
-                                    if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
-                                        material.node_tree.links.remove(link)
+                                    if blender_version >= (4,0,0):
+                                        if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
+                                            material.node_tree.links.remove(link)
+                                    else:
+                                        if link.to_socket == PBSDF.inputs["Subsurface Color"]:
+                                            material.node_tree.links.remove(link)
 
                             
                             if blender_version >= (4,0,0):
@@ -631,6 +642,11 @@ def setproceduralpbr():
                             PBSDF.inputs["Subsurface Radius"].default_value[0] = 1.0
                             PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
                             PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
+                        else:
+                            if blender_version >= (4,0,0):
+                                PBSDF.inputs["Subsurface Weight"].default_value = 0
+                            else:
+                                PBSDF.inputs["Subsurface"].default_value = 0
 
 
                         # Make Metals                            

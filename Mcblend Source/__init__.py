@@ -4,7 +4,7 @@ from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
 from .Translator import Translate
-from .Preferences import *
+from .Preferences import McblendPreferences
 from bpy.types import Panel, Operator
 
 bl_info = {
@@ -56,12 +56,6 @@ class RecreateEnvironment(Operator):
     
     def draw(self, context):
         layout = self.layout
-        scene = bpy.context.scene
-        world = scene.world
-        try:
-            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
-        except:
-            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
         
         if Preferences.enable_warnings:
             box = layout.box()
@@ -94,14 +88,19 @@ class WorldAndMaterialsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        try:
-            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
-        except:
-            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
-            
+
+        global Preferences
+        Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
+
+        global scene
         scene = bpy.context.scene
-        world = scene.world
+
+        global WProperties
         WProperties = scene.world_properties
+
+        global world
+        world = scene.world
+        
         clouds_exists = False
         sky_exists = False
 
@@ -413,11 +412,16 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "sss_type", text="")
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "connect_texture")
+                if blender_version >= (4,0,0):
+                    row.prop(scene.ppbr_properties, "connect_texture")
+                else:
+                    row.prop(scene.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "sss_weight", slider=True)
-                row = tbox.row()
-                row.prop(scene.ppbr_properties, "sss_scale", slider=True)
+                if blender_version >= (4,0,0):
+                    row = tbox.row()
+                    row.prop(scene.ppbr_properties, "sss_scale", slider=True)
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "make_metal")
@@ -503,10 +507,6 @@ class OptimizationPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        try:
-            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
-        except:
-            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -582,15 +582,12 @@ class UtilsPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        try:
-            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
-        except:
-            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
             self.bl_options = {'DEFAULT_CLOSED'}
+
 
         box = layout.box()
         row = box.row()
@@ -741,10 +738,6 @@ class AssetPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        try:
-            Preferences = bpy.context.preferences.addons["Mcblend"].preferences
-        except:
-            Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}

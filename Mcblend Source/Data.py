@@ -3,7 +3,7 @@ import bpy
 import os
 import json
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
-from bpy.types import Preferences, PropertyGroup
+from bpy.types import PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
@@ -16,6 +16,7 @@ BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
 blender_version = bpy.app.version
+
 
 def CEH(Error_Code, Data=None):
 
@@ -38,11 +39,21 @@ def CEH(Error_Code, Data=None):
         raise ValueError(f"Object {Data.name} has type {Data.type}, this type has no vertex groups. Error code: {Error_Code} DO NOT REPORT")
 
 def checkconfig(name):
-    if name in Preferences:
-        return Preferences[name]
-    
-Preferences = {
-    "transparent_ui": False
+    if "const" in main_directory:
+        return Preferences_List["Dev"][name]
+    else:
+        return Preferences_List["Default"][name]
+
+Preferences_List = {
+    "Dev": {
+        "transparent_ui": True,
+        "enable_warnings": False,
+    },
+
+    "Default": {
+        "transparent_ui": False,
+        "enable_warnings": True,
+    }
 }
 
 Render_Settings = {
