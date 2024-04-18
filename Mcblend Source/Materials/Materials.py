@@ -737,7 +737,7 @@ def setproceduralpbr():
                                 if blender_version >= (4,0,0):
                                     material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
                                 else:
-                                    material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission"])
+                                    material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
                                 material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
                         if PProperties.make_better_emission == False and PProperties.animate_textures == False:

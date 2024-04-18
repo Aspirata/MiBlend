@@ -195,21 +195,31 @@ def Enchant():
 
                     for node in material.node_tree.nodes:
                         if node.type == "BSDF_PRINCIPLED":
-                            for link in node.inputs[26].links:                                            
+                            for link in node.inputs["Emission Strength"].links:                                            
                                 if link.from_node.name != node_group.name:                                                
                                     for output in link.from_node.outputs:
                                         for link_out in output.links:
                                             if link_out.to_socket.node.name == node.name:                                                                                                                    
                                                 material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply"]) 
                                                 break
+                            
+                            if blender_version >= (4, 0, 0)
+                                for link in node.inputs["Emission Color"].links:                                            
+                                    if link.from_node.name != node_group.name:                                                
+                                        for output in link.from_node.outputs:
+                                            for link_out in output.links:
+                                                if link_out.to_socket.node.name == node.name:                                                                                                                    
+                                                    material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply Color"]) 
+                                                    break
+                            else:
+                                for link in node.inputs["Emission"].links:                                            
+                                    if link.from_node.name != node_group.name:                                                
+                                        for output in link.from_node.outputs:
+                                            for link_out in output.links:
+                                                if link_out.to_socket.node.name == node.name:                                                                                                                    
+                                                    material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply Color"]) 
+                                                    break
 
-                            for link in node.inputs[27].links:                                            
-                                if link.from_node.name != node_group.name:                                                
-                                    for output in link.from_node.outputs:
-                                        for link_out in output.links:
-                                            if link_out.to_socket.node.name == node.name:                                                                                                                    
-                                                material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply Color"]) 
-                                                break
                                             
                     material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
                     material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
