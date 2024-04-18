@@ -90,7 +90,7 @@ class WorldAndMaterialsPanel(Panel):
         layout = self.layout
 
         global Preferences
-        Preferences = bpy.context.preferences.addons["Mcblend Source"].preferences
+        Preferences = bpy.context.preferences.addons[__package__].preferences
 
         global scene
         scene = bpy.context.scene
@@ -282,7 +282,6 @@ class WorldAndMaterialsPanel(Panel):
                                 row = tbox.row()
                                 row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
 
-                            # Нада исправить это под мир энда, так как я просто скопировал эту часть с Overworld 
                             row = sbox.row()
                             row.label(text="Ambient Light Colors:", icon="IMAGE")
                             row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
