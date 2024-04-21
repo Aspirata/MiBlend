@@ -336,14 +336,21 @@ def create_env(self=None):
                 if clouds_node_tree_name in bpy.data.node_groups:
                     bpy.data.node_groups.remove(bpy.data.node_groups.get(clouds_node_tree_name))
 
-                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                    data_to.node_groups = [clouds_node_tree_name]
-                
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
+                
+                if blender_version >= (4,0,0):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [clouds_node_tree_name]
 
-                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                    data_to.materials = ["Clouds"]
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                        data_to.materials = ["Clouds"]
+                else:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [clouds_node_tree_name]
+
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
+                        data_to.materials = ["Clouds"]
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
@@ -401,18 +408,31 @@ def create_env(self=None):
             if obj.get("Mcblend ID") == "Clouds":
                 clouds_exists = True
 
-        if scene.env_properties.create_clouds and clouds_exists == False:                    
-            if clouds_node_tree_name not in bpy.data.node_groups:
-                with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator.blend"), link=False) as (data_from, data_to):
-                    data_to.node_groups = [clouds_node_tree_name]
+        if scene.env_properties.create_clouds and clouds_exists == False:               
+            if blender_version >= (4,0,0):     
+                if clouds_node_tree_name not in bpy.data.node_groups:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [clouds_node_tree_name]
+                else:
+                    bpy.data.node_groups[clouds_node_tree_name]
+                
+                if "Clouds" not in bpy.data.materials:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                        data_to.materials = ["Clouds"]
+                else:
+                    bpy.data.materials["Clouds"]
             else:
-                bpy.data.node_groups[clouds_node_tree_name]
-            
-            if "Clouds" not in bpy.data.materials:
-                with bpy.data.libraries.load(os.path.join(materials_file_path), link=False) as (data_from, data_to):
-                    data_to.materials = ["Clouds"]
-            else:
-                bpy.data.materials["Clouds"]
+                if clouds_node_tree_name not in bpy.data.node_groups:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [clouds_node_tree_name]
+                else:
+                    bpy.data.node_groups[clouds_node_tree_name]
+                
+                if "Clouds" not in bpy.data.materials:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
+                        data_to.materials = ["Clouds"]
+                else:
+                    bpy.data.materials["Clouds"]
 
             bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
@@ -603,45 +623,43 @@ def setproceduralpbr():
 
 
                         # Use SSS                            
-                        if PProperties.use_sss  == True and MaterialIn(SSS_Materials, material):
-                            if blender_version >= (4,0,0):
-                                PBSDF.subsurface_method = PProperties.sss_type
-                            else:
-                                if PProperties.sss_type == 'RANDOM_WALK_SKIN':
-                                    PBSDF.subsurface_method = 'RANDOM_WALK_FIXED_RADIUS'
-                                else:
+                        if PProperties.use_sss  == True:
+                            if MaterialIn(SSS_Materials, material):
+                                if blender_version >= (4,0,0):
                                     PBSDF.subsurface_method = PProperties.sss_type
-
-                            if PProperties.connect_texture:
-                                for node in material.node_tree.nodes:
-                                    if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs[0].links:
-                                            for output in link.from_node.outputs:
-                                                for link in output.links:
-                                                    if link.to_socket.node.name == node.name:
-                                                        if blender_version >= (4,0,0): 
-                                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
-                                                        else:
-                                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Color'])
-                            else:
-                                for link in material.node_tree.links:
-                                    if blender_version >= (4,0,0):
-                                        if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
-                                            material.node_tree.links.remove(link)
+                                else:
+                                    if PProperties.sss_type == 'RANDOM_WALK_SKIN':
+                                        PBSDF.subsurface_method = 'RANDOM_WALK_FIXED_RADIUS'
                                     else:
-                                        if link.to_socket == PBSDF.inputs["Subsurface Color"]:
-                                            material.node_tree.links.remove(link)
+                                        PBSDF.subsurface_method = PProperties.sss_type
 
-                            
-                            if blender_version >= (4,0,0):
-                                PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
-                                PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
-                            else:
-                                PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
+                                if PProperties.connect_texture:
+                                    for node in material.node_tree.nodes:
+                                        if node.type == "BSDF_PRINCIPLED":
+                                            for link in node.inputs[0].links:
+                                                if blender_version >= (4,0,0):
+                                                    material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
+                                                else:
+                                                    material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Color'])
+                                else:
+                                    for link in material.node_tree.links:
+                                        if blender_version >= (4,0,0):
+                                            if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
+                                                material.node_tree.links.remove(link)
+                                        else:
+                                            if link.to_socket == PBSDF.inputs["Subsurface Color"]:
+                                                material.node_tree.links.remove(link)
 
-                            PBSDF.inputs["Subsurface Radius"].default_value[0] = 1.0
-                            PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
-                            PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
+                                
+                                if blender_version >= (4,0,0):
+                                    PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
+                                    PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
+                                else:
+                                    PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
+
+                                PBSDF.inputs["Subsurface Radius"].default_value[0] = 1.0
+                                PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
+                                PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
                         else:
                             if blender_version >= (4,0,0):
                                 PBSDF.inputs["Subsurface Weight"].default_value = 0

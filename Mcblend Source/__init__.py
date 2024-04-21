@@ -139,9 +139,6 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
-        if bpy.app.version < (4, 0, 0):
-            row = box.row()
-            row.label(text="3.6 Doesn't support clouds", icon="ERROR")
         row = box.row()
         row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
         row = box.row()
@@ -530,6 +527,8 @@ class OptimizationPanel(Panel):
                 row.label(text="Culling Mode:")
                 row = tbox.row()
                 row.prop(bpy.context.scene.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
                 row = tbox.row()
                 row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
                 row = tbox.row()

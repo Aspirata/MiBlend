@@ -1,15 +1,28 @@
 from ..Data import *
 
 def Camera_Culling(obj, OProperties, geonodes_modifier):
+    mat_excuder = None
+
     if OProperties.camera_culling_type == 'Vector':
-        geonodes_modifier["Socket_17"] = 0
+        if blender_version >= (4,1,0):
+            geonodes_modifier["Socket_17"] = 0
+        else:
+            geonodes_modifier["Socket_17"] = True
 
         geonodes_modifier["Socket_21"] = OProperties.threshold
         geonodes_modifier["Socket_20"] = OProperties.backface_culling
         #geonodes_modifier["Input_2"] = 0.9/(bpy.context.scene.camera.data.angle/2)
 
     else:
-        geonodes_modifier["Socket_17"] = 1
+        if blender_version >= (4,1,0):
+            geonodes_modifier["Socket_17"] = 1
+        else:
+            geonodes_modifier["Socket_17"] = False
+
+        if blender_version >= (4,1,0):
+            geonodes_modifier["Socket_23"] = OProperties.culling_distance
+        else:
+            geonodes_modifier["Socket_24"] = OProperties.culling_distance
 
         if OProperties.predict_fov == True:
             max_fov = 0.0
@@ -23,19 +36,39 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
 
             bpy.context.scene.frame_set(current_frame)
 
-            geonodes_modifier["Socket_5"] = OProperties.scale * (max_fov*1.5)
+            geonodes_modifier["Socket_5"] = OProperties.scale * (max_fov*1.6)
         else:
-            geonodes_modifier["Socket_5"] = OProperties.scale * (bpy.context.scene.camera.data.angle*1.5)
+            geonodes_modifier["Socket_5"] = OProperties.scale * (bpy.context.scene.camera.data.angle*1.6)
             
         geonodes_modifier["Socket_6"] = OProperties.merge_distance
         geonodes_modifier["Socket_10"] = OProperties.backface_culling
         geonodes_modifier["Socket_11"] = OProperties.merge_by_distance
         geonodes_modifier["Socket_12"] = OProperties.backface_culling_distance
+
         if OProperties.culling_mode == 'Simplify Faces':
-            geonodes_modifier["Socket_13"] = 1
+            if blender_version >= (4,1,0):
+                geonodes_modifier["Socket_13"] = 1
+            else:
+                geonodes_modifier["Socket_13"] = True
         else:
-            geonodes_modifier["Socket_13"] = 0
-    
+            if blender_version >= (4,1,0):
+                geonodes_modifier["Socket_13"] = 0
+            else:
+                geonodes_modifier["Socket_13"] = False
+        
+        #if OProperties.Exclude_Materials:
+            #for node in node_group:
+                #if node.type == "GROUP":
+                    #if "Material Excluder" in node.node_tree.name:
+                        #mat_excuder = node
+                        #break
+
+            #if mat_excuder == None:
+                #Create new Node Group with name "Material Excluder"
+
+            #Set Settings
+                    #Add Materials to exclude
+
     if bpy.app.version < (4, 1, 0):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
     

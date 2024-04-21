@@ -203,7 +203,7 @@ def Enchant():
                                                 material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply"]) 
                                                 break
                             
-                            if blender_version >= (4, 0, 0)
+                            if blender_version >= (4, 0, 0):
                                 for link in node.inputs["Emission Color"].links:                                            
                                     if link.from_node.name != node_group.name:                                                
                                         for output in link.from_node.outputs:

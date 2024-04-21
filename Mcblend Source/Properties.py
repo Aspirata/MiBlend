@@ -338,6 +338,14 @@ class OptimizationProperties(PropertyGroup):
         default='Delete Faces'
     )
 
+    culling_distance: FloatProperty(
+        name="Anti-Culling Distance",
+        default=10.0,
+        min=0.0,
+        max=1000000.0,
+        description=""
+    )
+
     predict_fov: BoolProperty(
         name="Predict FOV",
         default=False,
