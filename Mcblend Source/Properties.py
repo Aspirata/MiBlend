@@ -143,7 +143,7 @@ class PPBRProperties(PropertyGroup):
 
     connect_texture: BoolProperty(
         name="Connect Texture To The Radius",
-        default=False,
+        default=(bpy.app.version < (4, 0, 0)),
         description=""
     )
 
