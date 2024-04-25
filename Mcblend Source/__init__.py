@@ -319,6 +319,7 @@ class WorldAndMaterialsPanel(Panel):
                     print(Error)
 
             else:
+                row = box.row()
                 row.label(text="Mcblend Sky node not found, maybe you should recreate sky ?", icon="ERROR")
                 row = box.row()
                 row.label(text="Error code: m005")
@@ -755,6 +756,7 @@ class AssetPanel(Panel):
 class ImportAssetOperator(Operator):
     bl_idname = "object.import_asset"
     bl_label = "Import Asset"
+    bl_options = {'REGISTER', 'UNDO'}
     
 
     def execute(self, context):
