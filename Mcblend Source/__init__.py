@@ -413,11 +413,14 @@ class WorldAndMaterialsPanel(Panel):
                 else:
                     row.prop(scene.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
 
-                row = tbox.row()
-                row.prop(scene.ppbr_properties, "sss_weight", slider=True)
                 if blender_version >= (4,0,0):
                     row = tbox.row()
+                    row.prop(scene.ppbr_properties, "sss_weight", slider=True)
+                    row = tbox.row()
                     row.prop(scene.ppbr_properties, "sss_scale", slider=True)
+                else:
+                    row = tbox.row()
+                    row.prop(scene.ppbr_properties, "sss_weight", text="Subsurface", slider=True)
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "make_metal")

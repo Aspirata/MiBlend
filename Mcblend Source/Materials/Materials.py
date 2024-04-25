@@ -625,13 +625,7 @@ def setproceduralpbr():
                         # Use SSS                            
                         if PProperties.use_sss  == True:
                             if MaterialIn(SSS_Materials, material):
-                                if blender_version >= (4,0,0):
-                                    PBSDF.subsurface_method = PProperties.sss_type
-                                else:
-                                    if PProperties.sss_type == 'RANDOM_WALK_SKIN':
-                                        PBSDF.subsurface_method = 'RANDOM_WALK_FIXED_RADIUS'
-                                    else:
-                                        PBSDF.subsurface_method = PProperties.sss_type
+                                PBSDF.subsurface_method = PProperties.sss_type
 
                                 if PProperties.connect_texture:
                                     for node in material.node_tree.nodes:

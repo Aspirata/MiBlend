@@ -133,17 +133,26 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    def sss_type_fix():
+        if blender_version >= (4,0,0):
+            items=[('BURLEY', 'Christensen Burley', ''), 
+                ('RANDOM_WALK', 'Random Walk', ''),
+                ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')]
+        else:
+            items=[('BURLEY', 'Christensen Burley', ''), 
+                ('RANDOM_WALK', 'Random Walk', ''),
+                ('RANDOM_WALK_FIXED_RADIUS', 'Random Walk (Fixed Radius)', '')]
+        return items
+
     sss_type: EnumProperty(
-        items=[('BURLEY', 'Christensen Burley', ''), 
-            ('RANDOM_WALK', 'Random Walk', ''),
-            ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')],
+        items=sss_type_fix(),
         name="sss_type",
         default='BURLEY'
     )
 
     connect_texture: BoolProperty(
         name="Connect Texture To The Radius",
-        default=(bpy.app.version < (4, 0, 0)),
+        default=(blender_version < (4, 0, 0)),
         description=""
     )
 
