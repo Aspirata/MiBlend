@@ -220,18 +220,15 @@ def Enchant():
                                                     material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply Color"]) 
                                                     break
 
-                                            
-                    material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
-                    material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
+                    if blender_version >= (4,0,0):                        
+                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission"])
+                    else:
+                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission Color"])
+                    
+                    material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs["Emission Strength"])
                     node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
                     node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
                     node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
-                    material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[26])
-                    material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs[27])
-                    node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
-                    node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
-                    node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
-
                 else:
                     CEH("m002")
         else:
