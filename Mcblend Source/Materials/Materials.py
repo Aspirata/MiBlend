@@ -173,7 +173,7 @@ def fix_world():
                         
                         # Emission
                         if EmissionMode(PBSDF, material):
-                            if blender_version >= (4,0,0):
+                            if blender_version("4.x.x"):
                                 if not IsConnectedTo(None, None, None, None, "Emission Color", PBSDF):
                                     material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
                             else:
@@ -267,7 +267,7 @@ def create_env(self=None):
                 for node in world_material.nodes:
                     if node.type == 'GROUP':
                         if "Mcblend Sky" in node.node_tree.name:
-                            if blender_version >= (4,0,0):
+                            if blender_version("4.x.x"):
                                 for group in bpy.data.node_groups:
                                     if node.node_tree.name in group.name:
                                         node.inputs["Time"].default_value = group.interface.items_tree["Time"].default_value
@@ -353,7 +353,7 @@ def create_env(self=None):
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
                 
-                if blender_version >= (4,0,0):
+                if blender_version("4.x.x"):
                     with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
 
@@ -423,7 +423,7 @@ def create_env(self=None):
                 clouds_exists = True
 
         if scene.env_properties.create_clouds and clouds_exists == False:               
-            if blender_version >= (4,0,0):     
+            if blender_version("4.x.x"):     
                 if clouds_node_tree_name not in bpy.data.node_groups:
                     with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
@@ -630,7 +630,7 @@ def setproceduralpbr():
                         # Change PBSDF Settings                                
                         if PProperties.change_bsdf:
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
-                            if blender_version >= (4, 0, 0):
+                            if blender_version("4.x.x"):
                                 PBSDF.inputs["Specular IOR Level"].default_value = PProperties.specular
                             else:
                                 PBSDF.inputs["Specular"].default_value = PProperties.specular
@@ -645,13 +645,13 @@ def setproceduralpbr():
                                     for node in material.node_tree.nodes:
                                         if node.type == "BSDF_PRINCIPLED":
                                             for link in node.inputs[0].links:
-                                                if blender_version >= (4,0,0):
+                                                if blender_version("4.x.x"):
                                                     material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
                                                 else:
                                                     material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Color'])
                                 else:
                                     for link in material.node_tree.links:
-                                        if blender_version >= (4,0,0):
+                                        if blender_version("4.x.x"):
                                             if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
                                                 material.node_tree.links.remove(link)
                                         else:
@@ -659,7 +659,7 @@ def setproceduralpbr():
                                                 material.node_tree.links.remove(link)
 
                                 
-                                if blender_version >= (4,0,0):
+                                if blender_version("4.x.x"):
                                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
                                 else:
@@ -669,7 +669,7 @@ def setproceduralpbr():
                                 PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
                                 PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
                         else:
-                            if blender_version >= (4,0,0):
+                            if blender_version("4.x.x"):
                                 PBSDF.inputs["Subsurface Weight"].default_value = 0
                             else:
                                 PBSDF.inputs["Subsurface"].default_value = 0
@@ -743,7 +743,7 @@ def setproceduralpbr():
                                             node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                                 
                                 # Color Connection if Nothing Connected
-                                if blender_version >= (4,0,0):
+                                if blender_version("4.x.x"):
                                     if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", "Emission Color"):
                                         material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission Color"])
                                 else:
@@ -760,7 +760,7 @@ def setproceduralpbr():
                                                             material.node_tree.links.new(link.from_socket, node_group.inputs["Multiply"])
 
                                 node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
-                                if blender_version >= (4,0,0):
+                                if blender_version("4.x.x"):
                                     material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
                                 else:
                                     material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])

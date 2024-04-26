@@ -134,7 +134,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     def sss_type_fix():
-        if blender_version >= (4,0,0):
+        if blender_version("4.x.x"):
             items=[('BURLEY', 'Christensen Burley', ''), 
                 ('RANDOM_WALK', 'Random Walk', ''),
                 ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')]
@@ -152,7 +152,7 @@ class PPBRProperties(PropertyGroup):
 
     connect_texture: BoolProperty(
         name="Connect Texture To The Radius",
-        default=(blender_version < (4, 0, 0)),
+        default=blender_version("3.6.x"),
         description=""
     )
 

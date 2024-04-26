@@ -203,7 +203,7 @@ def Enchant():
                                                 material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply"]) 
                                                 break
                             
-                            if blender_version >= (4, 0, 0):
+                            if blender_version("4.x.x"):
                                 for link in node.inputs["Emission Color"].links:                                            
                                     if link.from_node.name != node_group.name:                                                
                                         for output in link.from_node.outputs:
@@ -220,7 +220,7 @@ def Enchant():
                                                     material.node_tree.links.new(link_out.from_socket, node_group.inputs["Multiply Color"]) 
                                                     break
 
-                    if blender_version >= (4,0,0):                        
+                    if blender_version("4.x.x"):                        
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission"])
                     else:
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission Color"])

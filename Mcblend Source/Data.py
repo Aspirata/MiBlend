@@ -1,4 +1,5 @@
 # Properties
+from unittest.mock import patch
 import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
@@ -14,8 +15,6 @@ world_material_name = "Mcblend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
-blender_version = bpy.app.version
-
 
 def CEH(Error_Code, Data=None):
 
@@ -42,6 +41,28 @@ def checkconfig(name):
         return Preferences_List["Dev"][name]
     else:
         return Preferences_List["Default"][name]
+    
+def blender_version(blender_version, debug=None):
+    major, minor, patch = blender_version.lower().split(".")
+
+    if major != "x":
+        major_c = bpy.app.version[0] == int(major)
+    else:
+        major_c = True
+        
+    if minor != "x":
+        minor_c = bpy.app.version[1] == int(minor)
+    else:
+        minor_c = True
+        
+    if patch != "x":
+        patch_c = bpy.app.version[2] == int(patch)
+    else:
+        patch_c = True
+    
+    if debug != None:
+        print(f"----\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n-----")
+    return major_c and minor_c and patch_c
 
 Preferences_List = {
     "Dev": {
@@ -81,7 +102,6 @@ Render_Settings = {
         "cycles.volume_bounces": 4,
         "cycles.transparent_max_bounces": 1024,
         "render.preview_pixel_size": '2'
-
     },
 
 }
@@ -286,16 +306,26 @@ Materials_Array = {
 }
 
 Assets = {
-    "SRE": {
-        "Name": "Simple Player Rig",
+    "SRE V2.0": {
+        "Name": "SRE V2.0",
         "Type": "Rigs",
+        "Blender Version": "4.x.x",
         ".blend_name": "Simple_edit_V2.0.blend",
+        "Collection_name": "SRE rig"
+    },
+
+    "SRE V2.0b732": {
+        "Name": "SRE V2.0b732",
+        "Type": "Rigs",
+        "Blender Version": "3.6.x",
+        ".blend_name": "Simple_edit_V2.0b732.blend",
         "Collection_name": "SRE rig"
     },
 
     "Creeper": {
         "Name": "Creeper",
         "Type": "Rigs",
+        "Blender Version": "4.x.x",
         ".blend_name": "Creeper.blend",
         "Collection_name": "Creeper"
     },
@@ -303,6 +333,7 @@ Assets = {
     "Allay": {
         "Name": "Allay Rig",
         "Type": "Rigs",
+        "Blender Version": "4.x.x",
         ".blend_name": "Allay.blend",
         "Collection_name": "Simple Allay"
     },
@@ -310,6 +341,7 @@ Assets = {
     "Axolotl": {
         "Name": "Axolotl Rig",
         "Type": "Rigs",
+        "Blender Version": "4.x.x",
         ".blend_name": "Axolotl.blend",
         "Collection_name": "Axolotl"
     },
@@ -317,6 +349,7 @@ Assets = {
     "Warden": {
         "Name": "Warden",
         "Type": "Rigs",
+        "Blender Version": "4.x.x",
         ".blend_name": "Warden.blend",
         "Collection_name": "Warden"
     }

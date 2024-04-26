@@ -409,12 +409,12 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "sss_type", text="")
                 row = tbox.row()
-                if blender_version >= (4,0,0):
+                if blender_version("4.x.x"):
                     row.prop(scene.ppbr_properties, "connect_texture")
                 else:
                     row.prop(scene.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
 
-                if blender_version >= (4,0,0):
+                if blender_version("4.x.x"):
                     row = tbox.row()
                     row.prop(scene.ppbr_properties, "sss_weight", slider=True)
                     row = tbox.row()
@@ -791,7 +791,7 @@ def register():
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
-        items=[(name, data["Name"], "") for name, data in Assets.items()],
+        items=[(name, data["Name"], "") for name, data in Assets.items() if blender_version(data["Blender Version"])],
         description="Select Asset to Import",
     )
 
