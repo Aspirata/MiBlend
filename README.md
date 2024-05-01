@@ -1,34 +1,45 @@
 # Mcblend
 A useful tool for creating minecraft content in blender
 
-Mcblend is in the alpha state, so expect bugs and changes during development
+**Thanks to woodplank**, who made a video about Mcblend, he used v0.4.0 M2, so this video is a bit outdated
 
-This is stable branch, well, this is the stablest version of Mcblend
+https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 
-> [!NOTE]
-> There aren't many functions in Mcblend right now (Below you can see the list of features that are already available and planned)
+## Mcblend is in the alpha state, so expect bugs and changes during development
 
-> [!WARNING]
-> The wiki and this table are outdated
-> 
-| Feature | Stage | Current State |
-| --- | --- | --- |
-| Upgrade Materials | Done | Upgrade materials function is fully working |
-| Procedural PBR | WIP | It works, but I'm still adding new setting and features |
-| Create Sky | Done | This feature creates sky and clouds |
-| Fix Materials & Fix World | Done | It works |
-| Swap Texture Pack | Not Started | Well, It's not started yet ¯\\\_(ツ)\_/¯ |
-| Assets | Done | It works, but there is only SRE in built-in assets |
-| Optimization | WIP | There are only two Optimizing option |
+This is an experimental branch. I'm testing new features here
 
-If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
+To Install this brach as addon you need to pack Mcblend Source folder to .zip file and install it as addon **OR** you can download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in Mcblend Folder
 
-Contributors:
+## Plan for v0.5.0
+- ❌ Replace CEH with Absolute Solver https://github.com/Aspirata/Mcblend/issues/12
+- ❌ Add .json importer https://github.com/Aspirata/Mcblend/issues/5
+- ❌ Add world importer https://github.com/Aspirata/Mcblend/issues/11
+- ❌ Add CMC Support https://github.com/Aspirata/Mcblend/issues/4
+ - CMC - https://github.com/CommonMCOBJ/CommonMCOBJ
+- ❌ Add Swap Texture Pack In World panel https://github.com/Aspirata/Mcblend/issues/6
+- ❌ Add Swap Textures in Materials panel https://github.com/Aspirata/Mcblend/issues/7
+- ❌ Add a config to the features https://github.com/Aspirata/Mcblend/issues/9
+- ❌ Add an option to add custom assets https://github.com/Aspirata/Mcblend/issues/10
+- ❌ Add Alpha Faces Selector https://github.com/Aspirata/Mcblend/issues/13
 
-.anonim4ik - Camera Culling node
 
-zipi.zip - Rigs (https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+### If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
 
-jabady - Active Testing And Bug Reporting
+## Contributors:
 
-humusus. - Help with Allay Rig
+### .anonim4ik - Camera Culling node
+
+### zipi.zip - Rigs
+
+Links:
+- https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg
+
+### jabady - Active Testing And Bug Reporting
+
+### humusus. - Help with Allay Rig
+
+### HeyItsAnjello - Procedural Normals Node
+
+Links:
+- https://twitter.com/HeyItsAnjello
