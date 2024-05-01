@@ -221,9 +221,9 @@ def Enchant():
                                                     break
 
                     if blender_version("4.x.x"):                        
-                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission"])
-                    else:
                         material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission Color"])
+                    else:
+                        material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs["Emission"])
                     
                     material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs["Emission Strength"])
                     node_group.inputs["Divider"].default_value = bpy.context.scene.render.fps/30 * bpy.context.scene.utilsproperties.divider
@@ -241,4 +241,7 @@ def SetRenderSettings(current_preset):
         if preset == current_preset:
             for setting_name, value in settings.items():
                 sub_property, property_name = setting_name.split('.')
-                setattr(getattr(scene, sub_property), property_name, value)
+                try:
+                    setattr(getattr(scene, sub_property), property_name, value)
+                except:
+                    print(f"Error occured in setting {sub_property}.{property_name}")

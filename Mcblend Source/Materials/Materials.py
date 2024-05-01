@@ -152,6 +152,8 @@ def fix_world():
                         material.blend_method = 'BLEND'
                     else:
                         material.blend_method = 'HASHED'
+                    
+                    material.shadow_method = 'HASHED'
 
                     if WProperties.delete_useless_textures:
                         for node in material.node_tree.nodes:
@@ -472,6 +474,7 @@ def fix_materials():
                     PBSDF = None
 
                     material.blend_method = 'HASHED'
+                    material.shadow_method = 'HASHED'
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
@@ -486,18 +489,17 @@ def fix_materials():
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                 else:
                     CEH('m002', slot)
-                
         else:
             CEH('m003', selected_object)
             
         selected_object.data.update()
-
 #
         
 # Set Procedural PBR
         
 def setproceduralpbr():
     for selected_object in bpy.context.selected_objects:
+        counter = -1
         slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
@@ -507,8 +509,8 @@ def setproceduralpbr():
                     PBSDF = None
                     bump_node = None
                     PNormals = None
-                    image_dfference_X = 1
-                    image_dfference_Y = 1
+                    image_difference_X = 1
+                    image_difference_Y = 1
                     PNormals_exists = False
                     Current_node_tree = None
                     scene = bpy.context.scene
@@ -553,40 +555,32 @@ def setproceduralpbr():
                                         material.node_tree.nodes.remove(bump_node)
                                     
                                     if PNormals is None:
-                                        for group in bpy.data.node_groups:
-                                            if "PNormals" in group.name:
-                                                for Node in group.nodes:
-                                                    if Node.type == "TEX_IMAGE":
-                                                        if Node.image == image_texture_node.image:
-                                                            PNormals_exists = True
-                                                            Current_node_tree = group
-                                                            break
+                                        if f"PNormals; {material.name}" in bpy.data.node_groups:
+                                            PNormals_exists = True
+                                            Current_node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
                                         
                                         if PNormals_exists == False:
                                             with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["PNormals"]
 
-                                            PNormals_nodes = []
-
-                                            for group_tree in [group.name for group in bpy.data.node_groups]:
-                                                if "." in group_tree and "PNormals" in group_tree:
-                                                    PNormals_nodes.append(group_tree)
+                                            counter += 1
 
                                             PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
 
                                             try:
-                                                PNormals.node_tree = bpy.data.node_groups[max(PNormals_nodes)]
-                                                for node in bpy.data.node_groups[max(PNormals_nodes)].nodes:
+                                                bpy.data.node_groups[f"PNormals.{counter}"].name = f"PNormals; {material.name}"
+                                                PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
+                                                for node in PNormals.node_tree.nodes:
                                                     if node.type == "TEX_IMAGE":
                                                         node.image = image_texture_node.image
                                             except:
-                                                PNormals.node_tree = bpy.data.node_groups["PNormals"]
-                                                for node in bpy.data.node_groups["PNormals"].nodes:
+                                                bpy.data.node_groups[f"PNormals"].name = f"PNormals; {material.name}"
+                                                PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
+                                                for node in PNormals.node_tree.nodes:
                                                     if node.type == "TEX_IMAGE":
                                                         node.image = image_texture_node.image
 
                                             PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
-                                            PNormals_nodes.clear()
 
                                         else:
                                             PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -603,10 +597,10 @@ def setproceduralpbr():
                                     
 
                                     if image_texture_node.image.size[0] > image_texture_node.image.size[1]:
-                                        image_dfference_X = image_texture_node.image.size[1] / image_texture_node.image.size[0]
+                                        image_difference_X = image_texture_node.image.size[1] / image_texture_node.image.size[0]
 
                                     if image_texture_node.image.size[0] < image_texture_node.image.size[1]:
-                                        image_dfference_Y = image_texture_node.image.size[0] / image_texture_node.image.size[1]
+                                        image_difference_Y = image_texture_node.image.size[0] / image_texture_node.image.size[1]
 
                                     PNormals.inputs["Size"].default_value = PProperties.pnormals_size
                                     PNormals.inputs["Blur"].default_value = PProperties.pnormals_blur
@@ -614,8 +608,8 @@ def setproceduralpbr():
                                     PNormals.inputs["Exclude"].default_value = PProperties.pnormals_exclude
                                     PNormals.inputs["Min"].default_value = PProperties.pnormals_min
                                     PNormals.inputs["Max"].default_value = PProperties.pnormals_max
-                                    PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_dfference_X
-                                    PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_dfference_Y
+                                    PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_difference_X
+                                    PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_difference_Y
 
                                     material.node_tree.links.new(PNormals.outputs['Normal'], PBSDF.inputs['Normal'])
                             else:

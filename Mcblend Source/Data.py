@@ -1,5 +1,4 @@
 # Properties
-from unittest.mock import patch
 import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
@@ -61,7 +60,7 @@ def blender_version(blender_version, debug=None):
         patch_c = True
     
     if debug != None:
-        print(f"----\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n-----")
+        print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
     return major_c and minor_c and patch_c
 
 Preferences_List = {
@@ -102,6 +101,23 @@ Render_Settings = {
         "cycles.volume_bounces": 4,
         "cycles.transparent_max_bounces": 1024,
         "render.preview_pixel_size": '2'
+    },
+
+    "Aspirata Eevee": {
+        "eevee.use_gtao": True,
+        "eevee.use_bloom": True,
+        "eevee.bloom_radius": 4.0,
+        "eevee.sss_samples": 16,
+        "eevee.sss_jitter_threshold": 1.0,
+        "eevee.use_ssr": True,
+        "eevee.use_ssr_refraction": True,
+        "eevee.use_ssr_halfres": True,
+        "eevee.use_volumetric_shadows": True,
+        "eevee.use_shadow_high_bitdepth": True,
+        "eevee.shadow_cube_size": '2048',
+        "eevee.shadow_cascade_size": '2048',
+        "eevee.use_overscan": True,
+        "eevee.overscan_size": 10.0
     },
 
 }

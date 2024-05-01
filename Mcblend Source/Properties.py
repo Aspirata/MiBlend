@@ -15,12 +15,19 @@ class FixWorldProperties(PropertyGroup):
         description=""
     )
 
+    def emissiondetectionfix():
+        if blender_version("3.6.x"):
+            default='Manual'
+        else:
+            default='Automatic & Manual'
+        return default
+
     emissiondetection: EnumProperty(
         items=[('Automatic', 'Automatic', ''), 
             ('Automatic & Manual', 'Automatic & Manual', ''),
             ('Manual', 'Manual', '')],
         name="emissiondetection",
-        default='Automatic & Manual'
+        default=emissiondetectionfix()
     )
 
 

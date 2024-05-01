@@ -4,7 +4,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
     mat_excuder = None
 
     if OProperties.camera_culling_type == 'Vector':
-        if blender_version("4.1.x"):
+        if bpy.app.version >= (4,1,0):
             geonodes_modifier["Socket_17"] = 0
         else:
             geonodes_modifier["Socket_17"] = True
@@ -14,12 +14,12 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
         #geonodes_modifier["Input_2"] = 0.9/(bpy.context.scene.camera.data.angle/2)
 
     else:
-        if blender_version("4.1.x"):
+        if bpy.app.version >= (4,1,0):
             geonodes_modifier["Socket_17"] = 1
         else:
             geonodes_modifier["Socket_17"] = False
 
-        if blender_version("4.1.x"):
+        if bpy.app.version >= (4,1,0):
             geonodes_modifier["Socket_23"] = OProperties.culling_distance
         else:
             geonodes_modifier["Socket_24"] = OProperties.culling_distance
@@ -46,12 +46,12 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
         geonodes_modifier["Socket_12"] = OProperties.backface_culling_distance
 
         if OProperties.culling_mode == 'Simplify Faces':
-            if blender_version("4.1.x"):
+            if bpy.app.version >= (4,1,0):
                 geonodes_modifier["Socket_13"] = 1
             else:
                 geonodes_modifier["Socket_13"] = True
         else:
-            if blender_version("4.1.x"):
+            if bpy.app.version >= (4,1,0):
                 geonodes_modifier["Socket_13"] = 0
             else:
                 geonodes_modifier["Socket_13"] = False
