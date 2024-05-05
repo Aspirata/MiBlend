@@ -10,7 +10,7 @@ from bpy.types import Panel, Operator
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 4, 0),
+    "version": (0, 4, 1),
     "blender": (3, 6, 0),
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
@@ -207,7 +207,7 @@ class WorldAndMaterialsPanel(Panel):
                             row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
                             if scene.env_properties.ambient_colors_settings:
                                 for node in bpy.data.node_groups:
-                                    if node.name == "Ambient Color":
+                                    if "Ambient Color" in node.name:
                                         tbox = sbox.box()
                                         
                                         for Node in node.nodes:
