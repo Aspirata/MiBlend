@@ -4,6 +4,7 @@ from bpy.types import Panel, Operator
 from .Materials import Materials
 from .Optimization import Optimize
 from .Utils import *
+import os
 
 bl_info = {
     "name": "Mcblend",
@@ -15,7 +16,6 @@ bl_info = {
 }
 
 # World & Materials
-
 class RecreateSky(Operator):
     bl_label = "Recreate Sky"
     bl_idname = "wm.recreate_sky"
@@ -39,7 +39,7 @@ class RecreateSky(Operator):
     )
 
     def execute(self, context):
-        
+
         script_directory = os.path.dirname(os.path.realpath(__file__))
         blend_file_path = os.path.join(script_directory, "Materials", "Materials.blend")
         node_tree_name = "Clouds Generator 2"

@@ -1,4 +1,6 @@
 import math
+from typing import Dict
+
 from mathutils import Vector, Euler
 
 from .utils import JsonUtils
@@ -16,7 +18,6 @@ def importModel(filepath):
 	elements = []
 
 	for element in modelJsonObject.get("elements").asArray().asList():
-		
 		elementJsonObject = element.asObject()
 		fromPos = []
 		toPos = []
@@ -43,12 +44,12 @@ def importModel(filepath):
 			elif axis == "z":
 				rotation.z = math.radians(angle)
 
-		upFace: FaceData = FaceData([0, 0, 0, 0], "", 0)
-		downFace: FaceData = FaceData([0, 0, 0, 0], "", 0)
-		northFace: FaceData = FaceData([0, 0, 0, 0], "", 0)
-		southFace: FaceData = FaceData([0, 0, 0, 0], "", 0)
-		eastFace: FaceData = FaceData([0, 0, 0, 0], "", 0)
-		westFace: FaceData = FaceData([0, 0, 0, 0], "", 0)
+		upFace: FaceData | None = None
+		downFace: FaceData | None = None
+		northFace: FaceData | None = None
+		southFace: FaceData | None = None
+		eastFace: FaceData | None = None
+		westFace: FaceData | None = None
 
 		if elementJsonObject.has("faces"):
 			facesJsonObject = elementJsonObject.get("faces").asObject()
@@ -59,8 +60,13 @@ def importModel(filepath):
 			eastFace = getFace(facesJsonObject, "east")
 			westFace = getFace(facesJsonObject, "west")
 
+		textures: dict[str, str] = {}
+		for key in modelJsonObject.get("textures").asObject().data.keys():
+			textures[key] = modelJsonObject.get("textures").asObject().get(key).asString()
+
+
 		obj = GeoUtils.create_cube(CubeData(
-			"cube", Vector(fromPos), Vector(toPos), Vector(originPos), rotation,
+			"cube", Vector(fromPos), Vector(toPos), Vector(originPos), rotation, textures,
 			northFace, southFace, eastFace, westFace, upFace, downFace
 		))
 		col = bpy.context.scene.collection
@@ -68,35 +74,13 @@ def importModel(filepath):
 		bpy.context.view_layer.objects.active = obj
 		obj.name = os.path.splitext(os.path.basename(filepath))[0]
 		elements.append(obj)
-	
-	# It doesn't work
-	if bpy.context.scene.assetsproperties.separate_model_parts == False:
-		if len(elements) >= 2:
-			main_object = elements[0]
-
-			# Цикл по остальным объектам в списке
-			for obj in elements[1:]:
-				# Выбираем объект в текущей итерации
-				bpy.context.view_layer.objects.active = obj
-					
-				# Выбираем все вершины в объекте
-				bpy.ops.object.mode_set(mode='OBJECT')
-				bpy.ops.object.select_all(action='DESELECT')
-				obj.select_set(True)
-				bpy.context.view_layer.objects.active = obj
-				bpy.ops.object.mode_set(mode='EDIT')
-				bpy.ops.mesh.select_all(action='SELECT')
-
-				# Объединяем объект с основным объектом
-				bpy.ops.object.mode_set(mode='OBJECT')
-				bpy.ops.object.join()
 
 
-def getFace(facesJsonObject: JsonObject, name: str) -> FaceData:
+def getFace(facesJsonObject: JsonObject, name: str) -> FaceData | None:
 	if facesJsonObject.has(name):
 		faceJsonObject = facesJsonObject.get(name).asObject()
 		rotation = 0
 		if faceJsonObject.has("rotation"):
 			rotation = faceJsonObject.get("rotation").asFloat()
 		return FaceData(faceJsonObject.get("uv").data, faceJsonObject.get("texture").asString(), rotation)
-	return FaceData([0, 0, 0, 0], "", 0)
+	return None
