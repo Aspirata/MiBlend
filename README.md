@@ -11,6 +11,7 @@ To Install this brach as addon you need to pack Mcblend Source folder to .zip fi
 
 ## Plan for v0.5.0
 - ❌ Replace CEH with Absolute Solver https://github.com/Aspirata/Mcblend/issues/12
+- ❌ Add Beveler https://github.com/Aspirata/Mcblend/issues/18
 - ❌ Add clouds settings in addon UI https://github.com/Aspirata/Mcblend/issues/16
 - ❌ Add .json importer https://github.com/Aspirata/Mcblend/issues/5
 - ❌ Add world importer https://github.com/Aspirata/Mcblend/issues/11
