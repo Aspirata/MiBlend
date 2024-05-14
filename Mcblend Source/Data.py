@@ -91,8 +91,9 @@ Render_Settings = {
         "cycles.adaptive_min_samples": 40,
         "cycles.use_denoising": True,
         "cycles.denoiser": 'OPENIMAGEDENOISE',
-        "cycles.preview_denoising_input_passes": 'RGB_ALBEDO_NORMAL',
-        "cycles.preview_denoising_prefilter": 'ACCURATE',
+        "cycles.denoising_input_passes": 'RGB_ALBEDO_NORMAL',
+        "cycles.denoising_prefilter": 'ACCURATE',
+        "cycles.denoising_quality": 'HIGH',
         "cycles.denoising_use_gpu": True,
         "render.use_persistent_data": True,
         "cycles.max_bounces": 12,
@@ -103,7 +104,7 @@ Render_Settings = {
         "render.preview_pixel_size": '2'
     },
 
-    "Aspirata Eevee": {
+    "Aspirata Eevee (Legacy)": {
         "eevee.use_gtao": True,
         "eevee.use_bloom": True,
         "eevee.bloom_radius": 4.0,
@@ -119,6 +120,18 @@ Render_Settings = {
         "eevee.use_overscan": True,
         "eevee.overscan_size": 10.0
     },
+
+    "Aspirata Eevee":{
+        "eevee.use_shadow_jittered_viewport": True,
+        "eevee.shadow_ray_count": 4,
+        "eevee.shadow_step_count": 16,
+        "eevee.use_volumetric_shadows": True,
+        "eevee.use_raytracing": True,
+        "eevee.ray_tracing_options.resolution_scale": '4',
+        "eevee.ray_tracing_options.trace_max_roughness": 0.5,
+        "eevee.use_overscan": True,
+        "eevee.overscan_size": 10.0,
+    }
 
 }
 
