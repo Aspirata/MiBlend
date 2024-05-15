@@ -26,10 +26,8 @@ def Translate(untranslated_string):
     Current_Language = bpy.app.translations.locale
 
     if Current_Language != "en_US":
-        for String, Languages in Translations.items():
-            if String == untranslated_string:
-                for Language, Translated_String in Languages.items():
-                    if Language == Current_Language:
-                        return Translated_String
+        for Language, Translated_String in Translations[untranslated_string].items():
+            if Language == Current_Language:
+                return Translated_String
                         
     return untranslated_string

@@ -235,15 +235,13 @@ def Enchant():
             CEH("m003")
         
 def SetRenderSettings(current_preset):
-    for preset, settings in Render_Settings.items():
-        if preset == current_preset:
-            for setting_name, value in settings.items():
-                property_names = setting_name.split('.')
-                target = bpy.context.scene
-                for sub_property in property_names[:-1]: 
-                    target = getattr(target, sub_property)
-                property_name = property_names[-1] 
-                try:
-                    setattr(target, property_name, value)
-                except:
-                    raise ValueError(f"Error occurred in setting {setting_name}")
+    for setting_name, value in Render_Settings[current_preset].items():
+        property_names = setting_name.split('.')
+        target = bpy.context.scene
+        for sub_property in property_names[:-1]: 
+            target = getattr(target, sub_property)
+        property_name = property_names[-1] 
+        try:
+            setattr(target, property_name, value)
+        except:
+            raise ValueError(f"Error occurred in setting {setting_name}")
