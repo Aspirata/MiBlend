@@ -265,60 +265,28 @@ def create_env(self=None):
 
             if self.reset_settings == True:
                 world_material = bpy.context.scene.world.node_tree
+                group = bpy.data.node_groups["Mcblend Sky"]
 
                 for node in world_material.nodes:
                     if node.type == 'GROUP':
                         if "Mcblend Sky" in node.node_tree.name:
                             if blender_version("4.x.x"):
-                                for group in bpy.data.node_groups:
-                                    if node.node_tree.name in group.name:
-                                        node.inputs["Time"].default_value = group.interface.items_tree["Time"].default_value
-                                        node.inputs["Rotation"].default_value[0] = group.interface.items_tree["Rotation"].default_value[0]
-                                        node.inputs["Rotation"].default_value[1] = group.interface.items_tree["Rotation"].default_value[1]
-                                        node.inputs["Rotation"].default_value[2] = group.interface.items_tree["Rotation"].default_value[2]
-                                        node.inputs["Pixelated Stars"].default_value = group.interface.items_tree["Pixelated Stars"].default_value
-                                        node.inputs["Stars Amount"].default_value = group.interface.items_tree["Stars Amount"].default_value
-                                        node.inputs["Rain"].default_value = group.interface.items_tree["Rain"].default_value
-                                        node.inputs["End"].default_value = group.interface.items_tree["End"].default_value
-                                        node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree["End Stars Rotation"].default_value[0]
-                                        node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree["End Stars Rotation"].default_value[1]
-                                        node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree["End Stars Rotation"].default_value[2]
-                                        node.inputs["End Stars Strength"].default_value = group.interface.items_tree["End Stars Strength"].default_value
-                                        node.inputs["End Stars Color"].default_value  = group.interface.items_tree["End Stars Color"].default_value
-                                        node.inputs["Moon Strenght"].default_value = group.interface.items_tree["Moon Strenght"].default_value
-                                        node.inputs["Sun Strength"].default_value = group.interface.items_tree["Sun Strength"].default_value
-                                        node.inputs["Stars Strength"].default_value = group.interface.items_tree["Stars Strength"].default_value
-                                        node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree["Camera Ambient Light Strength"].default_value
-                                        node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree["Non-Camera Ambient Light Strength"].default_value
-                                        node.inputs["Moon Color"].default_value = group.interface.items_tree["Moon Color"].default_value
-                                        node.inputs["Sun Color"].default_value = group.interface.items_tree["Sun Color"].default_value
-                                        node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree["Sun Color In Sunset"].default_value
-                                        node.inputs["Stars Color"].default_value  = group.interface.items_tree["Stars Color"].default_value
+                                for socket in node.inputs:
+                                    try:
+                                        vec_counter = 0
+                                        for vec in socket.default_value:
+                                            vec_counter += 1
+                                            vec = group.interface.items_tree[socket.name].default_value[vec_counter]
+                                    except:
+                                        socket.default_value = group.interface.items_tree[socket.name].default_value
                             else:
-                                for group in bpy.data.node_groups:
-                                    if node.node_tree.name in group.name:
-                                        node.inputs["Time"].default_value = group.inputs["Time"].default_value
-                                        node.inputs["Rotation"].default_value[0] = group.inputs["Rotation"].default_value[0]
-                                        node.inputs["Rotation"].default_value[1] = group.inputs["Rotation"].default_value[1]
-                                        node.inputs["Rotation"].default_value[2] = group.inputs["Rotation"].default_value[2]
-                                        node.inputs["Pixelated Stars"].default_value = group.inputs["Pixelated Stars"].default_value
-                                        node.inputs["Stars Amount"].default_value = group.inputs["Stars Amount"].default_value
-                                        node.inputs["Rain"].default_value = group.inputs["Rain"].default_value
-                                        node.inputs["End"].default_value = group.inputs["End"].default_value
-                                        node.inputs["End Stars Rotation"].default_value[0] = group.inputs["End Stars Rotation"].default_value[0]
-                                        node.inputs["End Stars Rotation"].default_value[1] = group.inputs["End Stars Rotation"].default_value[1]
-                                        node.inputs["End Stars Rotation"].default_value[2] = group.inputs["End Stars Rotation"].default_value[2]
-                                        node.inputs["End Stars Strength"].default_value = group.inputs["End Stars Strength"].default_value
-                                        node.inputs["End Stars Color"].default_value  = group.inputs["End Stars Color"].default_value
-                                        node.inputs["Moon Strenght"].default_value = group.inputs["Moon Strenght"].default_value
-                                        node.inputs["Sun Strength"].default_value = group.inputs["Sun Strength"].default_value
-                                        node.inputs["Stars Strength"].default_value = group.inputs["Stars Strength"].default_value
-                                        node.inputs["Camera Ambient Light Strength"].default_value = group.inputs["Camera Ambient Light Strength"].default_value
-                                        node.inputs["Non-Camera Ambient Light Strength"].default_value = group.inputs["Non-Camera Ambient Light Strength"].default_value
-                                        node.inputs["Moon Color"].default_value = group.inputs["Moon Color"].default_value
-                                        node.inputs["Sun Color"].default_value = group.inputs["Sun Color"].default_value
-                                        node.inputs["Sun Color In Sunset"].default_value = group.inputs["Sun Color In Sunset"].default_value
-                                        node.inputs["Stars Color"].default_value  = group.inputs["Stars Color"].default_value
+                                try:
+                                    vec_counter = 0
+                                    for vec in socket.default_value:
+                                        vec_counter += 1
+                                        vec = group.inputs[socket.name].default_value[vec_counter]
+                                except:
+                                        socket.default_value = group.inputs[socket.name].default_value
 
             if self.create_sky == 'Recreate Sky':
                 if world == bpy.data.worlds.get(world_material_name):
