@@ -116,14 +116,6 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="World", icon="WORLD_DATA")
         row = box.row()
         row.prop(WProperties, "backface_culling")
-        if WProperties.delete_useless_textures == True and Preferences.enable_warnings:
-            row = box.row()
-            row.label(text=Translate("Warning !"), icon="ERROR")
-            row = box.row()
-            row.label(text=Translate("This option should be turned on only if you didn't add any extra textures to the materials"))
-            row = box.row()
-            row.label(text=Translate("This option can delete your custom textures !"))
-        
         row = box.row()
         row.prop(WProperties, "delete_useless_textures")
         row = box.row()

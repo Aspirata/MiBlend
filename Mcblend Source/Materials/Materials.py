@@ -15,6 +15,43 @@ def MaterialIn(Array, material):
                     return True
     return False
 
+def DeleteUselessTextures(material):
+    texture_nodes = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE"]
+    image_to_nodes = {}
+
+    for node in texture_nodes:
+        image = node.image
+        if image is not None:
+            if image in image_to_nodes:
+                image_to_nodes[image].append(node)
+            else:
+                image_to_nodes[image] = [node]
+
+    def get_node_suffix_number(node_name):
+        parts = node_name.split(".")
+        if len(parts) > 1 and parts[-1].isdigit():
+            return int(parts[-1])
+        return 0
+
+    for image, nodes in image_to_nodes.items():
+        if len(nodes) > 1:
+            nodes.sort(key=lambda node: ('.' in node.name, get_node_suffix_number(node.name)))
+            
+            node_to_keep = nodes[0]
+            nodes_to_remove = nodes[1:]
+
+            for node in nodes_to_remove:
+                if any(input.links for input in node.inputs):
+                    continue
+                
+                output_number = -1
+                for output in node.outputs:
+                    output_number += 1
+                    for link in output.links:
+                        material.node_tree.links.new(node_to_keep.outputs[output_number], link.to_socket)
+                
+                material.node_tree.nodes.remove(node)
+
 # This function checks if there is a connection between two nodes in a material's node tree based on the specified criteria. 
 # It returns True if a connection is found, and False otherwise.
         
@@ -156,14 +193,11 @@ def fix_world():
                     material.shadow_method = 'HASHED'
 
                     if WProperties.delete_useless_textures:
-                        for node in material.node_tree.nodes:
-                            if node.type == "TEX_IMAGE" and ".00" in node.name:
-                                material.node_tree.nodes.remove(node)
+                        DeleteUselessTextures(material)
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            if ".00" not in node.name:
-                                image_texture_node = node
+                            image_texture_node = node
                             image_texture_node.interpolation = "Closest"
 
                         if node.type == "BSDF_PRINCIPLED":
