@@ -9,21 +9,7 @@ https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 
 To Install this brach as addon you need to pack Mcblend Source folder to .zip file and install it as addon **OR** you can download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in Mcblend Folder
 
-## Plan for v0.5.0
-- ❌ Replace CEH with Absolute Solver https://github.com/Aspirata/Mcblend/issues/12
-- ❌ Improve Delete Useless Textures https://github.com/Aspirata/Mcblend/issues/17
-- ❌ Add Beveler https://github.com/Aspirata/Mcblend/issues/18
-- ❌ Add clouds settings in addon UI https://github.com/Aspirata/Mcblend/issues/16
-- ❌ Add .json importer https://github.com/Aspirata/Mcblend/issues/5
-- ❌ Add world importer https://github.com/Aspirata/Mcblend/issues/11
-- ❌ Add CMC Support https://github.com/Aspirata/Mcblend/issues/4
- - CMC - https://github.com/CommonMCOBJ/CommonMCOBJ
-- ❌ Add Swap Texture Pack In World panel https://github.com/Aspirata/Mcblend/issues/6
-- ❌ Add Swap Textures in Materials panel https://github.com/Aspirata/Mcblend/issues/7
-- ❌ Add a config to the features https://github.com/Aspirata/Mcblend/issues/9
-- ❌ Add an option to add custom assets https://github.com/Aspirata/Mcblend/issues/10
-- ❌ Add Alpha Faces Selector https://github.com/Aspirata/Mcblend/issues/13
-
+## Plan for v0.5.0 - https://github.com/users/Aspirata/projects/2
 
 ### If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
 
