@@ -10,7 +10,7 @@ from bpy.types import Panel, Operator
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 4, 1),
+    "version": (0, 5, 0),
     "blender": (3, 6, 0),
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
@@ -732,30 +732,66 @@ class AssetPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
             self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
+
         row = box.row()
-        row.prop(context.scene, "selected_asset", text="Selected Asset")
+        row.label(text="Asset Category")
+        row = box.row()
+        row.prop(context.scene, "asset_category", text="")
+
+        box.template_list("Assets_List", "", bpy.context.scene, "asset_items", bpy.context.scene, "asset_index")
+
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.import_asset", text="Import Asset")
+
+class Assets_List(bpy.types.UIList):
+
+    def get_custom_icon(self, item):
+        asset_type = Assets[item.name]["Type"]
+        if asset_type == "Rigs":
+            return "ARMATURE_DATA"
+        
+        if asset_type == "Scripts":
+            return "FILE_SCRIPT"
+        
+        return "QUESTION"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        custom_icon = self.get_custom_icon(item)
+        layout.label(text=item.name, icon=custom_icon)
+    
+    def filter_items(self, context, data, property):
+        flt_flags = []
+        flt_neworder = []
+
+        for index, item in enumerate(data.asset_items):
+            if blender_version(Assets[item.name]["Blender Version"]) and Assets[item.name]["Type"] == context.scene.asset_category:
+                flt_flags.append(self.bitflag_filter_item)
+            else:
+                flt_flags.append(0)
+                
+        return flt_flags, flt_neworder
 
 class ImportAssetOperator(Operator):
     bl_idname = "object.import_asset"
     bl_label = "Import Asset"
     bl_options = {'REGISTER', 'UNDO'}
     
-
     def execute(self, context):
-        selected_asset_key = context.scene.selected_asset
-        if selected_asset_key in Assets:
-            append_asset(Assets[selected_asset_key])
-            context.view_layer.update()
+        current_index = bpy.context.scene.asset_index
+        index = -1
+        for Asset in Assets:
+            index += 1
+            if current_index == index:
+                append_asset(Assets[Asset])
+        
         return {'FINISHED'}
 
 def append_asset(asset_data):
@@ -767,11 +803,10 @@ def append_asset(asset_data):
 
     for collection in data_to.collections:
         bpy.context.collection.children.link(collection)
-
 #
 
 classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
-           UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
+           UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, Assets_List, ImportAssetOperator]
 
 def register():
     for cls in classes:
@@ -782,19 +817,32 @@ def register():
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
-    bpy.types.Scene.selected_asset = bpy.props.EnumProperty(
-        items=[(name, data["Name"], "") for name, data in Assets.items() if blender_version(data["Blender Version"])],
-        description="Select Asset to Import",
+    #bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
+
+    bpy.types.Scene.asset_category = EnumProperty(
+        name="Category",
+        items=[
+            ('Rigs', "Rigs", ""),
+            ('Scripts', "Scripts", ""),
+        ],
+        default='Rigs'
     )
 
-def unregister():
+    bpy.types.Scene.asset_index = IntProperty(
+        default=0
+    )
 
+    bpy.types.Scene.asset_items = bpy.props.CollectionProperty(type=PropertyGroup)
+
+def unregister():
     del bpy.types.Scene.world_properties
     del bpy.types.Scene.env_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.utilsproperties
-    del bpy.types.Scene.selected_asset
+    del bpy.types.Scene.asset_category
+    del bpy.types.Scene.asset_index
+    del bpy.types.Scene.asset_items
 
     for cls in classes:
         bpy.utils.unregister_class(cls)

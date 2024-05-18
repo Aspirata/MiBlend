@@ -8,6 +8,7 @@ main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
 materials_folder = os.path.join(main_directory, "Materials")
 optimization_folder = os.path.join(main_directory, "Optimization")
+assets_directory = os.path.join(main_directory, "Assets")
 
 clouds_node_tree_name = "Clouds Generator 2"
 world_material_name = "Mcblend World"

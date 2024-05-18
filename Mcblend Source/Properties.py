@@ -509,3 +509,10 @@ class UtilsProperties(PropertyGroup):
         name="Vertex Group Name",
         description=""
     )
+
+
+
+
+#class AssetsProperties(PropertyGroup):
+
+    

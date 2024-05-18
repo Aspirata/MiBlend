@@ -1,39 +1,164 @@
 import bpy
+import os
+from bpy.types import Panel, Operator
 
-texture_nodes = [node for node in bpy.data.materials["glass"].node_tree.nodes if node.type == "TEX_IMAGE"]
-image_to_nodes = {}
+Assets = {
+    "SRE V2.0": {
+        "Name": "SRE V2.0",
+        "Type": "Rigs",
+        "Blender Version": "4.x.x",
+        ".blend_name": "Simple_edit_V2.0.blend",
+        "Collection_name": "SRE rig"
+    },
 
-for node in texture_nodes:
-    image = node.image
-    if image is not None:
-        if image in image_to_nodes:
-            image_to_nodes[image].append(node)
-        else:
-            image_to_nodes[image] = [node]
+    "SRE V2.0b732": {
+        "Name": "SRE V2.0b732",
+        "Type": "Rigs",
+        "Blender Version": "3.6.x",
+        ".blend_name": "Simple_edit_V2.0b732.blend",
+        "Collection_name": "SRE rig"
+    },
 
-def get_node_suffix_number(node_name):
-    parts = node_name.split(".")
-    if len(parts) > 1 and parts[-1].isdigit():
-        return int(parts[-1])
-    return 0
+    "Creeper": {
+        "Name": "Creeper",
+        "Type": "Rigs",
+        "Blender Version": "4.x.x",
+        ".blend_name": "Creeper.blend",
+        "Collection_name": "Creeper"
+    },
 
-for image, nodes in image_to_nodes.items():
-    if len(nodes) > 1:
-        nodes.sort(key=lambda node: ('.' in node.name, get_node_suffix_number(node.name)))
+    "Allay": {
+        "Name": "Allay Rig",
+        "Type": "Rigs",
+        "Blender Version": "4.x.x",
+        ".blend_name": "Allay.blend",
+        "Collection_name": "Simple Allay"
+    },
+
+    "Axolotl": {
+        "Name": "Axolotl Rig",
+        "Type": "Rigs",
+        "Blender Version": "4.x.x",
+        ".blend_name": "Axolotl.blend",
+        "Collection_name": "Axolotl"
+    },
+
+    "Warden": {
+        "Name": "Warden",
+        "Type": "Rigs",
+        "Blender Version": "4.x.x",
+        ".blend_name": "Warden.blend",
+        "Collection_name": "Warden"
+    }
+}
+
+# Assets
+class AssetPanel(Panel):
+    bl_label = "Assets"
+    bl_idname = "OBJECT_PT_assets"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+
+    def draw(self, context):
+        layout = self.layout
+
+        self.bl_options = {'HIDE_HEADER'}
+
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene, "selected_asset", text="Selected Asset")
+        row = box.row()
+        row.scale_y = 1.4
+        row.operator("object.import_asset", text="Import Asset")
+
+class ImportAssetOperator(Operator):
+    bl_idname = "object.import_asset"
+    bl_label = "Import Asset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        selected_asset_key = context.scene.selected_asset
+        if selected_asset_key in Assets:
+            append_asset(Assets[selected_asset_key])
+            context.view_layer.update()
+        return {'FINISHED'}
+
+def append_asset(asset_data):
+    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data[".blend_name"])
+    collection_name = asset_data["Collection_name"]
+
+    with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
+        data_to.collections = [collection_name]
+
+    for collection in data_to.collections:
+        bpy.context.collection.children.link(collection)
+
+#
+class AssetPanel(bpy.types.Panel):
+    bl_label = "Assets"
+    bl_idname = "OBJECT_PT_assets"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Mcblend'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
         
-        node_to_keep = nodes[0]
-        nodes_to_remove = nodes[1:]
+        self.bl_options = {'HIDE_HEADER'}
 
-        for node in nodes_to_remove:
-            output_number = -1
-            for output in node.outputs:
-                output_number += 1
-                for link in output.links:
-                    bpy.data.materials["glass"].node_tree.links.new(node_to_keep.outputs[output_number], link.to_socket)
-            
-            bpy.data.materials["glass"].node_tree.nodes.remove(node)
+        # Выпадающее меню для выбора категории активов
+        layout.prop(context.scene, "asset_category", text="Asset Category")
 
-print("Remaining nodes:")
-for node in bpy.data.materials["glass"].node_tree.nodes:
-    if node.type == "TEX_IMAGE":
-        print(node.name, node.image)
+        # Список активов
+        row = layout.row()
+        row.template_list("ASSET_UL_items", "", context.scene, "asset_items", context.scene, "asset_index")
+
+        # Кнопки
+        row = layout.row(align=True)
+        row.operator("object.import_asset", text="Import Asset")
+
+# Список активов
+class ASSET_UL_items(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        custom_icon = "OBJECT_DATAMODE"
+        layout.label(text=item.name, icon=custom_icon)
+
+# Регистрация классов и свойств
+def register():
+    bpy.utils.register_class(AssetPanel)
+    bpy.utils.register_class(ImportAssetOperator)
+    bpy.utils.register_class(ASSET_UL_items)
+
+    bpy.types.Scene.asset_category = bpy.props.EnumProperty(
+        name="Category",
+        items=[
+            ('ALL', "All Assets", ""),
+            ('CATEGORY_1', "Category 1", ""),
+            ('CATEGORY_2', "Category 2", "")
+        ],
+        default='ALL'
+    )
+    bpy.types.Scene.asset_items = bpy.props.CollectionProperty(type=bpy.types.PropertyGroup)
+    bpy.types.Scene.asset_index = bpy.props.IntProperty(default=0)
+    bpy.types.Scene.selected_asset = bpy.props.StringProperty()
+
+    # Пример данных для активов
+    items = bpy.context.scene.asset_items
+    items.clear()
+    for name in Assets.keys():
+        item = items.add()
+        item.name = name
+
+def unregister():
+    bpy.utils.unregister_class(AssetPanel)
+    bpy.utils.unregister_class(ImportAssetOperator)
+    bpy.utils.unregister_class(ASSET_UL_items)
+    del bpy.types.Scene.asset_category
+    del bpy.types.Scene.asset_items
+    del bpy.types.Scene.asset_index
+    del bpy.types.Scene.selected_asset
+
+if __name__ == "__main__":
+    register()
