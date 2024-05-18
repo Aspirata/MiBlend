@@ -339,48 +339,48 @@ Assets = {
     "SRE V2.0": {
         "Name": "SRE V2.0",
         "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Simple_edit_V2.0.blend",
+        "Blender_version": "4.x.x",
+        "File_name": "Simple_edit_V2.0.blend",
         "Collection_name": "SRE rig"
     },
 
     "SRE V2.0b732": {
         "Name": "SRE V2.0b732",
         "Type": "Rigs",
-        "Blender Version": "3.6.x",
-        ".blend_name": "Simple_edit_V2.0b732.blend",
+        "Blender_version": "3.6.x",
+        "File_name": "Simple_edit_V2.0b732.blend",
         "Collection_name": "SRE rig"
     },
 
     "Creeper": {
         "Name": "Creeper",
         "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Creeper.blend",
+        "Blender_version": "4.x.x",
+        "File_name": "Creeper.blend",
         "Collection_name": "Creeper"
     },
 
     "Allay": {
         "Name": "Allay Rig",
         "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Allay.blend",
+        "Blender_version": "4.x.x",
+        "File_name": "Allay.blend",
         "Collection_name": "Simple Allay"
     },
 
     "Axolotl": {
         "Name": "Axolotl Rig",
         "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Axolotl.blend",
+        "Blender_version": "4.x.x",
+        "File_name": "Axolotl.blend",
         "Collection_name": "Axolotl"
     },
 
     "Warden": {
         "Name": "Warden",
         "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Warden.blend",
+        "Blender_version": "4.x.x",
+        "File_name": "Warden.blend",
         "Collection_name": "Warden"
     }
 }

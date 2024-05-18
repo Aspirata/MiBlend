@@ -135,6 +135,7 @@ class WorldAndMaterialsPanel(Panel):
         row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
         row = box.row()
         row.prop(scene.env_properties, "create_sky", text="Create Sky")
+        row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
         for obj in scene.objects:
             if obj.name != "Clouds":
                 clouds_exists = False
@@ -144,7 +145,7 @@ class WorldAndMaterialsPanel(Panel):
                 break
             
         #if clouds_exists == True:
-            #row.prop(geonodes_modifier, ['Socket_2'], "default_value", text="Layers Count", slider=True)
+            #row.prop(geonodes_modifier, ["Socket_2"],  text="Layers Count", slider=True)
 
         if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
             clouds_exists = True
@@ -170,14 +171,12 @@ class WorldAndMaterialsPanel(Panel):
             if node_group != None:
                 try:
                     if node_group.inputs["End"].default_value == False:
-                        row = box.row()
-                        row.prop(node_group.inputs["Time"], "default_value", text="Time")
-                        row = box.row()
-                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
-                        row = box.row()
-                        row.prop(scene.env_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.env_properties.advanced_settings else "TRIA_RIGHT"))
-                        if scene.env_properties.advanced_settings:
+                        if scene.env_properties.sky_settings:
                             sbox = box.box()
+                            row = sbox.row()
+                            row.prop(node_group.inputs["Time"], "default_value", text="Time")
+                            row = sbox.row()
+                            row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
                             row = sbox.row()
                             row.label(text="Strength:", icon="LIGHT_SUN")
                             row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
@@ -242,14 +241,12 @@ class WorldAndMaterialsPanel(Panel):
                             row = sbox.row()
                             row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
                     else:
-                        row = box.row()
-                        row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
-                        row = box.row()
-                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
-                        row = box.row()
-                        row.prop(scene.env_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.env_properties.advanced_settings else "TRIA_RIGHT"))
-                        if scene.env_properties.advanced_settings:
+                        if scene.env_properties.sky_settings:
                             sbox = box.box()
+                            row = sbox.row()
+                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
+                            row = sbox.row()
+                            row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
                             row = sbox.row()
                             row.label(text="Strength:", icon="LIGHT_SUN")
                             row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
@@ -261,7 +258,6 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
-                            
 
                             row = sbox.row()
                             row.label(text="Colors:", icon="IMAGE")
@@ -772,7 +768,7 @@ class Assets_List(bpy.types.UIList):
         flt_neworder = []
 
         for index, item in enumerate(data.asset_items):
-            if blender_version(Assets[item.name]["Blender Version"]) and Assets[item.name]["Type"] == context.scene.asset_category:
+            if blender_version(Assets[item.name]["Blender_version"]) and Assets[item.name]["Type"] == context.scene.asset_category:
                 flt_flags.append(self.bitflag_filter_item)
             else:
                 flt_flags.append(0)
@@ -795,14 +791,19 @@ class ImportAssetOperator(Operator):
         return {'FINISHED'}
 
 def append_asset(asset_data):
-    blend_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data[".blend_name"])
-    collection_name = asset_data["Collection_name"]
+    asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data["File_name"])
 
-    with bpy.data.libraries.load(blend_file_path, link=False) as (data_from, data_to):
-        data_to.collections = [collection_name]
+    if asset_data["Type"] == "Rigs":
+        collection_name = asset_data["Collection_name"]
 
-    for collection in data_to.collections:
-        bpy.context.collection.children.link(collection)
+        with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
+            data_to.collections = [collection_name]
+
+        for collection in data_to.collections:
+            bpy.context.collection.children.link(collection)
+
+    if asset_data["Type"] == "Scripts":
+        bpy.ops.script.python_file_run(asset_path)
 #
 
 classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,

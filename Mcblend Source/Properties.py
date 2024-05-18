@@ -281,8 +281,8 @@ class PPBRProperties(PropertyGroup):
 
 class CreateEnvProperties(PropertyGroup):
 
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
+    sky_settings: BoolProperty(
+        name="Sky Settings",
         default=False,
         description=""
     )
