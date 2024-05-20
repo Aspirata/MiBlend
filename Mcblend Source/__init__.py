@@ -420,6 +420,8 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "sss_type", text="")
                 row = tbox.row()
+                row.prop(scene.ppbr_properties, "sss_skip")
+                row = tbox.row()
                 if blender_version("4.x.x"):
                     row.prop(scene.ppbr_properties, "connect_texture")
                 else:

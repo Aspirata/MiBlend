@@ -106,21 +106,9 @@ def ConvertDBSDF2PBSDF():
                         PBSDF.location = (Output.location.x - 280, Output.location.y)
                         PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
                     
-                    for node in material.node_tree.nodes:
-                        if node.type == "BSDF_DIFFUSE":
-                            for link in node.inputs[0].links:
-                                for output in link.from_node.outputs:
-                                    for link in output.links:
-                                        if link.to_socket.node.name == node.name:
-                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs["Base Color"])
+                    material.node_tree.links.new(GetConnectedSocketTo(0, "BSDF_DIFFUSE", material), PBSDF.inputs["Base Color"])
 
-                    for node in material.node_tree.nodes:
-                        if node.type == "MIX_SHADER":
-                            for link in node.inputs[0].links:
-                                for output in link.from_node.outputs:
-                                    for link in output.links:
-                                        if link.to_socket.node.name == node.name:
-                                            material.node_tree.links.new(link.from_socket, PBSDF.inputs["Alpha"])
+                    material.node_tree.links.new(GetConnectedSocketTo(0, "MIX_SHADER", material), PBSDF.inputs["Alpha"])
                     
                     if MixShader != None:
                         material.node_tree.nodes.remove(MixShader)

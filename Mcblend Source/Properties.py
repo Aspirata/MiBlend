@@ -134,6 +134,12 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    sss_skip: BoolProperty(
+        name="Apply To All Materials",
+        default=False,
+        description=""
+    )
+
     sss_settings: BoolProperty(
         name="SSS Settings",
         default=False,

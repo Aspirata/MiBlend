@@ -42,6 +42,16 @@ def checkconfig(name):
     else:
         return Preferences_List["Default"][name]
     
+
+def GetConnectedSocketTo(input, tag, material):
+    for node in material.node_tree.nodes:
+        if node.type == tag:
+            for link in node.inputs[input].links:
+                for output in link.from_node.outputs:
+                    for link in output.links:
+                        if link.to_socket.node.name == node.name:
+                            return link.from_socket
+                        
 def blender_version(blender_version, debug=None):
     major, minor, patch = blender_version.lower().split(".")
 

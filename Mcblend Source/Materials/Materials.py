@@ -52,86 +52,6 @@ def DeleteUselessTextures(material):
                 
                 material.node_tree.nodes.remove(node)
 
-# This function checks if there is a connection between two nodes in a material's node tree based on the specified criteria. 
-# It returns True if a connection is found, and False otherwise.
-        
-def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nodeTo=None):
-    if nodeTo is None:
-        for selected_object in bpy.context.selected_objects:
-            if selected_object.material_slots:
-                for material in selected_object.data.materials:
-                    if material is not None:                       # Materials Check
-                        for Node in material.node_tree.nodes:      # Every Node in Material Check
-                            if NodeToName is not None:
-                                if NodeToName in Node.name:
-                            
-                                    if NodeFromName is not None and NodeFromType is None:
-                                        for link in Node.inputs[index].links:
-                                            if NodeFromName in link.from_node.name:
-                                                return True
-                                    
-                                    if NodeFromType is not None and NodeFromName is None:
-                                        if NodeFromType == link.from_node.type:
-
-                                                return True
-                                        
-                                    if NodeFromName is not None and NodeFromType is not None:
-                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
-                                            
-                            if NodeToType is not None:
-                                if NodeToType == Node.type:
-                                    if NodeFromName is not None and NodeFromType is None:
-                                        for link in Node.inputs[index].links:
-                                            if NodeFromName in link.from_node.name:
-                                                    return True
-                                    
-                                    if NodeFromType is not None and NodeFromName is None:
-                                        if NodeFromType == link.from_node.type:
-                                                return True
-                                        
-                                    if NodeFromName is not None and NodeFromType is not None:
-                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
-
-                            if NodeToName is not None and NodeToType is not None:
-                                if NodeToName == Node.name and NodeToType == Node.type:
-                                    if NodeFromName is not None and NodeFromType is None:
-                                        for link in Node.inputs[index].links:
-                                            if NodeFromName in link.from_node.name:
-                                                    return True
-                                    
-                                    if NodeFromType is not None and NodeFromName is None:
-                                        if NodeFromType == link.from_node.type:
-                                                return True
-                                        
-                                    if NodeFromName is not None and NodeFromType is not None:
-                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
-
-    else:
-        for selected_object in bpy.context.selected_objects:
-            if selected_object.material_slots:
-                for material in selected_object.data.materials:
-                    if material is not None:
-
-                        for link in nodeTo.inputs[index].links:
-                            if NodeFromName is None and NodeFromType is None:
-                                    return True
-
-                            else:
-                                if NodeFromName is not None and NodeFromType is None:
-                                    if NodeFromName in link.from_node.name:
-                                        return True
-
-                                if NodeFromType is not None and NodeFromName is None:
-                                    if NodeFromType == link.from_node.type:
-                                        return True
-
-                                if NodeFromName is not None and NodeFromType is not None:
-                                    if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                        return True
-
 def EmissionMode(PBSDF, material):
                 
         if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials, material)):
@@ -204,16 +124,16 @@ def fix_world():
                             PBSDF = node
                                 
                     if (image_texture_node and PBSDF) != None:
-                        if not IsConnectedTo(None, None, None, None, "Alpha", PBSDF):
+                        if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) == None:
                             material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                         
                         # Emission
                         if EmissionMode(PBSDF, material):
                             if blender_version("4.x.x"):
-                                if not IsConnectedTo(None, None, None, None, "Emission Color", PBSDF):
+                                if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
                                     material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
                             else:
-                                if not IsConnectedTo(None, None, None, None, "Emission", PBSDF):
+                                if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
                                     material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
 
                             if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
@@ -263,7 +183,7 @@ def fix_world():
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "GROUP":
-                                        if "Backface Culling" in node.node_tree.name:                                            
+                                        if "Backface Culling" in node.node_tree.name:
                                             for link in node.inputs[0].links:     
                                                 for output in link.from_node.outputs:
                                                     for link_out in output.links:
@@ -634,7 +554,7 @@ def setproceduralpbr():
 
                         # Use SSS                            
                         if PProperties.use_sss  == True:
-                            if MaterialIn(SSS_Materials, material):
+                            if MaterialIn(SSS_Materials, material) or PProperties.sss_skip:
                                 PBSDF.subsurface_method = PProperties.sss_type
 
                                 if PProperties.connect_texture:
@@ -740,20 +660,14 @@ def setproceduralpbr():
                                 
                                 # Color Connection if Nothing Connected
                                 if blender_version("4.x.x"):
-                                    if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", "Emission Color"):
+                                    if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
                                         material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission Color"])
                                 else:
-                                    if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", "Emission"):
+                                    if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
                                         material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission"])
-                                    
-                                for node in material.node_tree.nodes:
-                                    if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs["Emission Strength"].links:
-                                            if link.from_node != node_group:
-                                                for output in link.from_node.outputs:
-                                                    for link in output.links:
-                                                        if link.to_socket.node.name == node.name:
-                                                            material.node_tree.links.new(link.from_socket, node_group.inputs["Multiply"])
+                                
+                                if GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material), node_group.inputs["Multiply"])
 
                                 node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
                                 if blender_version("4.x.x"):
