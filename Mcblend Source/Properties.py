@@ -38,7 +38,7 @@ class FixWorldProperties(PropertyGroup):
 class PPBRProperties(PropertyGroup):
 
     use_normals: BoolProperty(
-        name=Translate("Use Normals"),
+        name="Use Normals",
         default=True,
         description="Enables Normals In Materials"
     )
@@ -51,7 +51,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     normals_settings: BoolProperty(
-        name=Translate("Normals Settings"),
+        name="Normals Settings",
         default=False,
         description=""
     )
@@ -129,13 +129,13 @@ class PPBRProperties(PropertyGroup):
     )
 
     use_sss: BoolProperty(
-        name=Translate("Use SSS"),
+        name="Use SSS",
         default=True,
         description=""
     )
 
     sss_settings: BoolProperty(
-        name=Translate("SSS Settings"),
+        name="SSS Settings",
         default=False,
         description=""
     )
@@ -282,31 +282,31 @@ class PPBRProperties(PropertyGroup):
 class CreateEnvProperties(PropertyGroup):
 
     sky_settings: BoolProperty(
-        name="Sky Settings",
         default=False,
         description=""
     )
 
     strength_settings: BoolProperty(
-        name="Strength Settings",
         default=False,
         description=""
     )
 
     colors_settings: BoolProperty(
-        name="Colors Settings",
         default=False,
         description=""
     )
 
     ambient_colors_settings: BoolProperty(
-        name="Ambient Colors Settings",
         default=False,
         description=""
     )
 
     rotation_settings: BoolProperty(
-        name="Rotation Settings",
+        default=False,
+        description=""
+    )
+
+    other_settings: BoolProperty(
         default=False,
         description=""
     )
@@ -513,6 +513,21 @@ class UtilsProperties(PropertyGroup):
 
 
 
-#class AssetsProperties(PropertyGroup):
+class AssetsProperties(PropertyGroup):
 
+    asset_index: bpy.props.IntProperty(
+        default=0
+    )
+
+    asset_category: bpy.props.EnumProperty(
+        name="Category",
+        items=[
+            ('All', "All", ""),
+            ('Rigs', "Rigs", ""),
+            ('Scripts', "Scripts", ""),
+        ],
+        default='Rigs',
+    )
+
+    asset_items: bpy.props.CollectionProperty(type=PropertyGroup)
     

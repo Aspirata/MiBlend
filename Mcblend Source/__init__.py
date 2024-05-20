@@ -6,6 +6,7 @@ from .Utils import *
 from .Translator import Translate
 from .Preferences import McblendPreferences
 from bpy.types import Panel, Operator
+import subprocess
 
 bl_info = {
     "name": "Mcblend",
@@ -173,10 +174,15 @@ class WorldAndMaterialsPanel(Panel):
                     if node_group.inputs["End"].default_value == False:
                         if scene.env_properties.sky_settings:
                             sbox = box.box()
-                            row = sbox.row()
+
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.label(text="Main Settings:", icon="PROPERTIES")
+                            row = tbox.row()
                             row.prop(node_group.inputs["Time"], "default_value", text="Time")
-                            row = sbox.row()
+                            row = tbox.row()
                             row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
+
                             row = sbox.row()
                             row.label(text="Strength:", icon="LIGHT_SUN")
                             row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
@@ -192,6 +198,21 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
                                 row = tbox.row()
                                 row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+                                                        
+                            row = sbox.row()
+                            row.label(text="Colors:", icon="IMAGE")
+                            row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
+
+                            if scene.env_properties.colors_settings:
+                                tbox = sbox.box()
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Sun Color"], "default_value", text="Sun Color")
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
                             
                             row = sbox.row()
                             row.label(text="Ambient Light Colors:", icon="IMAGE")
@@ -209,22 +230,7 @@ class WorldAndMaterialsPanel(Panel):
                                                     row.prop(element, "color", icon_only=True)
                             
                             row = sbox.row()
-                            row.label(text="Colors:", icon="IMAGE")
-                            row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
-
-                            if scene.env_properties.colors_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Sun Color"], "default_value", text="Sun Color")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
-                            
-                            row = sbox.row()
-                            row.label(text="Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                            row.label(text="Sun & Moon Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
                             row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
                             if scene.env_properties.rotation_settings:
@@ -237,16 +243,27 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
 
                             row = sbox.row()
-                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
-                            row = sbox.row()
-                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
+                            row.label(text="Other Settings:", icon="COLLAPSEMENU")
+                            row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+
+                            if scene.env_properties.other_settings:
+                                tbox = sbox.box()
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
                     else:
                         if scene.env_properties.sky_settings:
                             sbox = box.box()
-                            row = sbox.row()
+
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.label(text="Main Settings:", icon="PROPERTIES")
+                            row = tbox.row()
                             row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
-                            row = sbox.row()
+                            row = tbox.row()
                             row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
+
                             row = sbox.row()
                             row.label(text="Strength:", icon="LIGHT_SUN")
                             row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
@@ -296,7 +313,13 @@ class WorldAndMaterialsPanel(Panel):
                                 row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
                             
                             row = sbox.row()
-                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                            row.label(text="Other Settings:", icon="COLLAPSEMENU")
+                            row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+
+                            if scene.env_properties.other_settings:
+                                tbox = sbox.box()
+                                row = tbox.row()
+                                row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
 
 
                 except Exception as Error:
@@ -344,7 +367,7 @@ class WorldAndMaterialsPanel(Panel):
             if scene.ppbr_properties.normals_selector == "Bump":
                 tbox = sbox.box()
                 row = tbox.row()
-                row.label(text="Bump Settings:", icon="MODIFIER")
+                row.label(text=Translate("Bump Settings:"), icon="MODIFIER")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "bump_strength", slider=True)
             else:
@@ -481,7 +504,6 @@ class SetProceduralPBROperator(Operator):
     def execute(self, context):
         Materials.setproceduralpbr()
         return {'FINISHED'}
-
 #
 
 # Optimization
@@ -739,15 +761,15 @@ class AssetPanel(Panel):
         row = box.row()
         row.label(text="Asset Category")
         row = box.row()
-        row.prop(context.scene, "asset_category", text="")
+        row.prop(context.scene.assetsproperties, "asset_category", text="")
 
-        box.template_list("Assets_List", "", bpy.context.scene, "asset_items", bpy.context.scene, "asset_index")
+        box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.import_asset", text="Import Asset")
 
-class Assets_List(bpy.types.UIList):
+class Assets_List_UL_(bpy.types.UIList):
 
     def get_custom_icon(self, item):
         asset_type = Assets[item.name]["Type"]
@@ -768,10 +790,17 @@ class Assets_List(bpy.types.UIList):
         flt_neworder = []
 
         for index, item in enumerate(data.asset_items):
-            if blender_version(Assets[item.name]["Blender_version"]) and Assets[item.name]["Type"] == context.scene.asset_category:
-                flt_flags.append(self.bitflag_filter_item)
-            else:
-                flt_flags.append(0)
+            # Version Check Skip
+            try:
+                if blender_version(Assets[item.name]["Blender_version"]) and (Assets[item.name]["Type"] == context.scene.assetsproperties.asset_category or context.scene.assetsproperties.asset_category == "All"):
+                    flt_flags.append(self.bitflag_filter_item)
+                else:
+                    flt_flags.append(0)
+            except:
+                if Assets[item.name]["Type"] == context.scene.assetsproperties.asset_category or context.scene.assetsproperties.asset_category == "All":
+                    flt_flags.append(self.bitflag_filter_item)
+                else:
+                    flt_flags.append(0)
                 
         return flt_flags, flt_neworder
 
@@ -781,7 +810,7 @@ class ImportAssetOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.asset_index
+        current_index = bpy.context.scene.assetsproperties.asset_index
         index = -1
         for Asset in Assets:
             index += 1
@@ -789,6 +818,12 @@ class ImportAssetOperator(Operator):
                 append_asset(Assets[Asset])
         
         return {'FINISHED'}
+
+def run_python_script(file_path):
+    try:
+        subprocess.run(["blender", "--background", "--python", file_path], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при выполнении скрипта: {e}")
 
 def append_asset(asset_data):
     asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data["File_name"])
@@ -803,11 +838,11 @@ def append_asset(asset_data):
             bpy.context.collection.children.link(collection)
 
     if asset_data["Type"] == "Scripts":
-        bpy.ops.script.python_file_run(asset_path)
+        run_python_script(asset_path)
 #
 
-classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
-           UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, Assets_List, ImportAssetOperator]
+classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
+           OptimizeOperator, UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator]
 
 def register():
     for cls in classes:
@@ -818,22 +853,7 @@ def register():
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
-    #bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
-
-    bpy.types.Scene.asset_category = EnumProperty(
-        name="Category",
-        items=[
-            ('Rigs', "Rigs", ""),
-            ('Scripts', "Scripts", ""),
-        ],
-        default='Rigs'
-    )
-
-    bpy.types.Scene.asset_index = IntProperty(
-        default=0
-    )
-
-    bpy.types.Scene.asset_items = bpy.props.CollectionProperty(type=PropertyGroup)
+    bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
 
 def unregister():
     del bpy.types.Scene.world_properties
@@ -841,9 +861,7 @@ def unregister():
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.utilsproperties
-    del bpy.types.Scene.asset_category
-    del bpy.types.Scene.asset_index
-    del bpy.types.Scene.asset_items
+    del bpy.types.Scene.assetsproperties
 
     for cls in classes:
         bpy.utils.unregister_class(cls)

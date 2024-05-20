@@ -337,7 +337,6 @@ Materials_Array = {
 
 Assets = {
     "SRE V2.0": {
-        "Name": "SRE V2.0",
         "Type": "Rigs",
         "Blender_version": "4.x.x",
         "File_name": "Simple_edit_V2.0.blend",
@@ -345,7 +344,6 @@ Assets = {
     },
 
     "SRE V2.0b732": {
-        "Name": "SRE V2.0b732",
         "Type": "Rigs",
         "Blender_version": "3.6.x",
         "File_name": "Simple_edit_V2.0b732.blend",
@@ -353,7 +351,6 @@ Assets = {
     },
 
     "Creeper": {
-        "Name": "Creeper",
         "Type": "Rigs",
         "Blender_version": "4.x.x",
         "File_name": "Creeper.blend",
@@ -361,7 +358,6 @@ Assets = {
     },
 
     "Allay": {
-        "Name": "Allay Rig",
         "Type": "Rigs",
         "Blender_version": "4.x.x",
         "File_name": "Allay.blend",
@@ -369,7 +365,6 @@ Assets = {
     },
 
     "Axolotl": {
-        "Name": "Axolotl Rig",
         "Type": "Rigs",
         "Blender_version": "4.x.x",
         "File_name": "Axolotl.blend",
@@ -377,10 +372,14 @@ Assets = {
     },
 
     "Warden": {
-        "Name": "Warden",
         "Type": "Rigs",
         "Blender_version": "4.x.x",
         "File_name": "Warden.blend",
         "Collection_name": "Warden"
+    },
+
+    "Sleep After Render": {
+        "Type": "Scripts",
+        "File_name": "Sleep After Render.py",
     }
 }
