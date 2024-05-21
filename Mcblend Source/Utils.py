@@ -68,34 +68,6 @@ def VertexRiggingTool():
         else:
             CEH("007", obj)
 
-def FixAutoSmooth():
-    for selected_object in bpy.context.selected_objects:
-        AutoSmoothed = False
-        if bpy.app.version < (4, 1, 0):
-            if selected_object.type == 'MESH':
-                for modifier in selected_object.modifiers:
-                    if modifier.type == 'NODES' and modifier.node_group == bpy.data.node_groups.get("Auto Smooth"):
-                        AutoSmoothed = True
-                        SmoothAngle = modifier["Socket_1"]
-
-                if AutoSmoothed == True:
-                    selected_object.data.use_auto_smooth = True
-                    selected_object.data.auto_smooth_angle= SmoothAngle
-        else:
-            for modifier in selected_object.modifiers:
-                if modifier.type == 'NODES' and modifier.node_group == bpy.data.node_groups.get("Smooth by Angle"):
-                    return
-
-            if "Smooth by Angle" not in bpy.data.node_groups:
-                try:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Shade Auto Smooth.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = ["Smooth by Angle"]
-                except:
-                    raise CEH("004")
-                    
-            geonodes_modifier = selected_object.modifiers.new('Shade Auto Smooth', type='NODES')
-            geonodes_modifier.node_group = bpy.data.node_groups.get("Smooth by Angle")
-
 def Enchant():
     for selected_object in bpy.context.selected_objects:
         if selected_object.material_slots:

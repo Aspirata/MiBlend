@@ -42,7 +42,6 @@ def checkconfig(name):
     else:
         return Preferences_List["Default"][name]
     
-
 def GetConnectedSocketTo(input, tag, material):
     for node in material.node_tree.nodes:
         if node.type == tag:
@@ -53,7 +52,12 @@ def GetConnectedSocketTo(input, tag, material):
                             return link.from_socket
                         
 def blender_version(blender_version, debug=None):
-    major, minor, patch = blender_version.lower().split(".")
+    version_parts = blender_version.lower().split(".")
+    
+    if len(version_parts) != 3:
+        return False
+    
+    major, minor, patch = version_parts
 
     if major != "x":
         major_c = bpy.app.version[0] == int(major)
@@ -269,54 +273,17 @@ Emissive_Materials = {
 
 }
 
-Backface_Culling_Materials = [
-    "glass",
-    "door",
-    "nether_portal",
-]
+# Materials Categories
+Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 
-Alpha_Blend_Materials = [
-    "water"
-]
+Alpha_Blend_Materials = ["water"]
 
-SSS_Materials = [
-    "leaves",
-    "grass",
-    "tulip",
-    "oxeye_daisy",
-    "dandelion",
-    "poppy",
-    "blue_orchid",
-    "torchflower",
-    "lily_of_the_valley",
-    "cornflower",
-    "allium",
-    "azure bluet",
-]
+SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet"]
 
-Metal = [
-    "iron",
-    "gold",
-    "copper",
-    "diamond",
-    "netherite",
-    "minecart",
-    "lantern",
-    "chain",
-    "anvil",
-    "clock",
-    "cauldron",
-    "spyglass",
-    "rail",
-]
+Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
-Reflective = [
-    "glass",
-    "ender",
-    "amethyst",
-    "water",
-    "emerald",
-]
+Reflective = ["glass", "ender", "amethyst", "water", "emerald"]
+
 
 Materials_Array = {
     
@@ -346,55 +313,61 @@ Materials_Array = {
 }
 
 Assets = {
-    "SRE V2.0": {
-        "Type": "Rigs",
-        "Blender_version": "4.x.x",
-        "File_name": "Simple_edit_V2.0.blend",
-        "Collection_name": "SRE rig"
-    },
+    "Rigs": {
+        "SRE V2.0": {
+            "Blender_version": "4.x.x",
+            "File_name": "Simple_edit_V2.0.blend",
+            "Collection_name": "SRE rig"
+        },
 
-    "SRE V2.0b732": {
-        "Type": "Rigs",
-        "Blender_version": "3.6.x",
-        "File_name": "Simple_edit_V2.0b732.blend",
-        "Collection_name": "SRE rig"
-    },
+        "SRE V2.0b732": {
+            "Blender_version": "3.6.x",
+            "File_name": "Simple_edit_V2.0b732.blend",
+            "Collection_name": "SRE rig"
+        },
 
-    "Creeper": {
-        "Type": "Rigs",
-        "Blender_version": "4.x.x",
-        "File_name": "Creeper.blend",
-        "Collection_name": "Creeper"
-    },
+        "Creeper": {
+            "Blender_version": "4.x.x",
+            "File_name": "Creeper.blend",
+            "Collection_name": "Creeper"
+        },
 
-    "Allay": {
-        "Type": "Rigs",
-        "Blender_version": "4.x.x",
-        "File_name": "Allay.blend",
-        "Collection_name": "Simple Allay"
-    },
+        "Allay": {
+            "Blender_version": "4.x.x",
+            "File_name": "Allay.blend",
+            "Collection_name": "Simple Allay"
+        },
 
-    "Axolotl": {
-        "Type": "Rigs",
-        "Blender_version": "4.x.x",
-        "File_name": "Axolotl.blend",
-        "Collection_name": "Axolotl"
-    },
+        "Axolotl": {
+            "Blender_version": "4.x.x",
+            "File_name": "Axolotl.blend",
+            "Collection_name": "Axolotl"
+        },
 
-    "Warden": {
-        "Type": "Rigs",
-        "Blender_version": "4.x.x",
-        "File_name": "Warden.blend",
-        "Collection_name": "Warden"
+        "Warden": {
+            "Blender_version": "4.x.x",
+            "File_name": "Warden.blend",
+            "Collection_name": "Warden"
+        },
     },
+    "Scripts": {
 
-    "Sleep After Render": {
-        "Type": "Scripts",
-        "File_name": "Sleep After Render.py",
-    },
+        "Sleep After Render": {
+            "File_name": "Sleep After Render.py",
+        },
 
-    "Convert DBSDF 2 BSDF": {
-        "Type": "Scripts",
-        "File_name": "Convert DBSDF 2 PBSDF.py",
+        "Convert DBSDF 2 BSDF": {
+            "File_name": "Convert DBSDF 2 PBSDF.py",
+        },
+
+        "Fix Shade Auto Smooth": {
+            "Blender_version": "4.0.x",
+            "File_name": "Fix Shade Auto Smooth.py",
+        },
+
+        "Fix Shade Auto Smooth": {
+            "Blender_version": "3.6.x",
+            "File_name": "Fix Shade Auto Smooth.py",
+        },
     },
 }

@@ -653,12 +653,6 @@ class UtilsPanel(Panel):
 
         box = layout.box()
         row = box.row()
-        row.label(text="Mesh", icon="MESH_DATA")
-        row = box.row()
-        row.operator("object.fixautosmooth", text="Fix Shade Auto Smooth")
-
-        box = layout.box()
-        row = box.row()
         row.label(text="Rigging", icon="ARMATURE_DATA")
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "armature")
@@ -700,15 +694,6 @@ class EnchantOperator(Operator):
         Enchant()
         return {'FINISHED'}
     
-class FixAutoSmoothOperator(Operator):
-    bl_idname = "object.fixautosmooth"
-    bl_label = "Fix Shade Auto Smooth"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        FixAutoSmooth()
-        return {'FINISHED'}
-    
 class AssingVertexGroupOperator(Operator):
     bl_idname = "object.assingvertexgroup"
     bl_label = "Assing Vertex Group"
@@ -737,7 +722,7 @@ class AssetPanel(Panel):
         box = layout.box()
 
         row = box.row()
-        row.label(text="Asset Category")
+        row.label(text="Asset Category:")
         row = box.row()
         row.prop(context.scene.assetsproperties, "asset_category", text="")
 
@@ -756,14 +741,18 @@ class AssetPanel(Panel):
 class Assets_List_UL_(bpy.types.UIList):
 
     def get_custom_icon(self, item):
-        asset_type = Assets[item.name]["Type"]
-        if asset_type == "Rigs":
-            return "ARMATURE_DATA"
-        
-        if asset_type == "Scripts":
-            return "FILE_SCRIPT"
-        
+        for category, assets in Assets.items():
+            if item.name in assets:
+                asset_type = category
+
+                if asset_type == "Rigs":
+                    return "ARMATURE_DATA"
+                
+                if asset_type == "Scripts":
+                    return "FILE_SCRIPT"
+                
         return "QUESTION"
+
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         custom_icon = self.get_custom_icon(item)
@@ -773,19 +762,32 @@ class Assets_List_UL_(bpy.types.UIList):
         flt_flags = []
         flt_neworder = []
 
+        asset_category = context.scene.assetsproperties.asset_category
+
         for index, item in enumerate(data.asset_items):
-            # Version Check Skip
-            try:
-                if blender_version(Assets[item.name]["Blender_version"]) and (Assets[item.name]["Type"] == context.scene.assetsproperties.asset_category or context.scene.assetsproperties.asset_category == "All"):
-                    flt_flags.append(self.bitflag_filter_item)
-                else:
-                    flt_flags.append(0)
-            except:
-                if Assets[item.name]["Type"] == context.scene.assetsproperties.asset_category or context.scene.assetsproperties.asset_category == "All":
-                    flt_flags.append(self.bitflag_filter_item)
-                else:
-                    flt_flags.append(0)
-                
+            found = False
+            for category, assets in Assets.items():
+                if item.name in assets:
+                    asset_data = assets[item.name]
+                    try:
+                        if blender_version(asset_data["Blender_version"]):
+                            if asset_category == "All" or category == asset_category:
+                                flt_flags.append(self.bitflag_filter_item)
+                            else:
+                                flt_flags.append(0)
+                        else:
+                            flt_flags.append(0)
+                    except KeyError:
+                        if asset_category == "All" or category == asset_category:
+                            flt_flags.append(self.bitflag_filter_item)
+                        else:
+                            flt_flags.append(0)
+                    found = True
+                    break
+
+            if not found:
+                flt_flags.append(0)
+
         return flt_flags, flt_neworder
 
 class ImportAssetOperator(Operator):
@@ -830,19 +832,20 @@ def append_asset(asset_data):
 def update_assets(idk_lol):
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
-    for key in Assets.keys():
-        item = bpy.context.scene.assetsproperties.asset_items.add()
-        item.name = key
+
+    for category, assets in Assets.items():
+        for key in assets.keys():
+            item = items.add()
+            item.name = key
     
 def run_python_script(file_path):
     with open(file_path, 'r') as file:
         script_code = file.read()
         exec(script_code, globals())
-
 #
 
 classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
-           OptimizeOperator, UtilsProperties, UtilsPanel, CShadowsOperator, SetRenderSettingsOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
+           OptimizeOperator, UtilsProperties, UtilsPanel, CShadowsOperator, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
 
 def register():
     for cls in classes:
