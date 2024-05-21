@@ -633,16 +633,10 @@ class UtilsPanel(Panel):
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.setrendersettings")
-        
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("object.sleppafterrender", text="Sleep After Render")
 
         box = layout.box()
         row = box.row()
         row.label(text="Materials", icon="MATERIAL")
-        row = box.row()
-        row.operator("object.convertdbsdf2pbsdf", text="Convert DBSDF 2 PBSDF")
         row = box.row()
         row.scale_x = 1.3
         row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"), icon_only=True)
@@ -686,15 +680,6 @@ class CShadowsOperator(Operator):
         UProperties = bpy.context.scene.utilsproperties
         CShadows(UProperties)
         return {'FINISHED'}
-    
-class SleepAfterRenderOperator(Operator):
-    bl_idname = "object.sleppafterrender"
-    bl_label = "Sleep After Render"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        sleep_detector()
-        return {'FINISHED'}
 
 class SetRenderSettingsOperator(Operator):
     bl_idname = "object.setrendersettings"
@@ -704,15 +689,6 @@ class SetRenderSettingsOperator(Operator):
     def execute(self, context):
         current_preset = bpy.context.scene.utilsproperties.current_preset
         SetRenderSettings(current_preset)
-        return {'FINISHED'}
-
-class ConvertDBSDF2PBSDFOperator(Operator):
-    bl_idname = "object.convertdbsdf2pbsdf"
-    bl_label = "Convert DBSDF 2 PBSDF"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        ConvertDBSDF2PBSDF()
         return {'FINISHED'}
     
 class EnchantOperator(Operator):
@@ -765,7 +741,13 @@ class AssetPanel(Panel):
         row = box.row()
         row.prop(context.scene.assetsproperties, "asset_category", text="")
 
+        if not any(f.__name__ == update_assets.__name__ for f in bpy.app.handlers.depsgraph_update_post):
+            bpy.app.handlers.depsgraph_update_post.append(update_assets)
+
         box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
+
+        row = box.row()
+        row.operator("object.update_assets", text="Manually Update Assets List")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -820,12 +802,15 @@ class ImportAssetOperator(Operator):
                 append_asset(Assets[Asset])
         
         return {'FINISHED'}
-
-def run_python_script(file_path):
-    try:
-        subprocess.run(["blender", "--background", "--python", file_path], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Ошибка при выполнении скрипта: {e}")
+    
+class ManualAssetsUpdateOperator(Operator):
+    bl_idname = "object.update_assets"
+    bl_label = "Update Assets"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        update_assets("lol")
+        return {'FINISHED'}
 
 def append_asset(asset_data):
     asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data["File_name"])
@@ -841,10 +826,23 @@ def append_asset(asset_data):
 
     if asset_data["Type"] == "Scripts":
         run_python_script(asset_path)
+
+def update_assets(idk_lol):
+    items = bpy.context.scene.assetsproperties.asset_items
+    items.clear()
+    for key in Assets.keys():
+        item = bpy.context.scene.assetsproperties.asset_items.add()
+        item.name = key
+    
+def run_python_script(file_path):
+    with open(file_path, 'r') as file:
+        script_code = file.read()
+        exec(script_code, globals())
+
 #
 
 classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
-           OptimizeOperator, UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator]
+           OptimizeOperator, UtilsProperties, UtilsPanel, CShadowsOperator, SetRenderSettingsOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
 
 def register():
     for cls in classes:

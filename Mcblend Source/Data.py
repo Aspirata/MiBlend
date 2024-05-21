@@ -391,5 +391,10 @@ Assets = {
     "Sleep After Render": {
         "Type": "Scripts",
         "File_name": "Sleep After Render.py",
-    }
+    },
+
+    "Convert DBSDF 2 BSDF": {
+        "Type": "Scripts",
+        "File_name": "Convert DBSDF 2 PBSDF.py",
+    },
 }
