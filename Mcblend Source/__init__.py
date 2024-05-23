@@ -128,15 +128,19 @@ class WorldAndMaterialsPanel(Panel):
         row.operator("object.fix_world", text="Fix World")
 
         # Sky
-        
-        box = layout.box()
-        row = box.row()
-        row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
-        row = box.row()
-        row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
-        row = box.row()
-        row.prop(scene.env_properties, "create_sky", text="Create Sky")
-        row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
+
+        node_group = None            
+
+        if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+            if world_material_name in bpy.data.worlds:
+                sky_exists = True
+                world_material = scene.world.node_tree
+                for node in world_material.nodes:
+                    if node.type == 'GROUP':
+                        if "Mcblend Sky" in node.node_tree.name:
+                            node_group = node
+                            break
+
         for obj in scene.objects:
             if obj.name != "Clouds":
                 clouds_exists = False
@@ -151,194 +155,184 @@ class WorldAndMaterialsPanel(Panel):
         if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
             clouds_exists = True
 
-        if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
-            if world_material_name in bpy.data.worlds:
-                sky_exists = True
+        
+        box = layout.box()
+        row = box.row()
+        row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
+        row = box.row()
+        row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
+        row = box.row()
+        row.prop(scene.env_properties, "create_sky", text="Create Sky")
+        if node_group != None:
+            row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
+            try:
+                if node_group.inputs["End"].default_value == False:
+                    if scene.env_properties.sky_settings:
+                        sbox = box.box()
 
-        if clouds_exists == False and sky_exists == False:
-            row = box.row()
-            row.scale_y = Big_Button_Scale
-            row.operator("object.create_env")
+                        tbox = sbox.box()
+                        row = tbox.row()
+                        row.label(text="Main Settings:", icon="PROPERTIES")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Time"], "default_value", text="Time")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
 
-        if sky_exists == True:
-            world_material = scene.world.node_tree
-            node_group = None
-            for node in world_material.nodes:
-                if node.type == 'GROUP':
-                    if "Mcblend Sky" in node.node_tree.name:
-                        node_group = node
-                        break
-
-            if node_group != None:
-                try:
-                    if node_group.inputs["End"].default_value == False:
-                        if scene.env_properties.sky_settings:
-                            sbox = box.box()
-
+                        row = sbox.row()
+                        row.label(text="Strength:", icon="LIGHT_SUN")
+                        row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.strength_settings:
                             tbox = sbox.box()
                             row = tbox.row()
-                            row.label(text="Main Settings:", icon="PROPERTIES")
+                            row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Time"], "default_value", text="Time")
+                            row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
                             row = tbox.row()
-                            row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
+                            row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+                                                    
+                        row = sbox.row()
+                        row.label(text="Colors:", icon="IMAGE")
+                        row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
-                            row = sbox.row()
-                            row.label(text="Strength:", icon="LIGHT_SUN")
-                            row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.strength_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
-                                                        
-                            row = sbox.row()
-                            row.label(text="Colors:", icon="IMAGE")
-                            row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
-
-                            if scene.env_properties.colors_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Sun Color"], "default_value", text="Sun Color")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
-                            
-                            row = sbox.row()
-                            row.label(text="Ambient Light Colors:", icon="IMAGE")
-                            row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.ambient_colors_settings:
-                                for node in bpy.data.node_groups:
-                                    if "Ambient Color" in node.name:
-                                        tbox = sbox.box()
-                                        
-                                        for Node in node.nodes:
-                                            if Node.type == "VALTORGB":
-                                                row = tbox.row()
-                                                row.label(text=f"{Node.name}:")
-                                                for element in Node.color_ramp.elements:                                                    
-                                                    row.prop(element, "color", icon_only=True)
-                            
-                            row = sbox.row()
-                            row.label(text="Sun & Moon Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                            row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
-
-                            if scene.env_properties.rotation_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
-
-                            row = sbox.row()
-                            row.label(text="Other Settings:", icon="COLLAPSEMENU")
-                            row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
-
-                            if scene.env_properties.other_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
-                    else:
-                        if scene.env_properties.sky_settings:
-                            sbox = box.box()
-
+                        if scene.env_properties.colors_settings:
                             tbox = sbox.box()
                             row = tbox.row()
-                            row.label(text="Main Settings:", icon="PROPERTIES")
+                            row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
+                            row.prop(node_group.inputs["Sun Color"], "default_value", text="Sun Color")
                             row = tbox.row()
-                            row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
+                            row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
+                        
+                        row = sbox.row()
+                        row.label(text="Ambient Light Colors:", icon="IMAGE")
+                        row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.ambient_colors_settings:
+                            for node in bpy.data.node_groups:
+                                if "Ambient Color" in node.name:
+                                    tbox = sbox.box()
+                                    
+                                    for Node in node.nodes:
+                                        if Node.type == "VALTORGB":
+                                            row = tbox.row()
+                                            row.label(text=f"{Node.name}:")
+                                            for element in Node.color_ramp.elements:                                                    
+                                                row.prop(element, "color", icon_only=True)
+                        
+                        row = sbox.row()
+                        row.label(text="Sun & Moon Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                        row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
-                            row = sbox.row()
-                            row.label(text="Strength:", icon="LIGHT_SUN")
-                            row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.strength_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+                        if scene.env_properties.rotation_settings:
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
 
-                            row = sbox.row()
-                            row.label(text="Colors:", icon="IMAGE")
-                            row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.colors_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
+                        row = sbox.row()
+                        row.label(text="Other Settings:", icon="COLLAPSEMENU")
+                        row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
 
-                            row = sbox.row()
-                            row.label(text="Ambient Light Colors:", icon="IMAGE")
-                            row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.ambient_colors_settings:
-                                for node in bpy.data.node_groups:
-                                    if node.name == "End":
-                                        tbox = sbox.box()
-                                        
-                                        for Node in node.nodes:
-                                            if Node.type == "VALTORGB":
-                                                row = tbox.row()
-                                                row.label(text=f"{Node.name}:")
-                                                for element in Node.color_ramp.elements:                                                    
-                                                    row.prop(element, "color", icon_only=True)
-                            
-                            row = sbox.row()
-                            row.label(text="Star Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                            row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.other_settings:
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
+                else:
+                    if scene.env_properties.sky_settings:
+                        sbox = box.box()
 
-                            if scene.env_properties.rotation_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
-                                row = tbox.row()
-                                row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
-                            
-                            row = sbox.row()
-                            row.label(text="Other Settings:", icon="COLLAPSEMENU")
-                            row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+                        tbox = sbox.box()
+                        row = tbox.row()
+                        row.label(text="Main Settings:", icon="PROPERTIES")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
+                        row = tbox.row()
+                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
 
-                            if scene.env_properties.other_settings:
-                                tbox = sbox.box()
-                                row = tbox.row()
-                                row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                        row = sbox.row()
+                        row.label(text="Strength:", icon="LIGHT_SUN")
+                        row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.strength_settings:
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+
+                        row = sbox.row()
+                        row.label(text="Colors:", icon="IMAGE")
+                        row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.colors_settings:
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
+
+                        row = sbox.row()
+                        row.label(text="Ambient Light Colors:", icon="IMAGE")
+                        row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.ambient_colors_settings:
+                            for node in bpy.data.node_groups:
+                                if node.name == "Mcblend End":
+                                    tbox = sbox.box()
+                                    
+                                    for Node in node.nodes:
+                                        if Node.type == "VALTORGB":
+                                            row = tbox.row()
+                                            row.label(text=f"{Node.name}:")
+                                            for element in Node.color_ramp.elements:                                                    
+                                                row.prop(element, "color", icon_only=True)
+                        
+                        row = sbox.row()
+                        row.label(text="Star Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                        row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
+
+                        if scene.env_properties.rotation_settings:
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
+                        
+                        row = sbox.row()
+                        row.label(text="Other Settings:", icon="COLLAPSEMENU")
+                        row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+
+                        if scene.env_properties.other_settings:
+                            tbox = sbox.box()
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
 
 
-                except Exception as Error:
-                    row = box.row()
-                    row.label(text="Unknown Error Printed in Console. Report To Aspirata", icon="ERROR")
-                    row = box.row()
-                    row.label(text="To Open Console Press Window > Toggle System Console")
-                    print(Error)
-
-            else:
+            except Exception as Error:
                 row = box.row()
-                row.label(text="Mcblend Sky node not found, maybe you should recreate sky ?", icon="ERROR")
+                row.label(text="Unknown Error Printed in Console. Report To Aspirata", icon="ERROR")
                 row = box.row()
-                row.label(text="Error code: m005")
+                row.label(text="To Open Console Press Window > Toggle System Console")
+                print(Error)
 
         if clouds_exists == True or sky_exists == True:
             row = box.row()
             row.scale_y = Big_Button_Scale
             row.operator("object.create_env", text="Recreate Environment")
+
+        if clouds_exists == False and sky_exists == False:
+            row = box.row()
+            row.scale_y = Big_Button_Scale
+            row.operator("object.create_env")
         
         # Materials
             
@@ -797,11 +791,17 @@ class ImportAssetOperator(Operator):
     
     def execute(self, context):
         current_index = bpy.context.scene.assetsproperties.asset_index
-        index = -1
-        for Asset in Assets:
-            index += 1
-            if current_index == index:
-                append_asset(Assets[Asset])
+        index = 0
+        found = False
+        for category, assets in Assets.items():
+            for key in assets.keys():
+                if current_index == index:
+                    append_asset(key, category)
+                    found = True
+                    break
+                index += 1
+            if found:
+                break
         
         return {'FINISHED'}
     
@@ -814,20 +814,36 @@ class ManualAssetsUpdateOperator(Operator):
         update_assets("lol")
         return {'FINISHED'}
 
-def append_asset(asset_data):
-    asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", asset_data["Type"], asset_data["File_name"])
+def get_asset_path(category, asset_name):
 
-    if asset_data["Type"] == "Rigs":
-        collection_name = asset_data["Collection_name"]
+    try:
+        asset_data = Assets[category][asset_name]
+        asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", category, asset_data["File_name"])
+        return asset_path, asset_data
+    except KeyError:
+        print(f"Asset '{asset_name}' in category '{category}' not found.")
+        return None, None
 
-        with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
-            data_to.collections = [collection_name]
+def append_asset(asset_name, asset_category):
+    asset_path, asset_data = get_asset_path(asset_category, asset_name)
+    if asset_path is None:
+        return
+    
+    try:
+        if asset_category == "Rigs":
+            collection_name = asset_data["Collection_name"]
 
-        for collection in data_to.collections:
-            bpy.context.collection.children.link(collection)
+            with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
+                data_to.collections = [collection_name]
 
-    if asset_data["Type"] == "Scripts":
-        run_python_script(asset_path)
+            for collection in data_to.collections:
+                bpy.context.collection.children.link(collection)
+
+        elif asset_category == "Scripts":
+            run_python_script(asset_path)
+        
+    except Exception as e:
+        print(f"Failed to append asset '{asset_name}' from category '{asset_category}': {e}")
 
 def update_assets(idk_lol):
     items = bpy.context.scene.assetsproperties.asset_items
@@ -839,9 +855,11 @@ def update_assets(idk_lol):
             item.name = key
     
 def run_python_script(file_path):
-    with open(file_path, 'r') as file:
-        script_code = file.read()
-        exec(script_code, globals())
+    try:
+        with open(file_path, 'r') as file:
+            exec(file.read(), {'__name__': '__main__'})
+    except Exception as e:
+        print(f"Failed to run script '{file_path}': {e}")
 #
 
 classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
