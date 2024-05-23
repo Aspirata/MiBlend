@@ -87,7 +87,7 @@ def upgrade_materials():
 
                                 selected_object.data.update()
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", slot)
         else:
             CEH('m003', Data=selected_object)
 
@@ -195,7 +195,7 @@ def fix_world():
 
                         selected_object.data.update()
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", slot)
         else:
             CEH('m003', Data=selected_object)
 
@@ -410,7 +410,7 @@ def fix_materials():
                     if (image_texture_node and PBSDF) != None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", slot)
         else:
             CEH('m003', selected_object)
             
@@ -682,7 +682,7 @@ def setproceduralpbr():
                                     if BATGroup in node.node_tree.name:
                                         material.node_tree.nodes.remove(node)
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", slot)
                 
         else:
             CEH('m003', Data=selected_object)

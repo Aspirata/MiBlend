@@ -107,7 +107,7 @@ def Optimize():
 
                 obj.data.update()
         else:
-            CEH("006")
+            Absolute_Solver("006")
     else:
         for obj in selected_objects:
             if obj.modifiers.get("Universal Camera Culling") != None:

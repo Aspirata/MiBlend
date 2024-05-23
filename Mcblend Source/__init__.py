@@ -1,4 +1,6 @@
+from re import S
 from .Data import *
+from .Assets import *
 from .Properties import *
 from .Materials import Materials
 from .Optimization import Optimize
@@ -6,7 +8,6 @@ from .Utils import *
 from .Translator import Translate
 from .Preferences import McblendPreferences
 from bpy.types import Panel, Operator
-import subprocess
 
 bl_info = {
     "name": "Mcblend",
@@ -16,6 +17,41 @@ bl_info = {
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
 }
+
+class AbsoluteSolver(Operator):
+    bl_label = "Absolute Solver"
+    bl_idname = "wm.absolute_solver"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    Error_Code: bpy.props.StringProperty()
+    Tech_Things: bpy.props.StringProperty()
+    
+    # Попытаться обойтись без этого, либо конвертировать в string после форматирования
+    Data: bpy.props.StringProperty()
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def draw(self, context):
+        layout = self.layout
+            
+        box = layout.box()
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text=f"Error Name: {GetASText(self.Error_Code, 'Error Name')}")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text=f"Description: {GetASText(self.Error_Code, 'Description', self.Data)}")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Tech Things:")
+        row = sbox.row()
+        row.label(text=self.Tech_Things)
+    
+    def execute(self, context):
+        return {'FINISHED'}
 
 # World & Materials
 
@@ -343,6 +379,8 @@ class WorldAndMaterialsPanel(Panel):
         row.operator("object.upgrade_materials", text="Upgrade Materials")
         row = box.row()
         row.operator("object.fix_materials", text="Fix Materials")
+        row = box.row()
+        row.operator("object.a_s", text="Invoke Absolute Solver")
         
         # PPBR
 
@@ -491,6 +529,15 @@ class FixMaterialsOperator(Operator):
     def execute(self, context):
         Materials.fix_materials()
         return {'FINISHED'}
+
+class ASOperator(Operator):
+    bl_idname = "object.a_s"
+    bl_label = "Absolute Solver Trigger"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        Absolute_Solver("m002", 50)
+        return {'FINISHED'}
     
 class SetProceduralPBROperator(Operator):
     bl_idname = "object.setproceduralpbr"
@@ -600,27 +647,6 @@ class UtilsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
-        row = box.row()
-        if bpy.context.scene.render.engine != 'BLENDER_EEVEE' and Preferences.enable_warnings:
-            row.label(text="Contact shadows exist only on eevee", icon="ERROR")
-            row = box.row()
-
-        row.scale_x = 1.3
-        row.prop(bpy.context.scene.utilsproperties, "cs_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.cs_settings else "TRIA_RIGHT"), icon_only=True)
-        row.scale_y = Big_Button_Scale
-        row.operator("object.cshadows", text="Turn On Contact Shadows")
-        if bpy.context.scene.utilsproperties.cs_settings == True:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Contact Shadows Settings:", icon="LIGHT_DATA")
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "cshadowsselection", text='cshadowsselection', expand=True)
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "distance")
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "bias", slider=True)
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "thickness", slider=True)
 
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "current_preset", text="Current Preset")
@@ -631,11 +657,13 @@ class UtilsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Materials", icon="MATERIAL")
+
         row = box.row()
         row.scale_x = 1.3
         row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"), icon_only=True)
         row.scale_y = Big_Button_Scale
         row.operator("object.enchant", text="Enchant Objects")
+
         if bpy.context.scene.utilsproperties.enchant_settings == True:
             sbox = box.box()
             row = sbox.row()
@@ -650,24 +678,17 @@ class UtilsPanel(Panel):
         row.label(text="Rigging", icon="ARMATURE_DATA")
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "armature")
+
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "lattice")
+
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "vertex_group_name")
+
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.assingvertexgroup")
 
-
-class CShadowsOperator(Operator):
-    bl_idname = "object.cshadows"
-    bl_label = "Contact Shadows"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        UProperties = bpy.context.scene.utilsproperties
-        CShadows(UProperties)
-        return {'FINISHED'}
 
 class SetRenderSettingsOperator(Operator):
     bl_idname = "object.setrendersettings"
@@ -813,57 +834,10 @@ class ManualAssetsUpdateOperator(Operator):
     def execute(self, context):
         update_assets("lol")
         return {'FINISHED'}
-
-def get_asset_path(category, asset_name):
-
-    try:
-        asset_data = Assets[category][asset_name]
-        asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", category, asset_data["File_name"])
-        return asset_path, asset_data
-    except KeyError:
-        print(f"Asset '{asset_name}' in category '{category}' not found.")
-        return None, None
-
-def append_asset(asset_name, asset_category):
-    asset_path, asset_data = get_asset_path(asset_category, asset_name)
-    if asset_path is None:
-        return
-    
-    try:
-        if asset_category == "Rigs":
-            collection_name = asset_data["Collection_name"]
-
-            with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
-                data_to.collections = [collection_name]
-
-            for collection in data_to.collections:
-                bpy.context.collection.children.link(collection)
-
-        elif asset_category == "Scripts":
-            run_python_script(asset_path)
-        
-    except Exception as e:
-        print(f"Failed to append asset '{asset_name}' from category '{asset_category}': {e}")
-
-def update_assets(idk_lol):
-    items = bpy.context.scene.assetsproperties.asset_items
-    items.clear()
-
-    for category, assets in Assets.items():
-        for key in assets.keys():
-            item = items.add()
-            item.name = key
-    
-def run_python_script(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            exec(file.read(), {'__name__': '__main__'})
-    except Exception as e:
-        print(f"Failed to run script '{file_path}': {e}")
 #
 
-classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
-           OptimizeOperator, UtilsProperties, UtilsPanel, CShadowsOperator, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
+classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, ASOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
+           OptimizeOperator, UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
 
 def register():
     for cls in classes:

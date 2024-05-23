@@ -1,4 +1,5 @@
 # Properties
+from re import L
 import bpy
 import os
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
@@ -15,6 +16,43 @@ world_material_name = "Mcblend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
+
+Absolute_Solver_Errors = {
+
+    "001": {
+        "Error Name": "Unknown",
+        "Description": "An Unknown Error",
+    },
+
+    "m002": {
+        "Error Name": "Empty Material Slot",
+        "Description": "Material doesn't exist on slot {Data}",
+    },
+
+    "m003": {
+        "Error Name": "Object Has No Materials",
+        "Description": "Object: {Data} has no materials",
+    },
+
+    "006": {
+        "Error Name": "Scene Camera Doesn't Exist",
+        "Description":"There is no camera in the scene"
+    }
+}
+
+def Absolute_Solver(error_code, data=None):
+
+    if data != None:
+        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Tech_Things = "WIP", Data=str(data))
+    else:
+        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Tech_Things = "WIP")
+
+def GetASText(error_code, text, data=None):
+
+    if data != None:
+        return Absolute_Solver_Errors[error_code][text].format(Data=data)
+    else:
+        return Absolute_Solver_Errors[error_code][text]
 
 def CEH(Error_Code, Data=None):
 
@@ -76,6 +114,7 @@ def blender_version(blender_version, debug=None):
     
     if debug != None:
         print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
+        
     return major_c and minor_c and patch_c
 
 Preferences_List = {
