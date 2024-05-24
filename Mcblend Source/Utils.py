@@ -49,13 +49,15 @@ def VertexRiggingTool():
                     if modifier.type == 'ARMATURE':
                         obj.modifiers.remove(modifier)
         else:
-            CEH("007", obj)
+            Absolute_Solver("007", obj)
 
 def Enchant():
     for selected_object in bpy.context.selected_objects:
+        slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
-                if material != None:
+                slot += 1
+                if material is not None:
                     node_group = None
                     PBSDF = None
 
@@ -73,7 +75,7 @@ def Enchant():
                                 with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                     data_to.node_groups = ["Enchantment"]
                             except:
-                                CEH("004")
+                                Absolute_Solver("004", "Materials", traceback.format_exc())
 
                         node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
                         node_group.node_tree = bpy.data.node_groups["Enchantment"]
@@ -116,9 +118,9 @@ def Enchant():
                     node_group.inputs["Camera Strenght"].default_value = bpy.context.scene.utilsproperties.camera_strenght
                     node_group.inputs["Non-Camera Strenght"].default_value = bpy.context.scene.utilsproperties.non_camera_strenght
                 else:
-                    CEH("m002")
+                    Absolute_Solver("m002", slot)
         else:
-            CEH("m003")
+            Absolute_Solver("m003", selected_object)
         
 def SetRenderSettings(current_preset):
     for setting_name, value in Render_Settings[current_preset].items():

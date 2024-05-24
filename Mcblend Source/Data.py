@@ -1,7 +1,7 @@
 # Properties
-from re import L
 import bpy
 import os
+import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
 
@@ -31,21 +31,28 @@ Absolute_Solver_Errors = {
 
     "m003": {
         "Error Name": "Object Has No Materials",
-        "Description": "Object: {Data} has no materials",
+        "Description": 'Object "{Data.name}" has no materials',
+    },
+
+    "004": {
+        "Error Name": ".blend File Not Found",
+        "Description": "{Data}.blend not found",
     },
 
     "006": {
         "Error Name": "Scene Camera Doesn't Exist",
         "Description":"There is no camera in the scene"
+    },
+
+    "007": {
+        "Error Name": "Scene Camera Doesn't Exist",
+        "Description":'Object "{Data.name}" has type {Data.type}, this type has no vertex groups'
     }
 }
 
-def Absolute_Solver(error_code, data=None):
+def Absolute_Solver(error_code, data=None, err=None):
 
-    if data != None:
-        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Tech_Things = "WIP", Data=str(data))
-    else:
-        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Tech_Things = "WIP")
+        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Description=GetASText(error_code, 'Description', data), Tech_Things = str(err) if err != None else "None")
 
 def GetASText(error_code, text, data=None):
 
@@ -53,26 +60,6 @@ def GetASText(error_code, text, data=None):
         return Absolute_Solver_Errors[error_code][text].format(Data=data)
     else:
         return Absolute_Solver_Errors[error_code][text]
-
-def CEH(Error_Code, Data=None):
-
-    if Error_Code == 'm002':
-        raise ValueError(f"Material doesn't exist on slot {Data}. Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == 'm003':
-        raise ValueError(f"Object: {Data.name} has no materials. Error code: {Error_Code} DO NOT REPORT")
-
-    if Error_Code == '004':
-        raise ValueError(f"{os.path.basename(os.path.dirname(os.path.realpath(__file__)))}.blend not found. Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == 'm005':
-        raise ValueError(f"Mcblend Sky node not found, maybe you should reappend sky material ? Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == '006':
-        raise ValueError(f"There is no camera in the scene. Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == '007':
-        raise ValueError(f"Object {Data.name} has type {Data.type}, this type has no vertex groups. Error code: {Error_Code} DO NOT REPORT")
 
 def checkconfig(name):
     if "const" in main_directory:

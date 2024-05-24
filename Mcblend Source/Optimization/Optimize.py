@@ -87,14 +87,14 @@ def Optimize():
                         with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.1.blend"), link=False) as (data_from, data_to):
                             data_to.node_groups = ["Universal Camera Culling"]
                     except:
-                        CEH('004')
+                        Absolute_Solver('004', "Universal Camera Culling 4.1", traceback.format_exc())
             else:
                 if "Universal Camera Culling" not in bpy.data.node_groups:
                     try:
                         with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.0.blend"), link=False) as (data_from, data_to):
                             data_to.node_groups = ["Universal Camera Culling"]
                     except:
-                        CEH('004')
+                        Absolute_Solver('004', "Universal Camera Culling 4.0", traceback.format_exc())
             
             for obj in selected_objects:
                 if obj.modifiers.get("Universal Camera Culling") == None: 

@@ -78,7 +78,7 @@ def upgrade_materials():
                                         with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                             data_to.materials = [upgraded_material]
                                     except:
-                                        CEH('004')
+                                        Absolute_Solver('004', "Materials", traceback.format_exc())
 
                                     appended_material = bpy.data.materials.get(upgraded_material)
                                     selected_object.data.materials[i] = appended_material
@@ -89,7 +89,7 @@ def upgrade_materials():
                 else:
                     Absolute_Solver("m002", slot)
         else:
-            CEH('m003', Data=selected_object)
+            Absolute_Solver("m003", selected_object)
 
 # Fix World
                         
@@ -158,7 +158,7 @@ def fix_world():
                                             with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["Backface Culling"]
                                         except:
-                                            CEH("004")
+                                            Absolute_Solver("004", "Materials", traceback.format_exc())
                                     
                                     bfc_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                                     bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
@@ -197,7 +197,7 @@ def fix_world():
                 else:
                     Absolute_Solver("m002", slot)
         else:
-            CEH('m003', Data=selected_object)
+            Absolute_Solver("m003", selected_object)
 
 def create_env(self=None):
     scene = bpy.context.scene
@@ -243,8 +243,8 @@ def create_env(self=None):
                                         socket.default_value = group.inputs[socket.name].default_value
 
             if self.create_sky == 'Recreate Sky':
-                if world == bpy.data.worlds.get(world_material_name):
-
+                if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) != None:
+                    
                     bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
                 
                 for group in bpy.data.node_groups:
@@ -257,7 +257,7 @@ def create_env(self=None):
                     appended_world_material = bpy.data.worlds.get(world_material_name)
                     bpy.context.scene.world = appended_world_material
                 except:
-                    CEH('004')
+                    Absolute_Solver('004', "Materials", traceback.format_exc())
 
             if self.create_sky == 'Create Sky':
 
@@ -340,7 +340,7 @@ def create_env(self=None):
                     appended_world_material = bpy.data.worlds[world_material_name]
                 bpy.context.scene.world = appended_world_material
             except:
-                CEH("004")
+                Absolute_Solver("004", "Materials", traceback.format_exc())
 
         for obj in scene.objects:
             if obj.get("Mcblend ID") == "Clouds":
@@ -412,7 +412,7 @@ def fix_materials():
                 else:
                     Absolute_Solver("m002", slot)
         else:
-            CEH('m003', selected_object)
+            Absolute_Solver("m003", selected_object)
             
         selected_object.data.update()
 #
@@ -666,8 +666,11 @@ def setproceduralpbr():
                                     if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
                                         material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission"])
                                 
-                                if GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
-                                    material.node_tree.links.new(GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material), node_group.inputs["Multiply"])
+                                try:
+                                    if GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
+                                        material.node_tree.links.new(GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material), node_group.inputs["Multiply"])
+                                except:
+                                    pass
 
                                 node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
                                 if blender_version("4.x.x"):
@@ -685,7 +688,7 @@ def setproceduralpbr():
                     Absolute_Solver("m002", slot)
                 
         else:
-            CEH('m003', Data=selected_object)
+            Absolute_Solver("m003", selected_object)
             
         selected_object.data.update()
 #

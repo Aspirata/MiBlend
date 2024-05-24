@@ -1,4 +1,4 @@
-from re import S
+import re
 from .Data import *
 from .Assets import *
 from .Properties import *
@@ -24,13 +24,11 @@ class AbsoluteSolver(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     Error_Code: bpy.props.StringProperty()
+    Description: bpy.props.StringProperty()
     Tech_Things: bpy.props.StringProperty()
-    
-    # Попытаться обойтись без этого, либо конвертировать в string после форматирования
-    Data: bpy.props.StringProperty()
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
+        return context.window_manager.invoke_props_dialog(self, width=600)
     
     def draw(self, context):
         layout = self.layout
@@ -38,17 +36,27 @@ class AbsoluteSolver(Operator):
         box = layout.box()
         sbox = box.box()
         row = sbox.row()
+        row.label(text=f"Error Code: {self.Error_Code}")
+        row = sbox.row()
         row.label(text=f"Error Name: {GetASText(self.Error_Code, 'Error Name')}")
 
         sbox = box.box()
         row = sbox.row()
-        row.label(text=f"Description: {GetASText(self.Error_Code, 'Description', self.Data)}")
+        row.label(text=f"Description: {self.Description}")
 
-        sbox = box.box()
-        row = sbox.row()
-        row.label(text="Tech Things:")
-        row = sbox.row()
-        row.label(text=self.Tech_Things)
+        if self.Tech_Things != "None":
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Tech Things:")
+
+            split_tech_things = re.split(r'  |: ', self.Tech_Things)
+            for part in split_tech_things:
+                sbox.label(text=part)
+
+            print(f"\033[33mAbsolute Solver Error Report: \033[31m\n{self.Tech_Things}\033[0m")
+            sbox = box.box()
+            row = sbox.row()
+            row.operator("object.open_console")
     
     def execute(self, context):
         return {'FINISHED'}
@@ -379,8 +387,6 @@ class WorldAndMaterialsPanel(Panel):
         row.operator("object.upgrade_materials", text="Upgrade Materials")
         row = box.row()
         row.operator("object.fix_materials", text="Fix Materials")
-        row = box.row()
-        row.operator("object.a_s", text="Invoke Absolute Solver")
         
         # PPBR
 
@@ -530,13 +536,16 @@ class FixMaterialsOperator(Operator):
         Materials.fix_materials()
         return {'FINISHED'}
 
-class ASOperator(Operator):
-    bl_idname = "object.a_s"
-    bl_label = "Absolute Solver Trigger"
+class OpenConsoleOperator(Operator):
+    bl_idname = "object.open_console"
+    bl_label = "Open Console"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        Absolute_Solver("m002", 50)
+        try:
+            bpy.ops.wm.console_toggle()
+        except RuntimeError:
+            pass
         return {'FINISHED'}
     
 class SetProceduralPBROperator(Operator):
@@ -836,7 +845,7 @@ class ManualAssetsUpdateOperator(Operator):
         return {'FINISHED'}
 #
 
-classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, ASOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
+classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
            OptimizeOperator, UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
 
 def register():
