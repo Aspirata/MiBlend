@@ -107,7 +107,7 @@ def Optimize():
 
                 obj.data.update()
         else:
-            Absolute_Solver("None", None, None, "Scene Camera Doesn't Exist", "There is no camera in the scene")
+            Absolute_Solver("None", error_name="Scene Camera Doesn't Exist", description="There is no camera in the scene")
     else:
         for obj in selected_objects:
             if obj.modifiers.get("Universal Camera Culling") != None:

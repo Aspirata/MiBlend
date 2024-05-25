@@ -219,6 +219,9 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()                
                 row.prop(clouds_obj, "location", index=2, text="Height")
 
+                row = tbox.row()
+                row.prop(clouds_obj, "visible_shadow", text="Clouds Shadow", toggle=True)
+
                 tbox = sbox.box()
 
                 row = tbox.row()
@@ -271,6 +274,11 @@ class WorldAndMaterialsPanel(Panel):
                         row.label(text="Main Settings:", icon="PROPERTIES")
                         row = tbox.row()
                         row.prop(node_group.inputs["Time"], "default_value", text="Time")
+
+                        if scene.render.engine == "BLENDER_EEVEE_NEXT":
+                            row = tbox.row()
+                            row.prop(bpy.data.worlds[world_material_name], "sun_angle", text="Shadow Softness")
+
                         row = tbox.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
 
