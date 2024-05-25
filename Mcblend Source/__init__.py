@@ -176,7 +176,9 @@ class WorldAndMaterialsPanel(Panel):
 
         # Sky
 
-        node_group = None            
+        node_group = None
+        clouds_obj = None
+        geonodes_modifier = None 
 
         if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
             if world_material_name in bpy.data.worlds:
@@ -189,27 +191,74 @@ class WorldAndMaterialsPanel(Panel):
                             break
 
         for obj in scene.objects:
-            if obj.name != "Clouds":
-                clouds_exists = False
-            else:
+            if obj.get("Mcblend ID") == "Clouds":
                 clouds_exists = True
+                clouds_obj = obj
                 geonodes_modifier = obj.modifiers.get("Clouds Generator")
                 break
             
-        #if clouds_exists == True:
+        
             #row.prop(geonodes_modifier, ["Socket_2"],  text="Layers Count", slider=True)
 
-        if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
-            clouds_exists = True
-
-        
         box = layout.box()
         row = box.row()
         row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
+
         row = box.row()
         row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
+        if clouds_exists == True:
+            row.prop(scene.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
+
+            if scene.env_properties.clouds_settings:
+                sbox = box.box()
+                tbox = sbox.box()
+
+                row = tbox.row()
+                row.label(text="Main Settings:", icon="PROPERTIES")
+
+                row = tbox.row()                
+                row.prop(clouds_obj, "location", index=2, text="Height")
+
+                tbox = sbox.box()
+
+                row = tbox.row()
+                row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
+                if blender_version("4.x.x"):
+
+                    row = tbox.row()
+                    row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+
+                    fbox = tbox.box()
+
+                    row = fbox.row()
+                    row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+
+                    row = fbox.row()
+                    row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
+                    row = fbox.row()
+                    row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
+                    row = fbox.row()
+                    row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                
+                row = tbox.row()
+                row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
+
+                row = tbox.row()
+                row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
+
+                row = tbox.row()
+                row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
+
+                row = tbox.row()
+                row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
+
+                row = tbox.row()
+                row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
+                
+
         row = box.row()
         row.prop(scene.env_properties, "create_sky", text="Create Sky")
+
         if node_group != None:
             row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
             try:
@@ -386,8 +435,10 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Materials", icon="MATERIAL_DATA")
+
         row = box.row()
         row.operator("object.upgrade_materials", text="Upgrade Materials")
+
         row = box.row()
         row.operator("object.fix_materials", text="Fix Materials")
         
@@ -396,46 +447,62 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
+
         row = box.row()
         row.prop(scene.ppbr_properties, "use_normals")
         row.prop(scene.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
+
         if scene.ppbr_properties.normals_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Normals Type:", icon="NORMALS_FACE")
+
             row = sbox.row()
             row.prop(scene.ppbr_properties, "normals_selector", expand=True)
+
             if scene.ppbr_properties.normals_selector == "Bump":
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text=Translate("Bump Settings:"), icon="MODIFIER")
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "bump_strength", slider=True)
             else:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Procedural Normals Settings:", icon="MODIFIER")
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_size", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_blur", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_strength", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_exclude", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_min", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_max", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_size_x_multiplier", slider=True)
+
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_size_y_multiplier", slider=True)
+
         
         row = box.row()
         row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
+
         row = box.row()
         row.prop(scene.ppbr_properties, "animate_textures", text="Animate Textures")
+
         row = box.row()
         row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
         if scene.ppbr_properties.advanced_settings:

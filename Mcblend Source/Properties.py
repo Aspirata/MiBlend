@@ -292,6 +292,11 @@ class CreateEnvProperties(PropertyGroup):
         description=""
     )
 
+    clouds_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
     strength_settings: BoolProperty(
         default=False,
         description=""
