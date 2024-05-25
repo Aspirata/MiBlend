@@ -24,6 +24,7 @@ class AbsoluteSolver(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     Error_Code: bpy.props.StringProperty()
+    Error_Name: bpy.props.StringProperty()
     Description: bpy.props.StringProperty()
     Tech_Things: bpy.props.StringProperty()
 
@@ -35,10 +36,12 @@ class AbsoluteSolver(Operator):
             
         box = layout.box()
         sbox = box.box()
+        if self.Error_Code != "None":
+            row = sbox.row()
+            row.label(text=f"Error Code: {self.Error_Code}")
+        
         row = sbox.row()
-        row.label(text=f"Error Code: {self.Error_Code}")
-        row = sbox.row()
-        row.label(text=f"Error Name: {GetASText(self.Error_Code, 'Error Name')}")
+        row.label(text=f"Error Name: {self.Error_Name}")
 
         sbox = box.box()
         row = sbox.row()

@@ -49,7 +49,8 @@ def VertexRiggingTool():
                     if modifier.type == 'ARMATURE':
                         obj.modifiers.remove(modifier)
         else:
-            Absolute_Solver("007", obj)
+            Absolute_Solver("None", obj, None, "Object Has No Vertext Groups", 
+                'Object "{Data.name}" has type {Data.type}, this type has no vertex groups')
 
 def Enchant():
     for selected_object in bpy.context.selected_objects:

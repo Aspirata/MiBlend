@@ -38,22 +38,15 @@ Absolute_Solver_Errors = {
         "Error Name": ".blend File Not Found",
         "Description": "{Data}.blend not found",
     },
-
-    "006": {
-        "Error Name": "Scene Camera Doesn't Exist",
-        "Description":"There is no camera in the scene"
-    },
-
-    "007": {
-        "Error Name": "Scene Camera Doesn't Exist",
-        "Description":'Object "{Data.name}" has type {Data.type}, this type has no vertex groups'
-    }
 }
 
-def Absolute_Solver(error_code, data=None, err=None):
+def Absolute_Solver(error_code, data=None, err=None, error_name=None, description=None):
 
-        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Description=GetASText(error_code, 'Description', data), Tech_Things = str(err) if err != None else "None")
-
+    if data != None:
+        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, 'Error Name')), Description=(GetASText(error_code, 'Description')) if description == None else description.format(Data=data), Tech_Things = str(err) if err != None else "None")
+    else:
+        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, 'Error Name')), Description=(GetASText(error_code, 'Description')) if description == None else description, Tech_Things = str(err) if err != None else "None")
+        
 def GetASText(error_code, text, data=None):
 
     if data != None:
