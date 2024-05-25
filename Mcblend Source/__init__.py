@@ -356,7 +356,7 @@ class WorldAndMaterialsPanel(Panel):
             if scene.ppbr_properties.normals_selector == "Bump":
                 tbox = sbox.box()
                 row = tbox.row()
-                row.label(text="Bump Settings:", icon="MODIFIER")
+                row.label(text=Translate("Bump Settings:"), icon="MODIFIER")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "bump_strength", slider=True)
             else:
