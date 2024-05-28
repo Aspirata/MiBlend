@@ -40,19 +40,19 @@ Absolute_Solver_Errors = {
     },
 }
 
-def Absolute_Solver(error_code, data=None, err=None, error_name=None, description=None):
+def Absolute_Solver(error_code="None", data=None, err=None, error_name=None, description=None):
+
+    def GetASText(error_code, text, data=None):
+        if data != None:
+            return Absolute_Solver_Errors[error_code][text].format(Data=data)
+        else:
+            return Absolute_Solver_Errors[error_code][text]
 
     if data != None:
         bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, 'Error Name')), Description=(GetASText(error_code, 'Description')) if description == None else description.format(Data=data), Tech_Things = str(err) if err != None else "None")
     else:
         bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, 'Error Name')), Description=(GetASText(error_code, 'Description')) if description == None else description, Tech_Things = str(err) if err != None else "None")
         
-def GetASText(error_code, text, data=None):
-
-    if data != None:
-        return Absolute_Solver_Errors[error_code][text].format(Data=data)
-    else:
-        return Absolute_Solver_Errors[error_code][text]
 
 def checkconfig(name):
     if "const" in main_directory:
@@ -72,30 +72,50 @@ def GetConnectedSocketTo(input, tag, material):
 def blender_version(blender_version, debug=None):
     version_parts = blender_version.lower().split(".")
     
-    if len(version_parts) != 3:
-        return False
-    
-    major, minor, patch = version_parts
+    try:
+        major, minor, patch = version_parts
 
-    if major != "x":
-        major_c = bpy.app.version[0] == int(major)
-    else:
-        major_c = True
+        if major != "x":
+            major_c = bpy.app.version[0] == int(major)
+        else:
+            major_c = True
+            
+        if minor != "x":
+            minor_c = bpy.app.version[1] == int(minor)
+        else:
+            minor_c = True
+            
+        if patch != "x":
+            patch_c = bpy.app.version[2] == int(patch)
+        else:
+            patch_c = True
+
+        if debug != None:
+            print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
         
-    if minor != "x":
-        minor_c = bpy.app.version[1] == int(minor)
-    else:
-        minor_c = True
-        
-    if patch != "x":
-        patch_c = bpy.app.version[2] == int(patch)
-    else:
-        patch_c = True
+        return major_c and minor_c and patch_c
     
-    if debug != None:
-        print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
+    except:
+        operator = version_parts[0]
+        major, minor, patch = blender_version.lower().split(".")
+        version = (int(major), int(minor), int(patch))
         
-    return major_c and minor_c and patch_c
+        if debug != None:
+            print(f"{bpy.app.version} {operator} {version}")
+
+        if operator == '<':
+            return bpy.app.version < version
+        elif operator == '<=':
+            return bpy.app.version <= version
+        elif operator == '>':
+            return bpy.app.version > version
+        elif operator == '>=':
+            return bpy.app.version >= version
+        elif operator == '==':
+            return bpy.app.version == version
+        else:
+            return False
+        
 
 Preferences_List = {
     "Dev": {
@@ -369,6 +389,7 @@ Assets = {
             "Collection_name": "Warden"
         },
     },
+
     "Scripts": {
 
         "Sleep After Render": {
@@ -380,13 +401,8 @@ Assets = {
         },
 
         "Fix Shade Auto Smooth": {
-            "Blender_version": "4.0.x",
+            "Blender_version": "< 4.1.0",
             "File_name": "Fix Shade Auto Smooth.py",
-        },
-
-        "Fix Shade Auto Smooth": {
-            "Blender_version": "3.6.x",
-            "File_name": "Fix Shade Auto Smooth.py",
-        },
+        }
     },
 }

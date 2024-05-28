@@ -602,7 +602,7 @@ def setproceduralpbr():
                             PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
 
-                        # Make Better Emission and Animate Textures                            
+                        # Make Better Emission and Animate Textures
                         if (PProperties.make_better_emission == True or PProperties.animate_textures == True) and EmissionMode(PBSDF, material):
                             image_texture_node = None
                             node_group = None

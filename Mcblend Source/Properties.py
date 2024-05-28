@@ -537,7 +537,7 @@ class AssetsProperties(PropertyGroup):
             ('Rigs', "Rigs", ""),
             ('Scripts', "Scripts", ""),
         ],
-        default='Rigs',
+        default='All',
     )
 
     asset_items: bpy.props.CollectionProperty(type=PropertyGroup)

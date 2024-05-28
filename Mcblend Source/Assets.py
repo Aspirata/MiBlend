@@ -10,6 +10,12 @@ def get_asset_path(category, asset_name):
         print(f"Asset '{asset_name}' in category '{category}' not found.")
         return None, None
     
+def sort_by_version(asset_data):
+    try:
+        return blender_version(asset_data["Blender_version"])
+    except:
+        return True
+
 def append_asset(asset_name, asset_category):
     asset_path, asset_data = get_asset_path(asset_category, asset_name)
     if asset_path is None:
@@ -28,8 +34,8 @@ def append_asset(asset_name, asset_category):
         elif asset_category == "Scripts":
             run_python_script(asset_path)
         
-    except Exception as e:
-        print(f"Failed to append asset '{asset_name}' from category '{asset_category}': {e}")
+    except:
+        Absolute_Solver(err=traceback.print_exc(), data=asset_name, error_name="Bad Asset Import", description="Can't Import {Data} Asset")
 
 def update_assets(idk_lol):
     items = bpy.context.scene.assetsproperties.asset_items

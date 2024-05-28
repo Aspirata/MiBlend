@@ -870,9 +870,8 @@ class Assets_List_UL_(bpy.types.UIList):
             found = False
             for category, assets in Assets.items():
                 if item.name in assets:
-                    asset_data = assets[item.name]
                     try:
-                        if blender_version(asset_data["Blender_version"]):
+                        if sort_by_version(assets[item.name]):
                             if asset_category == "All" or category == asset_category:
                                 flt_flags.append(self.bitflag_filter_item)
                             else:
@@ -889,6 +888,9 @@ class Assets_List_UL_(bpy.types.UIList):
 
             if not found:
                 flt_flags.append(0)
+        
+        while len(flt_flags) < len(data.asset_items):
+            flt_flags.append(0)
 
         return flt_flags, flt_neworder
 
@@ -953,5 +955,4 @@ if __name__ == "__main__":
     register()
 
 # TODO:
-    # - Utils - Сделать удалятор пустых фейсов
     # - World & Materials - Сделать ветер
