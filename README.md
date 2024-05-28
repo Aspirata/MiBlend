@@ -15,7 +15,7 @@ To Install this brach as addon you need to pack Mcblend Source folder to .zip fi
 
 ## Contributors:
 
-### .anonim4ik - Camera Culling node
+### .anonim4ik - Vector Camera Culling
 
 ### zipi.zip - Rigs
 
