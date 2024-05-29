@@ -871,7 +871,7 @@ class Assets_List_UL_(bpy.types.UIList):
             for category, assets in Assets.items():
                 if item.name in assets:
                     try:
-                        if sort_by_version(assets[item.name]):
+                        if blender_version(assets[item.name]["Blender_version"]):
                             if asset_category == "All" or category == asset_category:
                                 flt_flags.append(self.bitflag_filter_item)
                             else:

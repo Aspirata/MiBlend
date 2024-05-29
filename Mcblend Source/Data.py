@@ -70,9 +70,9 @@ def GetConnectedSocketTo(input, tag, material):
                             return link.from_socket
                         
 def blender_version(blender_version, debug=None):
-    version_parts = blender_version.lower().split(".")
     
     try:
+        version_parts = blender_version.lower().split(".")
         major, minor, patch = version_parts
 
         if major != "x":
@@ -96,8 +96,9 @@ def blender_version(blender_version, debug=None):
         return major_c and minor_c and patch_c
     
     except:
+        version_parts = blender_version.split(" ")
         operator = version_parts[0]
-        major, minor, patch = blender_version.lower().split(".")
+        major, minor, patch = version_parts[1].lower().split(".")
         version = (int(major), int(minor), int(patch))
         
         if debug != None:
@@ -396,7 +397,7 @@ Assets = {
             "File_name": "Sleep After Render.py",
         },
 
-        "Convert DBSDF 2 BSDF": {
+        "Convert DBSDF 2 PBSDF": {
             "File_name": "Convert DBSDF 2 PBSDF.py",
         },
 
