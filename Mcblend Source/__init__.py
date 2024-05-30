@@ -223,37 +223,44 @@ class WorldAndMaterialsPanel(Panel):
 
                 row = tbox.row()
                 row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
-                if blender_version("4.x.x"):
+                row.prop(scene.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
+
+                if scene.env_properties.geonodes_settings:
+                    if blender_version("4.x.x"):
+
+                        fbox = tbox.box()
+                        row = fbox.row()
+                        row.label(text="Layers Settings:", icon="AXIS_TOP")
+                        row.prop(scene.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.env_properties.layers_settings:
+
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+
+                            row = fbox.row()
+                            row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                    
+                    row = tbox.row()
+                    row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
 
                     row = tbox.row()
-                    row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+                    row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
 
-                    fbox = tbox.box()
+                    row = tbox.row()
+                    row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
 
-                    row = fbox.row()
-                    row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+                    row = tbox.row()
+                    row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
 
-                    row = fbox.row()
-                    row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
-                    row = fbox.row()
-                    row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
-                    row = fbox.row()
-                    row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
-                
-                row = tbox.row()
-                row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
-
-                row = tbox.row()
-                row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
-
-                row = tbox.row()
-                row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
-
-                row = tbox.row()
-                row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
-
-                row = tbox.row()
-                row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
+                    row = tbox.row()
+                    row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
                 
 
         row = box.row()
@@ -279,11 +286,11 @@ class WorldAndMaterialsPanel(Panel):
                         row = tbox.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
 
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Strength:", icon="LIGHT_SUN")
                         row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
                         if scene.env_properties.strength_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
                             row = tbox.row()
@@ -295,12 +302,12 @@ class WorldAndMaterialsPanel(Panel):
                             row = tbox.row()
                             row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
                                                     
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Colors:", icon="IMAGE")
                         row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
                         if scene.env_properties.colors_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
                             row = tbox.row()
@@ -310,14 +317,13 @@ class WorldAndMaterialsPanel(Panel):
                             row = tbox.row()
                             row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
                         
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Ambient Light Colors:", icon="IMAGE")
                         row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
                         if scene.env_properties.ambient_colors_settings:
                             for node in bpy.data.node_groups:
                                 if "Ambient Color" in node.name:
-                                    tbox = sbox.box()
-                                    
                                     for Node in node.nodes:
                                         if Node.type == "VALTORGB":
                                             row = tbox.row()
@@ -325,12 +331,12 @@ class WorldAndMaterialsPanel(Panel):
                                             for element in Node.color_ramp.elements:                                                    
                                                 row.prop(element, "color", icon_only=True)
                         
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Sun & Moon Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
                         row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
                         if scene.env_properties.rotation_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
@@ -338,12 +344,12 @@ class WorldAndMaterialsPanel(Panel):
                             row = tbox.row()
                             row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
 
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Other Settings:", icon="COLLAPSEMENU")
                         row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
 
                         if scene.env_properties.other_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
                             row = tbox.row()
@@ -428,7 +434,7 @@ class WorldAndMaterialsPanel(Panel):
         if clouds_exists == True or sky_exists == True:
             row = box.row()
             row.scale_y = Big_Button_Scale
-            row.operator("object.create_env", text="Recreate Environment")
+            row.operator("object.create_env", text="Recreate Environment", icon="FILE_REFRESH")
 
         if clouds_exists == False and sky_exists == False:
             row = box.row()
@@ -448,7 +454,7 @@ class WorldAndMaterialsPanel(Panel):
         row.operator("object.fix_materials", text="Fix Materials")
 
         row = box.row()
-        row.operator("wm.swap_textures", icon="FILEBROWSER")
+        row.operator("wm.swap_textures", icon="UV_SYNC_SELECT")
         
         # PPBR
 

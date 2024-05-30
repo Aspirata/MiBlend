@@ -303,6 +303,16 @@ class CreateEnvProperties(PropertyGroup):
         description=""
     )
 
+    geonodes_settings: BoolProperty(
+        default=True,
+        description=""
+    )
+
+    layers_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
     strength_settings: BoolProperty(
         default=False,
         description=""
