@@ -1,4 +1,5 @@
 from .Data import *
+import sys
 
 def get_asset_path(category, asset_name):
 
@@ -47,8 +48,24 @@ def update_assets(idk_lol):
             item.name = key
     
 def run_python_script(file_path):
+
+    # Fix Absolute Solver
+
+    def import_all_from_module(module_name, module_path=None):
+        if module_path:
+            if module_path not in sys.path:
+                sys.path.append(module_path)
+        module = __import__(module_name, fromlist=['*'])
+        return {name: getattr(module, name) for name in dir(module) if not name.startswith('__')}
+
     try:
+        global_context = {'__name__': '__main__'}
+        additional_globals = import_all_from_module('Data', os.path.join(os.path.dirname(__file__)))
+        
+        if additional_globals:
+            global_context.update(additional_globals)
+        
         with open(file_path, 'r') as file:
-            exec(file.read(), {'__name__': '__main__'})
-    except Exception as e:
-        print(f"Failed to run script '{file_path}': {e}")
+            exec(file.read(), global_context)
+    except:
+        Absolute_Solver(err=traceback.print_exc(), data=file_path, error_name="Bad Script Execution", description="Can't Execute Script from {Data}")

@@ -196,9 +196,6 @@ class WorldAndMaterialsPanel(Panel):
                 clouds_obj = obj
                 geonodes_modifier = obj.modifiers.get("Clouds Generator")
                 break
-            
-        
-            #row.prop(geonodes_modifier, ["Socket_2"],  text="Layers Count", slider=True)
 
         box = layout.box()
         row = box.row()
@@ -449,6 +446,9 @@ class WorldAndMaterialsPanel(Panel):
 
         row = box.row()
         row.operator("object.fix_materials", text="Fix Materials")
+
+        row = box.row()
+        row.operator("wm.swap_textures", icon="FILEBROWSER")
         
         # PPBR
 
@@ -613,6 +613,28 @@ class FixMaterialsOperator(Operator):
     def execute(self, context):
         Materials.fix_materials()
         return {'FINISHED'}
+    
+class SwapTexturesOperator(Operator):
+    bl_idname = "wm.swap_textures"
+    bl_label = "Swap Textures"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype="DIR_PATH")
+
+    def execute(self, context):
+        if os.path.isdir(self.filepath):
+            #context.scene.materials_properties.folder_path = os.path.abspath(self.filepath)
+            Materials.swap_textures(os.path.abspath(self.filepath))
+            self.report({'INFO'}, f"Selected Folder: {os.path.abspath(self.filepath)}")
+        else:
+            #context.scene.materials_properties.folder_path = os.path.dirname(self.filepath)
+            Materials.swap_textures(os.path.dirname(self.filepath))
+            self.report({'INFO'}, f"Selected Folder: {os.path.dirname(self.filepath)}")
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 class OpenConsoleOperator(Operator):
     bl_idname = "object.open_console"
@@ -925,14 +947,19 @@ class ManualAssetsUpdateOperator(Operator):
         return {'FINISHED'}
 #
 
-classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel,
-           OptimizeOperator, UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator]
+classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
+    WorldProperties, MaterialsProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator,
+    OptimizationProperties, OptimizationPanel, OptimizeOperator, 
+    UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
+    AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator
+]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
         
-    bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=FixWorldProperties)
+    bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=WorldProperties)
+    bpy.types.Scene.materials_properties = bpy.props.PointerProperty(type=MaterialsProperties)
     bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
@@ -941,6 +968,7 @@ def register():
 
 def unregister():
     del bpy.types.Scene.world_properties
+    del bpy.types.Scene.materials_properties
     del bpy.types.Scene.env_properties
     del bpy.types.Scene.ppbr_properties
     del bpy.types.Scene.optimizationproperties

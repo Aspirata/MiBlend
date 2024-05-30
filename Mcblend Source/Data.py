@@ -177,13 +177,14 @@ Render_Settings = {
     },
 
     "Aspirata Eevee":{
-        "eevee.use_shadow_jittered_viewport": True,
-        "eevee.shadow_ray_count": 4,
+        "eevee.eevee.use_shadow_jitter_viewport": True,
+        "eevee.shadow_ray_count": 2,
         "eevee.shadow_step_count": 16,
         "eevee.use_volumetric_shadows": True,
         "eevee.use_raytracing": True,
         "eevee.ray_tracing_options.resolution_scale": '4',
-        "eevee.ray_tracing_options.trace_max_roughness": 0.5,
+        "eevee.ray_tracing_options.trace_max_roughness": 0,
+        "eevee.fast_gi_resolution": '4',
         "eevee.use_overscan": True,
         "eevee.overscan_size": 10.0,
     }

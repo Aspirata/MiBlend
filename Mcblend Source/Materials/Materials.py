@@ -383,7 +383,6 @@ def create_env(self=None):
 
     bpy.context.view_layer.update()
 
-# Fix materials
     
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
@@ -400,9 +399,8 @@ def fix_materials():
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            if ".00" not in node.name:
-                                image_texture_node = node
-                            node.interpolation = "Closest" 
+                            image_texture_node = node
+                            node.interpolation = "Closest"
                         
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
@@ -413,10 +411,31 @@ def fix_materials():
                     Absolute_Solver("m002", slot)
         else:
             Absolute_Solver("m003", selected_object)
-            
-        selected_object.data.update()
-#
         
+def swap_textures(folder_path):
+
+    def find_image(image_name, root_folder):
+        for dirpath, _, filenames in os.walk(root_folder):
+            if image_name in filenames:
+                return os.path.join(dirpath, image_name)
+        return None
+    
+    for selected_object in bpy.context.selected_objects:
+        slot = 0
+        if selected_object.material_slots:
+            for material in selected_object.data.materials:
+                slot += 1
+                if material is not None:
+                    for node in material.node_tree.nodes:
+                        if node.type == "TEX_IMAGE" and node.image is not None:
+                            new_image_path = find_image(node.image.name, folder_path)
+                            if new_image_path and os.path.isfile(new_image_path):
+                                node.image = bpy.data.images.load(new_image_path)
+                else:
+                    Absolute_Solver("m002", slot)
+        else:
+            Absolute_Solver("m003", selected_object)
+
 # Set Procedural PBR
         
 def setproceduralpbr():

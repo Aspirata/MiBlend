@@ -1,7 +1,7 @@
 from .Data import *
 from .Translator import *
 
-class FixWorldProperties(PropertyGroup):
+class WorldProperties(PropertyGroup):
 
     backface_culling: BoolProperty(
         name="Backface Culling",
@@ -30,6 +30,12 @@ class FixWorldProperties(PropertyGroup):
         default=emissiondetectionfix()
     )
 
+
+
+
+
+class MaterialsProperties(PropertyGroup):
+    pass
 
 
 
