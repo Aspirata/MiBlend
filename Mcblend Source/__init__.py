@@ -162,17 +162,44 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
-        row = box.row()
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Fix World", icon="WORLD_DATA")
+        row = sbox.row()
         row.prop(WProperties, "backface_culling")
-        row = box.row()
+        row = sbox.row()
         row.prop(WProperties, "delete_useless_textures")
-        row = box.row()
+        row = sbox.row()
         row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
-        row = box.row()
+        row = sbox.row()
         row.prop(WProperties, "emissiondetection", text='emissiondetection', expand=True)
-        row = box.row()
+
+        row = sbox.row()
         row.scale_y = Big_Button_Scale
         row.operator("object.fix_world", text="Fix World")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Resource Packs", icon="FILE_FOLDER")
+
+        tbox = sbox.box()
+        resource_packs = get_resource_packs(scene)
+        for pack in list(resource_packs.keys()):
+            row = tbox.row()
+            row.label(text=pack)
+            
+            move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
+            move_up.pack_name = pack
+
+            move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
+            move_down.pack_name = pack
+
+            remove = row.operator("resource_pack.remove", text="", icon='X')
+            remove.pack_name = pack
+        
+        row = sbox.row()
+        row.operator("resource_pack.add", text="Add Resource Pack", icon='ADD')
 
         # Sky
 
@@ -592,6 +619,85 @@ class FixWorldOperator(Operator):
     def execute(self, context):
         Materials.fix_world()
         return {'FINISHED'}
+
+class MoveResourcePackUp(bpy.types.Operator):
+    bl_idname = "resource_pack.move_up"
+    bl_label = "Move Resource Pack Up"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    pack_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        scene = context.scene
+        resource_packs = get_resource_packs(scene)
+        keys = list(resource_packs.keys())
+        idx = keys.index(self.pack_name)
+        if idx > 0:
+            keys[idx], keys[idx-1] = keys[idx-1], keys[idx]
+            resource_packs = {k: resource_packs[k] for k in keys}
+            set_resource_packs(scene, resource_packs)
+        return {'FINISHED'}
+
+class MoveResourcePackDown(bpy.types.Operator):
+    bl_idname = "resource_pack.move_down"
+    bl_label = "Move Resource Pack Down"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    pack_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        scene = context.scene
+        resource_packs = get_resource_packs(scene)
+        keys = list(resource_packs.keys())
+        idx = keys.index(self.pack_name)
+        if idx < len(keys) - 1:
+            keys[idx], keys[idx+1] = keys[idx+1], keys[idx]
+            resource_packs = {k: resource_packs[k] for k in keys}
+            set_resource_packs(scene, resource_packs)
+        return {'FINISHED'}
+
+
+class RemoveResourcePack(bpy.types.Operator):
+    bl_idname = "resource_pack.remove"
+    bl_label = "Remove Resource Pack"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    pack_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        scene = context.scene
+        resource_packs = get_resource_packs(scene)
+        if self.pack_name in resource_packs:
+            del resource_packs[self.pack_name]
+            set_resource_packs(scene, resource_packs)
+        return {'FINISHED'}
+
+class AddResourcePack(bpy.types.Operator):
+    bl_idname = "resource_pack.add"
+    bl_label = "Add Resource Pack"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    filter_folder: BoolProperty(default=True, options={'HIDDEN'})
+
+    def execute(self, context):
+        scene = context.scene
+        resource_packs = get_resource_packs(scene)
+
+        if os.path.isdir(self.filepath):
+            pack_name = os.path.basename(self.filepath)
+            resource_packs[pack_name] = os.path.abspath(self.filepath)
+        else:
+            pack_name = os.path.basename(os.path.dirname(self.filepath))
+            resource_packs[pack_name] = os.path.dirname(self.filepath)
+            
+        set_resource_packs(scene, resource_packs)
+
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
     
 class CreateEnvOperator(Operator):
     bl_idname = "object.create_env"
@@ -954,7 +1060,8 @@ class ManualAssetsUpdateOperator(Operator):
 #
 
 classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
-    WorldProperties, MaterialsProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator,
+    WorldProperties, MaterialsProperties, CreateEnvProperties, PPBRProperties,
+    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, AddResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator

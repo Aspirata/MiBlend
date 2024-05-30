@@ -429,6 +429,7 @@ def swap_textures(folder_path):
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE" and node.image is not None:
                             new_image_path = find_image(node.image.name, folder_path)
+                            bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
                             if new_image_path and os.path.isfile(new_image_path):
                                 node.image = bpy.data.images.load(new_image_path)
                 else:

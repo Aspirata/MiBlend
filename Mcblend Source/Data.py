@@ -1,6 +1,7 @@
 # Properties
 import bpy
 import os
+import json
 import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
@@ -117,6 +118,18 @@ def blender_version(blender_version, debug=None):
         else:
             return False
         
+Resource_Packs = {
+    "Minecraft 1.20.6": r"C:\Users\const\OneDrive\Документы\GitHub\Mcblend\tex",
+    "Minecraft 1.12.2": r"C:\Users\const\OneDrive\Документы\GitHub\Mcblend\tex",
+    "Lol Sussy Baka": "Ya Puknul",
+}
+
+def get_resource_packs(scene):
+    resource_packs_str = scene.get("resource_packs", "{}")
+    return json.loads(resource_packs_str)
+
+def set_resource_packs(scene, resource_packs):
+    scene["resource_packs"] = json.dumps(resource_packs)
 
 Preferences_List = {
     "Dev": {
