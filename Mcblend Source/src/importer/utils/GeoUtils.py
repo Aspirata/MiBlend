@@ -102,10 +102,13 @@ def create_cube(data: CubeData):
 			texture_node = nodes.new(type="ShaderNodeTexImage")
 			texture_node.location = (-400, 0)
 
-			textureLocation = ResourceLocation(data.textures.get(face.texture))
-			if textureLocation.path.endswith(".png") is False:
-				textureLocation.path += ".png"
-			textureLocation.path = "textures/" + textureLocation.path
+			if isinstance(data.textures.get(face.texture), str):
+				textureLocation = ResourceLocation(data.textures.get(face.texture))
+				if textureLocation.path.endswith(".png") is False:
+					textureLocation.path += ".png"
+				textureLocation.path = "textures/" + textureLocation.path
+			else:
+				textureLocation = getResource(ResourceLocation("missing.png"))
 			texture = bpy.data.images.load(textureLocation.toPath(), check_existing=True)
 			texture_node.image = texture
 			texture_node.interpolation = "Closest"
