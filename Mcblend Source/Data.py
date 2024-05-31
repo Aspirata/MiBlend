@@ -2,6 +2,7 @@
 import bpy
 import os
 import json
+import zipfile
 import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
@@ -117,19 +118,32 @@ def blender_version(blender_version, debug=None):
             return bpy.app.version == version
         else:
             return False
-        
-Resource_Packs = {
-    "Minecraft 1.20.6": r"C:\Users\const\OneDrive\Документы\GitHub\Mcblend\tex",
-    "Minecraft 1.12.2": r"C:\Users\const\OneDrive\Документы\GitHub\Mcblend\tex",
-    "Lol Sussy Baka": "Ya Puknul",
-}
 
-def get_resource_packs(scene):
+def get_resource_packs(scene, debug=None):
     resource_packs_str = scene.get("resource_packs", "{}")
-    return json.loads(resource_packs_str)
+    resource_packs = json.loads(resource_packs_str)
 
-def set_resource_packs(scene, resource_packs):
+    if debug is not None:
+        print(f"Resource Packs: {resource_packs}")
+    
+    return resource_packs
+
+def set_resource_packs(scene, resource_packs, debug=None):
     scene["resource_packs"] = json.dumps(resource_packs)
+
+    if debug is not None:
+        print(f"Resource Packs: {scene['resource_packs']}")
+
+def update_default_pack(scene, debug=None):
+    resource_packs = json.loads(scene.get("resource_packs", "{}"))
+
+    default_pack = "Minecraft 1.20.1"
+    default_path = r"C:\Users\const\OneDrive\Документы\GitHub\Mcblend\Minecraft Assets"
+    resource_packs[default_pack] = default_path
+    scene["resource_packs"] = json.dumps(resource_packs)
+    
+    if debug is not None:
+        print(f"Default Pack: {resource_packs[default_pack]}")
 
 Preferences_List = {
     "Dev": {

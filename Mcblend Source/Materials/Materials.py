@@ -411,6 +411,37 @@ def fix_materials():
                     Absolute_Solver("m002", slot)
         else:
             Absolute_Solver("m003", selected_object)
+
+def apply_resources():
+
+    def find_image(image_name, root_folder):
+        for dirpath, _, filenames in os.walk(root_folder):
+            if image_name in filenames:
+                return os.path.join(dirpath, image_name)
+        return None
+    
+    resource_packs = get_resource_packs(bpy.context.scene)
+
+    for selected_object in bpy.context.selected_objects:
+        slot = 0
+        if selected_object.material_slots:
+            for material in selected_object.data.materials:
+                slot += 1
+                if material is not None:
+                    for node in material.node_tree.nodes:
+                        if node.type == "TEX_IMAGE" and node.image is not None:
+                            image_name = node.image.name
+                            for pack, path in reversed(list(resource_packs.items())):
+                                new_image_path = find_image(image_name, path)
+                                if new_image_path and os.path.isfile(new_image_path):
+                                    if image_name in bpy.data.images:
+                                        bpy.data.images.remove(bpy.data.images[image_name], do_unlink=True)
+                                    node.image = bpy.data.images.load(new_image_path)
+                                    #node.image.name
+                else:
+                    Absolute_Solver("m002", slot)
+        else:
+            Absolute_Solver("m003", selected_object)
         
 def swap_textures(folder_path):
 
@@ -418,6 +449,21 @@ def swap_textures(folder_path):
         for dirpath, _, filenames in os.walk(root_folder):
             if image_name in filenames:
                 return os.path.join(dirpath, image_name)
+        
+        for root, _, files in os.walk(root_folder):
+            for file in files:
+                if file.endswith('.zip'):
+                    with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
+                        for zip_info in zip_ref.infolist():
+                            if zip_info.filename.endswith(image_name):
+                                return zip_ref.extract(zip_info, os.path.join(root_folder, 'temp'))
+        
+        if root_folder.endswith('.zip'):
+            with zipfile.ZipFile(root_folder, 'r') as zip_ref:
+                for zip_info in zip_ref.infolist():
+                    if zip_info.filename.endswith(image_name):
+                        return zip_ref.extract(zip_info, os.path.join(os.path.dirname(root_folder), 'temp'))
+
         return None
     
     for selected_object in bpy.context.selected_objects:
@@ -429,9 +475,12 @@ def swap_textures(folder_path):
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE" and node.image is not None:
                             new_image_path = find_image(node.image.name, folder_path)
-                            bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
-                            if new_image_path and os.path.isfile(new_image_path):
-                                node.image = bpy.data.images.load(new_image_path)
+                            if new_image_path != None:
+                                if node.image.name in bpy.data.images:
+                                    bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
+                                if os.path.isfile(new_image_path):
+                                    node.image = bpy.data.images.load(new_image_path)
+                            print(new_image_path)
                 else:
                     Absolute_Solver("m002", slot)
         else:

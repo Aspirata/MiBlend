@@ -198,8 +198,14 @@ class WorldAndMaterialsPanel(Panel):
             remove = row.operator("resource_pack.remove", text="", icon='X')
             remove.pack_name = pack
         
+        row = tbox.row()
+        row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
+
+        row = tbox.row()
+        row.operator("resource_pack.add", icon='ADD')
+
         row = sbox.row()
-        row.operator("resource_pack.add", text="Add Resource Pack", icon='ADD')
+        row.operator("resource_pack.apply", icon='CHECKMARK')
 
         # Sky
 
@@ -620,7 +626,7 @@ class FixWorldOperator(Operator):
         Materials.fix_world()
         return {'FINISHED'}
 
-class MoveResourcePackUp(bpy.types.Operator):
+class MoveResourcePackUp(Operator):
     bl_idname = "resource_pack.move_up"
     bl_label = "Move Resource Pack Up"
     bl_options = {'REGISTER', 'UNDO'}
@@ -638,7 +644,7 @@ class MoveResourcePackUp(bpy.types.Operator):
             set_resource_packs(scene, resource_packs)
         return {'FINISHED'}
 
-class MoveResourcePackDown(bpy.types.Operator):
+class MoveResourcePackDown(Operator):
     bl_idname = "resource_pack.move_down"
     bl_label = "Move Resource Pack Down"
     bl_options = {'REGISTER', 'UNDO'}
@@ -657,7 +663,7 @@ class MoveResourcePackDown(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class RemoveResourcePack(bpy.types.Operator):
+class RemoveResourcePack(Operator):
     bl_idname = "resource_pack.remove"
     bl_label = "Remove Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
@@ -672,7 +678,16 @@ class RemoveResourcePack(bpy.types.Operator):
             set_resource_packs(scene, resource_packs)
         return {'FINISHED'}
 
-class AddResourcePack(bpy.types.Operator):
+class UpdateDefaultPack(Operator):
+    bl_idname = "resource_pack.update_default_pack"
+    bl_label = "Update Default Pack"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        update_default_pack(context.scene, True)
+        return {'FINISHED'}
+
+class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"
     bl_label = "Add Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
@@ -699,6 +714,15 @@ class AddResourcePack(bpy.types.Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
     
+class ApplyResourcePack(Operator):
+    bl_idname = "resource_pack.apply"
+    bl_label = "Apply Resource Packs"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        Materials.apply_resources()
+        return {'FINISHED'}
+
 class CreateEnvOperator(Operator):
     bl_idname = "object.create_env"
     bl_label = "Create Environment"
@@ -734,7 +758,7 @@ class SwapTexturesOperator(Operator):
     filepath: StringProperty(subtype="DIR_PATH")
 
     def execute(self, context):
-        if os.path.isdir(self.filepath):
+        if os.path.isdir(self.filepath) or self.filepath.endswith('.zip'):
             #context.scene.materials_properties.folder_path = os.path.abspath(self.filepath)
             Materials.swap_textures(os.path.abspath(self.filepath))
             self.report({'INFO'}, f"Selected Folder: {os.path.abspath(self.filepath)}")
@@ -1061,7 +1085,7 @@ class ManualAssetsUpdateOperator(Operator):
 
 classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
     WorldProperties, MaterialsProperties, CreateEnvProperties, PPBRProperties,
-    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, AddResourcePack,
+    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator
