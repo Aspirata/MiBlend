@@ -38,7 +38,7 @@ def append_asset(asset_name, asset_category):
     except:
         Absolute_Solver(err=traceback.print_exc(), data=asset_name, error_name="Bad Asset Import", description="Can't Import {Data} Asset")
 
-def update_assets(idk_lol):
+def update_assets():
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
 

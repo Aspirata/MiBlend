@@ -8,6 +8,7 @@ from .Utils import *
 from .Translator import Translate
 from .Preferences import McblendPreferences
 from bpy.types import Panel, Operator
+from bpy.app.handlers import persistent
 
 bl_info = {
     "name": "Mcblend",
@@ -17,6 +18,10 @@ bl_info = {
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
 }
+
+@persistent
+def load_post_handler(dummy):
+    InitOnStart()
 
 class AbsoluteSolver(Operator):
     bl_label = "Absolute Solver"
@@ -163,6 +168,8 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
 
+        # Fix World
+
         sbox = box.box()
         row = sbox.row()
         row.label(text="Fix World", icon="WORLD_DATA")
@@ -179,14 +186,21 @@ class WorldAndMaterialsPanel(Panel):
         row.scale_y = Big_Button_Scale
         row.operator("object.fix_world", text="Fix World")
 
+        # Resource Packs
+
         sbox = box.box()
         row = sbox.row()
         row.label(text="Resource Packs", icon="FILE_FOLDER")
 
         tbox = sbox.box()
         resource_packs = get_resource_packs(scene)
-        for pack in list(resource_packs.keys()):
+        for pack, pack_info in resource_packs.items():
             row = tbox.row()
+
+            icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
+            toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
+            toggle_op.pack_name = pack
+
             row.label(text=pack)
             
             move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
@@ -625,6 +639,21 @@ class FixWorldOperator(Operator):
     def execute(self, context):
         Materials.fix_world()
         return {'FINISHED'}
+    
+class ResourcePackToggleOperator(bpy.types.Operator):
+    bl_idname = "resource_pack.toggle"
+    bl_label = "Toggle Resource Pack"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    pack_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        scene = context.scene
+        resource_packs = get_resource_packs(scene)
+        if self.pack_name in resource_packs:
+            resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
+            set_resource_packs(scene, resource_packs)
+        return {'FINISHED'}
 
 class MoveResourcePackUp(Operator):
     bl_idname = "resource_pack.move_up"
@@ -634,14 +663,13 @@ class MoveResourcePackUp(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        scene = context.scene
-        resource_packs = get_resource_packs(scene)
+        resource_packs = get_resource_packs(context.scene)
         keys = list(resource_packs.keys())
         idx = keys.index(self.pack_name)
         if idx > 0:
-            keys[idx], keys[idx-1] = keys[idx-1], keys[idx]
-            resource_packs = {k: resource_packs[k] for k in keys}
-            set_resource_packs(scene, resource_packs)
+            keys[idx], keys[idx - 1] = keys[idx - 1], keys[idx]
+            reordered_packs = {k: resource_packs[k] for k in keys}
+            set_resource_packs(context.scene, reordered_packs)
         return {'FINISHED'}
 
 class MoveResourcePackDown(Operator):
@@ -652,16 +680,14 @@ class MoveResourcePackDown(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        scene = context.scene
-        resource_packs = get_resource_packs(scene)
+        resource_packs = get_resource_packs(context.scene)
         keys = list(resource_packs.keys())
         idx = keys.index(self.pack_name)
         if idx < len(keys) - 1:
-            keys[idx], keys[idx+1] = keys[idx+1], keys[idx]
-            resource_packs = {k: resource_packs[k] for k in keys}
-            set_resource_packs(scene, resource_packs)
+            keys[idx], keys[idx + 1] = keys[idx + 1], keys[idx]
+            reordered_packs = {k: resource_packs[k] for k in keys}
+            set_resource_packs(context.scene, reordered_packs)
         return {'FINISHED'}
-
 
 class RemoveResourcePack(Operator):
     bl_idname = "resource_pack.remove"
@@ -671,11 +697,10 @@ class RemoveResourcePack(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        scene = context.scene
-        resource_packs = get_resource_packs(scene)
+        resource_packs = get_resource_packs(context.scene)
         if self.pack_name in resource_packs:
             del resource_packs[self.pack_name]
-            set_resource_packs(scene, resource_packs)
+            set_resource_packs(context.scene, resource_packs)
         return {'FINISHED'}
 
 class UpdateDefaultPack(Operator):
@@ -700,11 +725,11 @@ class AddResourcePack(Operator):
 
         if os.path.isdir(self.filepath) or self.filepath.endswith('.zip'):
             pack_name = os.path.basename(self.filepath)
-            resource_packs[pack_name] = os.path.abspath(self.filepath)
+            resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "enabled": True}
         else:
             pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = os.path.dirname(self.filepath)
-            
+            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "enabled": True}
+        
         set_resource_packs(scene, resource_packs)
 
         return {'FINISHED'}
@@ -985,9 +1010,6 @@ class AssetPanel(Panel):
         row = box.row()
         row.prop(context.scene.assetsproperties, "asset_category", text="")
 
-        if not any(f.__name__ == update_assets.__name__ for f in bpy.app.handlers.depsgraph_update_post):
-            bpy.app.handlers.depsgraph_update_post.append(update_assets)
-
         box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
 
         row = box.row()
@@ -1078,13 +1100,13 @@ class ManualAssetsUpdateOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        update_assets("lol")
+        update_assets()
         return {'FINISHED'}
 #
 
 classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
     WorldProperties, MaterialsProperties, CreateEnvProperties, PPBRProperties,
-    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack,
+    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator
@@ -1093,7 +1115,7 @@ classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment,
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-        
+
     bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=WorldProperties)
     bpy.types.Scene.materials_properties = bpy.props.PointerProperty(type=MaterialsProperties)
     bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
@@ -1101,6 +1123,8 @@ def register():
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
+
+    bpy.app.handlers.load_post.append(load_post_handler)
 
 def unregister():
     del bpy.types.Scene.world_properties
@@ -1113,6 +1137,8 @@ def unregister():
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
+    
+    bpy.app.handlers.load_post.remove(load_post_handler)
 
 
 if __name__ == "__main__":

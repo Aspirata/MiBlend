@@ -413,28 +413,6 @@ def fix_materials():
             Absolute_Solver("m003", selected_object)
 
 def apply_resources():
-
-    def find_image(image_name, root_folder):
-        for dirpath, _, filenames in os.walk(root_folder):
-            if image_name in filenames:
-                return os.path.join(dirpath, image_name)
-        
-        for root, _, files in os.walk(root_folder):
-            for file in files:
-                if file.endswith('.zip'):
-                    with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
-                        for zip_info in zip_ref.infolist():
-                            if zip_info.filename.endswith(image_name):
-                                return zip_ref.extract(zip_info, os.path.join(root_folder, 'temp'))
-        
-        if root_folder.endswith('.zip'):
-            with zipfile.ZipFile(root_folder, 'r') as zip_ref:
-                for zip_info in zip_ref.infolist():
-                    if zip_info.filename.endswith(image_name):
-                        return zip_ref.extract(zip_info, os.path.join(os.path.dirname(root_folder), 'temp'))
-
-        return None
-    
     resource_packs = get_resource_packs(bpy.context.scene)
 
     for selected_object in bpy.context.selected_objects:
@@ -446,44 +424,58 @@ def apply_resources():
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE" and node.image is not None:
                             image_name = node.image.name
-                            for pack, path in reversed(list(resource_packs.items())):
+                            for pack, pack_info in reversed(list(resource_packs.items())):
+                                path, enabled = pack_info["path"], pack_info["enabled"]
+                                if not enabled:
+                                    continue
                                 new_image_path = find_image(image_name, path)
+                                image_texture_node = node
                                 if new_image_path and os.path.isfile(new_image_path):
                                     if image_name in bpy.data.images:
                                         bpy.data.images.remove(bpy.data.images[image_name], do_unlink=True)
                                     node.image = bpy.data.images.load(new_image_path)
+                                    image_name = node.image.name
                                 
-                                # Create Normal texture
-                                #if node.image.name
-                                    #node.image.name
+                                # Create or update Normal texture
+                                normal_image_name = f"{image_name.split('.png')[0]}_n.png"
+                                new_normal_image_path = find_image(normal_image_name, path)
+                                if new_normal_image_path != None and os.path.isfile(new_normal_image_path):
+                                    # Find existing normal texture node and normal map node
+                                    normal_node = None
+                                    normal_map_node = None
+                                    for n in material.node_tree.nodes:
+                                        if n.type == "TEX_IMAGE" and n.image.name == normal_image_name:
+                                            normal_node = n
+                                        elif n.type == "NORMAL_MAP":
+                                            normal_map_node = n
+                                    
+                                    if normal_image_name in bpy.data.images:
+                                        bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
+                                    normal_image = bpy.data.images.load(new_normal_image_path)
+                                    
+                                    # Create normal texture node if not exists
+                                    if not normal_node:
+                                        normal_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                        normal_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
+
+                                    normal_node.image = normal_image
+                                    normal_node.interpolation = "Closest"
+                                    normal_node.image.colorspace_settings.name = "Non-Color"
+                                    
+                                    # Create normal map node if not exists
+                                    if not normal_map_node:
+                                        normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
+                                        normal_map_node.location = (normal_node.location.x + 280, normal_node.location.y)
+                                        material.node_tree.links.new(normal_node.outputs["Color"], normal_map_node.inputs["Color"])
+                                        material.node_tree.links.new(normal_map_node.outputs["Normal"], material.node_tree.nodes.get("Principled BSDF").inputs["Normal"])
+                                    else:
+                                        material.node_tree.links.new(normal_node.outputs["Color"], normal_map_node.inputs["Color"])
                 else:
                     Absolute_Solver("m002", slot)
         else:
             Absolute_Solver("m003", selected_object)
         
 def swap_textures(folder_path):
-
-    def find_image(image_name, root_folder):
-        for dirpath, _, filenames in os.walk(root_folder):
-            if image_name in filenames:
-                return os.path.join(dirpath, image_name)
-        
-        for root, _, files in os.walk(root_folder):
-            for file in files:
-                if file.endswith('.zip'):
-                    with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
-                        for zip_info in zip_ref.infolist():
-                            if zip_info.filename.endswith(image_name):
-                                return zip_ref.extract(zip_info, os.path.join(root_folder, 'temp'))
-        
-        if root_folder.endswith('.zip'):
-            with zipfile.ZipFile(root_folder, 'r') as zip_ref:
-                for zip_info in zip_ref.infolist():
-                    if zip_info.filename.endswith(image_name):
-                        return zip_ref.extract(zip_info, os.path.join(os.path.dirname(root_folder), 'temp'))
-
-        return None
-    
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
