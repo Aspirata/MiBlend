@@ -693,13 +693,12 @@ class AddResourcePack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="DIR_PATH")
-    filter_folder: BoolProperty(default=True, options={'HIDDEN'})
 
     def execute(self, context):
         scene = context.scene
         resource_packs = get_resource_packs(scene)
 
-        if os.path.isdir(self.filepath):
+        if os.path.isdir(self.filepath) or self.filepath.endswith('.zip'):
             pack_name = os.path.basename(self.filepath)
             resource_packs[pack_name] = os.path.abspath(self.filepath)
         else:

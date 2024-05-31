@@ -418,6 +418,21 @@ def apply_resources():
         for dirpath, _, filenames in os.walk(root_folder):
             if image_name in filenames:
                 return os.path.join(dirpath, image_name)
+        
+        for root, _, files in os.walk(root_folder):
+            for file in files:
+                if file.endswith('.zip'):
+                    with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
+                        for zip_info in zip_ref.infolist():
+                            if zip_info.filename.endswith(image_name):
+                                return zip_ref.extract(zip_info, os.path.join(root_folder, 'temp'))
+        
+        if root_folder.endswith('.zip'):
+            with zipfile.ZipFile(root_folder, 'r') as zip_ref:
+                for zip_info in zip_ref.infolist():
+                    if zip_info.filename.endswith(image_name):
+                        return zip_ref.extract(zip_info, os.path.join(os.path.dirname(root_folder), 'temp'))
+
         return None
     
     resource_packs = get_resource_packs(bpy.context.scene)
@@ -437,6 +452,9 @@ def apply_resources():
                                     if image_name in bpy.data.images:
                                         bpy.data.images.remove(bpy.data.images[image_name], do_unlink=True)
                                     node.image = bpy.data.images.load(new_image_path)
+                                
+                                # Create Normal texture
+                                #if node.image.name
                                     #node.image.name
                 else:
                     Absolute_Solver("m002", slot)
