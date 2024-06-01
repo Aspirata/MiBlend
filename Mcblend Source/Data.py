@@ -71,7 +71,7 @@ def GetConnectedSocketTo(input, tag, material):
                             return link.from_socket
 
 def InitOnStart():
-
+    
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
 
@@ -368,7 +368,7 @@ Emissive_Materials = {
         12: 1,
         "Adder": 0.2,
         "Divider": 80,
-    }
+    },
 
 }
 

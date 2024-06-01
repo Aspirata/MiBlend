@@ -219,6 +219,12 @@ class WorldAndMaterialsPanel(Panel):
         row.operator("resource_pack.add", icon='ADD')
 
         row = sbox.row()
+        row.prop(scene.resource_properties, "use_n")
+
+        row = sbox.row()
+        row.prop(scene.resource_properties, "use_s")
+
+        row = sbox.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')
 
         # Sky
@@ -1105,8 +1111,9 @@ class ManualAssetsUpdateOperator(Operator):
 #
 
 classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
-    WorldProperties, MaterialsProperties, CreateEnvProperties, PPBRProperties,
-    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack,
+    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties,
+    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, 
+    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator
@@ -1117,6 +1124,7 @@ def register():
         bpy.utils.register_class(cls)
 
     bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=WorldProperties)
+    bpy.types.Scene.resource_properties = bpy.props.PointerProperty(type=ResourcePackProperties)
     bpy.types.Scene.materials_properties = bpy.props.PointerProperty(type=MaterialsProperties)
     bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
@@ -1128,6 +1136,7 @@ def register():
 
 def unregister():
     del bpy.types.Scene.world_properties
+    del bpy.types.Scene.resource_properties
     del bpy.types.Scene.materials_properties
     del bpy.types.Scene.env_properties
     del bpy.types.Scene.ppbr_properties

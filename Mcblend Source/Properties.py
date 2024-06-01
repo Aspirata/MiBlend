@@ -33,6 +33,20 @@ class WorldProperties(PropertyGroup):
 
 
 
+class ResourcePackProperties(PropertyGroup):
+    use_n: BoolProperty(
+        name="Use Normal Textures",
+        default=True,
+    )
+
+    use_s: BoolProperty(
+        name="Use Specular Textures",
+        default=True,
+    )
+
+
+
+
 
 class MaterialsProperties(PropertyGroup):
     pass

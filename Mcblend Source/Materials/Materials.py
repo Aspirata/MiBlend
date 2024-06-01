@@ -414,6 +414,7 @@ def fix_materials():
 
 def apply_resources():
     resource_packs = get_resource_packs(bpy.context.scene)
+    r_props = bpy.context.scene.resource_properties
 
     for selected_object in bpy.context.selected_objects:
         slot = 0
@@ -421,55 +422,140 @@ def apply_resources():
             for material in selected_object.data.materials:
                 slot += 1
                 if material is not None:
+                    PBSDF = None
+                    image_texture_node = None
+                    normal_texture_node = None
+                    normal_map_node = None
+                    specular_texture_node = None
+                    separate_color_node = None
+                    invert_color_node = None
+
+                    new_image_path = None
+                    new_normal_image_path = None
+                    new_specular_image_path = None
+
                     for node in material.node_tree.nodes:
-                        if node.type == "TEX_IMAGE" and node.image is not None:
-                            image_name = node.image.name
-                            for pack, pack_info in reversed(list(resource_packs.items())):
+                        if node.type == "BSDF_PRINCIPLED":
+                            PBSDF = node
+
+                        if node.type == "TEX_IMAGE" and node.image:
+
+                            if not ("_n" in node.image.name) and not ("_s" in node.image.name):
+                                image_texture_node = node
+                                new_name = image_texture_node.image.name.replace("_y", "")
+                                image_texture_node.image.name = new_name
+
+                            if "_n" in node.image.name:
+                                normal_texture_node = node
+
+                            if "_s" in node.image.name:
+                                specular_texture_node = node
+                        
+                        if node.type == "NORMAL_MAP":
+                            normal_map_node = node
+                        
+                        if node.type == "SEPARATE_COLOR":
+                            separate_color_node = node
+                        
+                        if node.type == "INVERT":
+                            invert_color_node = node
+
+                    # Texture Update
+                    if image_texture_node != None:
+                        for pack, pack_info in resource_packs.items():
+                            path, enabled = pack_info["path"], pack_info["enabled"]
+                            if not enabled:
+                                continue
+
+                            new_image_path = find_image(image_texture_node.image.name, path)
+                            if new_image_path != None:
+                                break
+                        
+                        if new_image_path != None:
+                            if image_texture_node.image.name in bpy.data.images:
+                                bpy.data.images.remove(bpy.data.images[image_texture_node.image.name], do_unlink=True)
+                            image_texture_node.image = bpy.data.images.load(new_image_path)
+
+                        # Normal Texture Update
+                        if r_props.use_n:
+
+                            if normal_texture_node == None:
+                                normal_image_name = f"{image_texture_node.image.name.split('.png')[0]}_n.png"
+                            else:
+                                normal_image_name = normal_texture_node.image.name
+                            
+                            for pack, pack_info in resource_packs.items():
                                 path, enabled = pack_info["path"], pack_info["enabled"]
                                 if not enabled:
                                     continue
-                                new_image_path = find_image(image_name, path)
-                                image_texture_node = node
-                                if new_image_path and os.path.isfile(new_image_path):
-                                    if image_name in bpy.data.images:
-                                        bpy.data.images.remove(bpy.data.images[image_name], do_unlink=True)
-                                    node.image = bpy.data.images.load(new_image_path)
-                                    image_name = node.image.name
                                 
-                                # Create or update Normal texture
-                                normal_image_name = f"{image_name.split('.png')[0]}_n.png"
                                 new_normal_image_path = find_image(normal_image_name, path)
-                                if new_normal_image_path != None and os.path.isfile(new_normal_image_path):
-                                    # Find existing normal texture node and normal map node
-                                    normal_node = None
-                                    normal_map_node = None
-                                    for n in material.node_tree.nodes:
-                                        if n.type == "TEX_IMAGE" and n.image.name == normal_image_name:
-                                            normal_node = n
-                                        elif n.type == "NORMAL_MAP":
-                                            normal_map_node = n
-                                    
-                                    if normal_image_name in bpy.data.images:
-                                        bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
-                                    normal_image = bpy.data.images.load(new_normal_image_path)
-                                    
-                                    # Create normal texture node if not exists
-                                    if not normal_node:
-                                        normal_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-                                        normal_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
+                                if new_normal_image_path != None:
+                                    break
 
-                                    normal_node.image = normal_image
-                                    normal_node.interpolation = "Closest"
-                                    normal_node.image.colorspace_settings.name = "Non-Color"
+                            if new_normal_image_path != None:
+                                if normal_texture_node == None:
+                                    normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                    normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
+                                    normal_texture_node.interpolation = "Closest"
+                                
+                                if normal_image_name in bpy.data.images:
+                                    bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
+                                
+                                normal_texture_node.image = bpy.data.images.load(new_normal_image_path)
+                                
+                                normal_texture_node.image.colorspace_settings.name = "Non-Color"
+
+                                if normal_map_node == None:
+                                    normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
+                                    normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
+                                    material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
+                                    material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
+                        
+                        # Specular Texture Update
+                        if r_props.use_s:
+
+                            if specular_texture_node == None:
+                                specular_image_name = f"{image_texture_node.image.name.split('.png')[0]}_s.png"
+                            else:
+                                specular_image_name = specular_texture_node.image.name
+                            
+                            for pack, pack_info in resource_packs.items():
+                                path, enabled = pack_info["path"], pack_info["enabled"]
+                                if not enabled:
+                                    continue
+
+                                new_specular_image_path = find_image(specular_image_name, path)
+                                if new_specular_image_path != None:
+                                    break
+
+                            if new_specular_image_path != None:
+                                if specular_texture_node == None:
+                                    specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                    specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
+                                    specular_texture_node.interpolation = "Closest"
+
+                                if separate_color_node == None:
+                                    separate_color_node = material.node_tree.nodes.new("ShaderNodeSeparateColor")
+                                    separate_color_node.location = (specular_texture_node.location.x + 260, specular_texture_node.location.y)
+                                
+                                if invert_color_node == None:
+                                    invert_color_node = material.node_tree.nodes.new("ShaderNodeInvert")
+                                    invert_color_node.location = (separate_color_node.location.x + 160, image_texture_node.location.y - 280)
                                     
-                                    # Create normal map node if not exists
-                                    if not normal_map_node:
-                                        normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
-                                        normal_map_node.location = (normal_node.location.x + 280, normal_node.location.y)
-                                        material.node_tree.links.new(normal_node.outputs["Color"], normal_map_node.inputs["Color"])
-                                        material.node_tree.links.new(normal_map_node.outputs["Normal"], material.node_tree.nodes.get("Principled BSDF").inputs["Normal"])
-                                    else:
-                                        material.node_tree.links.new(normal_node.outputs["Color"], normal_map_node.inputs["Color"])
+                                if specular_image_name in bpy.data.images:
+                                    bpy.data.images.remove(bpy.data.images[specular_image_name], do_unlink=True)
+
+                                specular_texture_node.image = bpy.data.images.load(new_specular_image_path)
+                                
+                                specular_texture_node.image.colorspace_settings.name = "Non-Color"
+
+                                material.node_tree.links.new(specular_texture_node.outputs["Color"], separate_color_node.inputs[0])
+                                material.node_tree.links.new(separate_color_node.outputs["Red"], invert_color_node.inputs["Color"])
+                                material.node_tree.links.new(separate_color_node.outputs["Green"], PBSDF.inputs["Metallic"])
+                                #material.node_tree.links.new(separate_color_node.outputs["Blue"], PBSDF.inputs["Emission Strength"])
+                                material.node_tree.links.new(invert_color_node.outputs[0], PBSDF.inputs["Roughness"])
+
                 else:
                     Absolute_Solver("m002", slot)
         else:
