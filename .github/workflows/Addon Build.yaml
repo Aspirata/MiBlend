@@ -25,13 +25,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
 
-    - name: Zip Blender Addon
+    - name: Prepare Blender Addon
       run: |
-        mkdir -p output
-        zip -r "output/Mcblend.zip" "Mcblend Source"
+        mkdir -p output/Mcblend
+        cp -r "Mcblend Source"/* output/Mcblend/
 
-    - name: Upload ZIP as artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload folder as artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: Mcblend Experimental Build
-        path: "output/Mcblend.zip"
+        name: Mcblend Experimental Auto Build
+        path: output/Mcblend\ Source
