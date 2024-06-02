@@ -28,10 +28,10 @@ jobs:
     - name: Zip Blender Addon
       run: |
         mkdir -p output
-        zip -r output/Mcblend.zip Mcblend Source
+        zip -r "output/Mcblend.zip" "Mcblend Source"
 
     - name: Upload ZIP as artifact
       uses: actions/upload-artifact@v3
       with:
         name: Mcblend Experimental Build
-        path: output/Mcblend.zip
+        path: "output/Mcblend.zip"
