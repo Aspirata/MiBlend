@@ -10,7 +10,7 @@ from bpy.types import Panel, Operator
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 4, 1),
+    "version": (0, 4, 3),
     "blender": (3, 6, 0),
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
