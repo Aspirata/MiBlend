@@ -225,6 +225,9 @@ class WorldAndMaterialsPanel(Panel):
         row.prop(scene.resource_properties, "use_s")
 
         row = sbox.row()
+        row.prop(scene.resource_properties, "use_e")
+
+        row = sbox.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')
 
         # Sky

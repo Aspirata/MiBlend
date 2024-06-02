@@ -428,28 +428,34 @@ def apply_resources():
                     normal_map_node = None
                     specular_texture_node = None
                     separate_color_node = None
-                    invert_color_node = None
+                    roughness_invert_color_node = None
+                    emission_invert_color_node = None
 
                     new_image_path = None
                     new_normal_image_path = None
                     new_specular_image_path = None
 
                     for node in material.node_tree.nodes:
+
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
                         if node.type == "TEX_IMAGE" and node.image:
 
-                            if not ("_n" in node.image.name) and not ("_s" in node.image.name):
-                                image_texture_node = node
-                                new_name = image_texture_node.image.name.replace("_y", "")
-                                image_texture_node.image.name = new_name
+                            for part in node.image.name.replace(".png", "").split("_"):
 
-                            if "_n" in node.image.name:
-                                normal_texture_node = node
+                                if part == "n":
+                                    normal_texture_node = node
+                                    break
+                                
+                                if part == "s":
+                                    specular_texture_node = node
+                                    break
 
-                            if "_s" in node.image.name:
-                                specular_texture_node = node
+                                #if part == "e":
+                                
+                                if part != "s" and part != "n" and part != "e":
+                                    image_texture_node = node
                         
                         if node.type == "NORMAL_MAP":
                             normal_map_node = node
@@ -458,10 +464,18 @@ def apply_resources():
                             separate_color_node = node
                         
                         if node.type == "INVERT":
-                            invert_color_node = node
+                            if "Roughness Invert" in node.name:
+                                roughness_invert_color_node = node
+                            if "Emission Invert" in node.name:
+                                emission_invert_color_node = node
+
 
                     # Texture Update
                     if image_texture_node != None:
+
+                        if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
+                            image_texture_node.location.x = PBSDF.location.x - 600
+
                         for pack, pack_info in resource_packs.items():
                             path, enabled = pack_info["path"], pack_info["enabled"]
                             if not enabled:
@@ -539,9 +553,15 @@ def apply_resources():
                                     separate_color_node = material.node_tree.nodes.new("ShaderNodeSeparateColor")
                                     separate_color_node.location = (specular_texture_node.location.x + 260, specular_texture_node.location.y)
                                 
-                                if invert_color_node == None:
-                                    invert_color_node = material.node_tree.nodes.new("ShaderNodeInvert")
-                                    invert_color_node.location = (separate_color_node.location.x + 160, image_texture_node.location.y - 280)
+                                if roughness_invert_color_node == None:
+                                    roughness_invert_color_node = material.node_tree.nodes.new("ShaderNodeInvert")
+                                    roughness_invert_color_node.location = (separate_color_node.location.x + 160, image_texture_node.location.y - 280)
+                                    roughness_invert_color_node.name ="Roughness Invert"
+                                
+                                if emission_invert_color_node == None:
+                                    emission_invert_color_node = material.node_tree.nodes.new("ShaderNodeInvert")
+                                    emission_invert_color_node.location = (separate_color_node.location.x, separate_color_node.location.y - 140)
+                                    emission_invert_color_node.name = "Emission Invert"
                                     
                                 if specular_image_name in bpy.data.images:
                                     bpy.data.images.remove(bpy.data.images[specular_image_name], do_unlink=True)
@@ -551,10 +571,16 @@ def apply_resources():
                                 specular_texture_node.image.colorspace_settings.name = "Non-Color"
 
                                 material.node_tree.links.new(specular_texture_node.outputs["Color"], separate_color_node.inputs[0])
-                                material.node_tree.links.new(separate_color_node.outputs["Red"], invert_color_node.inputs["Color"])
+
+                                material.node_tree.links.new(separate_color_node.outputs["Red"], roughness_invert_color_node.inputs["Color"])
                                 material.node_tree.links.new(separate_color_node.outputs["Green"], PBSDF.inputs["Metallic"])
                                 #material.node_tree.links.new(separate_color_node.outputs["Blue"], PBSDF.inputs["Emission Strength"])
-                                material.node_tree.links.new(invert_color_node.outputs[0], PBSDF.inputs["Roughness"])
+
+                                material.node_tree.links.new(specular_texture_node.outputs["Alpha"], emission_invert_color_node.inputs["Color"])
+                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                material.node_tree.links.new(emission_invert_color_node.outputs[0], PBSDF.inputs["Emission Strength"])
+
+                                material.node_tree.links.new(roughness_invert_color_node.outputs[0], PBSDF.inputs["Roughness"])
 
                 else:
                     Absolute_Solver("m002", slot)

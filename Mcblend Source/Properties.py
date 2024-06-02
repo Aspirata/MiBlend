@@ -44,6 +44,11 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
+    use_e: BoolProperty(
+        name="Use Emission Textures",
+        default=True,
+    )
+
 
 
 
