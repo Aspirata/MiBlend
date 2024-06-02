@@ -267,7 +267,7 @@ class PPBRProperties(PropertyGroup):
 
     animate_textures: BoolProperty(
         name="Animate textures",
-        default=True,
+        default=False,
         description=""
     )
 

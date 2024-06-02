@@ -427,6 +427,7 @@ def apply_resources():
                     normal_texture_node = None
                     normal_map_node = None
                     specular_texture_node = None
+                    emission_texture_node = None
                     separate_color_node = None
                     roughness_invert_color_node = None
                     emission_invert_color_node = None
@@ -452,7 +453,8 @@ def apply_resources():
                                     specular_texture_node = node
                                     break
 
-                                #if part == "e":
+                                if part == "e":
+                                    emission_texture_node = node
                                 
                                 if part != "s" and part != "n" and part != "e":
                                     image_texture_node = node
@@ -577,10 +579,48 @@ def apply_resources():
                                 #material.node_tree.links.new(separate_color_node.outputs["Blue"], PBSDF.inputs["Emission Strength"])
 
                                 material.node_tree.links.new(specular_texture_node.outputs["Alpha"], emission_invert_color_node.inputs["Color"])
-                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                if blender_version("4.x.x"):
+                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                else:
+                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
                                 material.node_tree.links.new(emission_invert_color_node.outputs[0], PBSDF.inputs["Emission Strength"])
 
                                 material.node_tree.links.new(roughness_invert_color_node.outputs[0], PBSDF.inputs["Roughness"])
+                        
+                        # Emission Texture Update
+                        if r_props.use_e:
+
+                            if emission_texture_node == None:
+                                emission_image_name = f"{image_texture_node.image.name.split('.png')[0]}_e.png"
+                            else:
+                                emission_image_name = emission_texture_node.image.name
+                            
+                            for pack, pack_info in resource_packs.items():
+                                path, enabled = pack_info["path"], pack_info["enabled"]
+                                if not enabled:
+                                    continue
+
+                                new_emission_image_path = find_image(emission_image_name, path)
+                                if new_emission_image_path != None:
+                                    break
+
+                            if new_emission_image_path != None:
+                                if emission_texture_node == None:
+                                    emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                    emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
+                                    emission_texture_node.interpolation = "Closest"
+                                
+                                if emission_image_name in bpy.data.images:
+                                    bpy.data.images.remove(bpy.data.images[emission_image_name], do_unlink=True)
+
+                                emission_texture_node.image = bpy.data.images.load(new_emission_image_path)
+
+
+                                if blender_version("4.x.x"):
+                                    material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                else:
+                                    material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
+                                material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Strength"])
 
                 else:
                     Absolute_Solver("m002", slot)
