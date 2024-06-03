@@ -1,4 +1,4 @@
-from .Data import *
+import bpy
 
 Translations = {
     "Use Normals": {

@@ -1,4 +1,5 @@
 from ..Data import *
+from ..MCB_API import *
 
 # This function checks if a given material's name contains any of the keywords in the provided array. 
 # It returns True if a match is found, and False otherwise.
@@ -26,6 +27,8 @@ def DeleteUselessTextures(material):
                 image_to_nodes[image].append(node)
             else:
                 image_to_nodes[image] = [node]
+        else:
+            material.node_tree.nodes.remove(node)
 
     def get_node_suffix_number(node_name):
         parts = node_name.split(".")
@@ -131,10 +134,10 @@ def fix_world():
                         if EmissionMode(PBSDF, material):
                             if blender_version("4.x.x"):
                                 if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
-                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission Color"])
                             else:
                                 if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
-                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission"])
 
                             if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
                                 PBSDF.inputs["Emission Strength"].default_value = 1
@@ -164,18 +167,9 @@ def fix_world():
                                     bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
                                     bfc_node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
 
-                                material.node_tree.links.new(image_texture_node.outputs[1], bfc_node.inputs[0])
-
-                                for node in material.node_tree.nodes:
-                                    if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs["Alpha"].links:                                            
-                                            if link.from_node.name != bfc_node.name:                                                
-                                                for output in link.from_node.outputs:
-                                                    for link_out in output.links:
-                                                        if link_out.to_socket.node.name == node.name:                                                                                                                    
-                                                            material.node_tree.links.new(link_out.from_socket, bfc_node.inputs[0]) 
-                                                            break
-                            
+                                if GetConnectedSocketTo("Alpha", PBSDF).node != bfc_node:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Alpha", PBSDF), bfc_node.inputs[0])
+                                        
                                 material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
                         else:
                             if MaterialIn(Backface_Culling_Materials, material):
@@ -183,17 +177,11 @@ def fix_world():
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "GROUP":
-                                        if "Backface Culling" in node.node_tree.name:
-                                            for link in node.inputs[0].links:     
-                                                for output in link.from_node.outputs:
-                                                    for link_out in output.links:
-                                                        if link_out.to_socket.node.name == node.name:                                                                                                                    
-                                                            material.node_tree.links.new(link_out.from_socket, PBSDF.inputs["Alpha"])
+                                        if "Backface Culling" in node.node_tree.name:                                                                                              
+                                            material.node_tree.links.new(GetConnectedSocketTo(0, node), PBSDF.inputs["Alpha"])
                                             material.node_tree.nodes.remove(node)
 
                                 material.use_backface_culling = False
-
-                        selected_object.data.update()
                 else:
                     Absolute_Solver("m002", slot)
         else:
@@ -493,7 +481,7 @@ def apply_resources():
                             image_texture_node.image = bpy.data.images.load(new_image_path)
 
                         # Normal Texture Update
-                        if r_props.use_n:
+                        if r_props.use_n and r_props.use_additional_textures:
 
                             if normal_texture_node == None:
                                 normal_image_name = f"{image_texture_node.image.name.split('.png')[0]}_n.png"
@@ -527,9 +515,15 @@ def apply_resources():
                                     normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
                                     material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
                                     material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
-                        
+                        else:
+                            if normal_texture_node != None:
+                                material.node_tree.nodes.remove(normal_texture_node)
+
+                            if normal_map_node != None:
+                                material.node_tree.nodes.remove(normal_map_node)
+
                         # Specular Texture Update
-                        if r_props.use_s:
+                        if r_props.use_s and r_props.use_additional_textures:
 
                             if specular_texture_node == None:
                                 specular_image_name = f"{image_texture_node.image.name.split('.png')[0]}_s.png"
@@ -586,9 +580,21 @@ def apply_resources():
                                 material.node_tree.links.new(emission_invert_color_node.outputs[0], PBSDF.inputs["Emission Strength"])
 
                                 material.node_tree.links.new(roughness_invert_color_node.outputs[0], PBSDF.inputs["Roughness"])
+                        else:
+                            if specular_texture_node != None:
+                                material.node_tree.nodes.remove(specular_texture_node)
+                            
+                            if separate_color_node != None:
+                                material.node_tree.nodes.remove(separate_color_node)
+
+                            if roughness_invert_color_node != None:
+                                material.node_tree.nodes.remove(roughness_invert_color_node)
+
+                            if emission_invert_color_node != None:
+                                material.node_tree.nodes.remove(emission_invert_color_node)
                         
                         # Emission Texture Update
-                        if r_props.use_e:
+                        if r_props.use_e and r_props.use_additional_textures:
 
                             if emission_texture_node == None:
                                 emission_image_name = f"{image_texture_node.image.name.split('.png')[0]}_e.png"
@@ -621,6 +627,9 @@ def apply_resources():
                                 else:
                                     material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
                                 material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Strength"])
+                        else:
+                            if emission_texture_node != None:
+                                material.node_tree.nodes.remove(emission_texture_node)
 
                 else:
                     Absolute_Solver("m002", slot)
@@ -642,7 +651,6 @@ def swap_textures(folder_path):
                                     bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
                                 if os.path.isfile(new_image_path):
                                     node.image = bpy.data.images.load(new_image_path)
-                            print(new_image_path)
                 else:
                     Absolute_Solver("m002", slot)
         else:
@@ -697,7 +705,7 @@ def setproceduralpbr():
                                     if image_texture_node and bump_node is None:
                                         bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
                                         bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
+                                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), bump_node.inputs['Height'])
                                         material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
                                         bump_node.inputs[0].default_value = PProperties.bump_strength
 
@@ -789,13 +797,10 @@ def setproceduralpbr():
                                 PBSDF.subsurface_method = PProperties.sss_type
 
                                 if PProperties.connect_texture:
-                                    for node in material.node_tree.nodes:
-                                        if node.type == "BSDF_PRINCIPLED":
-                                            for link in node.inputs[0].links:
-                                                if blender_version("4.x.x"):
-                                                    material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
-                                                else:
-                                                    material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Color'])
+                                    if blender_version("4.x.x"):
+                                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs['Subsurface Radius'])
+                                    else:
+                                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs['Subsurface Color'])
                                 else:
                                     for link in material.node_tree.links:
                                         if blender_version("4.x.x"):
@@ -835,51 +840,30 @@ def setproceduralpbr():
 
                         # Make Better Emission and Animate Textures
                         if (PProperties.make_better_emission == True or PProperties.animate_textures == True) and EmissionMode(PBSDF, material):
-                            image_texture_node = None
                             node_group = None
-                            
-                            # Texture Check
-                            for node in material.node_tree.nodes:
-                                if node.type == "TEX_IMAGE":
-                                    if ".00" not in node.name:
-                                        image_texture_node = node
 
                             # The Main Thing
-                            if image_texture_node != None:
 
-                                for node in material.node_tree.nodes:
-                                    if node.type == "GROUP":
-                                        if BATGroup in node.node_tree.name:
-                                            node_group = node
-                                            break
+                            for node in material.node_tree.nodes:
+                                if node.type == "GROUP":
+                                    if BATGroup in node.node_tree.name:
+                                        node_group = node
+                                        break
 
-                                # BATGroup Import if BATGroup isn't in File
-                                if node_group == None:
-                                    if BATGroup not in bpy.data.node_groups:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                            data_to.node_groups = [BATGroup]
+                            # BATGroup Import if BATGroup isn't in File
+                            if node_group == None:
+                                if BATGroup not in bpy.data.node_groups:
+                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        data_to.node_groups = [BATGroup]
 
-                                    node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                    node_group.node_tree = bpy.data.node_groups[BATGroup]
+                                node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                node_group.node_tree = bpy.data.node_groups[BATGroup]
 
-                                # Settings Set
-                                if MaterialIn(Emissive_Materials, material) == True:
-                                    for material_part in material.name.lower().replace("-", ".").split("."):
-                                        for material_name, material_properties in Emissive_Materials.items():
-                                            if material_name == material_part:
-                                                for property_name, property_value in material_properties.items():
-                                                    if property_name == "Divider":
-                                                        node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
-                                                    else:
-                                                        node_group.inputs[property_name].default_value = property_value
-
-                                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-
-                                                if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
-                                                    node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
-                                else:
+                            # Settings Set
+                            if MaterialIn(Emissive_Materials, material) == True:
+                                for material_part in material.name.lower().replace("-", ".").split("."):
                                     for material_name, material_properties in Emissive_Materials.items():
-                                        if material_name == "Default":
+                                        if material_name == material_part:
                                             for property_name, property_value in material_properties.items():
                                                 if property_name == "Divider":
                                                     node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
@@ -887,28 +871,41 @@ def setproceduralpbr():
                                                     node_group.inputs[property_name].default_value = property_value
 
                                             node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-                                            node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
-                                
-                                # Color Connection if Nothing Connected
-                                if blender_version("4.x.x"):
-                                    if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
-                                        material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission Color"])
-                                else:
-                                    if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
-                                        material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission"])
-                                
-                                try:
-                                    if GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
-                                        material.node_tree.links.new(GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material), node_group.inputs["Multiply"])
-                                except:
-                                    pass
 
-                                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
-                                if blender_version("4.x.x"):
-                                    material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
-                                else:
-                                    material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
-                                material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
+                                            if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
+                                                node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                            else:
+                                for material_name, material_properties in Emissive_Materials.items():
+                                    if material_name == "Default":
+                                        for property_name, property_value in material_properties.items():
+                                            if property_name == "Divider":
+                                                node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
+                                            else:
+                                                node_group.inputs[property_name].default_value = property_value
+
+                                        node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                                        node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                            
+                            # Color Connection if Nothing Connected
+                            if blender_version("4.x.x"):
+                                if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission Color"])
+                            else:
+                                if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission"])
+                            
+                            try:
+                                if GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material), node_group.inputs["Multiply"])
+                            except:
+                                pass
+
+                            node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
+                            if blender_version("4.x.x"):
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
+                            else:
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
+                            material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
                         if PProperties.make_better_emission == False and PProperties.animate_textures == False:
                             for node in material.node_tree.nodes:
@@ -926,5 +923,4 @@ def setproceduralpbr():
         
 # TODO:
     # Upgrade World - Сделать так чтобы выбирались определённые фейсы у мира > они отделялись от него в отдельный объект > Как-то группировались > Производилась замена этих объектов на риги (Сундук)
-    # Texture logic - Сделать использование текстур из папки, например из папки tex или из папки майнкрафта
     # Upgrade World - Сщединённое стекло: Импортировать текстуры соединённого > Выбираются фейсы с материалом стекла > Математически вычислить находятся ли стёкла рядом (if Glass.location.x + 1: поставить сообтветствующую текстуру стекла)

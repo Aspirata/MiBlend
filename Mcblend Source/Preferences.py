@@ -1,5 +1,5 @@
-from .Data import *
-from functools import partial
+import bpy
+from .MCB_API import *
 from bpy.types import AddonPreferences
 from .Translator import Availible_Translations
 
@@ -8,12 +8,12 @@ class McblendPreferences(AddonPreferences):
 
     transparent_ui: BoolProperty(
         name="Transparent UI",
-        default= checkconfig("transparent_ui"),
+        default=checkconfig("transparent_ui"),
     )
 
     enable_warnings: BoolProperty(
         name="Enable Warnings",
-        default= checkconfig("enable_warnings")
+        default=checkconfig("enable_warnings")
     )
 
     current_language: EnumProperty(

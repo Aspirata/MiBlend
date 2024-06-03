@@ -1,5 +1,6 @@
 import re
 from .Data import *
+from .MCB_API import *
 from .Assets import *
 from .Properties import *
 from .Materials import Materials
@@ -218,14 +219,20 @@ class WorldAndMaterialsPanel(Panel):
         row = tbox.row()
         row.operator("resource_pack.add", icon='ADD')
 
-        row = sbox.row()
-        row.prop(scene.resource_properties, "use_n")
+        tbox = sbox.box()
+        row = tbox.row()
+        row.prop(scene.resource_properties, "use_additional_textures")
+        row.prop(scene.resource_properties, "textures", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures else "TRIA_LEFT"), icon_only=True)
+        if scene.resource_properties.textures:
 
-        row = sbox.row()
-        row.prop(scene.resource_properties, "use_s")
+            row = tbox.row()
+            row.prop(scene.resource_properties, "use_n")
 
-        row = sbox.row()
-        row.prop(scene.resource_properties, "use_e")
+            row = tbox.row()
+            row.prop(scene.resource_properties, "use_s")
+
+            row = tbox.row()
+            row.prop(scene.resource_properties, "use_e")
 
         row = sbox.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')

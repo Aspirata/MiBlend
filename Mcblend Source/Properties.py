@@ -1,4 +1,5 @@
 from .Data import *
+from .MCB_API import *
 from .Translator import *
 
 class WorldProperties(PropertyGroup):
@@ -34,6 +35,16 @@ class WorldProperties(PropertyGroup):
 
 
 class ResourcePackProperties(PropertyGroup):
+    use_additional_textures: BoolProperty(
+        name="Use Additional Textures",
+        default=True,
+    )
+
+    textures: BoolProperty(
+        name="Textures",
+        default=False,
+    )
+
     use_n: BoolProperty(
         name="Use Normal Textures",
         default=True,
