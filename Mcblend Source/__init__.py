@@ -176,10 +176,16 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Fix World", icon="WORLD_DATA")
         row = sbox.row()
         row.prop(WProperties, "backface_culling")
+
         row = sbox.row()
         row.prop(WProperties, "delete_useless_textures")
+
+        row = sbox.row()
+        row.prop(WProperties, "lazy_biome_fix")
+
         row = sbox.row()
         row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
+
         row = sbox.row()
         row.prop(WProperties, "emissiondetection", text='emissiondetection', expand=True)
 
@@ -194,7 +200,7 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Resource Packs", icon="FILE_FOLDER")
 
         tbox = sbox.box()
-        resource_packs = get_resource_packs(scene)
+        resource_packs = get_resource_packs()
         for pack, pack_info in resource_packs.items():
             row = tbox.row()
 
@@ -226,13 +232,23 @@ class WorldAndMaterialsPanel(Panel):
         if scene.resource_properties.textures:
 
             row = tbox.row()
+            row.enabled = scene.resource_properties.use_additional_textures
             row.prop(scene.resource_properties, "use_n")
 
             row = tbox.row()
+            row.enabled = scene.resource_properties.use_additional_textures
             row.prop(scene.resource_properties, "use_s")
 
             row = tbox.row()
+            row.enabled = scene.resource_properties.use_additional_textures
             row.prop(scene.resource_properties, "use_e")
+        
+        tbox = sbox.box()
+        row = tbox.row()
+        row.prop(scene.resource_properties, "animate_textures")
+        sub = row.row()
+        sub.enabled = scene.resource_properties.animate_textures
+        sub.prop(scene.resource_properties, "only_fix_uv")
 
         row = sbox.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')
@@ -429,11 +445,11 @@ class WorldAndMaterialsPanel(Panel):
                         row = tbox.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
 
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Strength:", icon="LIGHT_SUN")
                         row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
                         if scene.env_properties.strength_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
                             row = tbox.row()
@@ -441,22 +457,21 @@ class WorldAndMaterialsPanel(Panel):
                             row = tbox.row()
                             row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
 
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Colors:", icon="IMAGE")
                         row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
                         if scene.env_properties.colors_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
 
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Ambient Light Colors:", icon="IMAGE")
                         row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
                         if scene.env_properties.ambient_colors_settings:
                             for node in bpy.data.node_groups:
                                 if node.name == "Mcblend End":
-                                    tbox = sbox.box()
-                                    
                                     for Node in node.nodes:
                                         if Node.type == "VALTORGB":
                                             row = tbox.row()
@@ -464,12 +479,12 @@ class WorldAndMaterialsPanel(Panel):
                                             for element in Node.color_ramp.elements:                                                    
                                                 row.prop(element, "color", icon_only=True)
                         
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Star Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
                         row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
                         if scene.env_properties.rotation_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
@@ -477,12 +492,12 @@ class WorldAndMaterialsPanel(Panel):
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
                         
-                        row = sbox.row()
+                        tbox = sbox.box()
+                        row = tbox.row()
                         row.label(text="Other Settings:", icon="COLLAPSEMENU")
                         row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
 
                         if scene.env_properties.other_settings:
-                            tbox = sbox.box()
                             row = tbox.row()
                             row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
 
@@ -665,10 +680,10 @@ class ResourcePackToggleOperator(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        resource_packs = get_resource_packs(scene)
+        resource_packs = get_resource_packs()
         if self.pack_name in resource_packs:
             resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
-            set_resource_packs(scene, resource_packs)
+            set_resource_packs(resource_packs)
         return {'FINISHED'}
 
 class MoveResourcePackUp(Operator):
@@ -679,13 +694,13 @@ class MoveResourcePackUp(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        resource_packs = get_resource_packs(context.scene)
+        resource_packs = get_resource_packs()
         keys = list(resource_packs.keys())
         idx = keys.index(self.pack_name)
         if idx > 0:
             keys[idx], keys[idx - 1] = keys[idx - 1], keys[idx]
             reordered_packs = {k: resource_packs[k] for k in keys}
-            set_resource_packs(context.scene, reordered_packs)
+            set_resource_packs(reordered_packs)
         return {'FINISHED'}
 
 class MoveResourcePackDown(Operator):
@@ -696,13 +711,13 @@ class MoveResourcePackDown(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        resource_packs = get_resource_packs(context.scene)
+        resource_packs = get_resource_packs()
         keys = list(resource_packs.keys())
         idx = keys.index(self.pack_name)
         if idx < len(keys) - 1:
             keys[idx], keys[idx + 1] = keys[idx + 1], keys[idx]
             reordered_packs = {k: resource_packs[k] for k in keys}
-            set_resource_packs(context.scene, reordered_packs)
+            set_resource_packs(reordered_packs)
         return {'FINISHED'}
 
 class RemoveResourcePack(Operator):
@@ -713,10 +728,10 @@ class RemoveResourcePack(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        resource_packs = get_resource_packs(context.scene)
+        resource_packs = get_resource_packs()
         if self.pack_name in resource_packs:
             del resource_packs[self.pack_name]
-            set_resource_packs(context.scene, resource_packs)
+            set_resource_packs(resource_packs)
         return {'FINISHED'}
 
 class UpdateDefaultPack(Operator):
@@ -725,7 +740,7 @@ class UpdateDefaultPack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        update_default_pack(context.scene, True)
+        update_default_pack(True)
         return {'FINISHED'}
 
 class AddResourcePack(Operator):
@@ -737,16 +752,20 @@ class AddResourcePack(Operator):
 
     def execute(self, context):
         scene = context.scene
-        resource_packs = get_resource_packs(scene)
+        resource_packs = get_resource_packs()
 
         if os.path.isdir(self.filepath) or self.filepath.endswith('.zip'):
-            pack_name = os.path.basename(self.filepath)
-            resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "enabled": True}
+            if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
+                pack_name = os.path.basename(self.filepath)
+                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "enabled": True}
+            else:
+                pack_name = os.path.basename(os.path.dirname(self.filepath))
+                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "enabled": True}
         else:
             pack_name = os.path.basename(os.path.dirname(self.filepath))
             resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "enabled": True}
         
-        set_resource_packs(scene, resource_packs)
+        set_resource_packs(resource_packs)
 
         return {'FINISHED'}
     

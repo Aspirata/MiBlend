@@ -1,5 +1,18 @@
 from .Data import *
 
+def InitOnStart():
+    
+    if "resource_packs" not in bpy.context.scene:
+        bpy.context.scene["resource_packs"] = {}
+        update_default_pack()
+
+    items = bpy.context.scene.assetsproperties.asset_items
+    items.clear()
+    for category, assets in Assets.items():
+        for key in assets.keys():
+            item = items.add()
+            item.name = key
+
 def Absolute_Solver(error_code="None", data=None, err=None, error_name=None, description=None):
 
     def GetASText(error_code, text, data=None):
@@ -39,17 +52,55 @@ def GetConnectedSocketTo(input, tag, material=None):
                     if link.to_socket.name == input_socket.name:
                         return link.from_socket
 
-def InitOnStart():
-    
-    if "resource_packs" not in bpy.context.scene:
-        bpy.context.scene["resource_packs"] = {}
+def get_resource_packs(debug=None):
+    if debug is not None:
+        print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
 
-    items = bpy.context.scene.assetsproperties.asset_items
-    items.clear()
-    for category, assets in Assets.items():
-        for key in assets.keys():
-            item = items.add()
-            item.name = key
+    return bpy.context.scene["resource_packs"]
+
+def set_resource_packs(resource_packs, debug=None):
+    bpy.context.scene["resource_packs"] = resource_packs
+
+    if debug is not None:
+        print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
+
+def update_default_pack(debug=None):
+    resource_packs = bpy.context.scene["resource_packs"]
+
+    default_pack = "Minecraft 1.20.6"
+    default_path = os.path.join(resource_packs_directory, "Minecraft 1.20.6")
+    resource_packs[default_pack] = {"path": (default_path), "enabled": True}
+    
+    if debug is not None:
+        print(f"Default Pack: {default_pack} stored in {default_path}")
+
+def find_image(image_name, root_folder):
+    # Check in the directory
+    for dirpath, _, filenames in os.walk(root_folder):
+        if image_name in filenames:
+            return os.path.join(dirpath, image_name)
+    
+    # Check in zip files within the directory
+    for dirpath, _, files in os.walk(root_folder):
+        for file in files:
+            if file.endswith('.zip'):
+                with zipfile.ZipFile(os.path.join(dirpath, file), 'r') as zip_ref:
+                    for zip_info in zip_ref.infolist():
+                        if os.path.basename(zip_info.filename) == image_name:
+                            extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
+                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                            return extracted_file_path
+    
+    # Check if root folder is a zip file
+    if root_folder.endswith('.zip'):
+        with zipfile.ZipFile(root_folder, 'r') as zip_ref:
+            for zip_info in zip_ref.infolist():
+                if os.path.basename(zip_info.filename) == image_name:
+                    extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(os.path.basename(root_folder))[0])
+                    extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                    return extracted_file_path
+
+    return None
                         
 def blender_version(blender_version, debug=None):
     
@@ -98,49 +149,3 @@ def blender_version(blender_version, debug=None):
             return bpy.app.version == version
         else:
             return False
-
-def get_resource_packs(scene, debug=None):
-    if debug is not None:
-        print(f"Resource Packs: {scene['resource_packs']}")
-
-    return scene["resource_packs"]
-
-def set_resource_packs(scene, resource_packs, debug=None):
-    scene["resource_packs"] = resource_packs
-
-    if debug is not None:
-        print(f"Resource Packs: {scene['resource_packs']}")
-
-def update_default_pack(scene, debug=None):
-    resource_packs = scene["resource_packs"]
-
-    default_pack = "Minecraft 1.20.1"
-    default_path = r"C:\Users\const\OneDrive\Документы\GitHub\Mcblend\Minecraft Assets"
-    resource_packs[default_pack] = {"path": default_path, "enabled": True}
-    
-    if debug is not None:
-        print(f"Default Pack: {resource_packs[default_pack]}")
-
-def find_image(image_name, root_folder):
-        # Check in the directory
-        for dirpath, _, filenames in os.walk(root_folder):
-            if image_name in filenames:
-                return os.path.join(dirpath, image_name)
-        
-        # Check in zip files within the directory
-        for root, _, files in os.walk(root_folder):
-            for file in files:
-                if file.endswith('.zip'):
-                    with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
-                        for zip_info in zip_ref.infolist():
-                            if os.path.basename(zip_info.filename) == image_name:
-                                return zip_ref.extract(zip_info, os.path.join(root_folder, 'temp'))
-        
-        # Check if root folder is a zip file
-        if root_folder.endswith('.zip'):
-            with zipfile.ZipFile(root_folder, 'r') as zip_ref:
-                for zip_info in zip_ref.infolist():
-                    if os.path.basename(zip_info.filename) == image_name:
-                        return zip_ref.extract(zip_info, os.path.join(os.path.dirname(root_folder), 'temp'))
-
-        return None

@@ -8,6 +8,7 @@ from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, S
 from bpy.types import PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
+resource_packs_directory = os.path.join(main_directory, "Resource Packs")
 materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
 materials_folder = os.path.join(main_directory, "Materials")
 optimization_folder = os.path.join(main_directory, "Optimization")
@@ -244,6 +245,8 @@ Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 Alpha_Blend_Materials = ["water"]
 
 SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet"]
+
+Biome_Fix_Materials = ["leaves", "grass", "water"]
 
 Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 

@@ -16,6 +16,11 @@ class WorldProperties(PropertyGroup):
         description=""
     )
 
+    lazy_biome_fix: BoolProperty(
+        name="Lazy Biome Color Fix",
+        default=True,
+    )
+
     def emissiondetectionfix():
         if blender_version("3.6.x"):
             default='Manual'
@@ -60,6 +65,15 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
+    animate_textures: BoolProperty(
+        name="Animate Textures",
+        default=True,
+    )
+
+    only_fix_uv: BoolProperty(
+        name="Only Fix UV",
+        default=False,
+    )
 
 
 
