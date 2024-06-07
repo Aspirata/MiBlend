@@ -740,7 +740,7 @@ class UpdateDefaultPack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        update_default_pack(True)
+        update_default_pack()
         return {'FINISHED'}
 
 class AddResourcePack(Operator):

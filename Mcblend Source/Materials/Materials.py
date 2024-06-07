@@ -582,6 +582,7 @@ def apply_resources():
 
                                                 counter += 1
 
+                                                # Naming Err
                                                 try:
                                                     bpy.data.node_groups[f"Texture Animator.{counter}"].name = f"Animated; {image_texture.replace('.png', '')}"
                                                     Texture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
@@ -594,12 +595,14 @@ def apply_resources():
                                                     for node in Texture_Animator.node_tree.nodes:
                                                         if node.type == "TEX_IMAGE":
                                                             node.image = bpy.data.images[image_texture]
-
                                             else:
                                                 Texture_Animator.node_tree = Current_node_tree
                                             
                                             material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
                                             material.node_tree.links.new(Texture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
+
+                                            if image_texture_node != None:
+                                                material.node_tree.nodes.remove(image_texture_node)
                                     else:
                                         if Texture_Animator is None:
                                             if "Texture Animator" not in bpy.data.node_groups:
@@ -642,8 +645,11 @@ def apply_resources():
                         if new_normal_image_path:
                             if not normal_texture_node:
                                 normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-                                # Исправить при случае, что существует только аниматор
-                                normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
+                                if image_texture_node != None:
+                                    normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
+
+                                elif Texture_Animator != None:
+                                    normal_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 562)
                                 normal_texture_node.interpolation = "Closest"
 
                             if normal_image_name in bpy.data.images:
@@ -683,7 +689,10 @@ def apply_resources():
                         if new_specular_image_path:
                             if not specular_texture_node:
                                 specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-                                specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
+                                if image_texture_node != None:
+                                    specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
+                                elif Texture_Animator != None:
+                                    specular_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 760)
                                 specular_texture_node.interpolation = "Closest"
 
                             if specular_image_name in bpy.data.images:
@@ -732,7 +741,10 @@ def apply_resources():
                         if new_emission_image_path:
                             if not emission_texture_node:
                                 emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-                                emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
+                                if image_texture_node != None:
+                                    emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
+                                elif Texture_Animator != None:
+                                    emission_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 760)
                                 emission_texture_node.interpolation = "Closest"
 
                             if emission_image_name in bpy.data.images:

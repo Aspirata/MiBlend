@@ -70,6 +70,10 @@ def update_default_pack(debug=None):
     default_pack = "Minecraft 1.20.6"
     default_path = os.path.join(resource_packs_directory, "Minecraft 1.20.6")
     resource_packs[default_pack] = {"path": (default_path), "enabled": True}
+
+    default_pack = "Bare Bones 1.20.6"
+    default_path = os.path.join(resource_packs_directory, "Bare Bones 1.20.6")
+    resource_packs[default_pack] = {"path": (default_path), "enabled": False}
     
     if debug is not None:
         print(f"Default Pack: {default_pack} stored in {default_path}")
