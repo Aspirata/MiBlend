@@ -1,11 +1,5 @@
 import bpy
 
-UAS_API = {
-    "divider": {
-        "Type": float
-    }
-}
-
 def Enchant():
     for selected_object in bpy.context.selected_objects:
         if selected_object.material_slots:

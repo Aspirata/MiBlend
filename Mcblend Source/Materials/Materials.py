@@ -1,4 +1,5 @@
 from ..Data import *
+import re
 from ..MCB_API import *
 
 # This function checks if a given material's name contains any of the keywords in the provided array. 
@@ -281,8 +282,6 @@ def create_env(self=None):
 
                 if world_material_name in bpy.data.worlds:
                     bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
-                else:
-                    print("World not found (Create Sky)")
 
             if self.create_clouds == 'Recreate Clouds':
                 for obj in scene.objects:
@@ -322,13 +321,9 @@ def create_env(self=None):
 
                 if clouds_node_tree_name in bpy.data.node_groups:
                     bpy.data.node_groups[clouds_node_tree_name]
-                else:
-                    print("Clouds geometry nodes not found (Create Clouds)")
                 
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials["Clouds"]
-                else:
-                    print("Clouds material not found (Create Clouds)")
 
                 for obj in scene.objects:
                     if obj.get("Mcblend ID") == "Clouds":
@@ -463,26 +458,21 @@ def apply_resources():
 
                         if node.type == "TEX_IMAGE" and node.image:
 
-                            for part in node.image.name.replace(".png", "").split("_"):
-                                # image_texture_node misdetecting (_s)
-
-                                if part == "n":
+                            if node.type == "TEX_IMAGE" and node.image:
+                                image_name = node.image.name.replace(".png", "")
+                                if re.search(r'_n$', image_name):
                                     normal_texture_node = node
-                                    break
-                                
-                                if part == "s":
+                                elif re.search(r'_s$', image_name):
                                     specular_texture_node = node
-                                    break
-
-                                if part == "e":
+                                elif re.search(r'_e$', image_name):
                                     emission_texture_node = node
-                                
-                                if part != "s" and part != "n" and part != "e":
+                                else:
                                     image_texture_node = node
                                     original_name = image_texture_node.image.name
                                     new_name = original_name.replace("_y", "")
                                     image_texture_node.image.name = new_name
                                     image_texture = image_texture_node.image.name
+                                    print(image_texture)
                         
                         if node.type == "GROUP":
                             if "Animated;" in node.node_tree.name:
@@ -650,9 +640,9 @@ def apply_resources():
                                 if normal_texture_node == None:
                                     normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
 
-                                    if image_texture_node != None:
+                                    try:
                                         normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
-                                    elif Texture_Animator != None:
+                                    except:
                                         normal_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 562)
 
                                     normal_texture_node.interpolation = "Closest"
@@ -697,9 +687,9 @@ def apply_resources():
                                 if specular_texture_node == None:
                                     specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
 
-                                    if image_texture_node != None:
+                                    try:
                                         specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
-                                    elif Texture_Animator != None:
+                                    except:
                                         specular_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 280)
 
                                     specular_texture_node.interpolation = "Closest"
@@ -735,15 +725,15 @@ def apply_resources():
                                 material.node_tree.links.new(specular_texture_node.outputs["Alpha"], emission_invert_color_node.inputs["Color"])
 
                                 if blender_version("4.x.x"):
-                                    if image_texture_node == None and Texture_Animator != None:
-                                        material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Emission Color"])
-                                    if image_texture_node != None:
+                                    try:
                                         material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                    except:
+                                        material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Emission Color"])
                                 else:
-                                    if image_texture_node == None and Texture_Animator != None:
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
-                                    if image_texture_node != None:
+                                    try:
                                         material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Emission"])
+                                    except:
+                                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
 
                                 material.node_tree.links.new(emission_invert_color_node.outputs[0], PBSDF.inputs["Emission Strength"])
 
@@ -782,9 +772,9 @@ def apply_resources():
                                 if emission_texture_node == None:
                                     emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
 
-                                    if image_texture_node != None:
+                                    try:
                                         emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
-                                    elif Texture_Animator != None:
+                                    except:
                                         emission_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 760)
 
                                     emission_texture_node.interpolation = "Closest"

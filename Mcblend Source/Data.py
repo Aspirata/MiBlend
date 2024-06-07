@@ -332,6 +332,16 @@ Assets = {
         "Fix Shade Auto Smooth": {
             "Blender_version": "< 4.1.0",
             "File_name": "Fix Shade Auto Smooth.py",
+        },
+
+        "Enable Jittered Shadows": {
+            "Blender_version": ">= 4.2.0",
+            "File_name": "Jittered Shadows.py",
+        },
+
+        "Enable Contact Shadows": {
+            "Blender_version": "< 4.2.0",
+            "File_name": "Contact Shadows.py",
         }
     },
 }
