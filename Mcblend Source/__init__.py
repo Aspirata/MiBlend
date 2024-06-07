@@ -736,7 +736,7 @@ class RemoveResourcePack(Operator):
 
 class UpdateDefaultPack(Operator):
     bl_idname = "resource_pack.update_default_pack"
-    bl_label = "Update Default Pack"
+    bl_label = "Update Default Packs"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

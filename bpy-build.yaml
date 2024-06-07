@@ -5,6 +5,7 @@ install_versions:
   - 3.6+
 
 build_actions:
-  no-script:
+  dev:
     ignore_filters:
       - "*.png"
+      - "*.mcmeta"

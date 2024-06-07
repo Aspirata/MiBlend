@@ -482,6 +482,14 @@ def apply_resources():
                                     original_name = image_texture_node.image.name
                                     new_name = original_name.replace("_y", "")
                                     image_texture_node.image.name = new_name
+                                    image_texture = image_texture_node.image.name
+                        
+                        if node.type == "GROUP":
+                            if "Animated;" in node.node_tree.name:
+                                image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
+                                Texture_Animator = node
+                                Current_node_tree = node.node_tree
+
                         
                         if node.type == "NORMAL_MAP":
                             normal_map_node = node
@@ -497,31 +505,37 @@ def apply_resources():
 
 
                     # Texture Update
-                    if image_texture_node != None:
-
-                        if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
-                            image_texture_node.location.x = PBSDF.location.x - 600
+                    if image_texture != None:
+                        
+                        try:
+                            if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
+                                image_texture_node.location.x = PBSDF.location.x - 600
+                        except:
+                            if abs(Texture_Animator.location.x - PBSDF.location.x) < 600:
+                                Texture_Animator.location.x = PBSDF.location.x - 600
 
                         for pack, pack_info in resource_packs.items():
                             path, enabled = pack_info["path"], pack_info["enabled"]
                             if not enabled:
                                 continue
 
-                            new_image_path = find_image(image_texture_node.image.name, path)
+                            new_image_path = find_image(image_texture, path)
                             if new_image_path != None and os.path.isfile(new_image_path):
-                                if image_texture_node.image.name in bpy.data.images:
-                                    bpy.data.images.remove(bpy.data.images[image_texture_node.image.name], do_unlink=True)
-                            
-                                image_texture_node.image = bpy.data.images.load(new_image_path)
+                                if image_texture in bpy.data.images:
+                                    bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
+
+                                if Texture_Animator != None:
+                                    for node in Texture_Animator.node_tree.nodes:
+                                        if node.type == "TEX_IMAGE":
+                                            node.image = bpy.data.images.load(new_image_path)
+
+                                if image_texture_node != None:
+                                    image_texture_node.image = bpy.data.images.load(new_image_path)
+                                    
                                 break
                         
                         if r_props.animate_textures:
                             if r_props.only_fix_uv:
-                                for node in material.node_tree.nodes:
-                                    if node.type == "GROUP":
-                                        if "Texture Animator" == node.node_tree.name:
-                                            Texture_Animator = node
-                                
                                 if Texture_Animator is None:
                                     if "Texture Animator" not in bpy.data.node_groups:
                                         try:
@@ -539,7 +553,7 @@ def apply_resources():
                                 Texture_Animator.inputs["Frames"].default_value = int(image_texture_node.image.size[1] / image_texture_node.image.size[0])
                                 Texture_Animator.inputs["Only Fix UV"].default_value = True
                             else:
-                                animation_file = find_image(image_texture_node.image.name + ".mcmeta", path)
+                                animation_file = find_image(image_texture + ".mcmeta", path)
                                 if animation_file != None:
                                     with open(animation_file, 'r') as file:
                                         data = json.load(file).get('animation', {})
@@ -554,16 +568,13 @@ def apply_resources():
                                             interpolate = data.get('interpolate')
                                     
                                     if interpolate == True:
-                                        for node in material.node_tree.nodes:
-                                            if node.type == "GROUP":
-                                                if "Animated" in node.node_tree.name:
-                                                    Texture_Animator = node
-                                                    Current_node_tree = node.node_tree
-                                        
                                         if Texture_Animator is None:
-                                            if f"Animated; {image_texture_node.image.name.replace('.png', '')}" in bpy.data.node_groups:
+                                            if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
                                                 TAnimator_exists = True
-                                                Current_node_tree = bpy.data.node_groups[f"Animated; {material.name}"]
+                                                Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
+                                            
+                                            Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                            Texture_Animator.location = (image_texture_node.location.x, image_texture_node.location.y)
                                             
                                             if TAnimator_exists == False:
                                                 with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
@@ -571,45 +582,25 @@ def apply_resources():
 
                                                 counter += 1
 
-                                                Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-
                                                 try:
-                                                    bpy.data.node_groups[f"Animated.{counter}"].name = f"Animated; {material.name}"
-                                                    Texture_Animator.node_tree = bpy.data.node_groups[f"Animated; {material.name}"]
+                                                    bpy.data.node_groups[f"Texture Animator.{counter}"].name = f"Animated; {image_texture.replace('.png', '')}"
+                                                    Texture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
                                                     for node in Texture_Animator.node_tree.nodes:
                                                         if node.type == "TEX_IMAGE":
-                                                            node.image = image_texture_node.image
+                                                            node.image = bpy.data.images[image_texture]
                                                 except:
-                                                    bpy.data.node_groups["Texture Animator"].name = f"Animated; {material.name}"
-                                                    Texture_Animator.node_tree = bpy.data.node_groups[f"Animated; {material.name}"]
+                                                    bpy.data.node_groups[f"Texture Animator"].name = f"Animated; {image_texture.replace('.png', '')}"
+                                                    Texture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
                                                     for node in Texture_Animator.node_tree.nodes:
                                                         if node.type == "TEX_IMAGE":
-                                                            node.image = image_texture_node.image
-
-                                                Texture_Animator.location = (image_texture_node.location.x, image_texture_node.location.y)
+                                                            node.image = bpy.data.images[image_texture]
 
                                             else:
-                                                Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
                                                 Texture_Animator.node_tree = Current_node_tree
-                                                Texture_Animator.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
-                                                for node in bpy.data.node_groups[Current_node_tree.name].nodes:
-                                                    if node.type == "TEX_IMAGE":
-                                                        node.image = image_texture_node.image
                                             
                                             material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
                                             material.node_tree.links.new(Texture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
-
-                                        else:
-                                            for node in bpy.data.node_groups[Current_node_tree.name].nodes:
-                                                if node.type == "TEX_IMAGE":
-                                                    node.image = image_texture_node.image
-                                    
                                     else:
-                                        for node in material.node_tree.nodes:
-                                            if node.type == "GROUP":
-                                                if "Texture Animator" == node.node_tree.name:
-                                                    Texture_Animator = node
-                                        
                                         if Texture_Animator is None:
                                             if "Texture Animator" not in bpy.data.node_groups:
                                                 try:
@@ -624,15 +615,18 @@ def apply_resources():
 
                                         material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], image_texture_node.inputs["Vector"])
                                         
-                                    Texture_Animator.inputs["Frames"].default_value = int(image_texture_node.image.size[1] / image_texture_node.image.size[0])
+                                    Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
                                     Texture_Animator.inputs["Only Fix UV"].default_value = False
                                     Texture_Animator.inputs["Frametime"].default_value = frametime
                                     Texture_Animator.inputs["Interpolate"].default_value = interpolate
                                     Texture_Animator.inputs["Only Fix UV"].default_value = False
+                        else:
+                            if Texture_Animator != None:
+                                material.node_tree.nodes.remove(Texture_Animator)
 
                     if r_props.use_n and r_props.use_additional_textures:
                         if not normal_texture_node:
-                            normal_image_name = f"{image_texture_node.image.name.split('.png')[0]}_n.png"
+                            normal_image_name = f"{image_texture.split('.png')[0]}_n.png"
                         else:
                             normal_image_name = normal_texture_node.image.name
 
@@ -648,6 +642,7 @@ def apply_resources():
                         if new_normal_image_path:
                             if not normal_texture_node:
                                 normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                # Исправить при случае, что существует только аниматор
                                 normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
                                 normal_texture_node.interpolation = "Closest"
 
@@ -672,7 +667,7 @@ def apply_resources():
 
                     if r_props.use_s and r_props.use_additional_textures:
                         if not specular_texture_node:
-                            specular_image_name = f"{image_texture_node.image.name.split('.png')[0]}_s.png"
+                            specular_image_name = f"{image_texture.split('.png')[0]}_s.png"
                         else:
                             specular_image_name = specular_texture_node.image.name
 
@@ -721,7 +716,7 @@ def apply_resources():
 
                     if r_props.use_e and r_props.use_additional_textures:
                         if not emission_texture_node:
-                            emission_image_name = f"{image_texture_node.image.name.split('.png')[0]}_e.png"
+                            emission_image_name = f"{image_texture.split('.png')[0]}_e.png"
                         else:
                             emission_image_name = emission_texture_node.image.name
 
