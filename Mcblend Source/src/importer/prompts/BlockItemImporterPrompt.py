@@ -28,12 +28,3 @@ class ImporterPrompt(Operator, ImportHelper):
 # Only needed if you want to add into a dynamic menu
 def menu_func_export(self, context):
 	self.layout.operator(ImporterPrompt.bl_idname, text="MC Block/Item (.json)")
-
-def register():
-	bpy.utils.register_class(ImporterPrompt)
-	# bpy.types.TOPBAR_MT_file_import.append(menu_func_export)
-
-
-def unregister():
-	bpy.utils.unregister_class(ImporterPrompt)
-	# bpy.types.TOPBAR_MT_file_import.remove(menu_func_export)

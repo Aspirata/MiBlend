@@ -6,6 +6,7 @@ from .Utils import *
 from .Translator import Translate
 from .Preferences import McblendPreferences
 from bpy.types import Panel, Operator
+from .src.importer.prompts import BlockItemImporterPrompt
 
 bl_info = {
     "name": "Mcblend",
@@ -751,8 +752,6 @@ class AssetPanel(Panel):
         row = box.row()
         row.label(text="Importer", icon="IMPORT")
         row = box.row()
-        row.prop(bpy.context.scene.assetsproperties, "separate_model_parts")
-        row = box.row()
         row.operator("mcblend.import_blockitem", text="Import .json Model")
 
         box = layout.box()
@@ -785,8 +784,6 @@ def append_asset(asset_data):
     for collection in data_to.collections:
         bpy.context.collection.children.link(collection)
 
-#
-
 classes = [McblendPreferences, RecreateEnvironment, FixWorldProperties, CreateEnvProperties, PPBRProperties, WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, OptimizationProperties, OptimizationPanel, OptimizeOperator,
            UtilsProperties, UtilsPanel, CShadowsOperator, SleepAfterRenderOperator, SetRenderSettingsOperator, ConvertDBSDF2PBSDFOperator, EnchantOperator, FixAutoSmoothOperator, AssingVertexGroupOperator, AssetPanel, ImportAssetOperator]
 
@@ -804,8 +801,10 @@ def register():
         description="Select Asset to Import",
     )
 
-def unregister():
+    bpy.utils.register_class(BlockItemImporterPrompt.ImporterPrompt)
 
+
+def unregister():
     del bpy.types.Scene.world_properties
     del bpy.types.Scene.env_properties
     del bpy.types.Scene.ppbr_properties
@@ -816,6 +815,7 @@ def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
+    bpy.utils.unregister_class(BlockItemImporterPrompt.ImporterPrompt)
 
 if __name__ == "__main__":
     register()
