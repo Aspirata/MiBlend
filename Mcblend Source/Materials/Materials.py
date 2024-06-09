@@ -88,8 +88,6 @@ def upgrade_materials():
                                     selected_object.data.materials[i] = appended_material
                                 else:
                                     selected_object.data.materials[i] = bpy.data.materials[upgraded_material]
-
-                                selected_object.data.update()
                 else:
                     Absolute_Solver("m002", slot)
         else:
@@ -429,6 +427,112 @@ def apply_resources():
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.resource_properties
 
+    def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree):
+        TAnimator_exists = False
+        Texture_Animator = None
+
+        for node in material.node_tree.nodes:
+            if node.type == "GROUP":
+                if "Texture Animator" in node.node_tree.name:
+                    Texture_Animator = node
+
+        if r_props.animate_textures:
+            if int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0]) != 1:
+                if r_props.only_fix_uv:
+                    if Texture_Animator is None:
+                        if "Texture Animator" not in bpy.data.node_groups:
+                            try:
+                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                    data_to.node_groups = ["Texture Animator"]
+                            except:
+                                Absolute_Solver("004", "Materials", traceback.format_exc())
+                    
+                        Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                        Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
+                        Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
+                    
+                    material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
+
+                    Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
+                    Texture_Animator.inputs["Only Fix UV"].default_value = True
+                else:
+                    animation_file = find_image(re.sub(r'(_n|_s|_e)$', '', image_texture) + ".mcmeta", path)
+                    if animation_file != None:
+                        with open(animation_file, 'r') as file:
+                            data = json.load(file).get('animation', {})
+                            if data.get('frametime') == None:
+                                frametime = 20
+                            else:
+                                frametime = data.get('frametime')
+
+                            if data.get('interpolate') == None:
+                                interpolate = False
+                            else:
+                                interpolate = data.get('interpolate')
+                        
+                        if interpolate == True and r_props.interpolate:
+                            if ITexture_Animator is None:
+                                if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
+                                    TAnimator_exists = True
+                                    Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
+                                
+                                ITexture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                ITexture_Animator.location = texture_node.location
+                                
+                                if TAnimator_exists == False:
+                                    if "Texture Animator" not in bpy.data.node_groups:
+                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            data_to.node_groups = ["Texture Animator"]
+                                    
+                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        data_to.node_groups = ["Texture Animator"]
+
+                                    bpy.data.node_groups[f"Texture Animator.001"].name = f"Animated; {image_texture.replace('.png', '')}"
+                                    ITexture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
+                                    for node in ITexture_Animator.node_tree.nodes:
+                                        if node.type == "TEX_IMAGE":
+                                            node.image = bpy.data.images[image_texture]
+                                else:
+                                    ITexture_Animator.node_tree = Current_node_tree
+                                
+                                material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
+                                material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
+
+                                if image_texture_node != None:
+                                    material.node_tree.nodes.remove(image_texture_node)
+                            else:
+                                for node in Texture_Animator.node_tree.nodes:
+                                    if node.type == "TEX_IMAGE":
+                                        if image_texture in bpy.data.images:
+                                            node.image = bpy.data.images[image_texture]
+                                        else:
+                                            node.image = bpy.data.images.load(new_image_texture_path)
+                        else:
+                            if Texture_Animator is None:
+                                if "Texture Animator" not in bpy.data.node_groups:
+                                    try:
+                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            data_to.node_groups = ["Texture Animator"]
+                                    except:
+                                        Absolute_Solver("004", "Materials", traceback.format_exc())
+                            
+                                Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
+                                Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
+
+                            material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
+                            
+                        Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
+                        Texture_Animator.inputs["Only Fix UV"].default_value = False
+                        Texture_Animator.inputs["Frametime"].default_value = frametime
+                        Texture_Animator.inputs["Interpolate"].default_value = interpolate
+                        Texture_Animator.inputs["Only Fix UV"].default_value = False
+        else:
+            if Texture_Animator != None:
+                material.node_tree.nodes.remove(Texture_Animator)
+    
+
+
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
@@ -441,11 +545,12 @@ def apply_resources():
                     normal_map_node = None
                     specular_texture_node = None
                     emission_texture_node = None
-                    separate_color_node = None
-                    roughness_invert_color_node = None
-                    emission_invert_color_node = None
-                    Texture_Animator = None
-                    TAnimator_exists = False
+                    LabPBR_s = None
+                    ITexture_Animator = None
+                    NTexture_Animator = None
+                    STexture_Animator = None
+                    ETexture_Animator = None
+                    Current_node_tree = None
 
                     new_image_path = None
                     new_normal_image_path = None
@@ -455,6 +560,22 @@ def apply_resources():
 
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
+                        
+                        if node.type == "GROUP":
+                            if "Animated;" in node.node_tree.name:
+                                if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
+                                    NTexture_Animator = node
+                                elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
+                                    STexture_Animator = node
+                                elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
+                                    ETexture_Animator = node
+                                else:
+                                    ITexture_Animator = node
+                                    image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
+                                Current_node_tree = node.node_tree
+                            
+                            if node.node_tree.name == "LabPBR Specular":
+                                LabPBR_s = node
 
                         if node.type == "TEX_IMAGE" and node.image:
 
@@ -472,29 +593,9 @@ def apply_resources():
                                     new_name = original_name.replace("_y", "")
                                     image_texture_node.image.name = new_name
                                     image_texture = image_texture_node.image.name
-                                    print(image_texture)
-                        
-                        if node.type == "GROUP":
-                            if "Animated;" in node.node_tree.name:
-                                Texture_Animator = node
-                                image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
-                                Current_node_tree = node.node_tree
 
-                            if "Texture Animator" in node.node_tree.name:
-                                Texture_Animator = node
-
-                        
                         if node.type == "NORMAL_MAP":
                             normal_map_node = node
-                        
-                        if node.type == "SEPARATE_COLOR":
-                            separate_color_node = node
-                        
-                        if node.type == "INVERT":
-                            if "Roughness Invert" in node.name:
-                                roughness_invert_color_node = node
-                            if "Emission Invert" in node.name:
-                                emission_invert_color_node = node
 
 
                     # Texture Update
@@ -504,8 +605,8 @@ def apply_resources():
                             if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
                                 image_texture_node.location.x = PBSDF.location.x - 600
                         except:
-                            if abs(Texture_Animator.location.x - PBSDF.location.x) < 600:
-                                Texture_Animator.location.x = PBSDF.location.x - 600
+                            if abs(ITexture_Animator.location.x - PBSDF.location.x) < 600:
+                                ITexture_Animator.location.x = PBSDF.location.x - 600
 
                         for pack, pack_info in resource_packs.items():
                             path, enabled = pack_info["path"], pack_info["enabled"]
@@ -523,103 +624,19 @@ def apply_resources():
                                     else:
                                         image_texture_node.image = bpy.data.images.load(new_image_path)
                                     
-                                if Texture_Animator != None:
-                                    for node in Texture_Animator.node_tree.nodes:
+                                    
+                                if ITexture_Animator != None:
+                                    for node in ITexture_Animator.node_tree.nodes:
                                         if node.type == "TEX_IMAGE":
                                             if image_texture in bpy.data.images:
                                                 node.image = bpy.data.images[image_texture]
                                             else:
                                                 node.image = bpy.data.images.load(new_image_path)
-                                break
                         
-                        if r_props.animate_textures:
-                            if r_props.only_fix_uv:
-                                if Texture_Animator is None:
-                                    if "Texture Animator" not in bpy.data.node_groups:
-                                        try:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                                data_to.node_groups = ["Texture Animator"]
-                                        except:
-                                            Absolute_Solver("004", "Materials", traceback.format_exc())
-                                
-                                    Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                    Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
-                                    Texture_Animator.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 60)
-                                
-                                material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], image_texture_node.inputs["Vector"])
+                                animate_texture(image_texture_node, image_texture, new_image_path, ITexture_Animator, Current_node_tree)
+                                break
 
-                                Texture_Animator.inputs["Frames"].default_value = int(image_texture_node.image.size[1] / image_texture_node.image.size[0])
-                                Texture_Animator.inputs["Only Fix UV"].default_value = True
-                            else:
-                                animation_file = find_image(image_texture + ".mcmeta", path)
-                                if animation_file != None:
-                                    with open(animation_file, 'r') as file:
-                                        data = json.load(file).get('animation', {})
-                                        if data.get('frametime') == None:
-                                            frametime = 20
-                                        else:
-                                            frametime = data.get('frametime')
-
-                                        if data.get('interpolate') == None:
-                                            interpolate = False
-                                        else:
-                                            interpolate = data.get('interpolate')
-                                    
-                                    if interpolate == True:
-                                        if Texture_Animator is None:
-                                            if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
-                                                TAnimator_exists = True
-                                                Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
-                                            
-                                            Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                            Texture_Animator.location = (image_texture_node.location.x, image_texture_node.location.y)
-                                            
-                                            if TAnimator_exists == False:
-                                                if "Texture Animator" not in bpy.data.node_groups:
-                                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                                        data_to.node_groups = ["Texture Animator"]
-                                                
-                                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                                    data_to.node_groups = ["Texture Animator"]
-
-                                                bpy.data.node_groups[f"Texture Animator.001"].name = f"Animated; {image_texture.replace('.png', '')}"
-                                                Texture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
-                                                for node in Texture_Animator.node_tree.nodes:
-                                                    if node.type == "TEX_IMAGE":
-                                                        node.image = bpy.data.images[image_texture]
-                                            else:
-                                                Texture_Animator.node_tree = Current_node_tree
-                                            
-                                            material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
-                                            material.node_tree.links.new(Texture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
-
-                                            if image_texture_node != None:
-                                                material.node_tree.nodes.remove(image_texture_node)
-                                    else:
-                                        if Texture_Animator is None:
-                                            if "Texture Animator" not in bpy.data.node_groups:
-                                                try:
-                                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                                        data_to.node_groups = ["Texture Animator"]
-                                                except:
-                                                    Absolute_Solver("004", "Materials", traceback.format_exc())
-                                        
-                                            Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                            Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
-                                            Texture_Animator.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 60)
-
-                                        material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], image_texture_node.inputs["Vector"])
-                                        
-                                    Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
-                                    Texture_Animator.inputs["Only Fix UV"].default_value = False
-                                    Texture_Animator.inputs["Frametime"].default_value = frametime
-                                    Texture_Animator.inputs["Interpolate"].default_value = interpolate
-                                    Texture_Animator.inputs["Only Fix UV"].default_value = False
-                        else:
-                            if Texture_Animator != None:
-                                material.node_tree.nodes.remove(Texture_Animator)
-
-                    # Normal Texture Update
+                        # Normal Texture Update
                         if r_props.use_n and r_props.use_additional_textures:
 
                             if normal_texture_node == None:
@@ -634,31 +651,39 @@ def apply_resources():
                                 
                                 new_normal_image_path = find_image(normal_image_name, path)
                                 if new_normal_image_path != None:
+                                    if normal_texture_node == None:
+                                        normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+
+                                        try:
+                                            normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
+                                        except:
+                                            normal_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 562)
+
+                                        normal_texture_node.interpolation = "Closest"
+                                    
+                                    if normal_image_name in bpy.data.images:
+                                        bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
+                                    
+                                    normal_texture_node.image = bpy.data.images.load(new_normal_image_path)
+                                    
+                                    normal_texture_node.image.colorspace_settings.name = "Non-Color"
+
+                                    if normal_map_node == None:
+                                        normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
+                                        normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
+                                        material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
+                                        material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
+                                    
+                                    if NTexture_Animator != None:
+                                        for node in NTexture_Animator.node_tree.nodes:
+                                            if node.type == "TEX_IMAGE":
+                                                if normal_image_name in bpy.data.images:
+                                                    node.image = bpy.data.images[normal_image_name]
+                                                else:
+                                                    node.image = bpy.data.images.load(new_normal_image_path)
+
+                                    animate_texture(normal_texture_node, normal_image_name, new_normal_image_path, NTexture_Animator, Current_node_tree)
                                     break
-
-                            if new_normal_image_path != None:
-                                if normal_texture_node == None:
-                                    normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-
-                                    try:
-                                        normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
-                                    except:
-                                        normal_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 562)
-
-                                    normal_texture_node.interpolation = "Closest"
-                                
-                                if normal_image_name in bpy.data.images:
-                                    bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
-                                
-                                normal_texture_node.image = bpy.data.images.load(new_normal_image_path)
-                                
-                                normal_texture_node.image.colorspace_settings.name = "Non-Color"
-
-                                if normal_map_node == None:
-                                    normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
-                                    normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
-                                    material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
-                                    material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
                         else:
                             if normal_texture_node != None:
                                 material.node_tree.nodes.remove(normal_texture_node)
@@ -681,75 +706,82 @@ def apply_resources():
 
                                 new_specular_image_path = find_image(specular_image_name, path)
                                 if new_specular_image_path != None:
-                                    break
+                                    if specular_texture_node == None:
+                                        specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                        try:
+                                            specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
+                                        except:
+                                            specular_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 280)
 
-                            if new_specular_image_path != None:
-                                if specular_texture_node == None:
-                                    specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+                                        specular_texture_node.interpolation = "Closest"
 
-                                    try:
-                                        specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
-                                    except:
-                                        specular_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 280)
+                                    if LabPBR_s == None:
+                                        if "LabPBR Specular" not in bpy.data.node_groups:
+                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                                data_to.node_groups = ["LabPBR Specular"]
 
-                                    specular_texture_node.interpolation = "Closest"
+                                        LabPBR_s = material.node_tree.nodes.new("ShaderNodeGroup")
+                                        LabPBR_s.node_tree = bpy.data.node_groups["LabPBR Specular"]
+                                        LabPBR_s.location = (specular_texture_node.location.x + 280, specular_texture_node.location.y)
+                                        
+                                    if specular_image_name in bpy.data.images:
+                                        bpy.data.images.remove(bpy.data.images[specular_image_name], do_unlink=True)
 
-                                if separate_color_node == None:
-                                    separate_color_node = material.node_tree.nodes.new("ShaderNodeSeparateColor")
-                                    separate_color_node.location = (specular_texture_node.location.x + 260, specular_texture_node.location.y)
-                                
-                                if roughness_invert_color_node == None:
-                                    roughness_invert_color_node = material.node_tree.nodes.new("ShaderNodeInvert")
-
-                                    roughness_invert_color_node.location = (separate_color_node.location.x + 160, separate_color_node.location.y)
-                                    roughness_invert_color_node.name ="Roughness Invert"
-                                
-                                if emission_invert_color_node == None:
-                                    emission_invert_color_node = material.node_tree.nodes.new("ShaderNodeInvert")
-                                    emission_invert_color_node.location = (separate_color_node.location.x, separate_color_node.location.y - 140)
-                                    emission_invert_color_node.name = "Emission Invert"
+                                    specular_texture_node.image = bpy.data.images.load(new_specular_image_path)
                                     
-                                if specular_image_name in bpy.data.images:
-                                    bpy.data.images.remove(bpy.data.images[specular_image_name], do_unlink=True)
+                                    specular_texture_node.image.colorspace_settings.name = "Non-Color"
 
-                                specular_texture_node.image = bpy.data.images.load(new_specular_image_path)
-                                
-                                specular_texture_node.image.colorspace_settings.name = "Non-Color"
+                                    material.node_tree.links.new(specular_texture_node.outputs["Color"], LabPBR_s.inputs["Color"])
 
-                                material.node_tree.links.new(specular_texture_node.outputs["Color"], separate_color_node.inputs[0])
+                                    if r_props.roughness:
+                                        material.node_tree.links.new(LabPBR_s.outputs["Roughness"], PBSDF.inputs["Roughness"])
+                                    
+                                    if r_props.metallic:
+                                        material.node_tree.links.new(LabPBR_s.outputs["Reflectance (Metallic)"], PBSDF.inputs["Metallic"])
+                                    
+                                    if r_props.specular:
+                                        material.node_tree.links.new(LabPBR_s.outputs["Porosity (Specular)"], PBSDF.inputs["Specular IOR Level"])
 
-                                material.node_tree.links.new(separate_color_node.outputs["Red"], roughness_invert_color_node.inputs["Color"])
-                                material.node_tree.links.new(separate_color_node.outputs["Green"], PBSDF.inputs["Metallic"])
-                                #material.node_tree.links.new(separate_color_node.outputs["Blue"], PBSDF.inputs["Emission Strength"])
+                                    if r_props.sss:
+                                        if blender_version("4.x.x"):
+                                            material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface Weight"])
+                                        else:
+                                            material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface"])
 
-                                material.node_tree.links.new(specular_texture_node.outputs["Alpha"], emission_invert_color_node.inputs["Color"])
+                                        PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
 
-                                if blender_version("4.x.x"):
-                                    try:
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
-                                    except:
-                                        material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Emission Color"])
-                                else:
-                                    try:
-                                        material.node_tree.links.new(Texture_Animator.outputs["Color"], PBSDF.inputs["Emission"])
-                                    except:
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
+                                    material.node_tree.links.new(specular_texture_node.outputs["Alpha"], LabPBR_s.inputs["Alpha"])
 
-                                material.node_tree.links.new(emission_invert_color_node.outputs[0], PBSDF.inputs["Emission Strength"])
+                                    if r_props.emission:
+                                        if blender_version("4.x.x"):
+                                            try:
+                                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                            except:
+                                                material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                        else:
+                                            try:
+                                                material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Emission"])
+                                            except:
+                                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
 
-                                material.node_tree.links.new(roughness_invert_color_node.outputs[0], PBSDF.inputs["Roughness"])
+                                        material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
+
+                                    if STexture_Animator != None:
+                                        for node in STexture_Animator.node_tree.nodes:
+                                            if node.type == "TEX_IMAGE":
+                                                if specular_image_name in bpy.data.images:
+                                                    node.image = bpy.data.images[specular_image_name]
+                                                else:
+                                                    node.image = bpy.data.images.load(new_specular_image_path)
+
+                                    animate_texture(specular_texture_node, specular_image_name, new_specular_image_path, STexture_Animator, Current_node_tree)
+                                    break
                         else:
                             if specular_texture_node != None:
                                 material.node_tree.nodes.remove(specular_texture_node)
                             
-                            if separate_color_node != None:
-                                material.node_tree.nodes.remove(separate_color_node)
-
-                            if roughness_invert_color_node != None:
-                                material.node_tree.nodes.remove(roughness_invert_color_node)
-
-                            if emission_invert_color_node != None:
-                                material.node_tree.nodes.remove(emission_invert_color_node)
+                            if LabPBR_s != None:
+                                material.node_tree.nodes.remove(LabPBR_s)
                         
                         # Emission Texture Update
                         if r_props.use_e and r_props.use_additional_textures:
@@ -766,33 +798,39 @@ def apply_resources():
 
                                 new_emission_image_path = find_image(emission_image_name, path)
                                 if new_emission_image_path != None:
+                                    if emission_texture_node == None:
+                                        emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+
+                                        try:
+                                            emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 850)
+                                        except:
+                                            emission_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 850)
+
+                                        emission_texture_node.interpolation = "Closest"
+                                    
+                                    if emission_image_name in bpy.data.images:
+                                        bpy.data.images.remove(bpy.data.images[emission_image_name], do_unlink=True)
+
+                                    emission_texture_node.image = bpy.data.images.load(new_emission_image_path)
+
+                                    if blender_version("4.x.x"):
+                                        material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                    else:
+                                        material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
+                                    material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
+
+                                    if ETexture_Animator != None:
+                                        for node in ETexture_Animator.node_tree.nodes:
+                                            if node.type == "TEX_IMAGE":
+                                                if emission_image_name in bpy.data.images:
+                                                    node.image = bpy.data.images[emission_image_name]
+                                                else:
+                                                    node.image = bpy.data.images.load(new_emission_image_path)
+
+                                    animate_texture(emission_texture_node, emission_image_name, new_emission_image_path, ETexture_Animator, Current_node_tree)
                                     break
-
-                            if new_emission_image_path != None:
-                                if emission_texture_node == None:
-                                    emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-
-                                    try:
-                                        emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 760)
-                                    except:
-                                        emission_texture_node.location = (Texture_Animator.location.x, Texture_Animator.location.y - 760)
-
-                                    emission_texture_node.interpolation = "Closest"
-                                
-                                if emission_image_name in bpy.data.images:
-                                    bpy.data.images.remove(bpy.data.images[emission_image_name], do_unlink=True)
-
-                                emission_texture_node.image = bpy.data.images.load(new_emission_image_path)
-
-
-                                if blender_version("4.x.x"):
-                                    material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
-                                else:
-                                    material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
-                                material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Strength"])
-                        else:
-                            if emission_texture_node != None:
-                                material.node_tree.nodes.remove(emission_texture_node)
+                        elif emission_texture_node != None:
+                            material.node_tree.nodes.remove(emission_texture_node)
 
                 else:
                     Absolute_Solver("m002", slot)
@@ -810,10 +848,11 @@ def swap_textures(folder_path):
                         if node.type == "TEX_IMAGE" and node.image is not None:
                             new_image_path = find_image(node.image.name, folder_path)
                             if new_image_path != None:
+
                                 if node.image.name in bpy.data.images:
                                     bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
-                                if os.path.isfile(new_image_path):
-                                    node.image = bpy.data.images.load(new_image_path)
+
+                                node.image = bpy.data.images.load(new_image_path)
                 else:
                     Absolute_Solver("m002", slot)
         else:
@@ -980,9 +1019,7 @@ def setproceduralpbr():
                                 else:
                                     PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
 
-                                PBSDF.inputs["Subsurface Radius"].default_value[0] = 1.0
-                                PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
-                                PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
+                                PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
                         else:
                             if blender_version("4.x.x"):
                                 PBSDF.inputs["Subsurface Weight"].default_value = 0
@@ -1023,7 +1060,7 @@ def setproceduralpbr():
                                 node_group.node_tree = bpy.data.node_groups[BATGroup]
 
                             # Settings Set
-                            if MaterialIn(Emissive_Materials, material) == True:
+                            if MaterialIn(Emissive_Materials, material):
                                 for material_part in material.name.lower().replace("-", ".").split("."):
                                     for material_name, material_properties in Emissive_Materials.items():
                                         if material_name == material_part:
@@ -1033,10 +1070,11 @@ def setproceduralpbr():
                                                 else:
                                                     node_group.inputs[property_name].default_value = property_value
 
-                                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-
                                             if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
                                                 node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                                            
+                                            if "From Min" in material_properties and "From Max" in material_properties and "To Min" in material_properties and "To Max" in material_properties:
+                                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
                             else:
                                 for material_name, material_properties in Emissive_Materials.items():
                                     if material_name == "Default":

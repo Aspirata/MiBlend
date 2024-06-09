@@ -1,7 +1,7 @@
 from .Data import *
 
 def InitOnStart():
-    
+
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
         update_default_pack()
@@ -68,35 +68,40 @@ def update_default_pack(debug=None):
     resource_packs = bpy.context.scene["resource_packs"]
 
     default_pack = "Minecraft 1.20.6"
-    default_path = os.path.join(resource_packs_directory, "Minecraft 1.20.6")
+    default_path = os.path.join(resource_packs_directory, default_pack)
     resource_packs[default_pack] = {"path": (default_path), "enabled": True}
 
     default_pack = "Bare Bones 1.20.6"
-    default_path = os.path.join(resource_packs_directory, "Bare Bones 1.20.6")
+    default_path = os.path.join(resource_packs_directory, default_pack)
     resource_packs[default_pack] = {"path": (default_path), "enabled": False}
+
+    default_pack = "Better Emission"
+    default_path = os.path.join(resource_packs_directory, default_pack)
+    resource_packs[default_pack] = {"path": (default_path), "enabled": True}
+
+    default_pack = "Embrace Pixels 2.1"
+    default_path = os.path.join(resource_packs_directory, default_pack)
+    resource_packs[default_pack] = {"path": (default_path), "enabled": True}
     
     if debug is not None:
         print(f"Default Pack: {default_pack} stored in {default_path}")
 
 def find_image(image_name, root_folder):
-    # Check in the directory
     for dirpath, _, filenames in os.walk(root_folder):
         if image_name in filenames:
             return os.path.join(dirpath, image_name)
     
-    # Check in zip files within the directory
     for dirpath, _, files in os.walk(root_folder):
         for file in files:
-            if file.endswith('.zip'):
+            if file.endswith(('.zip', '.jar')):
                 with zipfile.ZipFile(os.path.join(dirpath, file), 'r') as zip_ref:
                     for zip_info in zip_ref.infolist():
                         if os.path.basename(zip_info.filename) == image_name:
                             extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
                             extracted_file_path = zip_ref.extract(zip_info, extract_path)
                             return extracted_file_path
-    
-    # Check if root folder is a zip file
-    if root_folder.endswith('.zip'):
+                        
+    if root_folder.endswith(('.zip', '.jar')):
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
             for zip_info in zip_ref.infolist():
                 if os.path.basename(zip_info.filename) == image_name:

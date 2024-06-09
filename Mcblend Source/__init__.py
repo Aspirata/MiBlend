@@ -199,37 +199,41 @@ class WorldAndMaterialsPanel(Panel):
         row = sbox.row()
         row.label(text="Resource Packs", icon="FILE_FOLDER")
 
-        tbox = sbox.box()
-        resource_packs = get_resource_packs()
-        for pack, pack_info in resource_packs.items():
-            row = tbox.row()
+        try:
+            tbox = sbox.box()
+            resource_packs = get_resource_packs()
+            for pack, pack_info in resource_packs.items():
+                row = tbox.row()
 
-            icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
-            toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
-            toggle_op.pack_name = pack
+                icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
+                toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
+                toggle_op.pack_name = pack
 
-            row.label(text=pack)
-            
-            move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
-            move_up.pack_name = pack
+                row.label(text=pack)
+                
+                move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
+                move_up.pack_name = pack
 
-            move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
-            move_down.pack_name = pack
+                move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
+                move_down.pack_name = pack
 
-            remove = row.operator("resource_pack.remove", text="", icon='X')
-            remove.pack_name = pack
+                remove = row.operator("resource_pack.remove", text="", icon='X')
+                remove.pack_name = pack
         
-        row = tbox.row()
-        row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
+            row = tbox.row()
+            row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
 
-        row = tbox.row()
-        row.operator("resource_pack.add", icon='ADD')
+            row = tbox.row()
+            row.operator("resource_pack.add", icon='ADD')
+        except:
+            row = tbox.row()
+            row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
 
         tbox = sbox.box()
         row = tbox.row()
         row.prop(scene.resource_properties, "use_additional_textures")
-        row.prop(scene.resource_properties, "textures", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures else "TRIA_LEFT"), icon_only=True)
-        if scene.resource_properties.textures:
+        row.prop(scene.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.resource_properties.textures_settings:
 
             row = tbox.row()
             row.enabled = scene.resource_properties.use_additional_textures
@@ -238,6 +242,27 @@ class WorldAndMaterialsPanel(Panel):
             row = tbox.row()
             row.enabled = scene.resource_properties.use_additional_textures
             row.prop(scene.resource_properties, "use_s")
+            row.prop(scene.resource_properties, "s_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.s_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.resource_properties.s_settings:
+                row = tbox.row()
+                row.enabled = scene.resource_properties.use_s
+                row.prop(scene.resource_properties, "roughness")
+
+                row = tbox.row()
+                row.enabled = scene.resource_properties.use_s
+                row.prop(scene.resource_properties, "metallic")
+
+                row = tbox.row()
+                row.enabled = scene.resource_properties.use_s
+                row.prop(scene.resource_properties, "sss")
+
+                row = tbox.row()
+                row.enabled = scene.resource_properties.use_s
+                row.prop(scene.resource_properties, "specular")
+
+                row = tbox.row()
+                row.enabled = scene.resource_properties.use_s
+                row.prop(scene.resource_properties, "emission")
 
             row = tbox.row()
             row.enabled = scene.resource_properties.use_additional_textures
@@ -246,9 +271,15 @@ class WorldAndMaterialsPanel(Panel):
         tbox = sbox.box()
         row = tbox.row()
         row.prop(scene.resource_properties, "animate_textures")
-        sub = row.row()
-        sub.enabled = scene.resource_properties.animate_textures
-        sub.prop(scene.resource_properties, "only_fix_uv")
+        row.prop(scene.resource_properties, "animate_textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.animate_textures_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.resource_properties.animate_textures_settings:
+            row = tbox.row()
+            row.enabled = scene.resource_properties.animate_textures
+            row.prop(scene.resource_properties, "interpolate")
+
+            row = tbox.row()
+            row.enabled = scene.resource_properties.animate_textures
+            row.prop(scene.resource_properties, "only_fix_uv")
 
         row = sbox.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')
@@ -742,6 +773,16 @@ class UpdateDefaultPack(Operator):
     def execute(self, context):
         update_default_pack()
         return {'FINISHED'}
+    
+class FixPacks(Operator):
+    bl_idname = "resource_pack.fix"
+    bl_label = "Fix Packs"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if "resource_packs" not in bpy.context.scene:
+            bpy.context.scene["resource_packs"] = {}
+        return {'FINISHED'}
 
 class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"
@@ -754,7 +795,7 @@ class AddResourcePack(Operator):
         scene = context.scene
         resource_packs = get_resource_packs()
 
-        if os.path.isdir(self.filepath) or self.filepath.endswith('.zip'):
+        if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
             if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
                 pack_name = os.path.basename(self.filepath)
                 resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "enabled": True}
@@ -1142,7 +1183,7 @@ class ManualAssetsUpdateOperator(Operator):
 classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties,
     WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, 
-    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack,
+    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator

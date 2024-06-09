@@ -237,6 +237,14 @@ Emissive_Materials = {
         "Divider": 80,
     },
 
+    "powered_rail_on": {
+        "Middle Value": 0.2,
+        11: 0.5,
+        12: 2,
+        "Adder": 0.1,
+        "Divider": 50.0,
+    }
+
 }
 
 # Materials Categories

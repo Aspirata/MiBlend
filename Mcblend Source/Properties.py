@@ -45,8 +45,8 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
-    textures: BoolProperty(
-        name="Textures",
+    textures_settings: BoolProperty(
+        name="Textures Settings",
         default=False,
     )
 
@@ -60,6 +60,36 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
+    s_settings: BoolProperty(
+        name="Specular Settings",
+        default=False,
+    )
+
+    roughness: BoolProperty(
+        name="Use Roughness",
+        default=True,
+    )
+
+    metallic: BoolProperty(
+        name="Use Metallic",
+        default=True,
+    )
+
+    sss: BoolProperty(
+        name="Use SSS",
+        default=True,
+    )
+
+    specular: BoolProperty(
+        name="Use Specular",
+        default=True,
+    )
+
+    emission: BoolProperty(
+        name="Use Emssion",
+        default=True,
+    )
+
     use_e: BoolProperty(
         name="Use Emission Textures",
         default=True,
@@ -67,6 +97,16 @@ class ResourcePackProperties(PropertyGroup):
 
     animate_textures: BoolProperty(
         name="Animate Textures",
+        default=True,
+    )
+
+    animate_textures_settings: BoolProperty(
+        name="Animate Textures Settings",
+        default=False,
+    )
+
+    interpolate: BoolProperty(
+        name="Interpolate",
         default=True,
     )
 
