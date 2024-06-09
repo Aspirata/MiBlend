@@ -74,15 +74,15 @@ def upgrade_materials():
             slot += 1
             for i, material in enumerate(selected_object.data.materials):
                 if material is not None:
-                    for original_material, upgraded_material in Materials_Array.items():
+                    for original_material, upgraded_material in Upgrade_Materials_Array.items():
                         for material_part in material.name.lower().replace("-", ".").split("."):
                             if original_material == material_part:
                                 if upgraded_material not in bpy.data.materials:
                                     try:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Upgraded Materials.blend"), link=False) as (data_from, data_to):
                                             data_to.materials = [upgraded_material]
                                     except:
-                                        Absolute_Solver('004', "Materials", traceback.format_exc())
+                                        Absolute_Solver('004', "Upgraded Materials", traceback.format_exc())
 
                                     appended_material = bpy.data.materials.get(upgraded_material)
                                     selected_object.data.materials[i] = appended_material
@@ -735,12 +735,24 @@ def apply_resources():
 
                                     if r_props.roughness:
                                         material.node_tree.links.new(LabPBR_s.outputs["Roughness"], PBSDF.inputs["Roughness"])
-                                    
+                                    else:
+                                        for link in material.node_tree.links:
+                                            if link.to_socket == PBSDF.inputs["Roughness"]:
+                                                material.node_tree.links.remove(link)
+
                                     if r_props.metallic:
                                         material.node_tree.links.new(LabPBR_s.outputs["Reflectance (Metallic)"], PBSDF.inputs["Metallic"])
+                                    else:
+                                        for link in material.node_tree.links:
+                                            if link.to_socket == PBSDF.inputs["Metallic"]:
+                                                material.node_tree.links.remove(link)
                                     
                                     if r_props.specular:
                                         material.node_tree.links.new(LabPBR_s.outputs["Porosity (Specular)"], PBSDF.inputs["Specular IOR Level"])
+                                    else:
+                                        for link in material.node_tree.links:
+                                            if link.to_socket == PBSDF.inputs["Specular IOR Level"]:
+                                                material.node_tree.links.remove(link)
 
                                     if r_props.sss:
                                         if blender_version("4.x.x"):
@@ -749,6 +761,14 @@ def apply_resources():
                                             material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface"])
 
                                         PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
+                                    else:
+                                        for link in material.node_tree.links:
+                                            if blender_version("4.x.x"):
+                                                if link.to_socket == PBSDF.inputs["Subsurface Weight"]:
+                                                    material.node_tree.links.remove(link)
+                                            else:
+                                                if link.to_socket == PBSDF.inputs["Subsurface"]:
+                                                    material.node_tree.links.remove(link)
 
                                     material.node_tree.links.new(specular_texture_node.outputs["Alpha"], LabPBR_s.inputs["Alpha"])
 

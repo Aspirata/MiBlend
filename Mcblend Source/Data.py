@@ -261,7 +261,7 @@ Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern"
 Reflective = ["glass", "ender", "amethyst", "water", "emerald"]
 
 
-Materials_Array = {
+Upgrade_Materials_Array = {
     
     "bricks": "Upgraded Bricks",
 
@@ -284,8 +284,6 @@ Materials_Array = {
     "soul_lantern": "Upgraded Soul Lantern",
 
     "stone": "Upgraded Stone",
-
-    "water_flow": "Upgraded Water Flow"
 }
 
 Assets = {
