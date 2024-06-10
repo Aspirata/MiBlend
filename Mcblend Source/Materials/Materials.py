@@ -471,6 +471,9 @@ def apply_resources():
                                 interpolate = data.get('interpolate')
                         
                         if interpolate == True and r_props.interpolate:
+                            if Texture_Animator != None:
+                                material.node_tree.nodes.remove(Texture_Animator)
+
                             if ITexture_Animator is None:
                                 if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
                                     TAnimator_exists = True
@@ -501,7 +504,7 @@ def apply_resources():
                                 if image_texture_node != None:
                                     material.node_tree.nodes.remove(image_texture_node)
                             else:
-                                for node in Texture_Animator.node_tree.nodes:
+                                for node in ITexture_Animator.node_tree.nodes:
                                     if node.type == "TEX_IMAGE":
                                         if image_texture in bpy.data.images:
                                             node.image = bpy.data.images[image_texture]
@@ -521,16 +524,22 @@ def apply_resources():
                                 Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
 
                             material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
-                            
-                        Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
-                        Texture_Animator.inputs["Only Fix UV"].default_value = False
-                        Texture_Animator.inputs["Frametime"].default_value = frametime
-                        Texture_Animator.inputs["Interpolate"].default_value = interpolate
-                        Texture_Animator.inputs["Only Fix UV"].default_value = False
+                        
+                        try:
+                            Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
+                            Texture_Animator.inputs["Only Fix UV"].default_value = False
+                            Texture_Animator.inputs["Frametime"].default_value = frametime
+                            Texture_Animator.inputs["Interpolate"].default_value = interpolate
+                            Texture_Animator.inputs["Only Fix UV"].default_value = False
+                        except:
+                            ITexture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
+                            ITexture_Animator.inputs["Only Fix UV"].default_value = False
+                            ITexture_Animator.inputs["Frametime"].default_value = frametime
+                            ITexture_Animator.inputs["Interpolate"].default_value = interpolate
+                            ITexture_Animator.inputs["Only Fix UV"].default_value = False
         else:
             if Texture_Animator != None:
                 material.node_tree.nodes.remove(Texture_Animator)
-    
 
 
     for selected_object in bpy.context.selected_objects:
@@ -761,6 +770,8 @@ def apply_resources():
                                             material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface"])
 
                                         PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
+
+                                        PBSDF.subsurface_method = 'BURLEY'
                                     else:
                                         for link in material.node_tree.links:
                                             if blender_version("4.x.x"):
