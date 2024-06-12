@@ -444,11 +444,9 @@ def apply_resources():
                 if node.type == 'TEX_IMAGE' and node.image == texture:
                     Texture_users.append(node)
         
-        print(Texture_users)
-        
         return Texture_users
 
-    def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree):
+    def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         TAnimator_exists = False
         Texture_Animator = None
 
@@ -459,7 +457,9 @@ def apply_resources():
 
         if r_props.animate_textures:
             if int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0]) != 1:
-                animation_file = find_image(re.sub(r'(_n|_s|_e)$', '', image_texture) + ".mcmeta", path)
+                animation_file = find_image(image_texture + ".mcmeta", path)
+                if animation_file == None and image_path != None:
+                    animation_file = find_image(re.sub(r'(_n|_s|_e)$', '', image_texture.replace('.png', '')) + ".png" + ".mcmeta", image_path)
                 if animation_file != None:
                     with open(animation_file, 'r') as file:
                         data = json.load(file).get('animation', {})
@@ -500,12 +500,15 @@ def apply_resources():
                                         node.image = bpy.data.images[image_texture]
                             else:
                                 ITexture_Animator.node_tree = Current_node_tree
-                            
-                            material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
-                            material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
 
-                            if image_texture_node != None:
-                                material.node_tree.nodes.remove(image_texture_node)
+                            if texture_node != None:
+                                for socket in GetConnectedSocketFrom("Color",texture_node):
+                                    material.node_tree.links.new(ITexture_Animator.outputs["Color"], socket)
+                            
+                                for socket in GetConnectedSocketFrom("Alpha",texture_node):
+                                    material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], socket)
+
+                                material.node_tree.nodes.remove(texture_node)
                         
                         ITexture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
                         ITexture_Animator.inputs["Only Fix UV"].default_value = False
@@ -519,6 +522,13 @@ def apply_resources():
                            texture_node.location = ITexture_Animator.location
                            texture_node.image = bpy.data.images[image_texture]
                            texture_node.interpolation = "Closest"
+
+                           for socket in GetConnectedSocketFrom("Color", ITexture_Animator):
+                                material.node_tree.links.new(texture_node.outputs["Color"], socket)
+                            
+                           for socket in GetConnectedSocketFrom("Alpha", ITexture_Animator):
+                                material.node_tree.links.new(texture_node.outputs["Alpha"], socket)
+
                            material.node_tree.links.new(texture_node.outputs["Color"], PBSDF.inputs["Base Color"])
                            material.node_tree.links.new(texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
 
@@ -649,6 +659,8 @@ def apply_resources():
                                         user.image = bpy.data.images[image_texture]
                                     else:
                                         user.image = bpy.data.images.load(new_image_path)
+                                
+                                image_path = path
                                     
                                 animate_texture(image_texture_node, image_texture, new_image_path, ITexture_Animator, Current_node_tree)
                                 break
@@ -701,7 +713,7 @@ def apply_resources():
                                         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
                                         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
 
-                                    animate_texture(normal_texture_node, normal_image_name, new_normal_image_path, NTexture_Animator, Current_node_tree)
+                                    animate_texture(normal_texture_node, normal_image_name, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
                                     break
                         else:
                             if normal_texture_node != None:
@@ -761,6 +773,8 @@ def apply_resources():
                                     
                                     specular_texture_node.image.colorspace_settings.name = "Non-Color"
 
+                                    # Add ITexture Animator if availible
+
                                     material.node_tree.links.new(specular_texture_node.outputs["Color"], LabPBR_s.inputs["Color"])
 
                                     if r_props.roughness:
@@ -818,7 +832,7 @@ def apply_resources():
 
                                         material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-                                    animate_texture(specular_texture_node, specular_image_name, new_specular_image_path, STexture_Animator, Current_node_tree)
+                                    animate_texture(specular_texture_node, specular_image_name, new_specular_image_path, STexture_Animator, Current_node_tree, image_path)
                                     break
                         else:
                             if specular_texture_node != None:
@@ -874,7 +888,7 @@ def apply_resources():
                                         material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
                                     material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
 
-                                    animate_texture(emission_texture_node, emission_image_name, new_emission_image_path, ETexture_Animator, Current_node_tree)
+                                    animate_texture(emission_texture_node, emission_image_name, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
                                     break
                         elif emission_texture_node != None:
                             material.node_tree.nodes.remove(emission_texture_node)

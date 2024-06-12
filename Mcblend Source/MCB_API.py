@@ -34,6 +34,23 @@ def checkconfig(name):
         return Preferences_List["Dev"][name]
     else:
         return Preferences_List["Default"][name]
+
+def GetConnectedSocketFrom(output, tag, material=None):
+    to_sockets = []
+    if material is not None:
+        for node in material.node_tree.nodes:
+            if node.type == tag:
+                output_socket = node.outputs[output]
+                for link in output_socket.links:
+                    to_node = link.to_node
+                    to_sockets.append(link.to_socket)
+        return to_sockets
+    else:
+        output_socket = tag.outputs[output]
+        for link in output_socket.links:
+            to_node = link.to_node
+            to_sockets.append(link.to_socket)
+        return to_sockets
     
 def GetConnectedSocketTo(input, tag, material=None):
     if material is not None:
