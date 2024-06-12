@@ -189,7 +189,10 @@ def fix_world():
                                 material.use_backface_culling = False
                         
                         if WProperties.lazy_biome_fix:
-                            if MaterialIn(Biome_Fix_Materials, material):
+                            material_parts = image_texture_node.image.name.lower().replace("-", "_").split("_")
+                            print(material_parts)
+                        
+                            if ("grass" in material_parts or "water" in material_parts or "leaves" in material_parts) and "side" not in material_parts:
                                 if lbcf_node == None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -207,10 +210,8 @@ def fix_world():
                                         
                                 material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
-                                for material_part in material.name.lower().replace("-", ".").split("."):
-                                    if "water" in material_part:
-                                        lbcf_node.inputs["Water"].default_value = True
-                                        break
+                                if "water" in material_parts:
+                                    lbcf_node.inputs["Water"].default_value = True
                 else:
                     Absolute_Solver("m002", slot)
         else:
@@ -427,6 +428,26 @@ def apply_resources():
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.resource_properties
 
+    def find_texture_users(texture):
+        Texture_users = []
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH':
+                for slot in obj.material_slots:
+                    material = slot.material
+                    if material and material.use_nodes:
+                        for node in material.node_tree.nodes:
+                            if node.type == 'TEX_IMAGE' and node.image == texture:
+                                Texture_users.append(node)
+        
+        for group in bpy.data.node_groups:
+            for node in group.nodes:
+                if node.type == 'TEX_IMAGE' and node.image == texture:
+                    Texture_users.append(node)
+        
+        print(Texture_users)
+        
+        return Texture_users
+
     def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree):
         TAnimator_exists = False
         Texture_Animator = None
@@ -438,106 +459,101 @@ def apply_resources():
 
         if r_props.animate_textures:
             if int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0]) != 1:
-                if r_props.only_fix_uv:
-                    if Texture_Animator is None:
-                        if "Texture Animator" not in bpy.data.node_groups:
-                            try:
-                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                    data_to.node_groups = ["Texture Animator"]
-                            except:
-                                Absolute_Solver("004", "Materials", traceback.format_exc())
+                animation_file = find_image(re.sub(r'(_n|_s|_e)$', '', image_texture) + ".mcmeta", path)
+                if animation_file != None:
+                    with open(animation_file, 'r') as file:
+                        data = json.load(file).get('animation', {})
+                        if data.get('frametime') == None:
+                            frametime = 20
+                        else:
+                            frametime = data.get('frametime')
+
+                        if data.get('interpolate') == None:
+                            interpolate = False
+                        else:
+                            interpolate = data.get('interpolate')
                     
-                        Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                        Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
-                        Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
-                    
-                    material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
+                    if interpolate == True and r_props.interpolate:
+                        if Texture_Animator != None:
+                            material.node_tree.nodes.remove(Texture_Animator)
 
-                    Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
-                    Texture_Animator.inputs["Only Fix UV"].default_value = True
-                else:
-                    animation_file = find_image(re.sub(r'(_n|_s|_e)$', '', image_texture) + ".mcmeta", path)
-                    if animation_file != None:
-                        with open(animation_file, 'r') as file:
-                            data = json.load(file).get('animation', {})
-                            if data.get('frametime') == None:
-                                frametime = 20
-                            else:
-                                frametime = data.get('frametime')
-
-                            if data.get('interpolate') == None:
-                                interpolate = False
-                            else:
-                                interpolate = data.get('interpolate')
-                        
-                        if interpolate == True and r_props.interpolate:
-                            if Texture_Animator != None:
-                                material.node_tree.nodes.remove(Texture_Animator)
-
-                            if ITexture_Animator is None:
-                                if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
-                                    TAnimator_exists = True
-                                    Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
-                                
-                                ITexture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                ITexture_Animator.location = texture_node.location
-                                
-                                if TAnimator_exists == False:
-                                    if "Texture Animator" not in bpy.data.node_groups:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                            data_to.node_groups = ["Texture Animator"]
-                                    
+                        if ITexture_Animator is None:
+                            if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
+                                TAnimator_exists = True
+                                Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
+                            
+                            ITexture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                            ITexture_Animator.location = texture_node.location
+                            
+                            if TAnimator_exists == False:
+                                if "Texture Animator" not in bpy.data.node_groups:
                                     with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                         data_to.node_groups = ["Texture Animator"]
-
-                                    bpy.data.node_groups[f"Texture Animator.001"].name = f"Animated; {image_texture.replace('.png', '')}"
-                                    ITexture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
-                                    for node in ITexture_Animator.node_tree.nodes:
-                                        if node.type == "TEX_IMAGE":
-                                            node.image = bpy.data.images[image_texture]
-                                else:
-                                    ITexture_Animator.node_tree = Current_node_tree
                                 
-                                material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
-                                material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
+                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                    data_to.node_groups = ["Texture Animator"]
 
-                                if image_texture_node != None:
-                                    material.node_tree.nodes.remove(image_texture_node)
-                            else:
+                                bpy.data.node_groups[f"Texture Animator.001"].name = f"Animated; {image_texture.replace('.png', '')}"
+                                ITexture_Animator.node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
                                 for node in ITexture_Animator.node_tree.nodes:
                                     if node.type == "TEX_IMAGE":
-                                        if image_texture in bpy.data.images:
-                                            node.image = bpy.data.images[image_texture]
-                                        else:
-                                            node.image = bpy.data.images.load(new_image_texture_path)
-                        else:
-                            if Texture_Animator is None:
-                                if "Texture Animator" not in bpy.data.node_groups:
-                                    try:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                            data_to.node_groups = ["Texture Animator"]
-                                    except:
-                                        Absolute_Solver("004", "Materials", traceback.format_exc())
+                                        node.image = bpy.data.images[image_texture]
+                            else:
+                                ITexture_Animator.node_tree = Current_node_tree
                             
-                                Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
-                                Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
+                            material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Base Color"])
+                            material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], PBSDF.inputs["Alpha"])
 
-                            material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
+                            if image_texture_node != None:
+                                material.node_tree.nodes.remove(image_texture_node)
                         
-                        try:
-                            Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
-                            Texture_Animator.inputs["Only Fix UV"].default_value = False
-                            Texture_Animator.inputs["Frametime"].default_value = frametime
-                            Texture_Animator.inputs["Interpolate"].default_value = interpolate
-                            Texture_Animator.inputs["Only Fix UV"].default_value = False
-                        except:
-                            ITexture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
-                            ITexture_Animator.inputs["Only Fix UV"].default_value = False
-                            ITexture_Animator.inputs["Frametime"].default_value = frametime
-                            ITexture_Animator.inputs["Interpolate"].default_value = interpolate
-                            ITexture_Animator.inputs["Only Fix UV"].default_value = False
+                        ITexture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
+                        ITexture_Animator.inputs["Only Fix UV"].default_value = False
+                        ITexture_Animator.inputs["Frametime"].default_value = frametime
+                        ITexture_Animator.inputs["Interpolate"].default_value = interpolate
+                        ITexture_Animator.inputs["Only Fix UV"].default_value = r_props.only_fix_uv
+
+                    else:
+                        if ITexture_Animator is not None:
+                           texture_node = material.node_tree.nodes.new(type='ShaderNodeTexImage')
+                           texture_node.location = ITexture_Animator.location
+                           texture_node.image = bpy.data.images[image_texture]
+                           texture_node.interpolation = "Closest"
+                           material.node_tree.links.new(texture_node.outputs["Color"], PBSDF.inputs["Base Color"])
+                           material.node_tree.links.new(texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
+
+                           material.node_tree.nodes.remove(ITexture_Animator)
+
+                        if Texture_Animator is None:
+                            if "Texture Animator" not in bpy.data.node_groups:
+                                try:
+                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        data_to.node_groups = ["Texture Animator"]
+                                except:
+                                    Absolute_Solver("004", "Materials", traceback.format_exc())
+                        
+                            Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                            Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
+                            Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
+
+                        material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
+                    
+                        Texture_Animator.inputs["Frames"].default_value = int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0])
+                        Texture_Animator.inputs["Only Fix UV"].default_value = False
+                        Texture_Animator.inputs["Frametime"].default_value = frametime
+                        Texture_Animator.inputs["Interpolate"].default_value = interpolate
+                        Texture_Animator.inputs["Only Fix UV"].default_value = r_props.only_fix_uv
         else:
+            if ITexture_Animator is not None:
+                texture_node = material.node_tree.nodes.new(type='ShaderNodeTexImage')
+                texture_node.location = ITexture_Animator.location
+                texture_node.image = bpy.data.images[image_texture]
+                texture_node.interpolation = "Closest"
+                material.node_tree.links.new(texture_node.outputs["Color"], PBSDF.inputs["Base Color"])
+                material.node_tree.links.new(texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
+
+                material.node_tree.nodes.remove(ITexture_Animator)
+
             if Texture_Animator != None:
                 material.node_tree.nodes.remove(Texture_Animator)
 
@@ -609,7 +625,6 @@ def apply_resources():
 
                     # Texture Update
                     if image_texture != None:
-                        
                         try:
                             if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
                                 image_texture_node.location.x = PBSDF.location.x - 600
@@ -624,24 +639,17 @@ def apply_resources():
 
                             new_image_path = find_image(image_texture, path)
                             if new_image_path != None and os.path.isfile(new_image_path):
+
+                                Users = find_texture_users(bpy.data.images[image_texture])
                                 if image_texture in bpy.data.images:
                                     bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
 
-                                if image_texture_node != None:
+                                for user in Users:
                                     if image_texture in bpy.data.images:
-                                        image_texture_node.image = bpy.data.images[image_texture]
+                                        user.image = bpy.data.images[image_texture]
                                     else:
-                                        image_texture_node.image = bpy.data.images.load(new_image_path)
+                                        user.image = bpy.data.images.load(new_image_path)
                                     
-                                    
-                                if ITexture_Animator != None:
-                                    for node in ITexture_Animator.node_tree.nodes:
-                                        if node.type == "TEX_IMAGE":
-                                            if image_texture in bpy.data.images:
-                                                node.image = bpy.data.images[image_texture]
-                                            else:
-                                                node.image = bpy.data.images.load(new_image_path)
-                        
                                 animate_texture(image_texture_node, image_texture, new_image_path, ITexture_Animator, Current_node_tree)
                                 break
 
@@ -662,7 +670,6 @@ def apply_resources():
                                 if new_normal_image_path != None:
                                     if normal_texture_node == None:
                                         normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-
                                         try:
                                             normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
                                         except:
@@ -670,10 +677,21 @@ def apply_resources():
 
                                         normal_texture_node.interpolation = "Closest"
                                     
+                                    Users = find_texture_users(normal_image_name)
                                     if normal_image_name in bpy.data.images:
                                         bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
                                     
-                                    normal_texture_node.image = bpy.data.images.load(new_normal_image_path)
+                                    if not normal_texture_node.image:
+                                        if normal_image_name in bpy.data.images:
+                                            normal_texture_node.image = bpy.data.images[normal_image_name]
+                                        else:
+                                            normal_texture_node.image = bpy.data.images.load(new_normal_image_path)
+                                    
+                                    for user in Users:
+                                        if normal_image_name in bpy.data.images:
+                                            user.image = bpy.data.images[normal_image_name]
+                                        else:
+                                            user.image = bpy.data.images.load(new_normal_image_path)
                                     
                                     normal_texture_node.image.colorspace_settings.name = "Non-Color"
 
@@ -682,14 +700,6 @@ def apply_resources():
                                         normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
                                         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
                                         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
-                                    
-                                    if NTexture_Animator != None:
-                                        for node in NTexture_Animator.node_tree.nodes:
-                                            if node.type == "TEX_IMAGE":
-                                                if normal_image_name in bpy.data.images:
-                                                    node.image = bpy.data.images[normal_image_name]
-                                                else:
-                                                    node.image = bpy.data.images.load(new_normal_image_path)
 
                                     animate_texture(normal_texture_node, normal_image_name, new_normal_image_path, NTexture_Animator, Current_node_tree)
                                     break
@@ -732,11 +742,22 @@ def apply_resources():
                                         LabPBR_s = material.node_tree.nodes.new("ShaderNodeGroup")
                                         LabPBR_s.node_tree = bpy.data.node_groups["LabPBR Specular"]
                                         LabPBR_s.location = (specular_texture_node.location.x + 280, specular_texture_node.location.y)
-                                        
+
+                                    Users = find_texture_users(specular_image_name)
                                     if specular_image_name in bpy.data.images:
                                         bpy.data.images.remove(bpy.data.images[specular_image_name], do_unlink=True)
 
-                                    specular_texture_node.image = bpy.data.images.load(new_specular_image_path)
+                                    if not specular_texture_node.image:
+                                        if specular_image_name in bpy.data.images:
+                                            specular_texture_node.image = bpy.data.images[specular_image_name]
+                                        else:
+                                            specular_texture_node.image = bpy.data.images.load(new_specular_image_path)
+                                    
+                                    for user in Users:
+                                        if specular_image_name in bpy.data.images:
+                                            user.image = bpy.data.images[specular_image_name]
+                                        else:
+                                            user.image = bpy.data.images.load(new_specular_image_path)
                                     
                                     specular_texture_node.image.colorspace_settings.name = "Non-Color"
 
@@ -797,14 +818,6 @@ def apply_resources():
 
                                         material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-                                    if STexture_Animator != None:
-                                        for node in STexture_Animator.node_tree.nodes:
-                                            if node.type == "TEX_IMAGE":
-                                                if specular_image_name in bpy.data.images:
-                                                    node.image = bpy.data.images[specular_image_name]
-                                                else:
-                                                    node.image = bpy.data.images.load(new_specular_image_path)
-
                                     animate_texture(specular_texture_node, specular_image_name, new_specular_image_path, STexture_Animator, Current_node_tree)
                                     break
                         else:
@@ -838,25 +851,28 @@ def apply_resources():
                                             emission_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 850)
 
                                         emission_texture_node.interpolation = "Closest"
-                                    
+
+                                    if not emission_texture_node.image:
+                                        if emission_image_name in bpy.data.images:
+                                            emission_texture_node.image = bpy.data.images[emission_image_name]
+                                        else:
+                                            emission_texture_node.image = bpy.data.images.load(new_emission_image_path)
+
+                                    Users = find_texture_users(bpy.data.images[emission_image_name])
                                     if emission_image_name in bpy.data.images:
                                         bpy.data.images.remove(bpy.data.images[emission_image_name], do_unlink=True)
-
-                                    emission_texture_node.image = bpy.data.images.load(new_emission_image_path)
+                                    
+                                    for user in Users:
+                                        if emission_image_name in bpy.data.images:
+                                            user.image = bpy.data.images[emission_image_name]
+                                        else:
+                                            user.image = bpy.data.images.load(new_emission_image_path)
 
                                     if blender_version("4.x.x"):
                                         material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
                                     else:
                                         material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
                                     material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
-
-                                    if ETexture_Animator != None:
-                                        for node in ETexture_Animator.node_tree.nodes:
-                                            if node.type == "TEX_IMAGE":
-                                                if emission_image_name in bpy.data.images:
-                                                    node.image = bpy.data.images[emission_image_name]
-                                                else:
-                                                    node.image = bpy.data.images.load(new_emission_image_path)
 
                                     animate_texture(emission_texture_node, emission_image_name, new_emission_image_path, ETexture_Animator, Current_node_tree)
                                     break
@@ -903,6 +919,8 @@ def setproceduralpbr():
                     PBSDF = None
                     bump_node = None
                     PNormals = None
+                    ITexture_Animator = None
+                    Texture_Animator = None
                     image_difference_X = 1
                     image_difference_Y = 1
                     PNormals_exists = False
@@ -922,6 +940,13 @@ def setproceduralpbr():
                             if "PNormals" in node.node_tree.name:
                                 PNormals = node
                                 Current_node_tree = node.node_tree
+
+                            if "Texture Animator" in node.node_tree.name:
+                                Texture_Animator = node
+                            
+                            if "Animated;" in node.node_tree.name:
+                                if not re.search(r'_n$', node.node_tree.name.replace(".png", "")) and not re.search(r'_e$', node.node_tree.name.replace(".png", "")) and not re.search(r'_s$', node.node_tree.name.replace(".png", "")):
+                                    ITexture_Animator = node
 
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
@@ -1005,7 +1030,13 @@ def setproceduralpbr():
                                     PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_difference_X
                                     PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_difference_Y
 
-                                    material.node_tree.links.new(PNormals.outputs['Normal'], PBSDF.inputs['Normal'])
+                                    material.node_tree.links.new(PNormals.outputs['Normal Map'], PBSDF.inputs['Normal'])
+
+                                    if ITexture_Animator != None: 
+                                        material.node_tree.links.new(ITexture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
+                                    
+                                    if Texture_Animator != None: 
+                                        material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
                             else:
                                 
                                 if bump_node is not None:
@@ -1149,8 +1180,6 @@ def setproceduralpbr():
                 
         else:
             Absolute_Solver("m003", selected_object)
-            
-        selected_object.data.update()
 #
         
 # TODO:

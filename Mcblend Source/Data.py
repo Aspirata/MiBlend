@@ -22,6 +22,11 @@ Big_Button_Scale = 1.4
 
 Absolute_Solver_Errors = {
 
+    "000": {
+        "Error Name": "Absolute Solver Error",
+        "Description": "Absolute Solver Can't Display This Error - {Data}, Please Report To Aspirata",
+    },
+
     "001": {
         "Error Name": "Unknown",
         "Description": "An Unknown Error",
@@ -253,8 +258,6 @@ Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 Alpha_Blend_Materials = ["water"]
 
 SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet"]
-
-Biome_Fix_Materials = ["leaves", "grass", "water"]
 
 Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 

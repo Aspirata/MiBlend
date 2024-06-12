@@ -15,17 +15,20 @@ def InitOnStart():
 
 def Absolute_Solver(error_code="None", data=None, err=None, error_name=None, description=None):
 
-    def GetASText(error_code, text, data=None):
-        if data != None:
-            return Absolute_Solver_Errors[error_code][text].format(Data=data)
-        else:
-            return Absolute_Solver_Errors[error_code][text]
+    try:
+        def GetASText(error_code, text, data=None):
+            if data != None:
+                return Absolute_Solver_Errors[error_code][text].format(Data=data)
+            else:
+                return Absolute_Solver_Errors[error_code][text]
 
-    if data != None:
-        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, 'Error Name')), Description=(GetASText(error_code, 'Description')) if description == None else description.format(Data=data), Tech_Things = str(err) if err != None else "None")
-    else:
-        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, 'Error Name')), Description=(GetASText(error_code, 'Description')) if description == None else description, Tech_Things = str(err) if err != None else "None")
-        
+        if data != None:
+            bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, "Error Name")), Description=(GetASText(error_code, 'Description')) if description == None else description.format(Data=data), Tech_Things = (str(err) if err != None else "None"))
+        else:
+            bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = (error_name if error_code != None else GetASText(error_code, "Error Name")), Description=(GetASText(error_code, 'Description')) if description == None else description, Tech_Things = (str(err) if err != None else "None"))
+    except:
+        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description=GetASText("000", 'Description', error_code if error_code != None else error_name), Tech_Things = str(traceback.format_exc()))
+
 def checkconfig(name):
     if "const" in main_directory:
         return Preferences_List["Dev"][name]
