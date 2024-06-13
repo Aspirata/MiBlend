@@ -254,6 +254,7 @@ Emissive_Materials = {
 }
 
 # Materials Categories
+
 Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 
 Alpha_Blend_Materials = ["water"]
@@ -264,6 +265,7 @@ Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern"
 
 Reflective = ["glass", "ender", "amethyst", "water", "emerald"]
 
+#
 
 Upgrade_Materials_Array = {
     

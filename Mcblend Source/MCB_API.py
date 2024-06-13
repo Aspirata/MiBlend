@@ -45,6 +45,7 @@ def GetConnectedSocketFrom(output, tag, material=None):
                     to_node = link.to_node
                     to_sockets.append(link.to_socket)
         return to_sockets
+    
     else:
         output_socket = tag.outputs[output]
         for link in output_socket.links:
