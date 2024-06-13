@@ -107,7 +107,9 @@ Render_Settings = {
     },
 
     "Aspirata Eevee":{
-        "eevee.eevee.use_shadow_jitter_viewport": True,
+        "eevee.taa_samples": 32,
+        "eevee.taa_render_samples": 32,
+        "eevee.use_shadow_jitter_viewport": True,
         "eevee.shadow_ray_count": 2,
         "eevee.shadow_step_count": 16,
         "eevee.use_volumetric_shadows": True,
@@ -118,7 +120,6 @@ Render_Settings = {
         "eevee.use_overscan": True,
         "eevee.overscan_size": 10.0,
     }
-
 }
 
 Emissive_Materials = {

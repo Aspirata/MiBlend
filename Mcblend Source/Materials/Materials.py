@@ -446,27 +446,29 @@ def apply_resources():
         return Texture_users
 
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
+        Users = None
         # if not r_props.ignore_dublicates then get_node_suffix_number() and replace with the original texture, but when replacing add the index
-        Users = find_texture_users(bpy.data.images[image_texture])
-        
+
         if image_texture in bpy.data.images:
+            Users = find_texture_users(bpy.data.images[image_texture])
             bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
         
         if texture_node != None:
             if not texture_node.image:
-                if texture_node in bpy.data.images:
+                if image_texture in bpy.data.images:
                     texture_node.image = bpy.data.images[image_texture]
                 else:
                     texture_node.image = bpy.data.images.load(new_image_path)
 
-        for user in Users:
-            if image_texture in bpy.data.images:
-                user.image = bpy.data.images[image_texture]
-            else:
-                user.image = bpy.data.images.load(new_image_path)
+        if Users != None:
+            for user in Users:
+                if image_texture in bpy.data.images:
+                    user.image = bpy.data.images[image_texture]
+                else:
+                    user.image = bpy.data.images.load(new_image_path)
 
-            if colorspace != None:
-                user.image.colorspace_settings.name = colorspace
+                if colorspace != None:
+                    user.image.colorspace_settings.name = colorspace
 
     def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         TAnimator_exists = False
