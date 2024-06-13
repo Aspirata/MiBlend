@@ -17,6 +17,7 @@ bl_info = {
     "version": (0, 5, 0),
     "blender": (3, 6, 0),
     "location": "View3D > Addons Tab",
+    "warning": "This is Experimental Branch Build",
     "description": "A useful tool for creating minecraft content in blender",
 }
 
@@ -198,36 +199,45 @@ class WorldAndMaterialsPanel(Panel):
         sbox = box.box()
         row = sbox.row()
         row.label(text="Resource Packs", icon="FILE_FOLDER")
-
-        try:
-            tbox = sbox.box()
-            resource_packs = get_resource_packs()
-            for pack, pack_info in resource_packs.items():
-                row = tbox.row()
-
-                icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
-                toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
-                toggle_op.pack_name = pack
-
-                row.label(text=pack)
-                
-                move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
-                move_up.pack_name = pack
-
-                move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
-                move_down.pack_name = pack
-
-                remove = row.operator("resource_pack.remove", text="", icon='X')
-                remove.pack_name = pack
         
-            row = tbox.row()
-            row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
+        tbox = sbox.box()
+        row = tbox.row()
+        row.label(text="Resource Packs List", icon="OUTLINER")
+        row.prop(scene.resource_properties, "resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.resource_packs_list else "TRIA_LEFT"), icon_only=True)
+        if scene.resource_properties.resource_packs_list:
+            try:
+                resource_packs = get_resource_packs()
 
-            row = tbox.row()
-            row.operator("resource_pack.add", icon='ADD')
-        except:
-            row = tbox.row()
-            row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
+                for pack, pack_info in resource_packs.items():
+                    row = tbox.row()
+
+                    icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
+                    toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
+                    toggle_op.pack_name = pack
+
+                    row.label(text=pack)
+                    
+                    move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
+                    move_up.pack_name = pack
+
+                    move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
+                    move_down.pack_name = pack
+
+                    remove = row.operator("resource_pack.remove", text="", icon='X')
+                    remove.pack_name = pack
+            
+                row = tbox.row()
+                row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
+
+                row = tbox.row()
+                row.operator("resource_pack.add", icon='ADD')
+            except:
+                row = tbox.row()
+                row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
+        
+        tbox = sbox.box()
+        row = tbox.row()
+        row.prop(scene.resource_properties, "ignore_dublicates")
 
         tbox = sbox.box()
         row = tbox.row()

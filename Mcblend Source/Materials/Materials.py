@@ -190,7 +190,6 @@ def fix_world():
                         
                         if WProperties.lazy_biome_fix:
                             material_parts = image_texture_node.image.name.lower().replace("-", "_").split("_")
-                            print(material_parts)
                         
                             if ("grass" in material_parts or "water" in material_parts or "leaves" in material_parts) and "side" not in material_parts:
                                 if lbcf_node == None:
@@ -446,6 +445,29 @@ def apply_resources():
         
         return Texture_users
 
+    def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
+        # if not r_props.ignore_dublicates then get_node_suffix_number() and replace with the original texture, but when replacing add the index
+        Users = find_texture_users(bpy.data.images[image_texture])
+        
+        if image_texture in bpy.data.images:
+            bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
+        
+        if texture_node != None:
+            if not texture_node.image:
+                if texture_node in bpy.data.images:
+                    texture_node.image = bpy.data.images[image_texture]
+                else:
+                    texture_node.image = bpy.data.images.load(new_image_path)
+
+        for user in Users:
+            if image_texture in bpy.data.images:
+                user.image = bpy.data.images[image_texture]
+            else:
+                user.image = bpy.data.images.load(new_image_path)
+
+            if colorspace != None:
+                user.image.colorspace_settings.name = colorspace
+
     def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         TAnimator_exists = False
         Texture_Animator = None
@@ -637,29 +659,25 @@ def apply_resources():
                     # Texture Update
                     if image_texture != None:
                         try:
-                            if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
-                                image_texture_node.location.x = PBSDF.location.x - 600
+                            try:
+                                if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
+                                    image_texture_node.location.x = PBSDF.location.x - 600
+                            except:
+                                if abs(ITexture_Animator.location.x - PBSDF.location.x) < 600:
+                                    ITexture_Animator.location.x = PBSDF.location.x - 600
                         except:
-                            if abs(ITexture_Animator.location.x - PBSDF.location.x) < 600:
-                                ITexture_Animator.location.x = PBSDF.location.x - 600
+                            pass
 
                         for pack, pack_info in resource_packs.items():
                             path, enabled = pack_info["path"], pack_info["enabled"]
                             if not enabled:
                                 continue
-
+                            
                             new_image_path = find_image(image_texture, path)
+
                             if new_image_path != None and os.path.isfile(new_image_path):
 
-                                Users = find_texture_users(bpy.data.images[image_texture])
-                                if image_texture in bpy.data.images:
-                                    bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
-
-                                for user in Users:
-                                    if image_texture in bpy.data.images:
-                                        user.image = bpy.data.images[image_texture]
-                                    else:
-                                        user.image = bpy.data.images.load(new_image_path)
+                                update_texture(new_image_path, image_texture)
                                 
                                 image_path = path
                                     
@@ -703,21 +721,7 @@ def apply_resources():
 
                                         normal_texture_node.interpolation = "Closest"
                                     
-                                    Users = find_texture_users(bpy.data.images[normal_image_name])
-                                    if normal_image_name in bpy.data.images:
-                                        bpy.data.images.remove(bpy.data.images[normal_image_name], do_unlink=True)
-                                    
-                                    if not normal_texture_node.image:
-                                        if normal_image_name in bpy.data.images:
-                                            normal_texture_node.image = bpy.data.images[normal_image_name]
-                                        else:
-                                            normal_texture_node.image = bpy.data.images.load(new_normal_image_path)
-                                    
-                                    for user in Users:
-                                        if normal_image_name in bpy.data.images:
-                                            user.image = bpy.data.images[normal_image_name]
-                                        else:
-                                            user.image = bpy.data.images.load(new_normal_image_path)
+                                    update_texture(new_normal_image_path, normal_image_name, normal_texture_node)
                                     
                                     normal_texture_node.image.colorspace_settings.name = "Non-Color"
 
@@ -773,26 +777,7 @@ def apply_resources():
 
                                         specular_texture_node.interpolation = "Closest"
 
-                                    Users = find_texture_users(bpy.data.images[specular_image_name])
-                                    if specular_image_name in bpy.data.images:
-                                        bpy.data.images.remove(bpy.data.images[specular_image_name], do_unlink=True)
-
-                                    if specular_texture_node != None:
-                                        if not specular_texture_node.image:
-                                            if specular_image_name in bpy.data.images:
-                                                specular_texture_node.image = bpy.data.images[specular_image_name]
-                                            else:
-                                                specular_texture_node.image = bpy.data.images.load(new_specular_image_path)
-                                        
-                                        specular_texture_node.image.colorspace_settings.name = "Non-Color"
-                                        
-                                    for user in Users:
-                                        if specular_image_name in bpy.data.images:
-                                            user.image = bpy.data.images[specular_image_name]
-                                        else:
-                                            user.image = bpy.data.images.load(new_specular_image_path)
-                                        
-                                        user.image.colorspace_settings.name = "Non-Color"
+                                    update_texture(new_specular_image_path, specular_image_name, specular_texture_node, "Non-Color")
 
                                     if LabPBR_s == None:
                                         if "LabPBR Specular" not in bpy.data.node_groups:
@@ -917,21 +902,7 @@ def apply_resources():
 
                                         emission_texture_node.interpolation = "Closest"
 
-                                    if not emission_texture_node.image:
-                                        if emission_image_name in bpy.data.images:
-                                            emission_texture_node.image = bpy.data.images[emission_image_name]
-                                        else:
-                                            emission_texture_node.image = bpy.data.images.load(new_emission_image_path)
-
-                                    Users = find_texture_users(bpy.data.images[emission_image_name])
-                                    if emission_image_name in bpy.data.images:
-                                        bpy.data.images.remove(bpy.data.images[emission_image_name], do_unlink=True)
-                                    
-                                    for user in Users:
-                                        if emission_image_name in bpy.data.images:
-                                            user.image = bpy.data.images[emission_image_name]
-                                        else:
-                                            user.image = bpy.data.images.load(new_emission_image_path)
+                                    update_texture(new_emission_image_path, emission_image_name, emission_texture_node)
 
                                     if blender_version("4.x.x"):
                                         material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
@@ -1030,10 +1001,7 @@ def setproceduralpbr():
                                         bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
                                         material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), bump_node.inputs['Height'])
                                         material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                                        bump_node.inputs[0].default_value = PProperties.bump_strength
-
-                                    if bump_node is not None:
-                                        bump_node.inputs[0].default_value = PProperties.bump_strength
+                                    bump_node.inputs[0].default_value = PProperties.bump_strength
                                 else:
                                     if bump_node is not None:
                                         material.node_tree.nodes.remove(bump_node)

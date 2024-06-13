@@ -40,6 +40,17 @@ class WorldProperties(PropertyGroup):
 
 
 class ResourcePackProperties(PropertyGroup):
+    
+    resource_packs_list: BoolProperty(
+        name="Resource Packs List",
+        default=True,
+    )
+
+    ignore_dublicates: BoolProperty(
+        name="Ignore Dublicates",
+        default=True,
+    )
+
     use_additional_textures: BoolProperty(
         name="Use Additional Textures",
         default=True,
