@@ -1192,10 +1192,7 @@ def setproceduralpbr():
                                     for material_name, material_properties in Emissive_Materials.items():
                                         if material_name == material_part:
                                             for property_name, property_value in material_properties.items():
-                                                if property_name == "Divider":
-                                                    node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
-                                                else:
-                                                    node_group.inputs[property_name].default_value = property_value
+                                                node_group.inputs[property_name].default_value = property_value
 
                                             if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
                                                 node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
