@@ -662,11 +662,11 @@ def apply_resources():
                     if image_texture != None:
                         try:
                             try:
-                                if abs(image_texture_node.location.x - PBSDF.location.x) < 600:
-                                    image_texture_node.location.x = PBSDF.location.x - 600
+                                if abs(image_texture_node.location.x - PBSDF.location.x) < 500:
+                                    image_texture_node.location.x = PBSDF.location.x - 500
                             except:
-                                if abs(ITexture_Animator.location.x - PBSDF.location.x) < 600:
-                                    ITexture_Animator.location.x = PBSDF.location.x - 600
+                                if abs(ITexture_Animator.location.x - PBSDF.location.x) < 500:
+                                    ITexture_Animator.location.x = PBSDF.location.x - 500
                         except:
                             pass
 
