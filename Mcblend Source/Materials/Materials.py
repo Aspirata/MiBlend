@@ -451,6 +451,18 @@ def apply_resources():
 
         if image_texture in bpy.data.images:
             Users = find_texture_users(bpy.data.images[image_texture])
+            if not r_props.ignore_dublicates:
+                simillar_textures = []
+                for texture in bpy.data.images:
+                    if image_texture in texture.name:
+                        simillar_textures.append(texture.name)
+
+                for simillar_texture in simillar_textures:
+                    parts = simillar_texture.split(".")
+                    if len(parts) > 1 and parts[-1].isdigit() and simillar_texture.replace("." + str(parts[-1]), "") == image_texture:
+                        Users.extend(find_texture_users(bpy.data.images[simillar_texture]))
+                        bpy.data.images.remove(bpy.data.images[simillar_texture])
+
             bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
         
         if texture_node != None:
