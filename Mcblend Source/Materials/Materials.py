@@ -613,6 +613,7 @@ def apply_resources():
                 if material is not None:
                     PBSDF = None
                     image_texture_node = None
+                    image_path = None
                     normal_texture_node = None
                     normal_map_node = None
                     specular_texture_node = None

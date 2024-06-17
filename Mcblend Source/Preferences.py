@@ -16,6 +16,14 @@ class McblendPreferences(AddonPreferences):
         default=checkconfig("enable_warnings")
     )
 
+    as_mode: EnumProperty(
+        items=[('None', 'None', 'No Errors will be Displayed'),
+            ('Smart', 'Smart', 'Only Critical Errors will be Displayed'),
+            ('Full', 'Full', 'All Errors will be Displayed')],
+        name="as_mode",
+        default='Smart'
+    )
+
     current_language: EnumProperty(
         items=[(name, name, "") for name, data in Availible_Translations.items()],
         description="",
@@ -32,4 +40,8 @@ class McblendPreferences(AddonPreferences):
 
         row = box.row()
         row.prop(self, "enable_warnings")
-    
+
+        row = box.row()
+        row.label(text="Absolute Solver Mode:")
+        row = box.row()
+        row.prop(self, "as_mode", text='as_mode', expand=True)

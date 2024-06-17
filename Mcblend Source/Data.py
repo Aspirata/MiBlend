@@ -22,6 +22,12 @@ Big_Button_Scale = 1.4
 
 Absolute_Solver_Errors = {
 
+    "LOL": {
+        "Error Name": "",
+        "Description": "",
+        "Mode": "Full"
+    },
+
     "000": {
         "Error Name": "Absolute Solver Error",
         "Description": "Absolute Solver Can't Display This Error - {Data}, Please Report To Aspirata",
@@ -35,11 +41,13 @@ Absolute_Solver_Errors = {
     "m002": {
         "Error Name": "Empty Material Slot",
         "Description": "Material doesn't exist on slot {Data}",
+        "Mode": "Full"
     },
 
     "m003": {
         "Error Name": "Object Has No Materials",
         "Description": 'Object "{Data.name}" has no materials',
+        "Mode": "Full"
     },
 
     "004": {
