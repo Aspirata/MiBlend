@@ -676,6 +676,16 @@ class WorldAndMaterialsPanel(Panel):
                 else:
                     row = tbox.row()
                     row.prop(scene.ppbr_properties, "sss_weight", text="Subsurface", slider=True)
+            
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "use_translucency")
+            row.prop(scene.ppbr_properties, "translucency_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.translucency_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.ppbr_properties.translucency_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Translucent Materials Settings:", icon="MODIFIER")
+                row = tbox.row()
+                row.prop(scene.ppbr_properties, "translucency", slider=True)
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "make_metal")

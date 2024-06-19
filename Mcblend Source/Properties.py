@@ -287,6 +287,26 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    use_translucency: BoolProperty(
+        name="Use Translucency",
+        default=True,
+        description=""
+    )
+
+    translucency_settings: BoolProperty(
+        name="Metal Settings",
+        default=False,
+        description=""
+    )
+
+    translucency: FloatProperty(
+        name="Translucency",
+        default=0.4,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
     make_metal: BoolProperty(
         name="Make Metal",
         default=True,

@@ -22,9 +22,9 @@ Big_Button_Scale = 1.4
 
 Absolute_Solver_Errors = {
 
-    "LOL": {
-        "Error Name": "",
-        "Description": "",
+    "LoL": {
+        "Error Name": "Zero Settings",
+        "Description": "You disabled all {Data} settings, so it did nothing LoL",
         "Mode": "Full"
     },
 
@@ -268,6 +268,8 @@ Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 Alpha_Blend_Materials = ["water"]
 
 SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet"]
+
+Translucent_Materials = ["leaves"]
 
 Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 

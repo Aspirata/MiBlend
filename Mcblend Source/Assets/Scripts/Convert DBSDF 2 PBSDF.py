@@ -1,3 +1,24 @@
+import bpy
+def GetConnectedSocketTo(input, tag, material=None):
+    if material is not None:
+        for node in material.node_tree.nodes:
+            if node.type == tag:
+                input_socket = node.inputs[input]
+                for link in input_socket.links:
+                    from_node = link.from_node
+                    for output in from_node.outputs:
+                        for link in output.links:
+                            if link.to_socket.name == input_socket.name:
+                                return link.from_socket
+    else:
+        input_socket = tag.inputs[input]
+        for link in input_socket.links:
+            from_node = link.from_node
+            for output in from_node.outputs:
+                for link in output.links:
+                    if link.to_socket.name == input_socket.name:
+                        return link.from_socket
+
 for selected_object in bpy.context.selected_objects:
     slot = 0
     if selected_object.material_slots:
@@ -46,7 +67,7 @@ for selected_object in bpy.context.selected_objects:
                         material.node_tree.nodes.remove(DBSDF)
 
                     material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
-            else:
-                Absolute_Solver("m002", slot)
-    else:
-        Absolute_Solver("m003", selected_object)
+            #else:
+                #Absolute_Solver("m002", slot)
+    #else:
+        #Absolute_Solver("m003", selected_object)

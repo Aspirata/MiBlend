@@ -21,7 +21,7 @@ class McblendPreferences(AddonPreferences):
             ('Smart', 'Smart', 'Only Critical Errors will be Displayed'),
             ('Full', 'Full', 'All Errors will be Displayed')],
         name="as_mode",
-        default='Smart'
+        default='Full'
     )
 
     current_language: EnumProperty(

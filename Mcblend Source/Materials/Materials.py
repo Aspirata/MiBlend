@@ -1080,11 +1080,11 @@ def setproceduralpbr():
 
                                     material.node_tree.links.new(PNormals.outputs['Normal Map'], PBSDF.inputs['Normal'])
 
-                                    if ITexture_Animator != None: 
-                                        material.node_tree.links.new(ITexture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
+                                    #if ITexture_Animator != None: 
+                                        #material.node_tree.links.new(ITexture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
                                     
-                                    if Texture_Animator != None: 
-                                        material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
+                                    #if Texture_Animator != None: 
+                                        #material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
                             else:
                                 
                                 if bump_node is not None:
@@ -1136,6 +1136,10 @@ def setproceduralpbr():
                             else:
                                 PBSDF.inputs["Subsurface"].default_value = 0
 
+                        # Use Translucency
+                        # Fix for 3.6
+                        if PProperties.use_translucency == True and MaterialIn(Translucent_Materials, material):
+                            PBSDF.inputs["Transmission Weight"].default_value = PProperties.translucency
 
                         # Make Metals                            
                         if PProperties.make_metal == True and MaterialIn(Metal, material):
