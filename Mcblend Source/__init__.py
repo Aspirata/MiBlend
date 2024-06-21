@@ -28,7 +28,7 @@ def load_post_handler(dummy):
 
 class AbsoluteSolver(Operator):
     bl_label = "Absolute Solver"
-    bl_idname = "wm.absolute_solver"
+    bl_idname = "special.absolute_solver"
     bl_options = {'REGISTER', 'UNDO'}
 
     Error_Code: bpy.props.StringProperty()
@@ -67,7 +67,7 @@ class AbsoluteSolver(Operator):
             print(f"\033[33mAbsolute Solver Error Report: \033[31m\n{self.Tech_Things}\033[0m")
             sbox = box.box()
             row = sbox.row()
-            row.operator("object.open_console")
+            row.operator("special.open_console")
     
     def execute(self, context):
         return {'FINISHED'}
@@ -76,7 +76,7 @@ class AbsoluteSolver(Operator):
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
-    bl_idname = "wm.recreate_env"
+    bl_idname = "special.recreate_env"
     bl_options = {'REGISTER', 'UNDO'}
     
     reset_settings: BoolProperty(
@@ -137,7 +137,7 @@ class RecreateEnvironment(Operator):
 
 class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"
-    bl_idname = "OBJECT_PT_fix_materials"
+    bl_idname = "world.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
@@ -170,39 +170,27 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
-
-        # Fix World
-
-        sbox = box.box()
-        row = sbox.row()
-        row.label(text="Fix World", icon="WORLD_DATA")
-        row = sbox.row()
+        row = box.row()
         row.prop(WProperties, "backface_culling")
 
-        row = sbox.row()
+        row = box.row()
         row.prop(WProperties, "delete_useless_textures")
 
-        row = sbox.row()
+        row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
-        row = sbox.row()
-        row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
-
-        row = sbox.row()
-        row.prop(WProperties, "emissiondetection", text='emissiondetection', expand=True)
-
-        row = sbox.row()
+        row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.fix_world", text="Fix World")
+        row.operator("world.fix_world", text="Fix World")
 
         # Resource Packs
 
-        sbox = box.box()
-        row = sbox.row()
+        box = layout.box()
+        row = box.row()
         row.label(text="Resource Packs", icon="FILE_FOLDER")
         
-        tbox = sbox.box()
-        row = tbox.row()
+        sbox = box.box()
+        row = sbox.row()
         row.label(text="Resource Packs List", icon="OUTLINER")
         row.prop(scene.resource_properties, "resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.resource_properties.resource_packs_list:
@@ -210,7 +198,7 @@ class WorldAndMaterialsPanel(Panel):
                 resource_packs = get_resource_packs()
 
                 for pack, pack_info in resource_packs.items():
-                    row = tbox.row()
+                    row = sbox.row()
 
                     icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
                     toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
@@ -227,72 +215,78 @@ class WorldAndMaterialsPanel(Panel):
                     remove = row.operator("resource_pack.remove", text="", icon='X')
                     remove.pack_name = pack
             
-                row = tbox.row()
+                row = sbox.row()
                 row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
 
-                row = tbox.row()
+                row = sbox.row()
                 row.operator("resource_pack.add", icon='ADD')
             except:
-                row = tbox.row()
+                row = sbox.row()
                 row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
         
-        tbox = sbox.box()
-        row = tbox.row()
-        row.prop(scene.resource_properties, "ignore_dublicates")
+        row = box.row()
+        row.prop(scene.resource_properties, "resource_packs_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.resource_packs_settings else "TRIA_RIGHT"))
+        if scene.resource_properties.resource_packs_settings:
 
-        tbox = sbox.box()
-        row = tbox.row()
-        row.prop(scene.resource_properties, "use_additional_textures")
-        row.prop(scene.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.resource_properties.textures_settings:
-
+            sbox = box.box()
+            tbox = sbox.box()
             row = tbox.row()
-            row.enabled = scene.resource_properties.use_additional_textures
-            row.prop(scene.resource_properties, "use_n")
+            row.prop(scene.resource_properties, "ignore_dublicates")
 
+            tbox = sbox.box()
             row = tbox.row()
-            row.enabled = scene.resource_properties.use_additional_textures
-            row.prop(scene.resource_properties, "use_s")
-            row.prop(scene.resource_properties, "s_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.s_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.resource_properties.s_settings:
-                row = tbox.row()
-                row.enabled = scene.resource_properties.use_s
-                row.prop(scene.resource_properties, "roughness")
+            row.prop(scene.resource_properties, "use_additional_textures")
+            row.prop(scene.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.resource_properties.textures_settings:
 
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_s
-                row.prop(scene.resource_properties, "metallic")
+                row.enabled = scene.resource_properties.use_additional_textures
+                row.prop(scene.resource_properties, "use_n")
 
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_s
-                row.prop(scene.resource_properties, "sss")
+                row.enabled = scene.resource_properties.use_additional_textures
+                row.prop(scene.resource_properties, "use_s")
+                row.prop(scene.resource_properties, "s_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.s_settings else "TRIA_LEFT"), icon_only=True)
+                if scene.resource_properties.s_settings:
+                    fbox = tbox.box()
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_s
+                    row.prop(scene.resource_properties, "roughness")
+
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_s
+                    row.prop(scene.resource_properties, "metallic")
+
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_s
+                    row.prop(scene.resource_properties, "sss")
+
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_s
+                    row.prop(scene.resource_properties, "specular")
+
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_s
+                    row.prop(scene.resource_properties, "emission")
 
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_s
-                row.prop(scene.resource_properties, "specular")
+                row.enabled = scene.resource_properties.use_additional_textures
+                row.prop(scene.resource_properties, "use_e")
+            
+            tbox = sbox.box()
+            row = tbox.row()
+            row.prop(scene.resource_properties, "animate_textures")
+            row.prop(scene.resource_properties, "animate_textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.animate_textures_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.resource_properties.animate_textures_settings:
+                row = tbox.row()
+                row.enabled = scene.resource_properties.animate_textures
+                row.prop(scene.resource_properties, "interpolate")
 
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_s
-                row.prop(scene.resource_properties, "emission")
+                row.enabled = scene.resource_properties.animate_textures
+                row.prop(scene.resource_properties, "only_fix_uv")
 
-            row = tbox.row()
-            row.enabled = scene.resource_properties.use_additional_textures
-            row.prop(scene.resource_properties, "use_e")
-        
-        tbox = sbox.box()
-        row = tbox.row()
-        row.prop(scene.resource_properties, "animate_textures")
-        row.prop(scene.resource_properties, "animate_textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.animate_textures_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.resource_properties.animate_textures_settings:
-            row = tbox.row()
-            row.enabled = scene.resource_properties.animate_textures
-            row.prop(scene.resource_properties, "interpolate")
-
-            row = tbox.row()
-            row.enabled = scene.resource_properties.animate_textures
-            row.prop(scene.resource_properties, "only_fix_uv")
-
-        row = sbox.row()
+        row = box.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')
 
         # Sky
@@ -554,12 +548,12 @@ class WorldAndMaterialsPanel(Panel):
         if clouds_exists == True or sky_exists == True:
             row = box.row()
             row.scale_y = Big_Button_Scale
-            row.operator("object.create_env", text="Recreate Environment", icon="FILE_REFRESH")
+            row.operator("env.create_env", text="Recreate Environment", icon="FILE_REFRESH")
 
         if clouds_exists == False and sky_exists == False:
             row = box.row()
             row.scale_y = Big_Button_Scale
-            row.operator("object.create_env")
+            row.operator("env.create_env")
         
         # Materials
             
@@ -568,13 +562,13 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Materials", icon="MATERIAL_DATA")
 
         row = box.row()
-        row.operator("object.upgrade_materials", text="Upgrade Materials")
+        row.operator("materials.upgrade_materials", text="Upgrade Materials")
 
         row = box.row()
-        row.operator("object.fix_materials", text="Fix Materials")
+        row.operator("materials.fix_materials", text="Fix Materials")
 
         row = box.row()
-        row.operator("wm.swap_textures", icon="UV_SYNC_SELECT")
+        row.operator("materials.swap_textures", icon="UV_SYNC_SELECT")
         
         # PPBR
 
@@ -584,6 +578,7 @@ class WorldAndMaterialsPanel(Panel):
 
         row = box.row()
         row.prop(scene.ppbr_properties, "use_normals")
+        # Сделать здесь ревёрс
         row.prop(scene.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
 
         if scene.ppbr_properties.normals_settings:
@@ -642,15 +637,21 @@ class WorldAndMaterialsPanel(Panel):
         if scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
-            row.prop(context.scene.ppbr_properties, "change_bsdf", text="Change BSDF Settings")
+            row.prop(context.scene.ppbr_properties, "change_bsdf")
+            # Сделать здесь ревёрс
             row.prop(scene.ppbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
             if  scene.ppbr_properties.change_bsdf_settings:
                 tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Global PBSDF Settings:", icon="MODIFIER")
                 row = tbox.row()
                 # Добавить все штуки из PBSDF
                 row.prop(scene.ppbr_properties, "specular", slider=True, text="Specular")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+                row = tbox.row()
+                row.prop(context.scene.ppbr_properties, "revert_bsdf")
+                row.enabled = not context.scene.ppbr_properties.change_bsdf
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "use_sss")
@@ -677,6 +678,10 @@ class WorldAndMaterialsPanel(Panel):
                 else:
                     row = tbox.row()
                     row.prop(scene.ppbr_properties, "sss_weight", text="Subsurface", slider=True)
+                
+                row = tbox.row()
+                row.prop(context.scene.ppbr_properties, "revert_sss")
+                row.enabled = not context.scene.ppbr_properties.use_sss
             
             row = sbox.row()
             row.prop(scene.ppbr_properties, "use_translucency")
@@ -687,6 +692,10 @@ class WorldAndMaterialsPanel(Panel):
                 row.label(text="Translucent Materials Settings:", icon="MODIFIER")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "translucency", slider=True)
+
+                row = tbox.row()
+                row.prop(context.scene.ppbr_properties, "revert_translucency")
+                row.enabled = not context.scene.ppbr_properties.use_translucency
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "make_metal")
@@ -700,6 +709,10 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "metal_roughness", slider=True)
 
+                row = tbox.row()
+                row.prop(context.scene.ppbr_properties, "revert_metal")
+                row.enabled = not context.scene.ppbr_properties.make_metal
+
             row = sbox.row()
             row.prop(scene.ppbr_properties, "make_reflections")
             row.prop(scene.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
@@ -709,13 +722,17 @@ class WorldAndMaterialsPanel(Panel):
                 row.label(text="Reflective Materials Settings:", icon="MODIFIER")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
+            
+                row = tbox.row()
+                row.prop(context.scene.ppbr_properties, "revert_reflections")
+                row.enabled = not context.scene.ppbr_properties.make_reflections
                 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.setproceduralpbr", text="Set Procedural PBR")
+        row.operator("ppbr.setproceduralpbr", text="Set Procedural PBR")
 
 class FixWorldOperator(Operator):
-    bl_idname = "object.fix_world"
+    bl_idname = "world.fix_world"
     bl_label = "Fix World"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -845,7 +862,7 @@ class ApplyResourcePack(Operator):
         return {'FINISHED'}
 
 class CreateEnvOperator(Operator):
-    bl_idname = "object.create_env"
+    bl_idname = "env.create_env"
     bl_label = "Create Environment"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -854,7 +871,7 @@ class CreateEnvOperator(Operator):
         return {'FINISHED'}
         
 class UpgradeMaterialsOperator(Operator):
-    bl_idname = "object.upgrade_materials"
+    bl_idname = "materials.upgrade_materials"
     bl_label = "Upgrade Materials"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -863,7 +880,7 @@ class UpgradeMaterialsOperator(Operator):
         return {'FINISHED'}
 
 class FixMaterialsOperator(Operator):
-    bl_idname = "object.fix_materials"
+    bl_idname = "materials.fix_materials"
     bl_label = "Fix Materials"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -872,7 +889,7 @@ class FixMaterialsOperator(Operator):
         return {'FINISHED'}
     
 class SwapTexturesOperator(Operator):
-    bl_idname = "wm.swap_textures"
+    bl_idname = "materials.swap_textures"
     bl_label = "Swap Textures"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -880,11 +897,9 @@ class SwapTexturesOperator(Operator):
 
     def execute(self, context):
         if os.path.isdir(self.filepath) or self.filepath.endswith('.zip'):
-            #context.scene.materials_properties.folder_path = os.path.abspath(self.filepath)
             Materials.swap_textures(os.path.abspath(self.filepath))
             self.report({'INFO'}, f"Selected Folder: {os.path.abspath(self.filepath)}")
         else:
-            #context.scene.materials_properties.folder_path = os.path.dirname(self.filepath)
             Materials.swap_textures(os.path.dirname(self.filepath))
             self.report({'INFO'}, f"Selected Folder: {os.path.dirname(self.filepath)}")
         return {'FINISHED'}
@@ -894,7 +909,7 @@ class SwapTexturesOperator(Operator):
         return {'RUNNING_MODAL'}
 
 class OpenConsoleOperator(Operator):
-    bl_idname = "object.open_console"
+    bl_idname = "special.open_console"
     bl_label = "Open Console"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -906,7 +921,7 @@ class OpenConsoleOperator(Operator):
         return {'FINISHED'}
     
 class SetProceduralPBROperator(Operator):
-    bl_idname = "object.setproceduralpbr"
+    bl_idname = "ppbr.setproceduralpbr"
     bl_label = "Set Procedural PBR"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -919,7 +934,7 @@ class SetProceduralPBROperator(Operator):
 
 class OptimizationPanel(Panel):
     bl_label = "Optimization"
-    bl_idname = "OBJECT_PT_optimization"
+    bl_idname = "optimization.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
@@ -980,10 +995,10 @@ class OptimizationPanel(Panel):
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.optimization", text="Optimize")
+        row.operator("optimization.optimization", text="Optimize")
 
 class OptimizeOperator(Operator):
-    bl_idname = "object.optimization"
+    bl_idname = "optimization.optimization"
     bl_label = "Optimize"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -996,7 +1011,7 @@ class OptimizeOperator(Operator):
 
 class UtilsPanel(Panel):
     bl_label = "Utils"
-    bl_idname = "OBJECT_PT_utils"
+    bl_idname = "utils.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
@@ -1018,7 +1033,7 @@ class UtilsPanel(Panel):
         row.prop(bpy.context.scene.utilsproperties, "current_preset", text="Current Preset")
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.setrendersettings")
+        row.operator("utils.setrendersettings")
 
         box = layout.box()
         row = box.row()
@@ -1028,7 +1043,7 @@ class UtilsPanel(Panel):
         row.scale_x = 1.3
         row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"), icon_only=True)
         row.scale_y = Big_Button_Scale
-        row.operator("object.enchant", text="Enchant Objects")
+        row.operator("utils.enchant", text="Enchant Objects")
 
         if bpy.context.scene.utilsproperties.enchant_settings == True:
             sbox = box.box()
@@ -1053,11 +1068,11 @@ class UtilsPanel(Panel):
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.assingvertexgroup")
+        row.operator("utils.assingvertexgroup")
 
 
 class SetRenderSettingsOperator(Operator):
-    bl_idname = "object.setrendersettings"
+    bl_idname = "utils.setrendersettings"
     bl_label = "Set Render Settings"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1067,7 +1082,7 @@ class SetRenderSettingsOperator(Operator):
         return {'FINISHED'}
     
 class EnchantOperator(Operator):
-    bl_idname = "object.enchant"
+    bl_idname = "utils.enchant"
     bl_label = "Enchant Object"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1076,7 +1091,7 @@ class EnchantOperator(Operator):
         return {'FINISHED'}
     
 class AssingVertexGroupOperator(Operator):
-    bl_idname = "object.assingvertexgroup"
+    bl_idname = "utils.assingvertexgroup"
     bl_label = "Assing Vertex Group"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1087,7 +1102,7 @@ class AssingVertexGroupOperator(Operator):
 # Assets
 class AssetPanel(Panel):
     bl_label = "Assets"
-    bl_idname = "OBJECT_PT_assets"
+    bl_idname = "assets.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Mcblend'
@@ -1110,11 +1125,11 @@ class AssetPanel(Panel):
         box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
 
         row = box.row()
-        row.operator("object.update_assets", text="Manually Update Assets List")
+        row.operator("assets.update_assets", text="Manually Update Assets List")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("object.import_asset", text="Import Asset")
+        row.operator("assets.import_asset", text="Import Asset")
 
 class Assets_List_UL_(bpy.types.UIList):
 
@@ -1171,7 +1186,7 @@ class Assets_List_UL_(bpy.types.UIList):
         return flt_flags, flt_neworder
 
 class ImportAssetOperator(Operator):
-    bl_idname = "object.import_asset"
+    bl_idname = "assets.import_asset"
     bl_label = "Import Asset"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -1192,7 +1207,7 @@ class ImportAssetOperator(Operator):
         return {'FINISHED'}
     
 class ManualAssetsUpdateOperator(Operator):
-    bl_idname = "object.update_assets"
+    bl_idname = "assets.update_assets"
     bl_label = "Update Assets"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -1245,4 +1260,4 @@ if __name__ == "__main__":
     register()
 
 # TODO:
-    # - World & Materials - Сделать ветер
+    # - World & Materials - Сделать ветер -- 20.06.24 Добавить как скрипт в UAS

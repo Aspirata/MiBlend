@@ -34,10 +34,10 @@ def Absolute_Solver(error_code="None", data=None, tech_things="None", error_name
             mode = "Smart"
 
         if mode == Preferences.as_mode and Preferences.as_mode != "None":
-            bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = error_name, Description = description.format(Data=data), Tech_Things = str(tech_things))
+            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = error_name, Description = description.format(Data=data), Tech_Things = str(tech_things))
             
     except:
-        bpy.ops.wm.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description = GetASText("000", 'Description', error_code if error_code != None else error_name), Tech_Things = str(traceback.format_exc()))
+        bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description = GetASText("000", 'Description', error_code if error_code != None else error_name), Tech_Things = str(traceback.format_exc()))
 
 def checkconfig(name):
     if "const" in main_directory:
@@ -46,42 +46,48 @@ def checkconfig(name):
         return Preferences_List["Default"][name]
 
 def GetConnectedSocketFrom(output, tag, material=None):
-    to_sockets = []
-    if material is not None:
-        for node in material.node_tree.nodes:
-            if node.type == tag:
-                output_socket = node.outputs[output]
-                for link in output_socket.links:
-                    to_node = link.to_node
-                    to_sockets.append(link.to_socket)
-        return to_sockets
-    
-    else:
-        output_socket = tag.outputs[output]
-        for link in output_socket.links:
-            to_node = link.to_node
-            to_sockets.append(link.to_socket)
-        return to_sockets
+    try:
+        to_sockets = []
+        if material is not None:
+            for node in material.node_tree.nodes:
+                if node.type == tag:
+                    output_socket = node.outputs[output]
+                    for link in output_socket.links:
+                        to_node = link.to_node
+                        to_sockets.append(link.to_socket)
+            return to_sockets
+        
+        else:
+            output_socket = tag.outputs[output]
+            for link in output_socket.links:
+                to_node = link.to_node
+                to_sockets.append(link.to_socket)
+            return to_sockets
+    except:
+        Absolute_Solver("005", __name__, traceback.format_exc())
     
 def GetConnectedSocketTo(input, tag, material=None):
-    if material is not None:
-        for node in material.node_tree.nodes:
-            if node.type == tag:
-                input_socket = node.inputs[input]
-                for link in input_socket.links:
-                    from_node = link.from_node
-                    for output in from_node.outputs:
-                        for link in output.links:
-                            if link.to_socket.name == input_socket.name:
-                                return link.from_socket
-    else:
-        input_socket = tag.inputs[input]
-        for link in input_socket.links:
-            from_node = link.from_node
-            for output in from_node.outputs:
-                for link in output.links:
-                    if link.to_socket.name == input_socket.name:
-                        return link.from_socket
+    try:
+        if material is not None:
+            for node in material.node_tree.nodes:
+                if node.type == tag:
+                    input_socket = node.inputs[input]
+                    for link in input_socket.links:
+                        from_node = link.from_node
+                        for output in from_node.outputs:
+                            for link in output.links:
+                                if link.to_socket.name == input_socket.name:
+                                    return link.from_socket
+        else:
+            input_socket = tag.inputs[input]
+            for link in input_socket.links:
+                from_node = link.from_node
+                for output in from_node.outputs:
+                    for link in output.links:
+                        if link.to_socket.name == input_socket.name:
+                            return link.from_socket
+    except:
+        Absolute_Solver("005", __name__, traceback.format_exc())
 
 def get_resource_packs(debug=None):
     if debug is not None:

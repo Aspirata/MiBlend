@@ -18,10 +18,25 @@ class McblendPreferences(AddonPreferences):
 
     as_mode: EnumProperty(
         items=[('None', 'None', 'No Errors will be Displayed'),
-            ('Smart', 'Smart', 'Only Critical Errors will be Displayed'),
+            ('Smart', 'Smart', 'Only Critical Errors will be Displayed (For Smart People)'),
             ('Full', 'Full', 'All Errors will be Displayed')],
         name="as_mode",
         default='Full'
+    )
+
+    def emissiondetectionfix():
+        if blender_version("3.6.x"):
+            default='Manual'
+        else:
+            default='Automatic & Manual'
+        return default
+
+    emissiondetection: EnumProperty(
+        items=[('Automatic', 'Automatic', ''), 
+            ('Automatic & Manual', 'Both', ''),
+            ('Manual', 'Manual', '')],
+        name="emissiondetection",
+        default=emissiondetectionfix()
     )
 
     current_language: EnumProperty(
@@ -45,3 +60,8 @@ class McblendPreferences(AddonPreferences):
         row.label(text="Absolute Solver Mode:")
         row = box.row()
         row.prop(self, "as_mode", text='as_mode', expand=True)
+
+        row = box.row()
+        row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
+        row = box.row()
+        row.prop(self, "emissiondetection", text='emissiondetection', expand=True)

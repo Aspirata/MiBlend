@@ -21,21 +21,6 @@ class WorldProperties(PropertyGroup):
         default=True,
     )
 
-    def emissiondetectionfix():
-        if blender_version("3.6.x"):
-            default='Manual'
-        else:
-            default='Automatic & Manual'
-        return default
-
-    emissiondetection: EnumProperty(
-        items=[('Automatic', 'Automatic', ''), 
-            ('Automatic & Manual', 'Automatic & Manual', ''),
-            ('Manual', 'Manual', '')],
-        name="emissiondetection",
-        default=emissiondetectionfix()
-    )
-
 
 
 
@@ -44,6 +29,11 @@ class ResourcePackProperties(PropertyGroup):
     resource_packs_list: BoolProperty(
         name="Resource Packs List",
         default=True,
+    )
+
+    resource_packs_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
     )
 
     ignore_dublicates: BoolProperty(
@@ -144,6 +134,12 @@ class PPBRProperties(PropertyGroup):
         description="Enables Normals In Materials"
     )
 
+    revert_normals: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
     normals_selector: EnumProperty(
         items=[('Bump', 'Bump', ''), 
             ('Procedural Normals', 'Procedural Normals', '')],
@@ -229,8 +225,66 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    make_better_emission: BoolProperty(
+        name="Make Better Emission",
+        default=True,
+        description=""
+    )
+
+    animate_textures: BoolProperty(
+        name="Animate textures",
+        default=False,
+        description=""
+    )
+
+    advanced_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
+        description=""
+    )
+
+    change_bsdf: BoolProperty(
+        name="Change BSDF Settings",
+        default=True,
+        description=""
+    )
+
+    revert_bsdf: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
+    change_bsdf_settings: BoolProperty(
+        name="Change BSDF Settings",
+        default=False,
+        description=""
+    )
+
+    specular: FloatProperty(
+        name="Specular",
+        default=0.4,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    roughness: FloatProperty(
+        name="Roughness",
+        default=0.6,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
     use_sss: BoolProperty(
         name="Use SSS",
+        default=True,
+        description=""
+    )
+
+    revert_sss: BoolProperty(
+        name="Revert",
         default=True,
         description=""
     )
@@ -293,6 +347,12 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    revert_translucency: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
     translucency_settings: BoolProperty(
         name="Metal Settings",
         default=False,
@@ -311,6 +371,12 @@ class PPBRProperties(PropertyGroup):
         name="Make Metal",
         default=True,
         description="Enambles PBR For Metallic Materials"
+    )
+
+    revert_metal: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
     )
 
     metal_settings: BoolProperty(
@@ -341,6 +407,12 @@ class PPBRProperties(PropertyGroup):
         description="Enambles PBR For Reflective Materials"
     )
 
+    revert_reflections: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
     reflections_settings: BoolProperty(
         name="Reflections Settings",
         default=False,
@@ -350,52 +422,6 @@ class PPBRProperties(PropertyGroup):
     reflections_roughness: FloatProperty(
         name="Reflections Roughness",
         default=0.1,
-        min=0.0,
-        max=1.0,
-        description=""
-    )
-
-    make_better_emission: BoolProperty(
-        name="Make Better Emission",
-        default=True,
-        description=""
-    )
-
-    animate_textures: BoolProperty(
-        name="Animate textures",
-        default=False,
-        description=""
-    )
-
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
-        default=False,
-        description=""
-    )
-
-    change_bsdf: BoolProperty(
-        name="Change BSDF",
-        default=True,
-        description=""
-    )
-
-    change_bsdf_settings: BoolProperty(
-        name="Change BSDF Settings",
-        default=False,
-        description=""
-    )
-
-    specular: FloatProperty(
-        name="Specular",
-        default=0.4,
-        min=0.0,
-        max=1.0,
-        description=""
-    )
-
-    roughness: FloatProperty(
-        name="Roughness",
-        default=0.6,
         min=0.0,
         max=1.0,
         description=""

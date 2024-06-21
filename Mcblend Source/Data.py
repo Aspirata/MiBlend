@@ -54,6 +54,11 @@ Absolute_Solver_Errors = {
         "Error Name": ".blend File Not Found",
         "Description": "{Data}.blend not found",
     },
+
+    "005": {
+        "Error Name": "Internal Function Error",
+        "Description": "Something is wrong in {Data}",
+    },
 }
 
 Preferences_List = {
