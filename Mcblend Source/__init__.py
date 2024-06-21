@@ -229,16 +229,20 @@ class WorldAndMaterialsPanel(Panel):
         if scene.resource_properties.resource_packs_settings:
 
             sbox = box.box()
-            tbox = sbox.box()
-            row = tbox.row()
+            row = sbox.row()
             row.prop(scene.resource_properties, "ignore_dublicates")
 
-            tbox = sbox.box()
-            row = tbox.row()
+            row = sbox.row()
+            row.prop(scene.resource_properties, "format_fix")
+
+            row = sbox.row()
             row.prop(scene.resource_properties, "use_additional_textures")
             row.prop(scene.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
             if scene.resource_properties.textures_settings:
 
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="PBR Textures:", icon="SHADING_RENDERED")
                 row = tbox.row()
                 row.enabled = scene.resource_properties.use_additional_textures
                 row.prop(scene.resource_properties, "use_n")
@@ -273,11 +277,13 @@ class WorldAndMaterialsPanel(Panel):
                 row.enabled = scene.resource_properties.use_additional_textures
                 row.prop(scene.resource_properties, "use_e")
             
-            tbox = sbox.box()
-            row = tbox.row()
+            row = sbox.row()
             row.prop(scene.resource_properties, "animate_textures")
             row.prop(scene.resource_properties, "animate_textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.animate_textures_settings else "TRIA_LEFT"), icon_only=True)
             if scene.resource_properties.animate_textures_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Animation Settings:", icon="SEQUENCE")
                 row = tbox.row()
                 row.enabled = scene.resource_properties.animate_textures
                 row.prop(scene.resource_properties, "interpolate")
@@ -578,7 +584,6 @@ class WorldAndMaterialsPanel(Panel):
 
         row = box.row()
         row.prop(scene.ppbr_properties, "use_normals")
-        # Сделать здесь ревёрс
         row.prop(scene.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
 
         if scene.ppbr_properties.normals_settings:
@@ -624,7 +629,10 @@ class WorldAndMaterialsPanel(Panel):
 
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "pnormals_size_y_multiplier", slider=True)
-
+            
+            row = tbox.row()
+            row.prop(scene.ppbr_properties, "revert_normals", slider=True)
+            row.enabled = not context.scene.ppbr_properties.use_normals
         
         row = box.row()
         row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
@@ -649,9 +657,6 @@ class WorldAndMaterialsPanel(Panel):
                 row.prop(scene.ppbr_properties, "specular", slider=True, text="Specular")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "roughness", slider=True, text="Roughness")
-                row = tbox.row()
-                row.prop(context.scene.ppbr_properties, "revert_bsdf")
-                row.enabled = not context.scene.ppbr_properties.change_bsdf
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "use_sss")
@@ -709,10 +714,6 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "metal_roughness", slider=True)
 
-                row = tbox.row()
-                row.prop(context.scene.ppbr_properties, "revert_metal")
-                row.enabled = not context.scene.ppbr_properties.make_metal
-
             row = sbox.row()
             row.prop(scene.ppbr_properties, "make_reflections")
             row.prop(scene.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
@@ -722,10 +723,6 @@ class WorldAndMaterialsPanel(Panel):
                 row.label(text="Reflective Materials Settings:", icon="MODIFIER")
                 row = tbox.row()
                 row.prop(scene.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
-            
-                row = tbox.row()
-                row.prop(context.scene.ppbr_properties, "revert_reflections")
-                row.enabled = not context.scene.ppbr_properties.make_reflections
                 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -820,6 +817,7 @@ class FixPacks(Operator):
     def execute(self, context):
         if "resource_packs" not in bpy.context.scene:
             bpy.context.scene["resource_packs"] = {}
+        update_default_pack()
         return {'FINISHED'}
 
 class AddResourcePack(Operator):

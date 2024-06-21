@@ -41,6 +41,11 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
+    format_fix: BoolProperty(
+        name="Format 22 Fix",
+        default=True,
+    )
+
     use_additional_textures: BoolProperty(
         name="Use Additional Textures",
         default=True,
@@ -249,12 +254,6 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    revert_bsdf: BoolProperty(
-        name="Revert",
-        default=True,
-        description=""
-    )
-
     change_bsdf_settings: BoolProperty(
         name="Change BSDF Settings",
         default=False,
@@ -373,12 +372,6 @@ class PPBRProperties(PropertyGroup):
         description="Enambles PBR For Metallic Materials"
     )
 
-    revert_metal: BoolProperty(
-        name="Revert",
-        default=True,
-        description=""
-    )
-
     metal_settings: BoolProperty(
         name="Metal Settings",
         default=False,
@@ -405,12 +398,6 @@ class PPBRProperties(PropertyGroup):
         name="Make Reflections",
         default=True,
         description="Enambles PBR For Reflective Materials"
-    )
-
-    revert_reflections: BoolProperty(
-        name="Revert",
-        default=True,
-        description=""
     )
 
     reflections_settings: BoolProperty(

@@ -139,12 +139,8 @@ def fix_world():
                         
                         # Emission
                         if EmissionMode(PBSDF, material):
-                            if blender_version("4.x.x"):
-                                if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
-                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission Color"])
-                            else:
-                                if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
-                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission"])
+                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) == None:
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
 
                             if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
                                 PBSDF.inputs["Emission Strength"].default_value = 1
@@ -691,7 +687,7 @@ def apply_resources():
                             new_image_path = find_image(image_texture, path)
 
                             # 22 format fix
-                            if new_image_path == None:
+                            if new_image_path == None and r_props.format_fix:
                                 new_image_path = find_image("short_" + image_texture, path)
 
                             if new_image_path != None and os.path.isfile(new_image_path):
@@ -719,7 +715,7 @@ def apply_resources():
                                 new_normal_image_path = find_image(normal_image_name, path)
 
                                 # 22 format fix
-                                if new_normal_image_path == None:
+                                if new_normal_image_path == None and r_props.format_fix:
                                     new_normal_image_path = find_image("short_" + normal_image_name, path)
 
                                 if new_normal_image_path != None:
@@ -780,7 +776,7 @@ def apply_resources():
                                 new_specular_image_path = find_image(specular_image_name, path)
 
                                 # 22 format fix
-                                if new_specular_image_path == None:
+                                if new_specular_image_path == None and r_props.format_fix:
                                     new_specular_image_path = find_image("short_" + specular_image_name, path)
 
                                 if new_specular_image_path != None:
@@ -797,6 +793,7 @@ def apply_resources():
                                                     ITexture_Animator = node
                                                     image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
                                                 Current_node_tree = node.node_tree
+
                                     if specular_texture_node == None and STexture_Animator == None:
                                         specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
                                         try:
@@ -842,44 +839,29 @@ def apply_resources():
                                         material.node_tree.links.new(LabPBR_s.outputs["Porosity (Specular)"], PBSDF.inputs["Specular IOR Level"])
                                     else:
                                         for link in material.node_tree.links:
-                                            if link.to_socket == PBSDF.inputs["Specular IOR Level"]:
+                                            if link.to_socket == PBSDF.inputs[PBSDF_compability("Specular IOR Level")]:
                                                 material.node_tree.links.remove(link)
 
                                     if r_props.sss:
-                                        if blender_version("4.x.x"):
-                                            material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface Weight"])
-                                        else:
-                                            material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface"])
+                                        material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs[PBSDF_compability("Subsurface Weight")])
 
                                         PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
 
                                         PBSDF.subsurface_method = 'BURLEY'
                                     else:
                                         for link in material.node_tree.links:
-                                            if blender_version("4.x.x"):
-                                                if link.to_socket == PBSDF.inputs["Subsurface Weight"]:
-                                                    material.node_tree.links.remove(link)
-                                            else:
-                                                if link.to_socket == PBSDF.inputs["Subsurface"]:
-                                                    material.node_tree.links.remove(link)
+                                            if link.to_socket == PBSDF.inputs[PBSDF_compability("Subsurface Weight")]:
+                                                material.node_tree.links.remove(link)
 
                                     if r_props.emission:
-                                        if blender_version("4.x.x"):
+                                        try:
                                             try:
-                                                try:
-                                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
-                                                except:
-                                                    material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Emission Color"])
+                                                material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
                                             except:
-                                                pass
-                                        else:
-                                            try:
-                                                try:
-                                                    material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Emission"])
-                                                except:
-                                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
-                                            except:
-                                                pass
+                                                material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
+                                        except:
+                                            pass
+                                    else:
 
                                         material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
@@ -908,7 +890,7 @@ def apply_resources():
                                 new_emission_image_path = find_image(emission_image_name, path)
 
                                 # 22 format fix
-                                if emission_image_name == None:
+                                if emission_image_name == None and r_props.format_fix:
                                     new_emission_image_path = find_image("short_" + new_emission_image_path, path)
 
                                 if new_emission_image_path != None:
@@ -938,10 +920,7 @@ def apply_resources():
 
                                     update_texture(new_emission_image_path, emission_image_name, emission_texture_node)
 
-                                    if blender_version("4.x.x"):
-                                        material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
-                                    else:
-                                        material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
+                                    material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
                                     material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
 
                                     animate_texture(emission_texture_node, emission_image_name, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
@@ -1086,7 +1065,7 @@ def setproceduralpbr():
                                 
                                 if Texture_Animator != None: 
                                     material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
-                        else:
+                        elif PProperties.revert_normals:
                             
                             if bump_node is not None:
                                 material.node_tree.nodes.remove(bump_node)
@@ -1098,10 +1077,7 @@ def setproceduralpbr():
                         # Change PBSDF Settings                                
                         if PProperties.change_bsdf:
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
-                            if blender_version("4.x.x"):
-                                PBSDF.inputs["Specular IOR Level"].default_value = PProperties.specular
-                            else:
-                                PBSDF.inputs["Specular"].default_value = PProperties.specular
+                            PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
 
 
                         # Use SSS                            
@@ -1132,15 +1108,15 @@ def setproceduralpbr():
 
                                 PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
                         else:
-                            if blender_version("4.x.x"):
-                                PBSDF.inputs["Subsurface Weight"].default_value = 0
-                            else:
-                                PBSDF.inputs["Subsurface"].default_value = 0
+                            PBSDF.inputs[PBSDF_compability("Subsurface Weight")].default_value = 0
 
                         # Use Translucency
                         # Fix for 3.6
-                        if PProperties.use_translucency == True and MaterialIn(Translucent_Materials, material):
-                            PBSDF.inputs["Transmission Weight"].default_value = PProperties.translucency
+                        if MaterialIn(Translucent_Materials, material):
+                            if PProperties.use_translucency == True:
+                                    PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
+                            elif PProperties.revert_translucency:
+                                PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
 
                         # Make Metals                            
                         if PProperties.make_metal == True and MaterialIn(Metal, material):
@@ -1200,12 +1176,8 @@ def setproceduralpbr():
                                         node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                             
                             # Color Connection if Nothing Connected
-                            if blender_version("4.x.x"):
-                                if GetConnectedSocketTo("Emission Color", "BSDF_PRINCIPLED", material) == None:
-                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission Color"])
-                            else:
-                                if GetConnectedSocketTo("Emission", "BSDF_PRINCIPLED", material) == None:
-                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission"])
+                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) == None:
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
                             
                             try:
                                 if GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
@@ -1214,10 +1186,7 @@ def setproceduralpbr():
                                 pass
 
                             node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
-                            if blender_version("4.x.x"):
-                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
-                            else:
-                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs[PBSDF_compability("Emission Color")])
                             material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
                         if PProperties.make_better_emission == False and PProperties.animate_textures == False:

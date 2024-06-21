@@ -13,6 +13,27 @@ def InitOnStart():
             item = items.add()
             item.name = key
 
+def PBSDF_compability(Input):
+    if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
+        return "Subsurface"
+    
+    if Input == "Specular IOR Level" and blender_version("< 4.0.0"):
+        return "Specular"
+    
+    if Input == "Transmission Weight" and blender_version("< 4.0.0"):
+        return "Transmission"
+
+    if Input == "Coat Weight" and blender_version("< 4.0.0"):
+        return "Coat"
+    
+    if Input == "Sheen Weight" and blender_version("< 4.0.0"):
+        return "Sheen"
+    
+    if Input == "Emission Color" and blender_version("< 4.0.0"):
+        return "Emission"
+    
+    return Input
+
 def Absolute_Solver(error_code="None", data=None, tech_things="None", error_name=None, description=None, mode=None):
     Preferences = bpy.context.preferences.addons[__package__].preferences
     try:
