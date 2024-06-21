@@ -16,8 +16,9 @@ bl_info = {
     "author": "Aspirata",
     "version": (0, 5, 0),
     "blender": (3, 6, 0),
+    "doc_url": "https://github.com/Aspirata/Mcblend/wiki",
+    "tracker_url": "https://github.com/Aspirata/Mcblend/issues",
     "location": "View3D > Addons Tab",
-    "warning": "This is Experimental Branch Build",
     "description": "A useful tool for creating minecraft content in blender",
 }
 

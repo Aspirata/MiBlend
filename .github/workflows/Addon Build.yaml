@@ -24,6 +24,11 @@ jobs:
     - name: Install required packages
       run: |
         python -m pip install --upgrade pip
+    
+    - name: Add warning to __init__.py
+      run: |
+        build_date=$(date +"%Y-%m-%d %H:%M:%S")
+        sed -i '21 a\    "warning": "This is Experimental Branch Build ('"$build_date"')",' "Mcblend Source/__init__.py"
 
     - name: Prepare Blender Addon
       run: |
