@@ -585,7 +585,6 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(scene.ppbr_properties, "use_normals")
         row.prop(scene.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
-
         if scene.ppbr_properties.normals_settings:
             sbox = box.box()
             row = sbox.row()
@@ -635,18 +634,39 @@ class WorldAndMaterialsPanel(Panel):
             row.enabled = not context.scene.ppbr_properties.use_normals
         
         row = box.row()
-        row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
+        row.prop(scene.ppbr_properties, "pspecular")
+        row.prop(scene.ppbr_properties, "pspecular_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.pspecular_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.pspecular_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Procedural Specular Settings:", icon="MODIFIER")
 
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "ps_dif")
+        
         row = box.row()
-        row.prop(scene.ppbr_properties, "animate_textures", text="Animate Textures")
+        row.prop(scene.ppbr_properties, "proughness")
+        row.prop(scene.ppbr_properties, "proughness_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.proughness_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.proughness_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Procedural Roughness Settings:", icon="MODIFIER")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "pr_dif")
 
         row = box.row()
         row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
         if scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
+            row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "animate_textures", text="Animate Textures")
+
+            row = sbox.row()
             row.prop(context.scene.ppbr_properties, "change_bsdf")
-            # Сделать здесь ревёрс
             row.prop(scene.ppbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
             if  scene.ppbr_properties.change_bsdf_settings:
                 tbox = sbox.box()
@@ -856,7 +876,11 @@ class ApplyResourcePack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        start_time = time.time()
         Materials.apply_resources()
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"apply_resources() took {elapsed_time:.4f} seconds to complete.")
         return {'FINISHED'}
 
 class CreateEnvOperator(Operator):

@@ -58,7 +58,8 @@ def DeleteUselessTextures(material):
 
 def EmissionMode(PBSDF, material):
         
-        Preferences = bpy.context.preferences.addons[__package__].preferences
+        # LoL it works
+        Preferences = bpy.context.preferences.addons[__package__.replace(".Materials", "")].preferences
                 
         if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials, material)):
             return 1
@@ -75,7 +76,7 @@ def upgrade_materials():
         if selected_object.material_slots:
             slot += 1
             for i, material in enumerate(selected_object.data.materials):
-                if material is not None:
+                if material is not None and material.use_nodes:
                     for original_material, upgraded_material in Upgrade_Materials_Array.items():
                         for material_part in material.name.lower().replace("-", ".").split("."):
                             if original_material == material_part:
@@ -103,7 +104,7 @@ def fix_world():
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
+                if material is not None and material.use_nodes:
                     PBSDF = None
                     image_texture_node = None
                     lbcf_node = None
@@ -399,7 +400,7 @@ def fix_materials():
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
+                if material is not None and material.use_nodes:
                     image_texture_node = None
                     PBSDF = None
 
@@ -429,8 +430,7 @@ def apply_resources():
         Texture_users = []
         for obj in bpy.data.objects:
             if obj.type == 'MESH':
-                for slot in obj.material_slots:
-                    material = slot.material
+                for material in selected_object.data.materials:
                     if material and material.use_nodes:
                         for node in material.node_tree.nodes:
                             if node.type == 'TEX_IMAGE' and node.image == texture:
@@ -511,14 +511,14 @@ def apply_resources():
                             material.node_tree.nodes.remove(Texture_Animator)
 
                         if ITexture_Animator is None:
-                            if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
-                                TAnimator_exists = True
-                                Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
-                            
+
                             ITexture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
                             ITexture_Animator.location = texture_node.location
-                            
-                            if TAnimator_exists == False:
+
+                            if f"Animated; {image_texture.replace('.png', '')}" in bpy.data.node_groups:
+                                Current_node_tree = bpy.data.node_groups[f"Animated; {image_texture.replace('.png', '')}"]
+                                ITexture_Animator.node_tree = Current_node_tree
+                            else:
                                 if "Texture Animator" not in bpy.data.node_groups:
                                     with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
                                         data_to.node_groups = ["Texture Animator"]
@@ -531,8 +531,6 @@ def apply_resources():
                                 for node in ITexture_Animator.node_tree.nodes:
                                     if node.type == "TEX_IMAGE":
                                         node.image = bpy.data.images[image_texture]
-                            else:
-                                ITexture_Animator.node_tree = Current_node_tree
 
                             if texture_node != None:
                                 for socket in GetConnectedSocketFrom("Color", texture_node):
@@ -607,7 +605,7 @@ def apply_resources():
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
+                if material is not None and material.use_nodes:
                     PBSDF = None
                     image_texture_node = None
                     image_path = None
@@ -824,23 +822,17 @@ def apply_resources():
                                     if r_props.roughness:
                                         material.node_tree.links.new(LabPBR_s.outputs["Roughness"], PBSDF.inputs["Roughness"])
                                     else:
-                                        for link in material.node_tree.links:
-                                            if link.to_socket == PBSDF.inputs["Roughness"]:
-                                                material.node_tree.links.remove(link)
+                                        RemoveLinksFrom(LabPBR_s.outputs["Roughness"])
 
                                     if r_props.metallic:
                                         material.node_tree.links.new(LabPBR_s.outputs["Reflectance (Metallic)"], PBSDF.inputs["Metallic"])
                                     else:
-                                        for link in material.node_tree.links:
-                                            if link.to_socket == PBSDF.inputs["Metallic"]:
-                                                material.node_tree.links.remove(link)
+                                        RemoveLinksFrom(LabPBR_s.outputs["Reflectance (Metallic)"])
                                     
                                     if r_props.specular:
                                         material.node_tree.links.new(LabPBR_s.outputs["Porosity (Specular)"], PBSDF.inputs["Specular IOR Level"])
                                     else:
-                                        for link in material.node_tree.links:
-                                            if link.to_socket == PBSDF.inputs[PBSDF_compability("Specular IOR Level")]:
-                                                material.node_tree.links.remove(link)
+                                        RemoveLinksFrom(LabPBR_s.outputs["Porosity (Specular)"])
 
                                     if r_props.sss:
                                         material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs[PBSDF_compability("Subsurface Weight")])
@@ -849,9 +841,7 @@ def apply_resources():
 
                                         PBSDF.subsurface_method = 'BURLEY'
                                     else:
-                                        for link in material.node_tree.links:
-                                            if link.to_socket == PBSDF.inputs[PBSDF_compability("Subsurface Weight")]:
-                                                material.node_tree.links.remove(link)
+                                        RemoveLinksFrom(LabPBR_s.outputs["SSS"])
 
                                     if r_props.emission:
                                         try:
@@ -861,9 +851,12 @@ def apply_resources():
                                                 material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
                                         except:
                                             pass
-                                    else:
-
+                                    
                                         material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
+                                    else:
+                                        RemoveLinksFrom(LabPBR_s.outputs["Emission Strength"])
+                                        RemoveLinksFrom(PBSDF.inputs[PBSDF_compability("Emission Color")])
+                                        
 
                                     animate_texture(specular_texture_node, specular_image_name, new_specular_image_path, STexture_Animator, Current_node_tree, image_path)
                                     break
@@ -939,7 +932,7 @@ def swap_textures(folder_path):
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
+                if material is not None and material.use_nodes:
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE" and node.image is not None:
                             new_image_path = find_image(node.image.name, folder_path)
@@ -962,10 +955,11 @@ def setproceduralpbr():
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
-                    image_texture_node = None
+                if material is not None and material.use_nodes:
                     PBSDF = None
                     bump_node = None
+                    proughness_node = None
+                    pspecular_node = None
                     PNormals = None
                     ITexture_Animator = None
                     Texture_Animator = None
@@ -994,6 +988,13 @@ def setproceduralpbr():
 
                             if "Texture Animator" in node.node_tree.name:
                                 Texture_Animator = node
+                        
+                        if node.type == "MAP_RANGE":
+                            if "Procedural Roughness Node" in node.name:
+                                proughness_node = node
+                            
+                            if "Procedural Specular Node" in node.name:
+                                pspecular_node = node
 
                     if PBSDF is not None:
                         # Use Normals
@@ -1186,7 +1187,7 @@ def setproceduralpbr():
                                 pass
 
                             node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
-                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs[PBSDF_compability("Emission Color")])
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
                             material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
                         if PProperties.make_better_emission == False and PProperties.animate_textures == False:
@@ -1194,6 +1195,41 @@ def setproceduralpbr():
                                 if node.type == 'GROUP':
                                     if BATGroup in node.node_tree.name:
                                         material.node_tree.nodes.remove(node)
+
+                        if PProperties.proughness:
+                            if proughness_node == None:
+                                proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                proughness_node.name = "Procedural Roughness Node"
+                                proughness_node.hide = True
+
+                            proughness_node.inputs["From Max"].default_value = 0.0
+                            proughness_node.inputs["From Min"].default_value = 1.0
+                            proughness_node.inputs["To Max"].default_value = PBSDF.inputs["Roughness"].default_value
+                            proughness_node.inputs["To Min"].default_value = PBSDF.inputs["Roughness"].default_value * PProperties.pr_dif
+                            
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), proughness_node.inputs["Value"])
+                            material.node_tree.links.new(proughness_node.outputs[0], PBSDF.inputs["Roughness"])
+
+                        elif PProperties.revert_proughness and proughness_node != None:
+                            material.node_tree.nodes.remove(proughness_node)
+                        
+                        if PProperties.pspecular:
+                            if pspecular_node == None:
+                                pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                pspecular_node.name = "Procedural Specular Node"
+                                pspecular_node.hide = True
+
+                            pspecular_node.inputs["From Max"].default_value = 1.0
+                            pspecular_node.inputs["From Min"].default_value = 0.0
+                            pspecular_node.inputs["To Max"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value
+                            pspecular_node.inputs["To Min"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value * PProperties.ps_dif
+                            
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
+                            material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
+                            
+                        elif PProperties.revert_pspecular and pspecular_node != None:
+                            material.node_tree.nodes.remove(pspecular_node)
+
                 else:
                     Absolute_Solver("m002", slot)
                 

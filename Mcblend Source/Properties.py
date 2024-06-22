@@ -230,6 +230,64 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    pspecular: BoolProperty(
+        name="Procedural Specular",
+        default=True,
+        description=""
+    )
+
+    revert_pspecular: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
+    pspecular_settings: BoolProperty(
+        name="Procedural Specular Settings",
+        default=False,
+        description=""
+    )
+
+    ps_dif: FloatProperty(
+        name="Difference",
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        description="Value 1 will be Ignored"
+    )
+
+    proughness: BoolProperty(
+        name="Procedural Roughness",
+        default=True,
+        description=""
+    )
+
+    revert_proughness: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
+    proughness_settings: BoolProperty(
+        name="Procedural Roughness Settings",
+        default=False,
+        description=""
+    )
+
+    pr_dif: FloatProperty(
+        name="Difference",
+        default=0.6,
+        min=0.0,
+        max=1.0,
+        description="Value 1 will be Ignored"
+    )
+
+    advanced_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
+        description=""
+    )
+
     make_better_emission: BoolProperty(
         name="Make Better Emission",
         default=True,
@@ -238,12 +296,6 @@ class PPBRProperties(PropertyGroup):
 
     animate_textures: BoolProperty(
         name="Animate textures",
-        default=False,
-        description=""
-    )
-
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
         default=False,
         description=""
     )

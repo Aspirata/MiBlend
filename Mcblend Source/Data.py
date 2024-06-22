@@ -1,9 +1,9 @@
-# Properties
 import bpy
 import os
 import json
 import zipfile
 import traceback
+import time
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 from bpy.types import PropertyGroup
 

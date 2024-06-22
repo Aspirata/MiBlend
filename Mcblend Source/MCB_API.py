@@ -86,7 +86,16 @@ def GetConnectedSocketFrom(output, tag, material=None):
             return to_sockets
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
-    
+
+def RemoveLinksFrom(sockets):
+    try:
+        for socket in sockets:
+            for link in socket.links:
+                socket.node.id_data.links.remove(link)
+    except:
+        for link in socket.links:
+            socket.node.id_data.links.remove(link)
+
 def GetConnectedSocketTo(input, tag, material=None):
     try:
         if material is not None:
