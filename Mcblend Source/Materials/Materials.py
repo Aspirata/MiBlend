@@ -449,16 +449,12 @@ def apply_resources():
         if image_texture in bpy.data.images:
             Users = find_texture_users(bpy.data.images[image_texture])
             if not r_props.ignore_dublicates:
-                simillar_textures = []
                 for texture in bpy.data.images:
                     if image_texture in texture.name:
-                        simillar_textures.append(texture.name)
-
-                for simillar_texture in simillar_textures:
-                    parts = simillar_texture.split(".")
-                    if len(parts) > 1 and parts[-1].isdigit() and simillar_texture.replace("." + str(parts[-1]), "") == image_texture:
-                        Users.extend(find_texture_users(bpy.data.images[simillar_texture]))
-                        bpy.data.images.remove(bpy.data.images[simillar_texture])
+                        parts = texture.name.split(".")
+                        if len(parts) > 1 and parts[-1].isdigit() and texture.name.replace("." + str(parts[-1]), "") == image_texture:
+                            Users.extend(find_texture_users(bpy.data.images[texture]))
+                            bpy.data.images.remove(bpy.data.images[texture])
 
             bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
         
@@ -470,17 +466,22 @@ def apply_resources():
                     texture_node.image = bpy.data.images.load(new_image_path)
 
         if Users != None:
-            for user in Users:
-                if image_texture in bpy.data.images:
-                    user.image = bpy.data.images[image_texture]
-                else:
-                    user.image = bpy.data.images.load(new_image_path)
 
-                if colorspace != None:
+            if image_texture in bpy.data.images:
+                user_texture = bpy.data.images[image_texture]
+            else:
+                bpy.data.images.load(new_image_path)
+                user_texture = bpy.data.images[image_texture]
+
+            if colorspace != None:
+                for user in Users:
+                    user.image = user_texture
                     user.image.colorspace_settings.name = colorspace
+            else:
+                for user in Users:
+                    user.image = user_texture
 
     def animate_texture(texture_node, image_texture, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
-        TAnimator_exists = False
         Texture_Animator = None
 
         for node in material.node_tree.nodes:
@@ -603,6 +604,7 @@ def apply_resources():
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
+            timings = []
             for material in selected_object.data.materials:
                 slot += 1
                 if material is not None and material.use_nodes:
@@ -677,25 +679,26 @@ def apply_resources():
                         except:
                             pass
 
-                        for pack, pack_info in resource_packs.items():
-                            path, enabled = pack_info["path"], pack_info["enabled"]
-                            if not enabled:
-                                continue
-                            
-                            new_image_path = find_image(image_texture, path)
-
-                            # 22 format fix
-                            if new_image_path == None and r_props.format_fix:
-                                new_image_path = find_image("short_" + image_texture, path)
-
-                            if new_image_path != None and os.path.isfile(new_image_path):
-
-                                update_texture(new_image_path, image_texture)
+                        if r_props.use_i:
+                            for pack, pack_info in resource_packs.items():
+                                path, enabled = pack_info["path"], pack_info["enabled"]
+                                if not enabled:
+                                    continue
                                 
-                                image_path = path
+                                new_image_path = find_image(image_texture, path)
+
+                                # 22 format fix
+                                if new_image_path == None and r_props.format_fix:
+                                    new_image_path = find_image("short_" + image_texture, path)
+
+                                if new_image_path != None and os.path.isfile(new_image_path):
+
+                                    update_texture(new_image_path, image_texture)
                                     
-                                animate_texture(image_texture_node, image_texture, new_image_path, ITexture_Animator, Current_node_tree)
-                                break
+                                    image_path = path
+                                        
+                                    animate_texture(image_texture_node, image_texture, new_image_path, ITexture_Animator, Current_node_tree)
+                                    break
 
                         # Normal Texture Update
                         if r_props.use_n and r_props.use_additional_textures:
@@ -709,7 +712,7 @@ def apply_resources():
                                 path, enabled = pack_info["path"], pack_info["enabled"]
                                 if not enabled:
                                     continue
-                                
+
                                 new_normal_image_path = find_image(normal_image_name, path)
 
                                 # 22 format fix
@@ -748,9 +751,9 @@ def apply_resources():
                                         normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
                                         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
                                         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
-
+                                    
                                     animate_texture(normal_texture_node, normal_image_name, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
-                                    break
+                                break
                         else:
                             if normal_texture_node != None:
                                 material.node_tree.nodes.remove(normal_texture_node)
@@ -923,6 +926,10 @@ def apply_resources():
 
                 else:
                     Absolute_Solver("m002", slot)
+            try:
+                print(f"Node Check avg - {sum(timings) / len(timings)} sum - {sum(timings)}.")
+            except:
+                pass
         else:
             Absolute_Solver("m003", selected_object)
         
@@ -1080,7 +1087,6 @@ def setproceduralpbr():
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
                             PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
 
-
                         # Use SSS                            
                         if PProperties.use_sss  == True:
                             if MaterialIn(SSS_Materials, material) or PProperties.sss_skip:
@@ -1200,8 +1206,10 @@ def setproceduralpbr():
                             if proughness_node == None:
                                 proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
                                 proughness_node.name = "Procedural Roughness Node"
+                                proughness_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 90)
                                 proughness_node.hide = True
 
+                            proughness_node.interpolation_type = PProperties.pr_interpolation
                             proughness_node.inputs["From Max"].default_value = 0.0
                             proughness_node.inputs["From Min"].default_value = 1.0
                             proughness_node.inputs["To Max"].default_value = PBSDF.inputs["Roughness"].default_value
@@ -1217,8 +1225,10 @@ def setproceduralpbr():
                             if pspecular_node == None:
                                 pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
                                 pspecular_node.name = "Procedural Specular Node"
+                                pspecular_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 200)
                                 pspecular_node.hide = True
 
+                            pspecular_node.interpolation_type = PProperties.ps_interpolation
                             pspecular_node.inputs["From Max"].default_value = 1.0
                             pspecular_node.inputs["From Min"].default_value = 0.0
                             pspecular_node.inputs["To Max"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value

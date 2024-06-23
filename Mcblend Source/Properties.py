@@ -56,6 +56,11 @@ class ResourcePackProperties(PropertyGroup):
         default=False,
     )
 
+    use_i: BoolProperty(
+        name="Use Image Textures",
+        default=True,
+    )
+
     use_n: BoolProperty(
         name="Use Normal Textures",
         default=True,
@@ -256,6 +261,14 @@ class PPBRProperties(PropertyGroup):
         description="Value 1 will be Ignored"
     )
 
+    ps_interpolation: EnumProperty(
+        items=[('LINEAR', 'Linear', ''), 
+            ('SMOOTHSTEP', 'Smooth Step', ''),
+            ('SMOOTHERSTEP', 'Smoother Step', '')],
+        name="Interpolation",
+        default='LINEAR'
+    )
+
     proughness: BoolProperty(
         name="Procedural Roughness",
         default=True,
@@ -280,6 +293,14 @@ class PPBRProperties(PropertyGroup):
         min=0.0,
         max=1.0,
         description="Value 1 will be Ignored"
+    )
+
+    pr_interpolation: EnumProperty(
+        items=[('LINEAR', 'Linear', ''), 
+            ('SMOOTHSTEP', 'Smooth Step', ''),
+            ('SMOOTHERSTEP', 'Smoother Step', '')],
+        name="Interpolation",
+        default='LINEAR'
     )
 
     advanced_settings: BoolProperty(

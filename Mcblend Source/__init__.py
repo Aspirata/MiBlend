@@ -236,6 +236,9 @@ class WorldAndMaterialsPanel(Panel):
             row.prop(scene.resource_properties, "format_fix")
 
             row = sbox.row()
+            row.prop(scene.resource_properties, "use_i")
+
+            row = sbox.row()
             row.prop(scene.resource_properties, "use_additional_textures")
             row.prop(scene.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
             if scene.resource_properties.textures_settings:
@@ -642,6 +645,9 @@ class WorldAndMaterialsPanel(Panel):
             row.label(text="Procedural Specular Settings:", icon="MODIFIER")
 
             row = sbox.row()
+            row.prop(scene.ppbr_properties, "ps_interpolation")
+
+            row = sbox.row()
             row.prop(scene.ppbr_properties, "ps_dif")
         
         row = box.row()
@@ -651,6 +657,9 @@ class WorldAndMaterialsPanel(Panel):
             sbox = box.box()
             row = sbox.row()
             row.label(text="Procedural Roughness Settings:", icon="MODIFIER")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "pr_interpolation")
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "pr_dif")
