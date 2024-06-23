@@ -59,6 +59,11 @@ Absolute_Solver_Errors = {
         "Error Name": "Internal Function Error",
         "Description": "Something is wrong in {Data}",
     },
+
+    "u006": {
+        "Error Name": "Color Space Not Found",
+        "Description": "You have custom color manager that doesn't have {Data}",
+    },
 }
 
 Preferences_List = {
@@ -278,7 +283,7 @@ Translucent_Materials = ["leaves"]
 
 Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
-Reflective = ["glass", "ender", "amethyst", "water", "emerald"]
+Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete"]
 
 #
 
@@ -371,4 +376,11 @@ Assets = {
             "File_name": "Contact Shadows.py",
         }
     },
+
+    "Я посрал": {
+
+        "Я мега насрал": {
+            "File_name": "Sleep After Render.py",
+        }
+    }
 }

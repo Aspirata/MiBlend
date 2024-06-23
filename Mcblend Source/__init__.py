@@ -1175,6 +1175,15 @@ class Assets_List_UL_(bpy.types.UIList):
                 if asset_type == "Scripts":
                     return "FILE_SCRIPT"
                 
+                if asset_type == "Shader Nodes":
+                    return "NODE"
+                
+                if asset_type == "Geo Nodes":
+                    return "GEOMETRY_NODES"
+
+                if asset_type == "Model":
+                    return "OBJECT_DATA"
+                
         return "QUESTION"
 
 

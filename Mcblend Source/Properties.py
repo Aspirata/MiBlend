@@ -747,13 +747,14 @@ class AssetsProperties(PropertyGroup):
         default=0
     )
 
+    def categories():
+        categories = [('All', "All", "")]
+        categories.extend([(cat, cat, "") for cat in Assets.keys()])
+        return categories
+
     asset_category: bpy.props.EnumProperty(
         name="Category",
-        items=[
-            ('All', "All", ""),
-            ('Rigs', "Rigs", ""),
-            ('Scripts', "Scripts", ""),
-        ],
+        items=categories(),
         default='All',
     )
 

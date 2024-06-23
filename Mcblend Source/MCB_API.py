@@ -5,7 +5,7 @@ def InitOnStart():
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
         update_default_pack()
-
+        
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
     for category, assets in Assets.items():

@@ -476,7 +476,10 @@ def apply_resources():
             if colorspace != None:
                 for user in Users:
                     user.image = user_texture
-                    user.image.colorspace_settings.name = colorspace
+                    try:
+                        user.image.colorspace_settings.name = colorspace
+                    except:
+                        Absolute_Solver("u006", colorspace)
             else:
                 for user in Users:
                     user.image = user_texture
@@ -744,7 +747,10 @@ def apply_resources():
                                     
                                     update_texture(new_normal_image_path, normal_image_name, normal_texture_node)
                                     
-                                    normal_texture_node.image.colorspace_settings.name = "Non-Color"
+                                    try:
+                                        normal_texture_node.image.colorspace_settings.name = "Non-Color"
+                                    except:
+                                        Absolute_Solver("u006", "Non-Color")
 
                                     if normal_map_node == None:
                                         normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")

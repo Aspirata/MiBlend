@@ -12,12 +12,6 @@ def get_asset_path(category, asset_name):
         print(f"Asset '{asset_name}' in category '{category}' not found.")
         return None, None
     
-def sort_by_version(asset_data):
-    try:
-        return blender_version(asset_data["Blender_version"])
-    except:
-        return True
-
 def append_asset(asset_name, asset_category):
     asset_path, asset_data = get_asset_path(asset_category, asset_name)
     if asset_path is None:
