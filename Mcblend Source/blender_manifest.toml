@@ -1,0 +1,22 @@
+schema_version = "1.0.0"
+
+id = "mcblend"
+version = "0.4.3"
+name = "Mcblend"
+tagline = "A useful tool for creating minecraft content in blender"
+maintainer = "Aspirata <Aspirata.minecraft@gmail.com>"
+type = "add-on"
+
+license = [
+  "SPDX:GPL-2.0-or-later",
+]
+
+platforms = ["windows-x64"]
+
+permissions = ["files"]
+
+website = "https://github.com/Aspirata/Mcblend/wiki"
+
+tags = ["Animation", "3D View", "Add Mesh", "Material"]
+
+blender_version_min = "4.2.0"
