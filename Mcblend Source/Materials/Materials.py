@@ -458,20 +458,21 @@ def apply_resources():
 
             bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
         
+        new_image_texture = new_image_path.split("\\")[-1]
         if texture_node != None:
             if not texture_node.image:
                 if image_texture in bpy.data.images:
-                    texture_node.image = bpy.data.images[image_texture]
+                    texture_node.image = bpy.data.images[new_image_texture]
                 else:
                     texture_node.image = bpy.data.images.load(new_image_path)
 
         if Users != None:
 
-            if image_texture in bpy.data.images:
-                user_texture = bpy.data.images[image_texture]
+            if new_image_texture in bpy.data.images:
+                user_texture = bpy.data.images[new_image_texture]
             else:
                 bpy.data.images.load(new_image_path)
-                user_texture = bpy.data.images[image_texture]
+                user_texture = bpy.data.images[new_image_texture]
 
             if colorspace != None:
                 for user in Users:
@@ -494,10 +495,10 @@ def apply_resources():
 
         if r_props.animate_textures:
             if int(bpy.data.images[image_texture].size[1] / bpy.data.images[image_texture].size[0]) != 1:
-                animation_file = find_image(image_texture + ".mcmeta", path)
-                if animation_file == None and image_path != None:
-                    animation_file = find_image(re.sub(r'(_n|_s|_e)$', '', image_texture.replace('.png', '')) + ".png" + ".mcmeta", image_path)
-                if animation_file != None:
+                animation_file = new_image_texture_path + ".mcmeta"
+                if not os.path.isfile(animation_file) and image_path != None:
+                    animation_file = image_path + re.sub(r'(_n|_s|_e)$', '', image_texture.replace('.png', '')) + ".png" + ".mcmeta"
+                if os.path.isfile(animation_file):
                     with open(animation_file, 'r') as file:
                         data = json.load(file).get('animation', {})
                         if data.get('frametime') == None:
@@ -691,8 +692,11 @@ def apply_resources():
                                 new_image_path = find_image(image_texture, path)
 
                                 # 22 format fix
-                                if new_image_path == None and r_props.format_fix:
+                                if new_image_path == None and r_props.format_fix and "grass" in image_texture:
+                                    # Maybe implement if new_image_path == None then new_image_path = "short_" + new_image_path.split("\\")[-1]
                                     new_image_path = find_image("short_" + image_texture, path)
+                                    if new_image_path == None:
+                                        new_image_path = find_image(image_texture.replace("short_", ""), path)
 
                                 if new_image_path != None and os.path.isfile(new_image_path):
 
@@ -700,7 +704,7 @@ def apply_resources():
                                     
                                     image_path = path
                                         
-                                    animate_texture(image_texture_node, image_texture, new_image_path, ITexture_Animator, Current_node_tree)
+                                    animate_texture(image_texture_node, new_image_path.split("\\")[-1], new_image_path, ITexture_Animator, Current_node_tree)
                                     break
 
                         # Normal Texture Update
@@ -719,8 +723,10 @@ def apply_resources():
                                 new_normal_image_path = find_image(normal_image_name, path)
 
                                 # 22 format fix
-                                if new_normal_image_path == None and r_props.format_fix:
+                                if new_normal_image_path == None and r_props.format_fix and "grass" in normal_image_name:
                                     new_normal_image_path = find_image("short_" + normal_image_name, path)
+                                    if new_image_path == None:
+                                        new_image_path = find_image(normal_image_name.replace("short_", ""), path)
 
                                 if new_normal_image_path != None:
                                     if normal_texture_node == None:
@@ -758,7 +764,7 @@ def apply_resources():
                                         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
                                         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
                                     
-                                    animate_texture(normal_texture_node, normal_image_name, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
+                                    animate_texture(normal_texture_node, new_normal_image_path.split("\\")[-1], new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
                                 break
                         else:
                             if normal_texture_node != None:
@@ -783,8 +789,10 @@ def apply_resources():
                                 new_specular_image_path = find_image(specular_image_name, path)
 
                                 # 22 format fix
-                                if new_specular_image_path == None and r_props.format_fix:
+                                if new_specular_image_path == None and r_props.format_fix and "grass" in specular_image_name:
                                     new_specular_image_path = find_image("short_" + specular_image_name, path)
+                                    if new_image_path == None:
+                                        new_image_path = find_image(specular_image_name.replace("short_", ""), path)
 
                                 if new_specular_image_path != None:
                                     for node in material.node_tree.nodes:
@@ -867,7 +875,7 @@ def apply_resources():
                                         RemoveLinksFrom(PBSDF.inputs[PBSDF_compability("Emission Color")])
                                         
 
-                                    animate_texture(specular_texture_node, specular_image_name, new_specular_image_path, STexture_Animator, Current_node_tree, image_path)
+                                    animate_texture(specular_texture_node, new_specular_image_path.split("\\")[-1], new_specular_image_path, STexture_Animator, Current_node_tree, image_path)
                                     break
                         else:
                             if specular_texture_node != None:
@@ -892,8 +900,10 @@ def apply_resources():
                                 new_emission_image_path = find_image(emission_image_name, path)
 
                                 # 22 format fix
-                                if emission_image_name == None and r_props.format_fix:
-                                    new_emission_image_path = find_image("short_" + new_emission_image_path, path)
+                                if emission_image_name == None and r_props.format_fix and "grass" in emission_image_name:
+                                    new_emission_image_path = find_image("short_" + emission_image_name, path)
+                                    if new_image_path == None:
+                                        new_image_path = find_image(emission_image_name.replace("short_", ""), path)
 
                                 if new_emission_image_path != None:
                                     if emission_texture_node == None:
@@ -925,7 +935,7 @@ def apply_resources():
                                     material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
                                     material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
 
-                                    animate_texture(emission_texture_node, emission_image_name, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
+                                    animate_texture(emission_texture_node, new_emission_image_path.split("\\")[-1], new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
                                     break
                         elif emission_texture_node != None:
                             material.node_tree.nodes.remove(emission_texture_node)

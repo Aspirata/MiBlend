@@ -831,7 +831,7 @@ class RemoveResourcePack(Operator):
 
 class UpdateDefaultPack(Operator):
     bl_idname = "resource_pack.update_default_pack"
-    bl_label = "Update Default Packs"
+    bl_label = "Reload Default Packs"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1156,11 +1156,11 @@ class AssetPanel(Panel):
         box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
 
         row = box.row()
-        row.operator("assets.update_assets", text="Manually Update Assets List")
+        row.operator("assets.update_assets")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset", text="Import Asset")
+        row.operator("assets.import_asset")
 
 class Assets_List_UL_(bpy.types.UIList):
 
@@ -1248,7 +1248,7 @@ class ImportAssetOperator(Operator):
     
 class ManualAssetsUpdateOperator(Operator):
     bl_idname = "assets.update_assets"
-    bl_label = "Update Assets"
+    bl_label = "Reload Assets List"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):

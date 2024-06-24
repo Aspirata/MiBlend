@@ -376,11 +376,4 @@ Assets = {
             "File_name": "Contact Shadows.py",
         }
     },
-
-    "Я посрал": {
-
-        "Я мега насрал": {
-            "File_name": "Sleep After Render.py",
-        }
-    }
 }
