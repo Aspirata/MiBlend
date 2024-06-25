@@ -97,8 +97,31 @@ def upgrade_materials():
             Absolute_Solver("m003", selected_object)
 
 # Fix World
-                        
+
+def get_linked_nodes(node, input_name):
+    linked_nodes = []
+    if input_name in node.inputs and node.inputs[input_name].is_linked:
+        for link in node.inputs[input_name].links:
+            linked_nodes.append(link.from_node)
+    return linked_nodes
+
+def traverse_nodes(node, input_name, visited=None):
+    if visited is None:
+        visited = set()
+    
+    if node in visited:
+        return visited
+    
+    visited.add(node)
+    
+    linked_nodes = get_linked_nodes(node, input_name)
+    for linked_node in linked_nodes:
+        traverse_nodes(linked_node, input_name, visited)
+    
+    return visited
+
 def fix_world():
+    
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
@@ -123,16 +146,18 @@ def fix_world():
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            image_texture_node = node
-                            image_texture_node.interpolation = "Closest"
+                            node.interpolation = "Closest"
 
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
+                            connected_nodes = traverse_nodes(node, "Base Color")
+                            for n in connected_nodes:
+                                if n.type == "TEX_IMAGE":
+                                    image_texture_node = n
                         
                         if node.type == "GROUP":
                             if "Lazy Biome Color Fix" == node.node_tree.name:
                                 lbcf_node = node
-                                break
                                 
                     if (image_texture_node and PBSDF) != None:
                         if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) == None:
@@ -795,19 +820,20 @@ def apply_resources():
                                         new_image_path = find_image(specular_image_name.replace("short_", ""), path)
 
                                 if new_specular_image_path != None:
-                                    for node in material.node_tree.nodes:
-                                        if node.type == "GROUP":
-                                            if "Animated;" in node.node_tree.name:
-                                                if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
-                                                    NTexture_Animator = node
-                                                elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
-                                                    STexture_Animator = node
-                                                elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
-                                                    ETexture_Animator = node
-                                                else:
-                                                    ITexture_Animator = node
-                                                    image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
-                                                Current_node_tree = node.node_tree
+                                    if STexture_Animator == None or ITexture_Animator == None:
+                                        for node in material.node_tree.nodes:
+                                            if node.type == "GROUP":
+                                                if "Animated;" in node.node_tree.name:
+                                                    if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
+                                                        NTexture_Animator = node
+                                                    elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
+                                                        STexture_Animator = node
+                                                    elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
+                                                        ETexture_Animator = node
+                                                    else:
+                                                        ITexture_Animator = node
+                                                        image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
+                                                    Current_node_tree = node.node_tree
 
                                     if specular_texture_node == None and STexture_Animator == None:
                                         specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
@@ -909,19 +935,20 @@ def apply_resources():
                                     if emission_texture_node == None:
                                         emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
 
-                                        for node in material.node_tree.nodes:
-                                            if node.type == "GROUP":
-                                                if "Animated;" in node.node_tree.name:
-                                                    if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
-                                                        NTexture_Animator = node
-                                                    elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
-                                                        STexture_Animator = node
-                                                    elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
-                                                        ETexture_Animator = node
-                                                    else:
-                                                        ITexture_Animator = node
-                                                        image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
-                                                    Current_node_tree = node.node_tree
+                                        if ETexture_Animator == None or ITexture_Animator == None:
+                                            for node in material.node_tree.nodes:
+                                                if node.type == "GROUP":
+                                                    if "Animated;" in node.node_tree.name:
+                                                        if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
+                                                            NTexture_Animator = node
+                                                        elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
+                                                            STexture_Animator = node
+                                                        elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
+                                                            ETexture_Animator = node
+                                                        else:
+                                                            ITexture_Animator = node
+                                                            image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
+                                                        Current_node_tree = node.node_tree
 
                                         try:
                                             emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 850)
@@ -973,6 +1000,7 @@ def swap_textures(folder_path):
 # Set Procedural PBR
         
 def setproceduralpbr():
+
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
@@ -995,11 +1023,10 @@ def setproceduralpbr():
                     for node in material.node_tree.nodes:
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
-
-                        if node.type == "TEX_IMAGE":
-                            #if GetConnectedSocketTo("Base Color", "BSDF_PRINCIPLED", material).node == node:
-                            if ".00" not in node.name:
-                                image = node.image
+                            connected_nodes = traverse_nodes(node, "Base Color")
+                            for n in connected_nodes:
+                                if n.type == "TEX_IMAGE":
+                                    image = n.image
 
                         if node.type == "BUMP":
                             bump_node = node
@@ -1089,6 +1116,7 @@ def setproceduralpbr():
                                 
                                 if Texture_Animator != None: 
                                     material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
+
                         elif PProperties.revert_normals:
                             
                             if bump_node is not None:
@@ -1097,7 +1125,6 @@ def setproceduralpbr():
                             if PNormals is not None:
                                 material.node_tree.nodes.remove(PNormals)
 
-                                
                         # Change PBSDF Settings                                
                         if PProperties.change_bsdf:
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
@@ -1114,13 +1141,10 @@ def setproceduralpbr():
                                     else:
                                         material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs['Subsurface Color'])
                                 else:
-                                    for link in material.node_tree.links:
-                                        if blender_version("4.x.x"):
-                                            if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
-                                                material.node_tree.links.remove(link)
-                                        else:
-                                            if link.to_socket == PBSDF.inputs["Subsurface Color"]:
-                                                material.node_tree.links.remove(link)
+                                    if blender_version("4.x.x"):
+                                        RemoveLinksFrom(PBSDF.inputs["Subsurface Radius"])
+                                    else:
+                                        RemoveLinksFrom(PBSDF.inputs["Subsurface Color"])
 
                                 
                                 if blender_version("4.x.x"):
@@ -1130,11 +1154,10 @@ def setproceduralpbr():
                                     PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
 
                                 PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
-                        else:
+                        elif PProperties.revert_sss:
                             PBSDF.inputs[PBSDF_compability("Subsurface Weight")].default_value = 0
 
                         # Use Translucency
-                        # Fix for 3.6
                         if MaterialIn(Translucent_Materials, material):
                             if PProperties.use_translucency == True:
                                     PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
