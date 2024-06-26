@@ -22,6 +22,10 @@ Big_Button_Scale = 1.4
 
 Absolute_Solver_Errors = {
 
+    # Quick Tip
+    # m - Materials Error
+    # u - User's Mistake
+
     "LoL": {
         "Error Name": "Zero Settings",
         "Description": "You disabled all {Data} settings, so it did nothing LoL",

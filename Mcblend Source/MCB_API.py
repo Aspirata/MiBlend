@@ -152,22 +152,6 @@ def update_default_pack(debug=None):
     
     if debug is not None:
         print(f"Default Pack: {default_pack} stored in {default_path}")
-
-def find_image(image_name, root_folder):
-    for dirpath, _, files in os.walk(root_folder):
-        for file in files:
-            if file == image_name:
-                return os.path.join(dirpath, file)
-            elif file.endswith(('.zip', '.jar')):
-                archive_path = os.path.join(dirpath, file)
-                with zipfile.ZipFile(archive_path, 'r') as zip_ref:
-                    for zip_info in zip_ref.infolist():
-                        if os.path.basename(zip_info.filename) == image_name:
-                            extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
-                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                            return extracted_file_path
-    
-    return None
                         
 def blender_version(blender_version, debug=None):
     
