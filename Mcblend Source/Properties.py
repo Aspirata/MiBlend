@@ -241,24 +241,10 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    revert_pspecular: BoolProperty(
-        name="Revert",
-        default=True,
-        description=""
-    )
-
     pspecular_settings: BoolProperty(
         name="Procedural Specular Settings",
         default=False,
         description=""
-    )
-
-    ps_dif: FloatProperty(
-        name="Difference",
-        default=0.0,
-        min=0.0,
-        max=1.0,
-        description="Value 1 will be Ignored"
     )
 
     ps_interpolation: EnumProperty(
@@ -269,14 +255,23 @@ class PPBRProperties(PropertyGroup):
         default='LINEAR'
     )
 
-    proughness: BoolProperty(
-        name="Procedural Roughness",
+    ps_dif: FloatProperty(
+        name="Difference",
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        description="Value 1 will be Ignored"
+    )
+
+    ps_revert: BoolProperty(
+        name="Revert",
         default=True,
         description=""
     )
+    
 
-    revert_proughness: BoolProperty(
-        name="Revert",
+    proughness: BoolProperty(
+        name="Procedural Roughness",
         default=True,
         description=""
     )
@@ -287,6 +282,14 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    pr_interpolation: EnumProperty(
+        items=[('LINEAR', 'Linear', ''), 
+            ('SMOOTHSTEP', 'Smooth Step', ''),
+            ('SMOOTHERSTEP', 'Smoother Step', '')],
+        name="Interpolation",
+        default='LINEAR'
+    )
+
     pr_dif: FloatProperty(
         name="Difference",
         default=0.6,
@@ -294,13 +297,11 @@ class PPBRProperties(PropertyGroup):
         max=1.0,
         description="Value 1 will be Ignored"
     )
-
-    pr_interpolation: EnumProperty(
-        items=[('LINEAR', 'Linear', ''), 
-            ('SMOOTHSTEP', 'Smooth Step', ''),
-            ('SMOOTHERSTEP', 'Smoother Step', '')],
-        name="Interpolation",
-        default='LINEAR'
+    
+    pr_revert: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
     )
 
     advanced_settings: BoolProperty(

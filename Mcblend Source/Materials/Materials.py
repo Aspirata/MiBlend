@@ -187,7 +187,7 @@ def fix_world():
                                 if bfc_node == None:
                                     if "Backface Culling" not in bpy.data.node_groups:
                                         try:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["Backface Culling"]
                                         except:
                                             Absolute_Solver("004", "Materials", traceback.format_exc())
@@ -219,7 +219,7 @@ def fix_world():
                                 if lbcf_node == None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["Lazy Biome Color Fix"]
                                         except:
                                             Absolute_Solver("004", "Materials", traceback.format_exc())
@@ -293,7 +293,7 @@ def create_env(self=None):
                         bpy.data.node_groups.remove(group)
 
                 try:
-                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
                     appended_world_material = bpy.data.worlds.get(world_material_name)
                     bpy.context.scene.world = appended_world_material
@@ -368,7 +368,7 @@ def create_env(self=None):
         if scene.env_properties.create_sky:
             try:
                 if world_material_name not in bpy.data.worlds:
-                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
                     appended_world_material = bpy.data.worlds.get(world_material_name)
                 else:
@@ -550,10 +550,10 @@ def apply_resources():
                                 ITexture_Animator.node_tree = Current_node_tree
                             else:
                                 if "Texture Animator" not in bpy.data.node_groups:
-                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                         data_to.node_groups = ["Texture Animator"]
                                 
-                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                     data_to.node_groups = ["Texture Animator"]
 
                                 bpy.data.node_groups[f"Texture Animator.001"].name = f"Animated; {image_texture.replace('.png', '')}"
@@ -595,7 +595,7 @@ def apply_resources():
                         if Texture_Animator is None:
                             if "Texture Animator" not in bpy.data.node_groups:
                                 try:
-                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                         data_to.node_groups = ["Texture Animator"]
                                 except:
                                     Absolute_Solver("004", "Materials", traceback.format_exc())
@@ -848,7 +848,7 @@ def apply_resources():
 
                                     if LabPBR_s == None:
                                         if "LabPBR Specular" not in bpy.data.node_groups:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["LabPBR Specular"]
 
                                         LabPBR_s = material.node_tree.nodes.new("ShaderNodeGroup")
@@ -1073,7 +1073,7 @@ def setproceduralpbr():
                                         PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
                                     
                                     else:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                             data_to.node_groups = ["PNormals"]
 
                                         PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -1190,7 +1190,7 @@ def setproceduralpbr():
                             # BATGroup Import if BATGroup isn't in File
                             if node_group == None:
                                 if BATGroup not in bpy.data.node_groups:
-                                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                         data_to.node_groups = [BATGroup]
 
                                 node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -1257,7 +1257,7 @@ def setproceduralpbr():
                             material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), proughness_node.inputs["Value"])
                             material.node_tree.links.new(proughness_node.outputs[0], PBSDF.inputs["Roughness"])
 
-                        elif PProperties.revert_proughness and proughness_node != None:
+                        elif PProperties.pr_revert and proughness_node != None:
                             material.node_tree.nodes.remove(proughness_node)
                         
                         if PProperties.pspecular:
@@ -1276,7 +1276,7 @@ def setproceduralpbr():
                             material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
                             material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
                             
-                        elif PProperties.revert_pspecular and pspecular_node != None:
+                        elif PProperties.ps_revert and pspecular_node != None:
                             material.node_tree.nodes.remove(pspecular_node)
 
                 else:

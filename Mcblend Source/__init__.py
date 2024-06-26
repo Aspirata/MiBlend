@@ -649,6 +649,9 @@ class WorldAndMaterialsPanel(Panel):
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "ps_dif")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "ps_revert")
         
         row = box.row()
         row.prop(scene.ppbr_properties, "proughness")
@@ -663,6 +666,9 @@ class WorldAndMaterialsPanel(Panel):
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "pr_dif")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "pr_revert")
 
         row = box.row()
         row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
