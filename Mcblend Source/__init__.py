@@ -861,6 +861,7 @@ class AddResourcePack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    Type: bpy.props.EnumProperty(items=[('Texture', 'Texture', ''), ('PBR', 'PBR', ''), ('Texture & PBR', 'Texture & PBR', ''), ])
 
     def execute(self, context):
         scene = context.scene
@@ -869,13 +870,13 @@ class AddResourcePack(Operator):
         if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
             if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
                 pack_name = os.path.basename(self.filepath)
-                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": self.Type, "enabled": True}
             else:
                 pack_name = os.path.basename(os.path.dirname(self.filepath))
-                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": self.Type, "enabled": True}
         else:
             pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "enabled": True}
+            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": self.Type, "enabled": True}
         
         set_resource_packs(resource_packs)
 
