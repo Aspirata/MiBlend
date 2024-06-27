@@ -41,11 +41,6 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
-    format_fix: BoolProperty(
-        name="Format 22 Fix",
-        default=True,
-    )
-
     use_additional_textures: BoolProperty(
         name="Use Additional Textures",
         default=True,

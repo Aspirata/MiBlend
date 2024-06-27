@@ -474,13 +474,11 @@ def apply_resources():
                             extracted_file_path = zip_ref.extract(image_name, extract_path)
                             return extracted_file_path
                 
-                if r_props.format_fix and "grass" in image_name:
-                    format_fixed = os.path.join(dirpath, "short_" + image_name)
-                    if os.path.isfile(format_fixed):
+                if "grass" in image_name:
+                    if os.path.isfile(format_fixed := os.path.join(dirpath, "short_" + image_name)):
                         return format_fixed
 
-                    format_fixed = os.path.join(dirpath, image_name.replace("short_", ""))
-                    if os.path.isfile(format_fixed):
+                    if os.path.isfile(format_fixed := os.path.join(dirpath, image_name.replace("short_", ""))):
                         return format_fixed
             
         return None
@@ -947,8 +945,8 @@ def apply_resources():
                         # Image Texture Update
                         if r_props.use_i and "MWO" not in image_texture:
                             for pack, pack_info in resource_packs.items():
-                                path, type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                                if not enabled or "Texture" not in type:
+                                path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
+                                if not enabled or "Texture" not in Type:
                                     continue
                                 
                                 
@@ -965,8 +963,8 @@ def apply_resources():
                         # Normal Texture Update
                         if r_props.use_n and r_props.use_additional_textures and "MWO" not in image_texture:
                             for pack, pack_info in resource_packs.items():
-                                path, type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                                if not enabled or "PBR" not in type:
+                                path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
+                                if not enabled or "PBR" not in Type:
                                     continue
 
                                 if new_normal_image_path := normal_texture_change(path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
@@ -983,8 +981,8 @@ def apply_resources():
                         # Specular Texture Update
                         if r_props.use_s and r_props.use_additional_textures and "MWO" not in image_texture:
                             for pack, pack_info in resource_packs.items():
-                                path, type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                                if not enabled or "PBR" not in type:
+                                path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
+                                if not enabled or "PBR" not in Type:
                                     continue
 
                                 if new_specular_image_path := specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
@@ -1002,8 +1000,8 @@ def apply_resources():
                         # Emission Texture Update
                         if r_props.use_e and r_props.use_additional_textures and "MWO" not in image_texture:
                             for pack, pack_info in resource_packs.items():
-                                path, type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                                if not enabled or "PBR" not in type:
+                                path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
+                                if not enabled or "PBR" not in Type:
                                     continue
 
                                 if emission_texture_found := emission_texture_change(path, emission_texture_node, new_normal_image_path, new_specular_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
