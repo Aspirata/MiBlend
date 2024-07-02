@@ -378,6 +378,10 @@ Assets = {
         "Enable Contact Shadows": {
             "Blender_version": "< 4.2.0",
             "File_name": "Contact Shadows.py",
-        }
+        },
+
+        "ACES Textures Fix": {
+            "File_name": "ACES Textures Fix.py",
+        },
     },
 }

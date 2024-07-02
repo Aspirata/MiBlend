@@ -37,14 +37,18 @@ def update_assets():
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
 
+    all_keys = []
+
     for category, assets in Assets.items():
         for key in assets.keys():
-            item = items.add()
-            item.name = key
+            all_keys.append(key)
+
+    for key in sorted(all_keys):
+        item = items.add()
+        item.name = key
+    
     
 def run_python_script(file_path):
-
-    # Fix Absolute Solver
 
     def import_all_from_module(module_name, module_path=None):
         if module_path:

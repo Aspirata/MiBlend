@@ -1,4 +1,5 @@
 from .Data import *
+from .Assets import update_assets
 
 def InitOnStart():
 
@@ -6,12 +7,7 @@ def InitOnStart():
         bpy.context.scene["resource_packs"] = {}
         update_default_pack()
         
-    items = bpy.context.scene.assetsproperties.asset_items
-    items.clear()
-    for category, assets in Assets.items():
-        for key in assets.keys():
-            item = items.add()
-            item.name = key
+    update_assets()
 
 def PBSDF_compability(Input):
     if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
