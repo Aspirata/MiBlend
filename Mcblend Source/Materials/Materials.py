@@ -134,7 +134,7 @@ def fix_world():
                     scene = bpy.context.scene
                     WProperties = scene.world_properties
 
-                    if MaterialIn(Alpha_Blend_Materials, material):
+                    if MaterialIn(Alpha_Blend_Materials, material) and WProperties.use_alpha_blend:
                         material.blend_method = 'BLEND'
                     else:
                         material.blend_method = 'HASHED'
@@ -159,7 +159,7 @@ def fix_world():
                             if "Lazy Biome Color Fix" == node.node_tree.name:
                                 lbcf_node = node
                                 
-                    if (image_texture_node and PBSDF) != None:
+                    if image_texture_node and PBSDF:
                         if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) == None:
                             material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                         

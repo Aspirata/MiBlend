@@ -180,6 +180,9 @@ class WorldAndMaterialsPanel(Panel):
         row.prop(WProperties, "lazy_biome_fix")
 
         row = box.row()
+        row.prop(WProperties, "use_alpha_blend")
+
+        row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("world.fix_world", text="Fix World")
 

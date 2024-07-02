@@ -21,6 +21,17 @@ class WorldProperties(PropertyGroup):
         default=True,
     )
 
+    def alpha_blend_fix(): # Fix for Eevee Next
+        if blender_version(">= 4.2.0"):
+            return False
+        else:
+            return True
+
+    use_alpha_blend: BoolProperty(
+        name="Use Alpha Blend",
+        default=alpha_blend_fix(),
+    )
+
 
 
 
