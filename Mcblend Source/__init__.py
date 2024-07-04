@@ -875,31 +875,33 @@ class AddResourcePack(Operator):
             if os.path.isdir(self.filepath):
                 for root, _, files in os.walk(self.filepath):
                     for file in files:
-                        if any(suffix in file for suffix in ('_n', '_s', '_e')):
-                            has_pbr = True
-                        else:
-                            has_texture = True
+                        if file.endswith('.png'):
+                            if any(suffix in file for suffix in ('_n', '_s', '_e')):
+                                has_pbr = True
+                            else:
+                                has_texture = True
 
             elif self.filepath.endswith(('.zip', '.jar')):
                 try:
                     with zipfile.ZipFile(self.filepath, 'r') as zip_ref:
                         for zip_info in zip_ref.infolist():
-                            if any(suffix in zip_info.filename for suffix in ('_n', '_s', '_e')):
-                                has_pbr = True
-                            else:
-                                has_texture = True
+                            if zip_info.filename.endswith('.png'):
+                                if any(suffix in zip_info.filename for suffix in ('_n', '_s', '_e')):
+                                    has_pbr = True
+                                else:
+                                    has_texture = True
+                                    
                 except zipfile.BadZipFile:
                     print(f"Warning: '{self.filepath}' is not a valid zip file.")
             
             else: 
-                print(f"{os.path.abspath(self.filepath)} isn't a folder, so checking {os.path.dirname(self.filepath)}")
                 for root, _, files in os.walk(os.path.dirname(self.filepath)):
                     for file in files:
-                        print(file)
-                        if any(suffix in file for suffix in ('_n', '_s', '_e')):
-                            has_pbr = True
-                        else:
-                            has_texture = True
+                        if file.endswith('.png'):
+                            if any(suffix in file for suffix in ('_n', '_s', '_e')):
+                                has_pbr = True
+                            else:
+                                has_texture = True
             
             if has_texture and has_pbr:
                 resource_pack_type = 'Texture & PBR'

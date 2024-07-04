@@ -473,6 +473,16 @@ def apply_resources():
                             extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
                             extracted_file_path = zip_ref.extract(image_name, extract_path)
                             return extracted_file_path
+                        elif "grass" in image_name:
+                            if "short_" + image_name in file_list:
+                                extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
+                                extracted_file_path = zip_ref.extract("short_" + image_name, extract_path)
+                                return extracted_file_path
+                            
+                            if  image_name.replace("short_", "") in file_list:
+                                extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
+                                extracted_file_path = zip_ref.extract(image_name.replace("short_", ""), extract_path)
+                                return extracted_file_path
                 
                 if "grass" in image_name:
                     if os.path.isfile(format_fixed := os.path.join(dirpath, "short_" + image_name)):

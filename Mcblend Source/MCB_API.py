@@ -1,5 +1,6 @@
 from .Data import *
 from .Assets import update_assets
+from distutils.version import LooseVersion
 
 def InitOnStart():
 
@@ -130,9 +131,28 @@ def set_resource_packs(resource_packs, debug=None):
 def update_default_pack(debug=None):
     resource_packs = bpy.context.scene["resource_packs"]
 
-    default_pack = "Minecraft 1.20.6"
-    default_path = os.path.join(resource_packs_directory, default_pack)
-    resource_packs[default_pack] = {"path": (default_path), "type": "Texture", "enabled": True}
+    def find_mc():
+        versions = {}
+        for launcher, path in Launchers.items():
+            folders = os.listdir(os.path.join(os.getenv('APPDATA'), path))
+            for folder in folders:
+                version = folder.split("-")[0]
+                if not any(char.isalpha() for char in version):
+                    versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
+            
+        if versions:
+            latest_version = max(versions, key=lambda x: LooseVersion(x))
+            latest_file, latest_path = versions[latest_version]
+            return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
+        else:
+            return None, None
+
+    MC = find_mc()
+    if MC != (None, None):
+        version, path = MC
+        default_pack = f"Minecraft {version}"
+        default_path = os.path.join(resource_packs_directory, default_pack)
+        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True}
 
     default_pack = "Bare Bones 1.20.6"
     default_path = os.path.join(resource_packs_directory, default_pack)

@@ -275,6 +275,10 @@ Emissive_Materials = {
 
 }
 
+Launchers = {
+    "Modrinth": "com.modrinth.theseus\\meta\\versions"
+}
+
 # Materials Categories
 
 Backface_Culling_Materials = ["glass", "door", "nether_portal"]
