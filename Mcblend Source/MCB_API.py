@@ -153,6 +153,8 @@ def update_default_pack(debug=None):
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
         resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True}
+    else:
+        print("MC not found")
 
     default_pack = "Bare Bones 1.20.6"
     default_path = os.path.join(resource_packs_directory, default_pack)
