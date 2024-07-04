@@ -134,6 +134,21 @@ class RecreateEnvironment(Operator):
         row = box.row()
         row.prop(self, "create_clouds", text='create_clouds', expand=True)
 
+class ResourcePackDropdown(bpy.types.Menu):
+    bl_label = "Pack Options Menu"
+    bl_idname = "resource_pack.options_menu"
+
+    pack_name: bpy.props.StringProperty()
+
+    def draw(self, context):
+        layout = self.layout
+        remove_op = layout.operator("resource_pack.options", text="Remove Pack", icon="X")
+        remove_op.option = 'Remove'
+        remove_op.pack_name = self.pack_name
+
+        info_op = layout.operator("resource_pack.options", text="Pack Info", icon="INFO_LARGE")
+        info_op.option = 'Info'
+        info_op.pack_name = self.pack_name
 
 class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"
@@ -215,8 +230,9 @@ class WorldAndMaterialsPanel(Panel):
                     move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
                     move_down.pack_name = pack
 
-                    remove = row.operator("resource_pack.remove", text="", icon='X')
-                    remove.pack_name = pack
+                    dropdown = row.menu("resource_pack.options_menu", text="", icon='DOWNARROW_HLT')
+                    dropdown.pack_name = pack
+
             
                 row = sbox.row()
                 row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
@@ -224,6 +240,7 @@ class WorldAndMaterialsPanel(Panel):
                 row = sbox.row()
                 row.operator("resource_pack.add", icon='ADD')
             except:
+                print(traceback.format_exc())
                 row = sbox.row()
                 row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
         
@@ -477,7 +494,7 @@ class WorldAndMaterialsPanel(Panel):
                             row = tbox.row()
                             row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
                             row = tbox.row()
-                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True) 
+                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
                 else:
                     if scene.env_properties.sky_settings:
                         sbox = box.box()
@@ -821,18 +838,22 @@ class MoveResourcePackDown(Operator):
             set_resource_packs(reordered_packs)
         return {'FINISHED'}
 
-class RemoveResourcePack(Operator):
-    bl_idname = "resource_pack.remove"
-    bl_label = "Remove Resource Pack"
+class ResourcePackOptions(Operator):
+    bl_idname = "resource_pack.options"
+    bl_label = "Resource Pack Option"
     bl_options = {'REGISTER', 'UNDO'}
 
+    option: bpy.props.StringProperty()
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
         resource_packs = get_resource_packs()
-        if self.pack_name in resource_packs:
-            del resource_packs[self.pack_name]
-            set_resource_packs(resource_packs)
+        if self.option == "Remove":
+            if self.pack_name in resource_packs:
+                del resource_packs[self.pack_name]
+                set_resource_packs(resource_packs)
+        elif self.option == "Info":
+            print(resource_packs[self.pack_name]["path"], resource_packs[self.pack_name]["type"])
         return {'FINISHED'}
 
 class UpdateDefaultPack(Operator):
@@ -1306,10 +1327,10 @@ class ManualAssetsUpdateOperator(Operator):
         return {'FINISHED'}
 #
 
-classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, 
+classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment, ResourcePackDropdown,
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties,
     WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, 
-    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack,
+    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, ResourcePackOptions, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator
