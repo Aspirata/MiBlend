@@ -49,7 +49,7 @@ Absolute_Solver_Errors = {
     },
 
     "m003": {
-        "Error Name": "Object Has No Materials",
+        "Error Name": "Object has no Materials",
         "Description": 'Object "{Data.name}" has no materials',
         "Mode": "Full"
     },
@@ -67,6 +67,12 @@ Absolute_Solver_Errors = {
     "u006": {
         "Error Name": "Color Space Not Found",
         "Description": "You have custom color manager that doesn't have {Data}",
+    },
+
+    "007": {
+        "Error Name": "Create Thing Doesn't Exists in the File",
+        "Description": "Create feature uses alredy imported asset to your file, so if you see this message then your file doesn't have {Data} and you should probably use recreate feature instead",
+        "Mode": "Full"
     },
 }
 

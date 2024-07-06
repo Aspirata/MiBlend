@@ -241,15 +241,22 @@ def fix_world():
             Absolute_Solver("m003", selected_object)
 
 def create_env(self=None):
+
+    def clouds_file_comp():
+        if blender_version("4.x.x"):
+            return "4.0"
+        else:
+            return "3.6"
+        
     scene = bpy.context.scene
     world = scene.world
     clouds_exists = False
     sky_exists = False
 
-    if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
+    if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
         clouds_exists = True
 
-    if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+    if world != None and "Mcblend Sky" in bpy.data.node_groups:
         if world_material_name in bpy.data.worlds:
             sky_exists = True
     
@@ -257,7 +264,6 @@ def create_env(self=None):
 
         # Recreate Sky
         if self != None:
-
             if self.reset_settings == True:
                 world_material = bpy.context.scene.world.node_tree
                 group = bpy.data.node_groups["Mcblend Sky"]
@@ -285,7 +291,6 @@ def create_env(self=None):
 
             if self.create_sky == 'Recreate Sky':
                 if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) != None:
-                    
                     bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
                 
                 for group in bpy.data.node_groups:
@@ -298,13 +303,12 @@ def create_env(self=None):
                     appended_world_material = bpy.data.worlds.get(world_material_name)
                     bpy.context.scene.world = appended_world_material
                 except:
-                    Absolute_Solver('004', "Materials", traceback.format_exc())
+                    Absolute_Solver('004', "Nodes", traceback.format_exc())
 
-            if self.create_sky == 'Create Sky':
+            elif self.create_sky == 'Create Sky' and world_material_name in bpy.data.worlds:
+                bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
 
-                if world_material_name in bpy.data.worlds:
-                    bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
-
+            # Recreate Clouds
             if self.create_clouds == 'Recreate Clouds':
                 for obj in scene.objects:
                     if obj.get("Mcblend ID") == "Clouds":
@@ -316,18 +320,12 @@ def create_env(self=None):
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
                 
-                if blender_version("4.x.x"):
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
-                else:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
+                    try:
+                        with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
+                            data_to.node_groups = [clouds_node_tree_name]
+                            data_to.materials = ["Clouds"]
+                    except:
+                        Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
@@ -346,17 +344,21 @@ def create_env(self=None):
                 
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials["Clouds"]
+                else:
+                    Absolute_Solver("007", "Clouds Material")
 
-                for obj in scene.objects:
-                    if obj.get("Mcblend ID") == "Clouds":
-                        clouds_exists =True
+                if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
+                    clouds_exists =True
 
-                if clouds_exists == False:
-                    bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
-                    bpy.context.object.name = "Clouds"
-                    bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
-                    geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
-                    geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+                if clouds_node_tree_name in bpy.data.node_groups:
+                    if clouds_exists == False:
+                        bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
+                        bpy.context.object.name = "Clouds"
+                        bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
+                        geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+                        geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+                else:
+                    Absolute_Solver("007", clouds_node_tree_name)
 
                     bpy.context.object["Mcblend ID"] = "Clouds"
         else:
@@ -375,37 +377,28 @@ def create_env(self=None):
                     appended_world_material = bpy.data.worlds[world_material_name]
                 bpy.context.scene.world = appended_world_material
             except:
-                Absolute_Solver("004", "Materials", traceback.format_exc())
+                Absolute_Solver("004", "Nodes", traceback.format_exc())
 
         for obj in scene.objects:
             if obj.get("Mcblend ID") == "Clouds":
                 clouds_exists = True
 
-        if scene.env_properties.create_clouds and clouds_exists == False:               
-            if blender_version("4.x.x"):     
+        # Create Clouds
+        if scene.env_properties.create_clouds and clouds_exists == False:
+            try:
                 if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
                 else:
                     bpy.data.node_groups[clouds_node_tree_name]
                 
                 if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
                         data_to.materials = ["Clouds"]
                 else:
                     bpy.data.materials["Clouds"]
-            else:
-                if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                else:
-                    bpy.data.node_groups[clouds_node_tree_name]
-                
-                if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
-                else:
-                    bpy.data.materials["Clouds"]
+            except:
+                Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
 
             bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
@@ -414,9 +407,6 @@ def create_env(self=None):
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
             bpy.context.object["Mcblend ID"] = "Clouds"
-            
-
-    bpy.context.view_layer.update()
 
     
 def fix_materials():
@@ -893,6 +883,7 @@ def apply_resources():
                     specular_texture_node = None
                     emission_texture_node = None
                     LabPBR_s = None
+                    image_texture = None
                     ITexture_Animator = None
                     NTexture_Animator = None
                     STexture_Animator = None

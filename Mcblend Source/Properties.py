@@ -766,4 +766,3 @@ class AssetsProperties(PropertyGroup):
     )
 
     asset_items: bpy.props.CollectionProperty(type=PropertyGroup)
-    

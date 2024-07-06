@@ -138,17 +138,17 @@ class ResourcePackDropdown(bpy.types.Menu):
     bl_label = "Pack Options Menu"
     bl_idname = "resource_pack.options_menu"
 
-    pack_name: bpy.props.StringProperty()
-
     def draw(self, context):
         layout = self.layout
+        global current_pack_name
+
         remove_op = layout.operator("resource_pack.options", text="Remove Pack", icon="X")
         remove_op.option = 'Remove'
-        remove_op.pack_name = self.pack_name
+        remove_op.pack_name = current_pack_name
 
         info_op = layout.operator("resource_pack.options", text="Pack Info", icon="INFO_LARGE")
         info_op.option = 'Info'
-        info_op.pack_name = self.pack_name
+        info_op.pack_name = current_pack_name
 
 class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"
@@ -230,9 +230,9 @@ class WorldAndMaterialsPanel(Panel):
                     move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
                     move_down.pack_name = pack
 
-                    dropdown = row.menu("resource_pack.options_menu", text="", icon='DOWNARROW_HLT')
-                    dropdown.pack_name = pack
-
+                    row.menu("resource_pack.options_menu", text="", icon='DOWNARROW_HLT')
+                    global current_pack_name
+                    current_pack_name = pack
             
                 row = sbox.row()
                 row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
@@ -1303,18 +1303,18 @@ class ImportAssetOperator(Operator):
     
     def execute(self, context):
         current_index = bpy.context.scene.assetsproperties.asset_index
-        index = 0
-        found = False
+        items = bpy.context.scene.assetsproperties.asset_items
+
+        if current_index < 0 or current_index >= len(items):
+            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index", mode="Full")
+            return {'CANCELLED'}
+
+        asset_name = items[current_index].name
+
         for category, assets in Assets.items():
-            for key in assets.keys():
-                if current_index == index:
-                    append_asset(key, category)
-                    found = True
-                    break
-                index += 1
-            if found:
+            if asset_name in assets:
+                append_asset(asset_name, category)
                 break
-        
         return {'FINISHED'}
     
 class ManualAssetsUpdateOperator(Operator):
