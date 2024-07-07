@@ -1,6 +1,8 @@
 from .Data import *
 from .MCB_API import *
 from .Translator import *
+from .Assets import Assets
+from bpy.types import PropertyGroup
 
 class WorldProperties(PropertyGroup):
 
@@ -37,9 +39,21 @@ class WorldProperties(PropertyGroup):
 
 class ResourcePackProperties(PropertyGroup):
     
-    resource_packs_list: BoolProperty(
+    toggle_resource_packs_list: BoolProperty(
         name="Resource Packs List",
         default=True,
+    )
+
+    def pack_options_update(self, context):
+        bpy.ops.resource_pack.options('INVOKE_DEFAULT')
+
+    pack_options: EnumProperty(
+        name="Pack_Options",
+        items=[
+            ('Remove', "Remove Pack", ""),
+            ('Info', "Pack Info", ""),
+        ],
+        update=pack_options_update
     )
 
     resource_packs_settings: BoolProperty(

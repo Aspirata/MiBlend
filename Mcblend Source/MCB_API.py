@@ -1,14 +1,5 @@
+from bpy.types import Preferences
 from .Data import *
-from .Assets import update_assets
-from distutils.version import LooseVersion
-
-def InitOnStart():
-
-    if "resource_packs" not in bpy.context.scene:
-        bpy.context.scene["resource_packs"] = {}
-        update_default_pack()
-        
-    update_assets()
 
 def PBSDF_compability(Input):
     if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
@@ -31,37 +22,9 @@ def PBSDF_compability(Input):
     
     return Input
 
-def Absolute_Solver(error_code="None", data=None, tech_things="None", error_name=None, description=None, mode=None):
-    Preferences = bpy.context.preferences.addons[__package__].preferences
-    try:
-        def GetASText(error_code, text):
-            try:
-                return Absolute_Solver_Errors[error_code][text]
-            except:
-                return None
-        
-        if error_code != None:
-            error_name = GetASText(error_code, "Error Name")
-        
-        if description == None:
-            description = GetASText(error_code, 'Description')
-
-        try:
-            mode = Absolute_Solver_Errors[error_code]["Mode"]
-        except:
-            mode = "Smart"
-
-        if mode == Preferences.as_mode and Preferences.as_mode != "None":
-            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = error_name, Description = description.format(Data=data), Tech_Things = str(tech_things))
-            
-    except:
-        bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description = GetASText("000", 'Description', error_code if error_code != None else error_name), Tech_Things = str(traceback.format_exc()))
-
-def checkconfig(name):
-    if "const" in main_directory:
-        return Preferences_List["Dev"][name]
-    else:
-        return Preferences_List["Default"][name]
+def debugger(message):
+    if bpy.context.preferences.addons[__package__.split(".")[0]].preferences.dev_tools:
+        print(message)
 
 def GetConnectedSocketFrom(output, tag, material=None):
     try:
@@ -115,61 +78,6 @@ def GetConnectedSocketTo(input, tag, material=None):
                             return link.from_socket
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
-
-def get_resource_packs(debug=None):
-    if debug is not None:
-        print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
-
-    return bpy.context.scene["resource_packs"]
-
-def set_resource_packs(resource_packs, debug=None):
-    bpy.context.scene["resource_packs"] = resource_packs
-
-    if debug is not None:
-        print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
-
-def update_default_pack(debug=None):
-    resource_packs = bpy.context.scene["resource_packs"]
-
-    def find_mc():
-        versions = {}
-        for launcher, path in Launchers.items():
-            folders = os.listdir(os.path.join(os.getenv('APPDATA'), path))
-            for folder in folders:
-                version = folder.split("-")[0]
-                if not any(char.isalpha() for char in version):
-                    versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
-            
-        if versions:
-            latest_version = max(versions, key=lambda x: LooseVersion(x))
-            latest_file, latest_path = versions[latest_version]
-            return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
-        else:
-            return None, None
-
-    MC = find_mc()
-    if MC != (None, None):
-        version, path = MC
-        default_pack = f"Minecraft {version}"
-        default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True}
-    else:
-        print("MC not found")
-
-    default_pack = "Bare Bones 1.20.6"
-    default_path = os.path.join(resource_packs_directory, default_pack)
-    resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
-
-    default_pack = "Better Emission"
-    default_path = os.path.join(resource_packs_directory, default_pack)
-    resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
-
-    default_pack = "Embrace Pixels 2.1"
-    default_path = os.path.join(resource_packs_directory, default_pack)
-    resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
-    
-    if debug is not None:
-        print(f"Default Pack: {default_pack} stored in {default_path}")
                         
 def blender_version(blender_version, debug=None):
     
@@ -192,7 +100,7 @@ def blender_version(blender_version, debug=None):
         else:
             patch_c = True
 
-        if debug != None:
+        if debug is not None:
             print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
         
         return major_c and minor_c and patch_c
@@ -203,7 +111,7 @@ def blender_version(blender_version, debug=None):
         major, minor, patch = version_parts[1].lower().split(".")
         version = (int(major), int(minor), int(patch))
         
-        if debug != None:
+        if debug is not None:
             print(f"{bpy.app.version} {operator} {version}")
 
         if operator == '<':

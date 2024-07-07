@@ -4,13 +4,15 @@ import json
 import zipfile
 import traceback
 import time
+from .Translator import Translate
+from .Preferences import McblendPreferences
+from .Utils.Absolute_Solver import *
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
-from bpy.types import PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 resource_packs_directory = os.path.join(main_directory, "Resource Packs")
-nodes_file = os.path.join(main_directory, "Materials", "Nodes.blend")
 materials_folder = os.path.join(main_directory, "Materials")
+nodes_file = os.path.join(materials_folder, "Nodes.blend")
 optimization_folder = os.path.join(main_directory, "Optimization")
 assets_directory = os.path.join(main_directory, "Assets")
 
@@ -19,62 +21,6 @@ world_material_name = "Mcblend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
-
-Absolute_Solver_Errors = {
-
-    # Quick Tip
-    # m - Materials Error
-    # u - User's Mistake
-
-    "LoL": {
-        "Error Name": "Zero Settings",
-        "Description": "You disabled all {Data} settings, so it did nothing LoL",
-        "Mode": "Full"
-    },
-
-    "000": {
-        "Error Name": "Absolute Solver Error",
-        "Description": "Absolute Solver Can't Display This Error - {Data}, Please Report To Aspirata",
-    },
-
-    "001": {
-        "Error Name": "Unknown",
-        "Description": "An Unknown Error",
-    },
-
-    "m002": {
-        "Error Name": "Empty Material Slot",
-        "Description": "Material doesn't exist on slot {Data}",
-        "Mode": "Full"
-    },
-
-    "m003": {
-        "Error Name": "Object has no Materials",
-        "Description": 'Object "{Data.name}" has no materials',
-        "Mode": "Full"
-    },
-
-    "004": {
-        "Error Name": ".blend File Not Found",
-        "Description": "{Data}.blend not found",
-    },
-
-    "005": {
-        "Error Name": "Internal Function Error",
-        "Description": "Something is wrong in {Data}",
-    },
-
-    "u006": {
-        "Error Name": "Color Space Not Found",
-        "Description": "You have custom color manager that doesn't have {Data}",
-    },
-
-    "007": {
-        "Error Name": "Create Thing Doesn't Exists in the File",
-        "Description": "Create feature uses alredy imported asset to your file, so if you see this message then your file doesn't have {Data} and you should probably use recreate feature instead",
-        "Mode": "Full"
-    },
-}
 
 Preferences_List = {
     "Dev": {
@@ -324,74 +270,4 @@ Upgrade_Materials_Array = {
     "soul_lantern": "Upgraded Soul Lantern",
 
     "stone": "Upgraded Stone",
-}
-
-Assets = {
-    "Rigs": {
-        "SRE V2.0": {
-            "Blender_version": "4.x.x",
-            "File_name": "Simple_edit_V2.0.blend",
-            "Collection_name": "SRE rig"
-        },
-
-        "SRE V2.0b732": {
-            "Blender_version": "3.6.x",
-            "File_name": "Simple_edit_V2.0b732.blend",
-            "Collection_name": "SRE rig"
-        },
-
-        "Creeper": {
-            "Blender_version": "4.x.x",
-            "File_name": "Creeper.blend",
-            "Collection_name": "Creeper"
-        },
-
-        "Allay": {
-            "Blender_version": "4.x.x",
-            "File_name": "Allay.blend",
-            "Collection_name": "Simple Allay"
-        },
-
-        "Axolotl": {
-            "Blender_version": "4.x.x",
-            "File_name": "Axolotl.blend",
-            "Collection_name": "Axolotl"
-        },
-
-        "Warden": {
-            "Blender_version": "4.x.x",
-            "File_name": "Warden.blend",
-            "Collection_name": "Warden"
-        },
-    },
-
-    "Scripts": {
-
-        "Sleep After Render": {
-            "File_name": "Sleep After Render.py",
-        },
-
-        "Convert DBSDF 2 PBSDF": {
-            "File_name": "Convert DBSDF 2 PBSDF.py",
-        },
-
-        "Fix Shade Auto Smooth": {
-            "Blender_version": "< 4.1.0",
-            "File_name": "Fix Shade Auto Smooth.py",
-        },
-
-        "Enable Jittered Shadows": {
-            "Blender_version": ">= 4.2.0",
-            "File_name": "Jittered Shadows.py",
-        },
-
-        "Enable Contact Shadows": {
-            "Blender_version": "< 4.2.0",
-            "File_name": "Contact Shadows.py",
-        },
-
-        "ACES Textures Fix": {
-            "File_name": "ACES Textures Fix.py",
-        },
-    },
 }

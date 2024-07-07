@@ -1,9 +1,6 @@
-from ..Data import *
 import re
 from ..MCB_API import *
-
-# This function checks if a given material's name contains any of the keywords in the provided array. 
-# It returns True if a match is found, and False otherwise.
+from ..Resource_Packs import *
 
 def MaterialIn(Array, material):
     for material_part in material.name.lower().replace("-", ".").split("."):
@@ -17,6 +14,7 @@ def MaterialIn(Array, material):
                     return True
     return False
 
+# Scan the material for image texture node duplicates > if nothing is connected to the vector then delete else don't touch
 def DeleteUselessTextures(material):
     texture_nodes = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE"]
     image_to_nodes = {}
@@ -58,8 +56,7 @@ def DeleteUselessTextures(material):
 
 def EmissionMode(PBSDF, material):
         
-        # LoL it works
-        Preferences = bpy.context.preferences.addons[__package__.replace(".Materials", "")].preferences
+        Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
                 
         if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials, material)):
             return 1
@@ -72,9 +69,7 @@ def EmissionMode(PBSDF, material):
 
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
-        slot = 0
         if selected_object.material_slots:
-            slot += 1
             for i, material in enumerate(selected_object.data.materials):
                 if material is not None and material.use_nodes:
                     for original_material, upgraded_material in Upgrade_Materials_Array.items():
@@ -92,7 +87,7 @@ def upgrade_materials():
                                 else:
                                     selected_object.data.materials[i] = bpy.data.materials[upgraded_material]
                 else:
-                    Absolute_Solver("m002", slot)
+                    Absolute_Solver("m002", i)
         else:
             Absolute_Solver("m003", selected_object)
 
@@ -160,12 +155,12 @@ def fix_world():
                                 lbcf_node = node
                                 
                     if image_texture_node and PBSDF:
-                        if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) == None:
+                        if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) is None:
                             material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                         
                         # Emission
                         if EmissionMode(PBSDF, material):
-                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) == None:
+                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
                                 material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
 
                             if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
@@ -184,7 +179,7 @@ def fix_world():
                                             bfc_node = node
                                             break
                                 
-                                if bfc_node == None:
+                                if bfc_node is None:
                                     if "Backface Culling" not in bpy.data.node_groups:
                                         try:
                                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -216,7 +211,7 @@ def fix_world():
                             material_parts = image_texture_node.image.name.lower().replace("-", "_").split("_")
                         
                             if ("grass" in material_parts or "water" in material_parts or "leaves" in material_parts) and "side" not in material_parts:
-                                if lbcf_node == None:
+                                if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
                                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -256,15 +251,15 @@ def create_env(self=None):
     if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
         clouds_exists = True
 
-    if world != None and "Mcblend Sky" in bpy.data.node_groups:
+    if world is not None and "Mcblend Sky" in bpy.data.node_groups:
         if world_material_name in bpy.data.worlds:
             sky_exists = True
     
-    if clouds_exists == True or sky_exists == True:
+    if clouds_exists or sky_exists:
 
         # Recreate Sky
-        if self != None:
-            if self.reset_settings == True:
+        if self is not None:
+            if self.reset_settings:
                 world_material = bpy.context.scene.world.node_tree
                 group = bpy.data.node_groups["Mcblend Sky"]
 
@@ -290,13 +285,12 @@ def create_env(self=None):
                                         socket.default_value = group.inputs[socket.name].default_value
 
             if self.create_sky == 'Recreate Sky':
-                if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) != None:
+                if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) is not None:
                     bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
                 
                 for group in bpy.data.node_groups:
                     if "Mcblend" in group.name:
                         bpy.data.node_groups.remove(group)
-
                 try:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
@@ -319,13 +313,12 @@ def create_env(self=None):
 
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
-                
-                    try:
-                        with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
-                            data_to.node_groups = [clouds_node_tree_name]
-                            data_to.materials = ["Clouds"]
-                    except:
-                        Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
+                try:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
+                        data_to.node_groups = [clouds_node_tree_name]
+                        data_to.materials = ["Clouds"]
+                except:
+                    Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
@@ -351,7 +344,7 @@ def create_env(self=None):
                     clouds_exists =True
 
                 if clouds_node_tree_name in bpy.data.node_groups:
-                    if clouds_exists == False:
+                    if not clouds_exists:
                         bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                         bpy.context.object.name = "Clouds"
                         bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
@@ -384,7 +377,7 @@ def create_env(self=None):
                 clouds_exists = True
 
         # Create Clouds
-        if scene.env_properties.create_clouds and clouds_exists == False:
+        if scene.env_properties.create_clouds and not clouds_exists:
             try:
                 if clouds_node_tree_name not in bpy.data.node_groups:
                     with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
@@ -430,7 +423,7 @@ def fix_materials():
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
-                    if (image_texture_node and PBSDF) != None:
+                    if (image_texture_node and PBSDF) is not None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                 else:
                     Absolute_Solver("m002", slot)
@@ -449,39 +442,53 @@ def apply_resources():
                 return predicted_texture
         return None
     
+    def zip_unpacker(root_folder, file=None):
+        with zipfile.ZipFile(root_folder, 'r') as zip_ref:
+            file_list = list(filter(lambda x: x.endswith('.png'), zip_ref.namelist()))
+            for file in file_list:
+                if os.path.basename(file) == image_name:
+                    extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
+                    extracted_file_path = zip_ref.extract(file, extract_path)
+                    return extracted_file_path
+
+                elif "grass" in image_name:
+                    if "short_" + image_name in file_list:
+                        extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
+                        extracted_file_path = zip_ref.extract("short_" + image_name, extract_path)
+                        return extracted_file_path
+                    
+                    if image_name.replace("short_", "") in file_list:
+                        extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
+                        extracted_file_path = zip_ref.extract(image_name.replace("short_", ""), extract_path)
+                        return extracted_file_path
+    
     def find_image(image_name, root_folder):
-        for dirpath, _, files in os.walk(root_folder):
-            for file in files:
-                if file == image_name:
-                    return os.path.join(dirpath, file)
+        if root_folder.endswith(('.zip', '.jar')):
+            try:
+                zip_unpacker(root_folder)
+            except zipfile.BadZipFile:
+                print("Bad Zip File")
+        else:
+            for dirpath, _, files in os.walk(root_folder):
+                for file in files:
+                    if file == image_name:
+                        return os.path.join(dirpath, file)
+                    
+                    elif "grass" in image_name:
+                        if os.path.isfile(format_fixed := os.path.join(dirpath, "short_" + image_name)):
+                            return format_fixed
 
-                if file.endswith(('.zip', '.jar')):
-                    archive_path = os.path.join(dirpath, file)
-                    with zipfile.ZipFile(archive_path, 'r') as zip_ref:
-                        file_list = zip_ref.namelist()
-                        if image_name in file_list:
-                            extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
-                            extracted_file_path = zip_ref.extract(image_name, extract_path)
-                            return extracted_file_path
-                        
-                        elif "grass" in image_name:
-                            if "short_" + image_name in file_list:
-                                extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
-                                extracted_file_path = zip_ref.extract("short_" + image_name, extract_path)
-                                return extracted_file_path
-                            
-                            if  image_name.replace("short_", "") in file_list:
-                                extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
-                                extracted_file_path = zip_ref.extract(image_name.replace("short_", ""), extract_path)
-                                return extracted_file_path
-                
-                if "grass" in image_name:
-                    if os.path.isfile(format_fixed := os.path.join(dirpath, "short_" + image_name)):
-                        return format_fixed
+                        if os.path.isfile(format_fixed := os.path.join(dirpath, image_name.replace("short_", ""))):
+                            return format_fixed
 
-                    if os.path.isfile(format_fixed := os.path.join(dirpath, image_name.replace("short_", ""))):
-                        return format_fixed
-            
+                    if file.endswith(('.zip', '.jar')):
+                        archive_path = os.path.join(dirpath, file)
+                        try:
+                            zip_unpacker(archive_path, file)
+                        except zipfile.BadZipFile:
+                            print("Bad Zip File")
+
+        debugger(("Texture Not Found", image_name))
         return None
 
     def find_texture_users(texture):
@@ -517,14 +524,14 @@ def apply_resources():
             bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
         
         new_image_texture = os.path.basename(new_image_path)
-        if texture_node != None:
+        if texture_node is not None:
             if not texture_node.image:
                 if image_texture in bpy.data.images:
                     texture_node.image = bpy.data.images[new_image_texture]
                 else:
                     texture_node.image = bpy.data.images.load(new_image_path)
 
-        if Users != None:
+        if Users is not None:
 
             if new_image_texture in bpy.data.images:
                 user_texture = bpy.data.images[new_image_texture]
@@ -532,7 +539,7 @@ def apply_resources():
                 bpy.data.images.load(new_image_path)
                 user_texture = bpy.data.images[new_image_texture]
 
-            if colorspace != None:
+            if colorspace is not None:
                 for user in Users:
                     user.image = user_texture
                     try:
@@ -555,19 +562,19 @@ def apply_resources():
         if r_props.animate_textures:
             if int(image_texture.size[1] / image_texture.size[0]) != 1:
                 animation_file = new_image_texture_path + ".mcmeta"
-                if not os.path.isfile(animation_file) and image_path != None:
+                if not os.path.isfile(animation_file) and image_path is not None:
                     animation_file = image_path + re.sub(r'(_n|_s|_e)$', '', image_texture.name.replace('.png', '')) + ".png" + ".mcmeta"
                 if os.path.isfile(animation_file):
                     with open(animation_file, 'r') as file:
                         data = json.load(file).get('animation', {})
-                        if frametime := data.get('frametime') == None:
+                        if frametime := data.get('frametime') is None:
                             frametime = 20
 
-                        if interpolate := data.get('interpolate') == None:
+                        if interpolate := data.get('interpolate') is None:
                             interpolate = False
                     
-                    if interpolate == True and r_props.interpolate:
-                        if Texture_Animator != None:
+                    if interpolate and r_props.interpolate:
+                        if Texture_Animator is not None:
                             material.node_tree.nodes.remove(Texture_Animator)
 
                         if ITexture_Animator is None:
@@ -592,7 +599,7 @@ def apply_resources():
                                     if node.type == "TEX_IMAGE":
                                         node.image = image_texture
 
-                            if texture_node != None:
+                            if texture_node is not None:
                                 for socket in GetConnectedSocketFrom("Color", texture_node):
                                     material.node_tree.links.new(ITexture_Animator.outputs["Color"], socket)
                             
@@ -656,29 +663,29 @@ def apply_resources():
 
                 material.node_tree.nodes.remove(ITexture_Animator)
 
-            if Texture_Animator != None:
+            if Texture_Animator is not None:
                 material.node_tree.nodes.remove(Texture_Animator)
 
     def normal_texture_change(path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
         NTexture_Animator = None
         Current_node_tree = None
 
-        if normal_texture_node == None:
+        if normal_texture_node is None:
             normal_image_name = image_texture.replace(".png", "_n.png")
         else:
             normal_image_name = normal_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image([new_image_path], normal_image_name) == None:
+        if predicted_texture_path := fast_find_image(new_image_path, normal_image_name) is None:
             new_normal_image_path = find_image(normal_image_name, path)
         else:
-            if r_props.use_i == False:
-                new_normal_image_path = find_image(normal_image_name, path)
-            else:
+            if r_props.use_i:
                 new_normal_image_path = predicted_texture_path
+            else:
+                new_normal_image_path = find_image(normal_image_name, path)
             
 
-        if new_normal_image_path != None:
-            if normal_texture_node == None:
+        if new_normal_image_path is not None:
+            if normal_texture_node is None:
                 normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
                 for node in material.node_tree.nodes:
                     if node.type == "GROUP":
@@ -707,7 +714,7 @@ def apply_resources():
             except:
                 Absolute_Solver("u006", "Non-Color")
 
-            if normal_map_node == None:
+            if normal_map_node is None:
                 normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
                 normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
                 material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
@@ -721,21 +728,21 @@ def apply_resources():
         STexture_Animator = None
         Current_node_tree = None
 
-        if specular_texture_node == None:
+        if specular_texture_node is None:
             specular_image_name = image_texture.replace(".png", "_s.png")
         else:
             specular_image_name = specular_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image([new_normal_image_path, new_image_path], specular_image_name) == None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+        if predicted_texture_path := fast_find_image([new_normal_image_path, new_image_path], specular_image_name) is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
             new_specular_image_path = find_image(specular_image_name, path)
         else:
-            if r_props.use_i == False or r_props.use_n == False:
+            if not r_props.use_i or not r_props.use_n:
                 new_specular_image_path = find_image(specular_image_name, path)
             else:
                 new_specular_image_path = predicted_texture_path
 
-        if new_specular_image_path != None:
-            if STexture_Animator == None:
+        if new_specular_image_path is not None:
+            if STexture_Animator is None:
                 for node in material.node_tree.nodes:
                     if node.type == "GROUP":
                         if "Animated;" in node.node_tree.name:
@@ -750,7 +757,7 @@ def apply_resources():
                                 image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
                             Current_node_tree = node.node_tree
 
-            if specular_texture_node == None and STexture_Animator == None:
+            if specular_texture_node is None and STexture_Animator is None:
                 specular_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
                 try:
                     specular_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 280)
@@ -759,9 +766,10 @@ def apply_resources():
 
                 specular_texture_node.interpolation = "Closest"
 
+            print(new_specular_image_path)
             update_texture(new_specular_image_path, specular_image_name, specular_texture_node, "Non-Color")
 
-            if LabPBR_s == None:
+            if LabPBR_s is None:
                 if "LabPBR Specular" not in bpy.data.node_groups:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.node_groups = ["LabPBR Specular"]
@@ -770,7 +778,7 @@ def apply_resources():
                 LabPBR_s.node_tree = bpy.data.node_groups["LabPBR Specular"]
                 LabPBR_s.location = (specular_texture_node.location.x + 280, specular_texture_node.location.y)
 
-            if STexture_Animator == None:
+            if STexture_Animator is None:
                 material.node_tree.links.new(specular_texture_node.outputs["Color"], LabPBR_s.inputs["Color"])
                 material.node_tree.links.new(specular_texture_node.outputs["Alpha"], LabPBR_s.inputs["Alpha"])
             else:
@@ -821,12 +829,12 @@ def apply_resources():
         
     def emission_texture_change(path, emission_texture_node, new_normal_image_path, new_specular_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
 
-        if emission_texture_node == None:
+        if emission_texture_node is None:
             emission_image_name = image_texture.replace(".png", "_e.png")
         else:
             emission_image_name = emission_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name) == None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+        if predicted_texture_path := fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name) is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
             new_emission_image_path = find_image(emission_image_name, path)
         else:
             if r_props.use_i == False or r_props.use_n == False or r_props.use_s == False:
@@ -834,11 +842,11 @@ def apply_resources():
             else:
                 new_emission_image_path = predicted_texture_path
 
-        if new_emission_image_path != None:
-            if emission_texture_node == None:
+        if new_emission_image_path is not None:
+            if emission_texture_node is None:
                 emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
 
-                if ETexture_Animator == None or ITexture_Animator == None:
+                if ETexture_Animator is None or ITexture_Animator is None:
                     for node in material.node_tree.nodes:
                         if node.type == "GROUP":
                             if "Animated;" in node.node_tree.name:
@@ -935,7 +943,7 @@ def apply_resources():
                         if node.type == "NORMAL_MAP":
                             normal_map_node = node
 
-                    if image_texture != None:
+                    if image_texture is not None:
                         
                         try:
                             relevant_node = image_texture_node or ITexture_Animator
@@ -954,7 +962,7 @@ def apply_resources():
                                 
                                 new_image_path = find_image(image_texture, path)
 
-                                if new_image_path != None and os.path.isfile(new_image_path):
+                                if new_image_path is not None and os.path.isfile(new_image_path):
                                         
                                     update_texture(new_image_path, image_texture)
                                         
@@ -1052,7 +1060,7 @@ def swap_textures(folder_path):
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE" and node.image is not None:
                             new_image_path = find_image(node.image.name, folder_path)
-                            if new_image_path != None:
+                            if new_image_path is not None:
                                 if node.image.name in bpy.data.images:
                                     bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
 
@@ -1176,10 +1184,10 @@ def setproceduralpbr():
 
                                 material.node_tree.links.new(PNormals.outputs['Normal Map'], PBSDF.inputs['Normal'])
 
-                                if ITexture_Animator != None: 
+                                if ITexture_Animator is not None: 
                                     material.node_tree.links.new(ITexture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
                                 
-                                if Texture_Animator != None: 
+                                if Texture_Animator is not None: 
                                     material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
 
                         elif PProperties.revert_normals:
@@ -1196,7 +1204,7 @@ def setproceduralpbr():
                             PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
 
                         # Use SSS                            
-                        if PProperties.use_sss  == True:
+                        if PProperties.use_sss :
                             if MaterialIn(SSS_Materials, material) or PProperties.sss_skip:
                                 PBSDF.subsurface_method = PProperties.sss_type
 
@@ -1224,24 +1232,24 @@ def setproceduralpbr():
 
                         # Use Translucency
                         if MaterialIn(Translucent_Materials, material):
-                            if PProperties.use_translucency == True:
+                            if PProperties.use_translucency:
                                     PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
                             elif PProperties.revert_translucency:
                                 PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
 
                         # Make Metals                            
-                        if PProperties.make_metal == True and MaterialIn(Metal, material):
+                        if PProperties.make_metal and MaterialIn(Metal, material):
                             PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
                             PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
 
                             
                         # Make Reflections                            
-                        if PProperties.make_reflections == True and MaterialIn(Reflective, material):
+                        if PProperties.make_reflections and MaterialIn(Reflective, material):
                             PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
 
                         # Make Better Emission and Animate Textures
-                        if (PProperties.make_better_emission == True or PProperties.animate_textures == True) and EmissionMode(PBSDF, material):
+                        if (PProperties.make_better_emission or PProperties.animate_textures) and EmissionMode(PBSDF, material):
                             node_group = None
 
                             # The Main Thing
@@ -1253,7 +1261,7 @@ def setproceduralpbr():
                                         break
 
                             # BATGroup Import if BATGroup isn't in File
-                            if node_group == None:
+                            if node_group is None:
                                 if BATGroup not in bpy.data.node_groups:
                                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                         data_to.node_groups = [BATGroup]
@@ -1287,7 +1295,7 @@ def setproceduralpbr():
                                         node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                             
                             # Color Connection if Nothing Connected
-                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) == None:
+                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
                                 material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
                             
                             try:
@@ -1300,7 +1308,7 @@ def setproceduralpbr():
                             material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
                             material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-                        if PProperties.make_better_emission == False and PProperties.animate_textures == False:
+                        if not PProperties.make_better_emission and not PProperties.animate_textures:
                             node_group = None
                             for node in material.node_tree.nodes:
                                 if node.type == "GROUP":
@@ -1308,13 +1316,13 @@ def setproceduralpbr():
                                         node_group = node
                                         break
                             
-                            if node_group != None:
-                                if mult_socket := GetConnectedSocketTo("Multiply", node_group) != None:
+                            if node_group is not None:
+                                if mult_socket := GetConnectedSocketTo("Multiply", node_group) is not None:
                                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                                 material.node_tree.nodes.remove(node_group)
 
                         if PProperties.proughness:
-                            if proughness_node == None:
+                            if proughness_node is None:
                                 proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
                                 proughness_node.name = "Procedural Roughness Node"
                                 proughness_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 90)
@@ -1329,11 +1337,11 @@ def setproceduralpbr():
                             material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), proughness_node.inputs["Value"])
                             material.node_tree.links.new(proughness_node.outputs[0], PBSDF.inputs["Roughness"])
 
-                        elif PProperties.pr_revert and proughness_node != None:
+                        elif PProperties.pr_revert and proughness_node is not None:
                             material.node_tree.nodes.remove(proughness_node)
                         
                         if PProperties.pspecular:
-                            if pspecular_node == None:
+                            if pspecular_node is None:
                                 pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
                                 pspecular_node.name = "Procedural Specular Node"
                                 pspecular_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 200)
@@ -1348,7 +1356,7 @@ def setproceduralpbr():
                             material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
                             material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
                             
-                        elif PProperties.ps_revert and pspecular_node != None:
+                        elif PProperties.ps_revert and pspecular_node is not None:
                             material.node_tree.nodes.remove(pspecular_node)
 
                 else:
