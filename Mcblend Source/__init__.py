@@ -33,7 +33,7 @@ def load_post_handler(dummy):
 classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment,
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties,
     WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, 
-    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, ResourcePackOptions, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack,
+    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack,
     OptimizationProperties, OptimizationPanel, OptimizeOperator, 
     UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
     AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator

@@ -89,6 +89,7 @@ class ResourcePackToggleOperator(Operator):
         if self.pack_name in resource_packs:
             resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
             set_resource_packs(resource_packs)
+            debugger(resource_packs[self.pack_name]["type"])
         return {'FINISHED'}
 
 class MoveResourcePackUp(Operator):
@@ -124,23 +125,19 @@ class MoveResourcePackDown(Operator):
             reordered_packs = {k: resource_packs[k] for k in keys}
             set_resource_packs(reordered_packs)
         return {'FINISHED'}
-
-class ResourcePackOptions(Operator):
-    bl_idname = "resource_pack.options"
-    bl_label = "Resource Pack Option"
+    
+class RemoveResourcePack(Operator):
+    bl_idname = "resource_pack.remove"
+    bl_label = "Remove Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
         resource_packs = get_resource_packs()
-        option = context.scene.resource_properties.pack_options
-        if option == "Remove":
-            if self.pack_name in resource_packs:
-                del resource_packs[self.pack_name]
-                set_resource_packs(resource_packs)
-        elif option == "Info":
-            print(resource_packs[self.pack_name]["path"], resource_packs[self.pack_name]["type"])
+        if self.pack_name in resource_packs:
+            del resource_packs[self.pack_name]
+            set_resource_packs(resource_packs)
         return {'FINISHED'}
 
 class UpdateDefaultPack(Operator):
@@ -182,34 +179,31 @@ class AddResourcePack(Operator):
 
             if os.path.isdir(self.filepath):
                 for root, _, files in os.walk(self.filepath):
-                    for file in files:
-                        if file.endswith('.png'):
-                            if any(suffix in file for suffix in ('_n', '_s', '_e')):
-                                has_pbr = True
-                            else:
-                                has_texture = True
+                    for file in list(filter(lambda x: x.endswith('.png'), files)):
+                        if any(suffix in file for suffix in ('_n', '_s', '_e')):
+                            has_pbr = True
+                        else:
+                            has_texture = True
 
             elif self.filepath.endswith(('.zip', '.jar')):
                 try:
                     with zipfile.ZipFile(self.filepath, 'r') as zip_ref:
-                        for zip_info in zip_ref.infolist():
-                            if zip_info.filename.endswith('.png'):
-                                if any(suffix in zip_info.filename for suffix in ('_n', '_s', '_e')):
-                                    has_pbr = True
-                                else:
-                                    has_texture = True
+                        for zip_info in list(filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist())):
+                            if any(suffix in zip_info.filename for suffix in ('_n', '_s', '_e')):
+                                has_pbr = True
+                            else:
+                                has_texture = True
                                     
                 except zipfile.BadZipFile:
                     print(f"Warning: '{self.filepath}' is not a valid zip file.")
             
             else: 
                 for root, _, files in os.walk(os.path.dirname(self.filepath)):
-                    for file in files:
-                        if file.endswith('.png'):
-                            if any(suffix in file for suffix in ('_n', '_s', '_e')):
-                                has_pbr = True
-                            else:
-                                has_texture = True
+                    for file in list(filter(lambda x: x.endswith('.png'), files)):
+                        if any(suffix in file for suffix in ('_n', '_s', '_e')):
+                            has_pbr = True
+                        else:
+                            has_texture = True
             
             if has_texture and has_pbr:
                 resource_pack_type = 'Texture & PBR'

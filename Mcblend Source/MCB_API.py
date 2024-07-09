@@ -1,4 +1,3 @@
-from bpy.types import Preferences
 from .Data import *
 
 def PBSDF_compability(Input):
@@ -22,8 +21,35 @@ def PBSDF_compability(Input):
     
     return Input
 
+def MaterialIn(Array, material, mode="in"):
+    for material_part in material.name.lower().replace("-", ".").split("."):
+        for keyword in Array:
+            if mode == "==":
+                if keyword == material_part:
+                    return True
+            else:
+                if keyword in material_part:
+                    return True
+
+    return False
+
+def EmissionMode(PBSDF, material):
+        from .Data import Emissive_Materials
+        
+        Preferences = bpy.context.preferences.addons[__package__].preferences
+                
+        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials.keys(), material, "==")):
+            debugger(Emissive_Materials.keys())
+            return 1
+
+        if Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
+            return 2
+        
+        if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
+            return 3
+
 def debugger(message):
-    if bpy.context.preferences.addons[__package__.split(".")[0]].preferences.dev_tools:
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools:
         print(message)
 
 def GetConnectedSocketFrom(output, tag, material=None):

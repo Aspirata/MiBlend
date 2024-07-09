@@ -82,7 +82,8 @@ class WorldAndMaterialsPanel(Panel):
                     move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
                     move_down.pack_name = pack
 
-                    row.prop_menu_enum(scene.resource_properties, "pack_options", text="", icon="DOWNARROW_HLT")
+                    remove = row.operator("resource_pack.remove", text="", icon='X')
+                    remove.pack_name = pack
             
                 row = sbox.row()
                 row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')

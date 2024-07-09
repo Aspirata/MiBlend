@@ -1,6 +1,5 @@
 from .Data import *
 from .MCB_API import *
-from .Translator import *
 from .Assets import Assets
 from bpy.types import PropertyGroup
 

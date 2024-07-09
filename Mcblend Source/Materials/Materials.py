@@ -1,18 +1,7 @@
 import re
 from ..MCB_API import *
+from ..Data import *
 from ..Resource_Packs import *
-
-def MaterialIn(Array, material):
-    for material_part in material.name.lower().replace("-", ".").split("."):
-        try:
-            for keyword, other in Array.items():
-                if keyword == material_part:
-                    return True
-        except:
-            for keyword in Array:
-                if keyword in material_part:
-                    return True
-    return False
 
 # Scan the material for image texture node duplicates > if nothing is connected to the vector then delete else don't touch
 def DeleteUselessTextures(material):
@@ -53,19 +42,6 @@ def DeleteUselessTextures(material):
                         material.node_tree.links.new(node_to_keep.outputs[output_number], link.to_socket)
                 
                 material.node_tree.nodes.remove(node)
-
-def EmissionMode(PBSDF, material):
-        
-        Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
-                
-        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials, material)):
-            return 1
-
-        if Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
-            return 2
-        
-        if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials, material):
-            return 3
 
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
@@ -442,30 +418,32 @@ def apply_resources():
                 return predicted_texture
         return None
     
+
+    # Сделать умную распаковку шобы типа если файл уже есть в распакованном виде, то использовать его от туда, а не распаковывать по новой
     def zip_unpacker(root_folder, file=None):
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
-            file_list = list(filter(lambda x: x.endswith('.png'), zip_ref.namelist()))
-            for file in file_list:
-                if os.path.basename(file) == image_name:
+            infolist = list(filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist()))
+            for zip_info in infolist:
+                if os.path.basename(zip_info.filename) == image_name:
                     extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                    extracted_file_path = zip_ref.extract(file, extract_path)
+                    extracted_file_path = zip_ref.extract(zip_info, extract_path)
                     return extracted_file_path
 
                 elif "grass" in image_name:
-                    if "short_" + image_name in file_list:
+                    if os.path.basename(zip_info.filename) == f"short_{image_name}":
                         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                        extracted_file_path = zip_ref.extract("short_" + image_name, extract_path)
+                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
                         return extracted_file_path
                     
-                    if image_name.replace("short_", "") in file_list:
+                    if os.path.basename(zip_info.filename) == image_name.replace("short_", ""):
                         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                        extracted_file_path = zip_ref.extract(image_name.replace("short_", ""), extract_path)
+                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
                         return extracted_file_path
     
     def find_image(image_name, root_folder):
         if root_folder.endswith(('.zip', '.jar')):
             try:
-                zip_unpacker(root_folder)
+                return zip_unpacker(root_folder)
             except zipfile.BadZipFile:
                 print("Bad Zip File")
         else:
@@ -482,9 +460,8 @@ def apply_resources():
                             return format_fixed
 
                     if file.endswith(('.zip', '.jar')):
-                        archive_path = os.path.join(dirpath, file)
                         try:
-                            zip_unpacker(archive_path, file)
+                            return zip_unpacker(os.path.join(dirpath, file), file)
                         except zipfile.BadZipFile:
                             print("Bad Zip File")
 
@@ -1270,7 +1247,7 @@ def setproceduralpbr():
                                 node_group.node_tree = bpy.data.node_groups[BATGroup]
 
                             # Settings Set
-                            if MaterialIn(Emissive_Materials, material):
+                            if MaterialIn(Emissive_Materials.keys(), material, "=="):
                                 for material_part in material.name.lower().replace("-", ".").split("."):
                                     for material_name, material_properties in Emissive_Materials.items():
                                         if material_name == material_part:

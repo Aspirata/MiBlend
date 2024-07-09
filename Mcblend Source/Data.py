@@ -4,7 +4,6 @@ import json
 import zipfile
 import traceback
 import time
-from .Translator import Translate
 from .Preferences import McblendPreferences
 from .Utils.Absolute_Solver import *
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)

@@ -1,6 +1,5 @@
 from bpy.types import AddonPreferences
 from .MCB_API import blender_version
-from .Translator import Availible_Translations
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 
 class McblendPreferences(AddonPreferences):
@@ -42,11 +41,6 @@ class McblendPreferences(AddonPreferences):
             ('Manual', 'Manual', '')],
         name="emissiondetection",
         default=emissiondetectionfix()
-    )
-
-    current_language: EnumProperty(
-        items=[(name, name, "") for name, data in Availible_Translations.items()],
-        description="",
     )
 
     def draw(self, context):
