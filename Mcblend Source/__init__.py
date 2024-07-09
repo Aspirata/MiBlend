@@ -26,6 +26,9 @@ def InitOnStart():
         
     update_assets()
 
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools:
+        bpy.ops.wm.console_toggle()
+
 @persistent
 def load_post_handler(dummy):
     InitOnStart()

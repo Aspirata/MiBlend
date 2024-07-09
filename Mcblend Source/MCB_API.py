@@ -104,7 +104,7 @@ def GetConnectedSocketTo(input, tag, material=None):
                             return link.from_socket
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
-                        
+
 def blender_version(blender_version, debug=None):
     
     try:

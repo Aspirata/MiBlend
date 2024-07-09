@@ -418,27 +418,34 @@ def apply_resources():
                 return predicted_texture
         return None
     
-
-    # Сделать умную распаковку шобы типа если файл уже есть в распакованном виде, то использовать его от туда, а не распаковывать по новой
     def zip_unpacker(root_folder, file=None):
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
             infolist = list(filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist()))
             for zip_info in infolist:
                 if os.path.basename(zip_info.filename) == image_name:
                     extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                    extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                    return extracted_file_path
+                    if os.path.isfile(extract_path):
+                        return extract_path
+                    else:
+                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                        return extracted_file_path
 
                 elif "grass" in image_name:
                     if os.path.basename(zip_info.filename) == f"short_{image_name}":
                         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                        return extracted_file_path
+                        if os.path.isfile(extract_path):
+                            return extract_path
+                        else:
+                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                            return extracted_file_path
                     
                     if os.path.basename(zip_info.filename) == image_name.replace("short_", ""):
                         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                        return extracted_file_path
+                        if os.path.isfile(extract_path):
+                            return extract_path
+                        else:
+                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                            return extracted_file_path
     
     def find_image(image_name, root_folder):
         if root_folder.endswith(('.zip', '.jar')):
@@ -652,7 +659,7 @@ def apply_resources():
         else:
             normal_image_name = normal_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image(new_image_path, normal_image_name) is None:
+        if predicted_texture_path := fast_find_image([new_image_path], normal_image_name) is None:
             new_normal_image_path = find_image(normal_image_name, path)
         else:
             if r_props.use_i:

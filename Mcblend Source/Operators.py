@@ -88,8 +88,8 @@ class ResourcePackToggleOperator(Operator):
         resource_packs = get_resource_packs()
         if self.pack_name in resource_packs:
             resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
-            set_resource_packs(resource_packs)
             debugger(resource_packs[self.pack_name]["type"])
+            set_resource_packs(resource_packs)
         return {'FINISHED'}
 
 class MoveResourcePackUp(Operator):
@@ -169,63 +169,79 @@ class AddResourcePack(Operator):
     Type: bpy.props.EnumProperty(items=[('Automatic', 'Automatic', ''), ('Texture & PBR', 'Texture & PBR', ''), ('Texture', 'Texture', ''), ('PBR', 'PBR', '')])
 
     def execute(self, context):
-        resource_packs = get_resource_packs()
 
-        resource_pack_type = self.Type
-        if resource_pack_type == "Automatic":
-            has_texture = False
-            has_pbr = False
-            resource_pack_type = "Texture & PBR"
+        def check_suffix(file):
+            parts = file.replace(".png", "").split('_')
+            return parts[-1] in ("n", "s", "e")
 
-            if os.path.isdir(self.filepath):
-                for root, _, files in os.walk(self.filepath):
-                    for file in list(filter(lambda x: x.endswith('.png'), files)):
-                        if any(suffix in file for suffix in ('_n', '_s', '_e')):
-                            has_pbr = True
-                        else:
-                            has_texture = True
+        def define_type(filepath, self):
+            resource_pack_type = self.Type
 
-            elif self.filepath.endswith(('.zip', '.jar')):
-                try:
-                    with zipfile.ZipFile(self.filepath, 'r') as zip_ref:
-                        for zip_info in list(filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist())):
-                            if any(suffix in zip_info.filename for suffix in ('_n', '_s', '_e')):
+            if resource_pack_type == "Automatic":
+                has_texture = False
+                has_pbr = False
+                resource_pack_type = "Texture & PBR"
+
+                if os.path.isdir(filepath):
+                    for root, _, files in os.walk(filepath):
+                        for file in filter(lambda x: x.endswith('.png'), files):
+                            if check_suffix(file):
                                 has_pbr = True
+                                debugger(os.path.join(root, file))
                             else:
                                 has_texture = True
-                                    
-                except zipfile.BadZipFile:
-                    print(f"Warning: '{self.filepath}' is not a valid zip file.")
-            
-            else: 
-                for root, _, files in os.walk(os.path.dirname(self.filepath)):
-                    for file in list(filter(lambda x: x.endswith('.png'), files)):
-                        if any(suffix in file for suffix in ('_n', '_s', '_e')):
-                            has_pbr = True
-                        else:
-                            has_texture = True
-            
-            if has_texture and has_pbr:
-                resource_pack_type = 'Texture & PBR'
-            elif has_texture:
-                resource_pack_type = 'Texture'
-            elif has_pbr:
-                resource_pack_type = 'PBR'
+
+                elif filepath.endswith(('.zip', '.jar')):
+                    try:
+                        with zipfile.ZipFile(filepath, 'r') as zip_ref:
+                            for zip_info in filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist()):
+                                if check_suffix(zip_info.filename):
+                                    has_pbr = True
+                                    debugger(zip_info.filename)
+                                else:
+                                    has_texture = True
+                                        
+                    except zipfile.BadZipFile:
+                        print(f"Warning: '{filepath}' is not a valid zip file.")
+                
+                else: 
+                    for root, _, files in os.walk(os.path.dirname(filepath)):
+                        for file in filter(lambda x: x.endswith('.png'), files):
+                            if check_suffix(file):
+                                has_pbr = True
+                                debugger(zip_info.filename)
+                            else:
+                                has_texture = True
+                
+                if has_texture and has_pbr:
+                    resource_pack_type = 'Texture & PBR'
+                elif has_texture:
+                    resource_pack_type = 'Texture'
+                elif has_pbr:
+                    resource_pack_type = 'PBR'
+
+            return resource_pack_type
+        
+        resource_packs = get_resource_packs()
 
         if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
             if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
                 pack_name = os.path.basename(self.filepath)
-                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": resource_pack_type, "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True}
             else:
                 pack_name = os.path.basename(os.path.dirname(self.filepath))
-                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": resource_pack_type, "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
         else:
             pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": resource_pack_type, "enabled": True}
+            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
         
-        set_resource_packs(resource_packs)
-
-        return {'FINISHED'}
+        debugger(resource_packs[pack_name]["type"])
+        if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
+            set_resource_packs(resource_packs)
+            return {'FINISHED'}
+        else:
+            Absolute_Solver(error_name="Bad File Extension", description="Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension", mode="Full", data=os.path.splitext(resource_packs[pack_name]["path"])[1])
+            return {'CANCELLED'}
     
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
