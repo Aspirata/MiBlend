@@ -1,4 +1,5 @@
 from ..Data import *
+import bpy, re
 
 Absolute_Solver_Errors = {
 

@@ -765,6 +765,25 @@ class AssetPanel(Panel):
     bl_category = 'Mcblend'
 
     def draw(self, context):
+
+        def importcategoryfix():
+            asset_category = context.scene.assetsproperties.asset_category
+
+            if asset_category == "Scripts":
+                return "Run Script"
+            
+            if asset_category == "Rigs":
+                return "Import Rig"
+            
+            if asset_category == "Shader Nodes":
+                return "Import Node Group"
+            
+            if asset_category == "Geo Nodes":
+                return "Import Geo Node"
+
+            if asset_category == "Model":
+                return "Import Model"
+
         layout = self.layout
         
         if Preferences.transparent_ui:
@@ -786,7 +805,7 @@ class AssetPanel(Panel):
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset")
+        row.operator("assets.import_asset", text=importcategoryfix())
 
 class Assets_List_UL_(bpy.types.UIList):
 

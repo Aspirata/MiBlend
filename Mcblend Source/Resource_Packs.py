@@ -1,10 +1,7 @@
 from .Data import *
 from distutils.version import LooseVersion
 
-def get_resource_packs(debug=None):
-    if debug is not None:
-        print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
-
+def get_resource_packs():
     return bpy.context.scene["resource_packs"]
 
 def set_resource_packs(resource_packs, debug=None):
@@ -12,6 +9,10 @@ def set_resource_packs(resource_packs, debug=None):
 
     if debug is not None:
         print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
+
+Launchers = {
+    "Modrinth": "com.modrinth.theseus\\meta\\versions"
+}
 
 def update_default_pack():
     resource_packs = bpy.context.scene["resource_packs"]
@@ -45,7 +46,7 @@ def update_default_pack():
     else:
         print("MC not found")
 
-    default_pack = "Bare Bones 1.20.6"
+    default_pack = "Bare Bones 1.21"
     default_path = os.path.join(resource_packs_directory, default_pack)
     resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
 
@@ -53,6 +54,6 @@ def update_default_pack():
     default_path = os.path.join(resource_packs_directory, default_pack)
     resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
 
-    default_pack = "Embrace Pixels 2.1"
+    default_pack = "Embrace Pixels PBR"
     default_path = os.path.join(resource_packs_directory, default_pack)
     resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}

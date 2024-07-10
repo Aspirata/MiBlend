@@ -2,6 +2,7 @@ import re
 from ..MCB_API import *
 from ..Data import *
 from ..Resource_Packs import *
+from ..Utils.Absolute_Solver import Absolute_Solver
 
 # Scan the material for image texture node duplicates > if nothing is connected to the vector then delete else don't touch
 def DeleteUselessTextures(material):

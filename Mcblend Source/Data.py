@@ -4,7 +4,6 @@ import json
 import zipfile
 import traceback
 import time
-from .Preferences import McblendPreferences
 from .Utils.Absolute_Solver import *
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
@@ -20,18 +19,6 @@ world_material_name = "Mcblend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
-
-Preferences_List = {
-    "Dev": {
-        "transparent_ui": True,
-        "enable_warnings": False,
-    },
-
-    "Default": {
-        "transparent_ui": False,
-        "enable_warnings": True,
-    }
-}
 
 Render_Settings = {
     
@@ -224,10 +211,6 @@ Emissive_Materials = {
         "Divider": 50.0,
     }
 
-}
-
-Launchers = {
-    "Modrinth": "com.modrinth.theseus\\meta\\versions"
 }
 
 # Materials Categories

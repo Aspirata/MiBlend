@@ -1,6 +1,7 @@
 from .Data import *
 from .MCB_API import *
 import sys
+from .Utils.Absolute_Solver import Absolute_Solver
 
 def get_asset_path(category, asset_name):
 
@@ -67,7 +68,7 @@ def run_python_script(file_path):
         with open(file_path, 'r') as file:
             exec(file.read(), global_context)
     except:
-        Absolute_Solver(err=traceback.print_exc(), data=file_path, error_name="Bad Script Execution", description="Can't Execute Script from {Data}")
+        Absolute_Solver(tech_things=traceback.print_exc(), data=file_path, error_name="Bad Script Execution", description="Can't Execute Script from {Data}")
 
 Assets = {
     "Rigs": {

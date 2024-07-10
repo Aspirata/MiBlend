@@ -5,6 +5,7 @@ from .Optimization import Optimize
 from .Utils_tools import *
 from bpy.types import Operator
 from .Assets import *
+from .Utils.Absolute_Solver import Absolute_Solver
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
@@ -257,7 +258,7 @@ class ApplyResourcePack(Operator):
         Materials.apply_resources()
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f"apply_resources() took {elapsed_time:.4f} seconds to complete.")
+        debugger(f"apply_resources() took {elapsed_time:.4f} seconds to complete.")
         return {'FINISHED'}
 
 class CreateEnvOperator(Operator):
