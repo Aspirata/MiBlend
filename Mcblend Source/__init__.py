@@ -34,13 +34,13 @@ def InitOnStart():
 def load_post_handler(dummy):
     InitOnStart()
 
-classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment,
-    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties,
-    WorldAndMaterialsPanel, CreateEnvOperator, FixWorldOperator, OpenConsoleOperator, SetProceduralPBROperator, FixMaterialsOperator, UpgradeMaterialsOperator, SwapTexturesOperator, 
-    ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack,
-    OptimizationProperties, OptimizationPanel, OptimizeOperator, 
-    UtilsProperties, UtilsPanel, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, 
-    AssetsProperties, AssetPanel, Assets_List_UL_, ImportAssetOperator, ManualAssetsUpdateOperator
+classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment,                                                                                               # Special Paneles
+    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties, UtilsProperties, AssetsProperties, # Properties
+    WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
+    RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
+    RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
+    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, ImportAssetOperator,
+    ManualAssetsUpdateOperator,
 ]
 
 def register():

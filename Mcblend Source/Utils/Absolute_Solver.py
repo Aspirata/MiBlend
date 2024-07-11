@@ -1,5 +1,5 @@
 from ..Data import *
-import bpy, re
+import bpy, re, traceback
 
 Absolute_Solver_Errors = {
 
@@ -15,7 +15,7 @@ Absolute_Solver_Errors = {
 
     "000": {
         "Error Name": "Absolute Solver Error",
-        "Description": "Absolute Solver Can't Display This Error - {Data}, Please Report To Aspirata",
+        "Description": "Absolute Solver Can't Display This Error - {Data}",
     },
 
     "001": {

@@ -68,6 +68,37 @@ class RecreateEnvironment(Operator):
         row = box.row()
         row.prop(self, "create_clouds", text='create_clouds', expand=True)
 
+class RemoveAttributeOperator(Operator):
+    bl_idname = "special.remove_attribute"
+    bl_label = "Remove Attribute"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    attribute: bpy.props.StringProperty()
+
+    def execute(self, context):
+        attr_name = self.attribute
+        
+        if attr_name in bpy.context.scene:
+            del bpy.context.scene[attr_name]
+            self.report({'INFO'}, f"Attribute '{attr_name}' has been removed.")
+        else:
+            try:
+                parts = attr_name.split(".")
+                current = bpy.context.scene
+
+                for part in parts[:-1]:
+                    current = getattr(current, part)
+                
+                attr = getattr(current, parts[-1])
+                attr.clear()
+                return {'FINISHED'}
+            except AttributeError as e:
+                self.report({'WARNING'}, f"Failed to remove attribute '{attr_name}': {str(e)}")
+            except TypeError as e:
+                self.report({'WARNING'}, f"Failed to remove attribute '{attr_name}': {str(e)}")
+            self.report({'WARNING'}, f"Attribute '{attr_name}' does not exist.")
+        return {'FINISHED'}
+
 class FixWorldOperator(Operator):
     bl_idname = "world.fix_world"
     bl_label = "Fix World"

@@ -32,7 +32,7 @@ def append_asset(asset_name, asset_category):
             run_python_script(asset_path)
         
     except:
-        Absolute_Solver(err=traceback.print_exc(), data=asset_name, error_name="Bad Asset Import", description="Can't Import {Data} Asset")
+        Absolute_Solver(tech_things=traceback.print_exc(), data=asset_name, error_name="Bad Asset Import", description="Can't Import {Data} Asset")
 
 def update_assets():
     items = bpy.context.scene.assetsproperties.asset_items
@@ -47,7 +47,6 @@ def update_assets():
     for key in sorted(all_keys):
         item = items.add()
         item.name = key
-    
     
 def run_python_script(file_path):
 

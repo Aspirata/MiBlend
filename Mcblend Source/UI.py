@@ -162,6 +162,11 @@ class WorldAndMaterialsPanel(Panel):
                 row.enabled = scene.resource_properties.animate_textures
                 row.prop(scene.resource_properties, "only_fix_uv")
 
+        if Preferences.dev_tools:
+            row = box.row()
+            remove_attr = row.operator("special.remove_attribute", text="Remove Resource Packs List")
+            remove_attr.attribute = "resource_packs"
+
         row = box.row()
         row.operator("resource_pack.apply", icon='CHECKMARK')
 
@@ -504,39 +509,40 @@ class WorldAndMaterialsPanel(Panel):
             row.prop(scene.ppbr_properties, "revert_normals", slider=True)
             row.enabled = not context.scene.ppbr_properties.use_normals
         
-        row = box.row()
-        row.prop(scene.ppbr_properties, "pspecular")
-        row.prop(scene.ppbr_properties, "pspecular_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.pspecular_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.pspecular_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Procedural Specular Settings:", icon="MODIFIER")
+        if Preferences.dev_tools:
+            row = box.row()
+            row.prop(scene.ppbr_properties, "pspecular")
+            row.prop(scene.ppbr_properties, "pspecular_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.pspecular_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.ppbr_properties.pspecular_settings:
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text="Procedural Specular Settings:", icon="MODIFIER")
 
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "ps_interpolation")
+                row = sbox.row()
+                row.prop(scene.ppbr_properties, "ps_interpolation")
 
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "ps_dif")
+                row = sbox.row()
+                row.prop(scene.ppbr_properties, "ps_dif")
 
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "ps_revert")
+                row = sbox.row()
+                row.prop(scene.ppbr_properties, "ps_revert")
         
-        row = box.row()
-        row.prop(scene.ppbr_properties, "proughness")
-        row.prop(scene.ppbr_properties, "proughness_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.proughness_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.proughness_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Procedural Roughness Settings:", icon="MODIFIER")
+            row = box.row()
+            row.prop(scene.ppbr_properties, "proughness")
+            row.prop(scene.ppbr_properties, "proughness_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.proughness_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.ppbr_properties.proughness_settings:
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text="Procedural Roughness Settings:", icon="MODIFIER")
 
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "pr_interpolation")
+                row = sbox.row()
+                row.prop(scene.ppbr_properties, "pr_interpolation")
 
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "pr_dif")
+                row = sbox.row()
+                row.prop(scene.ppbr_properties, "pr_dif")
 
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "pr_revert")
+                row = sbox.row()
+                row.prop(scene.ppbr_properties, "pr_revert")
 
         row = box.row()
         row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
@@ -802,6 +808,11 @@ class AssetPanel(Panel):
 
         row = box.row()
         row.operator("assets.update_assets")
+
+        if Preferences.dev_tools:
+            row = box.row()
+            remove_attr = row.operator("special.remove_attribute", text="Remove Assets List")
+            remove_attr.attribute = "assetsproperties.asset_items"
 
         row = box.row()
         row.scale_y = Big_Button_Scale
