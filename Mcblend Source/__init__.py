@@ -1,4 +1,5 @@
 from .Data import *
+from .Preferences import McblendPreferences
 from .MCB_API import *
 from .Assets import update_assets
 from .Resource_Packs import update_default_pack
