@@ -185,9 +185,9 @@ def fix_world():
                                 material.use_backface_culling = False
                         
                         if WProperties.lazy_biome_fix:
-                            material_parts = image_texture_node.image.name.lower().replace("-", "_").split("_")
+                            material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
                         
-                            if ("grass" in material_parts or "water" in material_parts or "leaves" in material_parts) and "side" not in material_parts:
+                            if any(part in material_parts for part in ("grass", "water", "leaves")) and "side" not in material_parts:
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -1059,6 +1059,8 @@ def swap_textures(folder_path):
         
 def setproceduralpbr():
 
+    Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
+
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
@@ -1104,7 +1106,7 @@ def setproceduralpbr():
                             if "Procedural Specular Node" in node.name:
                                 pspecular_node = node
 
-                    if PBSDF is not None:
+                    if PBSDF and image:
                         # Use Normals
                         if PProperties.use_normals:
 
@@ -1119,7 +1121,7 @@ def setproceduralpbr():
                                     material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
                                 bump_node.inputs[0].default_value = PProperties.bump_strength
                             else:
-                                if bump_node is not None:
+                                if bump_node:
                                     material.node_tree.nodes.remove(bump_node)
                                 
                                 if PNormals is None:
@@ -1306,7 +1308,7 @@ def setproceduralpbr():
                                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                                 material.node_tree.nodes.remove(node_group)
 
-                        if PProperties.proughness:
+                        if PProperties.proughness and Preferences.dev_tools:
                             if proughness_node is None:
                                 proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
                                 proughness_node.name = "Procedural Roughness Node"
@@ -1325,7 +1327,7 @@ def setproceduralpbr():
                         elif PProperties.pr_revert and proughness_node is not None:
                             material.node_tree.nodes.remove(proughness_node)
                         
-                        if PProperties.pspecular:
+                        if PProperties.pspecular and Preferences.dev_tools:
                             if pspecular_node is None:
                                 pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
                                 pspecular_node.name = "Procedural Specular Node"
