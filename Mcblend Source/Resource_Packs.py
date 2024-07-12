@@ -13,7 +13,8 @@ def set_resource_packs(resource_packs, debug=None):
         print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
 
 Launchers = {
-    "Modrinth": "com.modrinth.theseus\\meta\\versions"
+    "Mojang": ".minecraft\\versions",
+    "Modrinth": "com.modrinth.theseus\\meta\\versions",
 }
 
 def update_default_pack():
@@ -35,23 +36,18 @@ def update_default_pack():
                 for folder in os.listdir(folders):
                     if version := version_formatter(folder):
                         versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
-            
-        if versions:
-            latest_version = max(versions, key=lambda x: LooseVersion(x))
-            latest_file, latest_path = versions[latest_version]
-            return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
         
-        elif Preferences.mc_instances_path:
+        if Preferences.mc_instances_path:
             folders = Preferences.mc_instances_path
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
                     if version := version_formatter(folder):
                         versions[version] = (folder, Preferences.mc_instances_path)
-                
-            if versions:
-                latest_version = max(versions, key=lambda x: LooseVersion(x))
-                latest_file, latest_path = versions[latest_version]
-                return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
+            
+        if versions:
+            latest_version = max(versions, key=lambda x: LooseVersion(x))
+            latest_file, latest_path = versions[latest_version]
+            return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
         
         return None, None
 
