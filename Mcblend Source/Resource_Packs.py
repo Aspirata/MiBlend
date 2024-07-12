@@ -1,5 +1,6 @@
 from .MCB_API import *
 from .Data import *
+import sys
 from distutils.version import LooseVersion
 
 def get_resource_packs():
@@ -29,7 +30,7 @@ def update_default_pack():
     def find_mc():
         versions = {}
         for launcher, path in Launchers.items():
-            folders = os.path.join(os.getenv('APPDATA'), path)
+            folders = os.path.join(os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA'), path)
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
                     if version := version_formatter(folder):
