@@ -28,6 +28,11 @@ class McblendPreferences(AddonPreferences):
         subtype="DIR_PATH"
     )
 
+    dev_packs_path: StringProperty(
+        name="Dev Resource Packs Folder",
+        subtype="DIR_PATH"
+    )
+
     dev_tools: BoolProperty(
         name="Dev Tools",
         default=False
@@ -83,6 +88,10 @@ class McblendPreferences(AddonPreferences):
 
         row = box.row()
         row.prop(self, "mc_instances_path")
+
+        if self.dev_tools:
+            row = box.row()
+            row.prop(self, "dev_packs_path")
 
         row = box.row()
         row.prop(self, "dev_tools")
