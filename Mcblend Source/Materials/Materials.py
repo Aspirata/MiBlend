@@ -472,8 +472,6 @@ def apply_resources():
                             return zip_unpacker(os.path.join(dirpath, file), file)
                         except zipfile.BadZipFile:
                             print("Bad Zip File")
-
-        debugger(("Texture Not Found", image_name))
         return None
 
     def find_texture_users(texture):
@@ -546,16 +544,18 @@ def apply_resources():
 
         if r_props.animate_textures:
             if int(image_texture.size[1] / image_texture.size[0]) != 1:
+
                 animation_file = new_image_texture_path + ".mcmeta"
                 if not os.path.isfile(animation_file) and image_path is not None:
-                    animation_file = image_path + re.sub(r'(_n|_s|_e)$', '', image_texture.name.replace('.png', '')) + ".png" + ".mcmeta"
+                    animation_file = image_path + ".mcmeta"
+
                 if os.path.isfile(animation_file):
                     with open(animation_file, 'r') as file:
                         data = json.load(file).get('animation', {})
-                        if frametime := data.get('frametime') is None:
+                        if (frametime := data.get('frametime')) is None:
                             frametime = 20
 
-                        if interpolate := data.get('interpolate') is None:
+                        if (interpolate := data.get('interpolate')) is None:
                             interpolate = False
                     
                     if interpolate and r_props.interpolate:
@@ -563,7 +563,7 @@ def apply_resources():
                             material.node_tree.nodes.remove(Texture_Animator)
 
                         if ITexture_Animator is None:
-
+                            
                             ITexture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
                             ITexture_Animator.location = texture_node.location
 
@@ -660,7 +660,8 @@ def apply_resources():
         else:
             normal_image_name = normal_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image([new_image_path], normal_image_name) is None:
+        predicted_texture_path = fast_find_image([new_image_path], normal_image_name)
+        if predicted_texture_path is None:
             new_normal_image_path = find_image(normal_image_name, path)
         else:
             if r_props.use_i:
@@ -718,7 +719,8 @@ def apply_resources():
         else:
             specular_image_name = specular_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image([new_normal_image_path, new_image_path], specular_image_name) is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+        predicted_texture_path = fast_find_image([new_normal_image_path, new_image_path], specular_image_name)
+        if predicted_texture_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
             new_specular_image_path = find_image(specular_image_name, path)
         else:
             if not r_props.use_i or not r_props.use_n:
@@ -751,7 +753,6 @@ def apply_resources():
 
                 specular_texture_node.interpolation = "Closest"
 
-            print(new_specular_image_path)
             update_texture(new_specular_image_path, specular_image_name, specular_texture_node, "Non-Color")
 
             if LabPBR_s is None:
@@ -810,6 +811,7 @@ def apply_resources():
 
             animate_texture(specular_texture_node, new_specular_image_path, STexture_Animator, Current_node_tree, image_path)
             return new_specular_image_path
+        
         return False
         
     def emission_texture_change(path, emission_texture_node, new_normal_image_path, new_specular_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
@@ -819,7 +821,8 @@ def apply_resources():
         else:
             emission_image_name = emission_texture_node.image.name
 
-        if predicted_texture_path := fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name) is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+        predicted_texture_path = fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name)
+        if predicted_texture_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
             new_emission_image_path = find_image(emission_image_name, path)
         else:
             if r_props.use_i == False or r_props.use_n == False or r_props.use_s == False:
@@ -952,7 +955,7 @@ def apply_resources():
                                     update_texture(new_image_path, image_texture)
                                         
                                     animate_texture(image_texture_node, new_image_path, ITexture_Animator, Current_node_tree)
-                                    image_path = path
+                                    image_path = new_image_path
                                     break
 
                         # Normal Texture Update
@@ -965,6 +968,10 @@ def apply_resources():
                                 if new_normal_image_path := normal_texture_change(path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
                                     break
                         else:
+                            if NTexture_Animator is not None:
+                                material.node_tree.nodes.remove(NTexture_Animator)
+                                NTexture_Animator = None
+
                             if normal_texture_node is not None:
                                 material.node_tree.nodes.remove(normal_texture_node)
                                 normal_texture_node = None
@@ -984,6 +991,10 @@ def apply_resources():
                                     break
                         
                         else:
+                            if STexture_Animator is not None:
+                                material.node_tree.nodes.remove(STexture_Animator)
+                                STexture_Animator = None
+
                             if specular_texture_node is not None:
                                 material.node_tree.nodes.remove(specular_texture_node)
                                 specular_texture_node = None
@@ -999,11 +1010,17 @@ def apply_resources():
                                 if not enabled or "PBR" not in Type:
                                     continue
 
-                                if emission_texture_found := emission_texture_change(path, emission_texture_node, new_normal_image_path, new_specular_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
+                                if emission_texture_change(path, emission_texture_node, new_normal_image_path, new_specular_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
                                     break
-                        elif emission_texture_node is not None:
-                            material.node_tree.nodes.remove(emission_texture_node)
-                            emission_texture_node = None
+
+                        else:
+                            if ETexture_Animator is not None:
+                                material.node_tree.nodes.remove(ETexture_Animator)
+                                ETexture_Animator = None
+
+                            if emission_texture_node is not None:
+                                material.node_tree.nodes.remove(emission_texture_node)
+                                emission_texture_node = None
 
                 else:
                     Absolute_Solver("m002", slot)
@@ -1286,7 +1303,7 @@ def setproceduralpbr():
                                 material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
                             
                             try:
-                                if emit_socket := GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node != node_group:
+                                if (emit_socket := GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node) != node_group:
                                     material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
                             except:
                                 pass
@@ -1304,7 +1321,7 @@ def setproceduralpbr():
                                         break
                             
                             if node_group is not None:
-                                if mult_socket := GetConnectedSocketTo("Multiply", node_group) is not None:
+                                if (mult_socket := GetConnectedSocketTo("Multiply", node_group)) is not None:
                                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                                 material.node_tree.nodes.remove(node_group)
 
