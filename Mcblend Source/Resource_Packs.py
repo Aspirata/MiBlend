@@ -76,13 +76,13 @@ def update_default_pack():
         resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
     else:
         default_pack = "Bare Bones 1.21"
-        default_path = os.path.join(dev_resource_packs_directory, default_pack)
+        default_path = os.path.join(resource_packs_directory, default_pack)
         resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
 
         default_pack = "Better Emission"
-        default_path = os.path.join(dev_resource_packs_directory, default_pack)
+        default_path = os.path.join(resource_packs_directory, default_pack)
         resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
 
         default_pack = "Embrace Pixels PBR"
-        default_path = os.path.join(dev_resource_packs_directory, default_pack)
+        default_path = os.path.join(resource_packs_directory, default_pack)
         resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
