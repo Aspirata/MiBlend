@@ -61,7 +61,7 @@ def update_default_pack():
     else:
         print("MC instance not found")
 
-    if Preferences.dev_tools:
+    if Preferences.dev_tools and Preferences.dev_packs_path:
         dev_resource_packs_directory = Preferences.dev_packs_path
         default_pack = "Bare Bones 1.21"
         default_path = os.path.join(dev_resource_packs_directory, default_pack)

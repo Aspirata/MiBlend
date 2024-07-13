@@ -422,31 +422,34 @@ def apply_resources():
     def zip_unpacker(root_folder, file=None):
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
             infolist = list(filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist()))
-            for zip_info in infolist:
-                if os.path.basename(zip_info.filename) == image_name:
-                    extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                    if os.path.isfile(extract_path):
-                        return extract_path
-                    else:
-                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                        return extracted_file_path
+            if image_name in infolist:
+                for zip_info in infolist:
+                    if os.path.basename(zip_info.filename).replace(".png", "") == image_name:
+                        extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
+                        if os.path.isfile(extracted_path := os.path.join(extract_path, zip_info.filename)):
+                            debugger(f"{image_name} already extracted")
+                            return extracted_path
+                        else:
+                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                            debugger(f"Extracting {image_name}...")
+                            return extracted_file_path
 
-                elif "grass" in image_name:
-                    if os.path.basename(zip_info.filename) == f"short_{image_name}":
-                        extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                        if os.path.isfile(extract_path):
-                            return extract_path
-                        else:
-                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                            return extracted_file_path
-                    
-                    if os.path.basename(zip_info.filename) == image_name.replace("short_", ""):
-                        extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
-                        if os.path.isfile(extract_path):
-                            return extract_path
-                        else:
-                            extracted_file_path = zip_ref.extract(zip_info, extract_path)
-                            return extracted_file_path
+                    elif "grass" in image_name:
+                        if os.path.basename(zip_info.filename).replace(".png", "") == f"short_{image_name}":
+                            extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
+                            if os.path.isfile(extracted_path := os.path.join(extract_path, zip_info.filename)):
+                                return extracted_path
+                            else:
+                                extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                                return extracted_file_path
+                        
+                        if os.path.basename(zip_info.filename).replace(".png", "") == image_name.replace("short_", ""):
+                            extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
+                            if os.path.isfile(extracted_path := os.path.join(extract_path, zip_info.filename)):
+                                return extracted_path
+                            else:
+                                extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                                return extracted_file_path
     
     def find_image(image_name, root_folder):
         if root_folder.endswith(('.zip', '.jar')):
