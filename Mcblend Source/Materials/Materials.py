@@ -425,28 +425,17 @@ def apply_resources():
 
             for zip_info in filter(lambda x: ".png" in x.filename, zip_ref.infolist()):
                 texture = os.path.basename(zip_info.filename)
+                base_texture = texture.replace(".mcmeta", "")
 
-                if ".mcmeta" in texture:
-                    if texture.replace(".mcmeta", "") == image_name and r_props.animate_textures:
-                        extracted_file_path = os.path.join(extract_path, zip_info.filename)
-                        if not os.path.isfile(extracted_file_path):
-                            zip_ref.extract(zip_info, extract_path)
+                extracted_file_path = os.path.join(extract_path, zip_info.filename)
 
-                    else:
-                        debugger(f"{texture.replace('.mcmeta', '')} - {image_name}")
-                    
-                if texture == image_name:
-                    extracted_file_path = os.path.join(extract_path, zip_info.filename)
-                    if not os.path.isfile(extracted_file_path):
-                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
+                if not os.path.isfile(extracted_file_path):
+                    zip_ref.extract(zip_info, extract_path)
 
+                if base_texture == image_name and texture.endswith(".png"):
                     return extracted_file_path
 
-                if "grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "")):
-                    extracted_file_path = os.path.join(extract_path, zip_info.filename)
-                    if not os.path.isfile(extracted_file_path):
-                        extracted_file_path = zip_ref.extract(zip_info, extract_path)
-
+                if "grass" in image_name and (base_texture == f"short_{image_name}" or base_texture == image_name.replace("short_", "")) and texture.endswith(".png"):
                     return extracted_file_path
         return None
     
