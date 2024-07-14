@@ -23,6 +23,16 @@ class McblendPreferences(AddonPreferences):
         default='Full'
     )
 
+    mc_instances_path: StringProperty(
+        name="Minecraft Instances Folder",
+        subtype="DIR_PATH"
+    )
+
+    dev_packs_path: StringProperty(
+        name="Dev Resource Packs Folder",
+        subtype="DIR_PATH"
+    )
+
     dev_tools: BoolProperty(
         name="Dev Tools",
         default=False
@@ -47,7 +57,7 @@ class McblendPreferences(AddonPreferences):
         layout = self.layout
         box = layout.box()
         row = box.row()
-        row.label(text="UI:")
+        row.label(text="UI:") # UI
 
         if blender_version(">= 4.1.0"):
             row = box.row()
@@ -60,7 +70,7 @@ class McblendPreferences(AddonPreferences):
 
         box = layout.box()
         row = box.row()
-        row.label(text="Algorithms:")
+        row.label(text="Algorithms:") # Algorithms
 
         row = box.row()
         row.label(text="Absolute Solver Mode:")
@@ -71,6 +81,17 @@ class McblendPreferences(AddonPreferences):
         row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
         row = box.row()
         row.prop(self, "emissiondetection", text='emissiondetection', expand=True)
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Other:") # Other
+
+        row = box.row()
+        row.prop(self, "mc_instances_path")
+
+        if self.dev_tools:
+            row = box.row()
+            row.prop(self, "dev_packs_path")
 
         row = box.row()
         row.prop(self, "dev_tools")

@@ -39,7 +39,6 @@ def EmissionMode(PBSDF, material):
         Preferences = bpy.context.preferences.addons[__package__].preferences
                 
         if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials.keys(), material, "==")):
-            debugger(Emissive_Materials.keys())
             return 1
 
         if Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:

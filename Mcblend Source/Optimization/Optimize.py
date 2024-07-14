@@ -3,7 +3,6 @@ from ..MCB_API import *
 from ..Utils.Absolute_Solver import Absolute_Solver
 
 def Camera_Culling(obj, OProperties, geonodes_modifier):
-    mat_excuder = None
 
     if OProperties.camera_culling_type == 'Vector':
         if bpy.app.version >= (4,1,0):
@@ -57,19 +56,6 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
                 geonodes_modifier["Socket_13"] = 0
             else:
                 geonodes_modifier["Socket_13"] = False
-        
-        #if OProperties.Exclude_Materials:
-            #for node in node_group:
-                #if node.type == "GROUP":
-                    #if "Material Excluder" in node.node_tree.name:
-                        #mat_excuder = node
-                        #break
-
-            #if mat_excuder == None:
-                #Create new Node Group with name "Material Excluder"
-
-            #Set Settings
-                    #Add Materials to exclude
 
     if bpy.app.version < (4, 1, 0):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
