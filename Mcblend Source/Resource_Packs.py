@@ -15,7 +15,7 @@ def set_resource_packs(resource_packs, debug=None):
 Launchers = {
     "Mojang": ".minecraft\\versions",
     "Modrinth": "com.modrinth.theseus\\meta\\versions",
-    "Legacy-Launcher": ".tlauncher\\legacy\\Minecraft\\game\\versions",
+    "TL Legacy": ".tlauncher\\legacy\\Minecraft\\game\\versions",
 }
 
 def update_default_pack():
