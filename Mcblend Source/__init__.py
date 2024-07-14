@@ -2,6 +2,7 @@ from .Data import *
 from .Preferences import McblendPreferences
 from .MCB_API import *
 from .Assets import update_assets
+from .Utils.Absolute_Solver import AbsoluteSolver
 from .Resource_Packs import update_default_pack
 from .UI import *
 from .Operators import *
