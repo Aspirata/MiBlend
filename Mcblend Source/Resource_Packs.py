@@ -1,6 +1,6 @@
 from .MCB_API import *
 from .Data import *
-import sys
+import sys, re
 from distutils.version import LooseVersion
 
 def get_resource_packs():
