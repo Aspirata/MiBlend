@@ -11,7 +11,8 @@ def set_resource_packs(resource_packs, debug=None):
         print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
 
 Launchers = {
-    "Modrinth": "com.modrinth.theseus\\meta\\versions"
+    "Modrinth": "com.modrinth.theseus\\meta\\versions",
+    "Legacy-Launcher": ".tlauncher\\legacy\\Minecraft\\game\\versions"
 }
 
 def update_default_pack():
@@ -20,15 +21,18 @@ def update_default_pack():
     def version_formatter(launcher, version_name):
         if launcher == "Modrinth" and not any(char.isalpha() for char in version_name):
             return version_name.split("-")[0]
+        if launcher == "Legacy-Launcher" and all(char.isalpha() for char in version_name):
+            return version_name.split(" ")[0]
         return None
 
     def find_mc():
         versions = {}
         for launcher, path in Launchers.items():
-            folders = os.listdir(os.path.join(os.getenv('APPDATA'), path))
-            for folder in folders:
-                if version := version_formatter(launcher, folder):
-                    versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
+            folders = os.path.join(os.getenv('APPDATA'), path)
+            if os.path.isdir(folders):
+                for folder in os.listdir(folders):
+                    if version := version_formatter(launcher, folder):
+                        versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
             
         if versions:
             latest_version = max(versions, key=lambda x: LooseVersion(x))
