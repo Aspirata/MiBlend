@@ -191,6 +191,9 @@ class WorldAndMaterialsPanel(Panel):
                 clouds_exists = True
                 clouds_obj = obj
                 geonodes_modifier = obj.modifiers.get("Clouds Generator")
+                material_tree = obj.material_slots[0].material.node_tree
+                map_range_node = material_tree.nodes.get("Map Range").inputs[2]
+                base_color = material_tree.nodes.get("Principled BSDF").inputs[0]
                 break
 
         box = layout.box()
@@ -258,6 +261,18 @@ class WorldAndMaterialsPanel(Panel):
                     row = tbox.row()
                     row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
                 
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Material Settings:", icon="MATERIAL")
+                row.prop(scene.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
+
+                if scene.env_properties.material_settings:
+
+                    row = tbox.row()
+                    row.prop(base_color, "default_value", text="Color")
+                    
+                    row = tbox.row()
+                    row.prop(map_range_node, "default_value", text="Fade Distance")
 
         row = box.row() 
         row.prop(scene.env_properties, "create_sky", text="Create Sky")

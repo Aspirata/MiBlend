@@ -72,9 +72,12 @@ def Absolute_Solver(error_code="None", data=None, tech_things="None", error_name
         if description is None:
             description = GetASText(error_code, 'Description')
 
-            mode = "Full" if "Mode" in Absolute_Solver_Errors[error_code] else "Smart"
+        try:
+            mode = Absolute_Solver_Errors[error_code]["Mode"]
+        except:
+            mode = "Smart"
 
-        if (mode == Preferences.as_mode or mode == "Full") and Preferences.as_mode != "None":
+        if (mode == Preferences.as_mode or mode == "Smart") and Preferences.as_mode != "None":
             bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = error_name, Description = description.format(Data=data), Tech_Things = str(tech_things))
     except:
         bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description = GetASText("000", 'Description'), Tech_Things = str(traceback.format_exc()))

@@ -529,6 +529,11 @@ class CreateEnvProperties(PropertyGroup):
         description=""
     )
 
+    material_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
     layers_settings: BoolProperty(
         default=False,
         description=""
