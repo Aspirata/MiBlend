@@ -126,6 +126,7 @@ def fix_world():
                             for n in connected_nodes:
                                 if n.type == "TEX_IMAGE":
                                     image_texture_node = n
+                            debugger(connected_nodes)
                         
                         if node.type == "GROUP":
                             if "Lazy Biome Color Fix" == node.node_tree.name:
@@ -187,7 +188,7 @@ def fix_world():
                         if WProperties.lazy_biome_fix:
                             material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
                         
-                            if any(part in material_parts for part in ("grass", "water", "leaves")) and "side" not in material_parts:
+                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem")) and all(part not in material_parts for part in ("cherry", "side")):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -537,7 +538,6 @@ def apply_resources():
                 animation_file = new_image_texture_path + ".mcmeta"
                 if not os.path.isfile(animation_file) and image_path is not None:
                     animation_file = image_path + ".mcmeta"
-                    debugger(animation_file)
 
                 if os.path.isfile(animation_file):
                     with open(animation_file, 'r') as file:
@@ -1076,6 +1076,7 @@ def setproceduralpbr():
                 slot += 1
                 if material is not None and material.use_nodes:
                     PBSDF = None
+                    image = None
                     bump_node = None
                     proughness_node = None
                     pspecular_node = None
@@ -1095,6 +1096,7 @@ def setproceduralpbr():
                             for n in connected_nodes:
                                 if n.type == "TEX_IMAGE":
                                     image = n.image
+                            debugger(connected_nodes)
 
                         if node.type == "BUMP":
                             bump_node = node
