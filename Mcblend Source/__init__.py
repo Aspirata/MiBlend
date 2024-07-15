@@ -2,7 +2,7 @@ from .Data import *
 from .Preferences import McblendPreferences
 from .MCB_API import *
 from .Assets import update_assets
-from .Utils.Absolute_Solver import AbsoluteSolver
+from .Utils.Absolute_Solver import AbsoluteSolverPanel
 from .Resource_Packs import update_default_pack
 from .UI import *
 from .Operators import *
@@ -35,7 +35,7 @@ def InitOnStart():
 def load_post_handler(dummy):
     InitOnStart()
 
-classes = [McblendPreferences, AbsoluteSolver, RecreateEnvironment,                                                                                               # Special Paneles
+classes = [McblendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Paneles
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties, UtilsProperties, AssetsProperties, # Properties
     WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators

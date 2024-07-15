@@ -57,6 +57,10 @@ Absolute_Solver_Errors = {
     },
 }
 
+# Calls AS
+# P.S Variables after "tech_things" made for calling AS with an error that isn't in the Absolute_Solver_Errors
+# An example of this special error - Assets.py | 35 line
+
 def Absolute_Solver(error_code="None", data=None, tech_things="None", error_name="None", description=None, mode=None):
     Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
     try:
@@ -82,7 +86,7 @@ def Absolute_Solver(error_code="None", data=None, tech_things="None", error_name
     except:
         bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description = GetASText("000", 'Description'), Tech_Things = str(traceback.format_exc()))
 
-class AbsoluteSolver(bpy.types.Operator):
+class AbsoluteSolverPanel(bpy.types.Operator):
     bl_label = "Absolute Solver"
     bl_idname = "special.absolute_solver"
     bl_options = {'REGISTER', 'UNDO'}

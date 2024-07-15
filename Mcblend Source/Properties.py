@@ -43,18 +43,6 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
-    def pack_options_update(self, context):
-        bpy.ops.resource_pack.options('INVOKE_DEFAULT')
-
-    pack_options: EnumProperty(
-        name="Pack_Options",
-        items=[
-            ('Remove', "Remove Pack", ""),
-            ('Info', "Pack Info", ""),
-        ],
-        update=pack_options_update
-    )
-
     resource_packs_settings: BoolProperty(
         name="Advanced Settings",
         default=False,
@@ -336,7 +324,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     animate_textures: BoolProperty(
-        name="Animate textures",
+        name="Procedurally Animate textures",
         default=False,
         description=""
     )
@@ -348,7 +336,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     change_bsdf_settings: BoolProperty(
-        name="Change BSDF Settings",
+        name="Change BSDF Settings Settings LoL",
         default=False,
         description=""
     )
