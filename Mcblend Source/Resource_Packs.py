@@ -63,27 +63,18 @@ def update_default_pack():
         print("MC instance not found")
 
     if Preferences.dev_tools and Preferences.dev_packs_path:
-        dev_resource_packs_directory = Preferences.dev_packs_path
-        default_pack = "Bare Bones 1.21"
-        default_path = os.path.join(dev_resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
-
-        default_pack = "Better Emission"
-        default_path = os.path.join(dev_resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
-
-        default_pack = "Embrace Pixels PBR"
-        default_path = os.path.join(dev_resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
+        resource_packs_dir = Preferences.dev_packs_path
     else:
-        default_pack = "Bare Bones 1.21"
-        default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
+        resource_packs_dir = resource_packs_directory
+        
+    default_pack = "Bare Bones 1.21"
+    default_path = os.path.join(resource_packs_dir, default_pack)
+    resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
 
-        default_pack = "Better Emission"
-        default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
+    default_pack = "Better Emission"
+    default_path = os.path.join(resource_packs_dir, default_pack)
+    resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": False}
 
-        default_pack = "Embrace Pixels PBR"
-        default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": True}
+    default_pack = "Embrace Pixels PBR"
+    default_path = os.path.join(resource_packs_dir, default_pack)
+    resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": False}

@@ -75,6 +75,16 @@ def get_linked_nodes(node, input_name):
     if input_name in node.inputs and node.inputs[input_name].is_linked:
         for link in node.inputs[input_name].links:
             linked_nodes.append(link.from_node)
+            linked_nodes.extend(get_all_linked_nodes(link.from_node))
+    return linked_nodes
+
+def get_all_linked_nodes(node):
+    linked_nodes = []
+    for input_name, input_socket in node.inputs.items():
+        if input_socket.is_linked:
+            for link in input_socket.links:
+                linked_nodes.append(link.from_node)
+                linked_nodes.extend(get_all_linked_nodes(link.from_node))
     return linked_nodes
 
 def traverse_nodes(node, input_name, visited=None):
@@ -124,7 +134,7 @@ def fix_world():
                             PBSDF = node
                             connected_nodes = traverse_nodes(node, "Base Color")
                             for n in connected_nodes:
-                                if n.type == "TEX_IMAGE":
+                                if n.type == "TEX_IMAGE" and n.image:
                                     image_texture_node = n
                             debugger(connected_nodes)
                         
@@ -1094,7 +1104,7 @@ def setproceduralpbr():
                             PBSDF = node
                             connected_nodes = traverse_nodes(node, "Base Color")
                             for n in connected_nodes:
-                                if n.type == "TEX_IMAGE":
+                                if n.type == "TEX_IMAGE" and n.image:
                                     image = n.image
                             debugger(connected_nodes)
 
