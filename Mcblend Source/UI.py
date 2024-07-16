@@ -168,6 +168,7 @@ class WorldAndMaterialsPanel(Panel):
             remove_attr.attribute = "resource_packs"
 
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("resource_pack.apply", icon='CHECKMARK')
 
         # Sky
@@ -459,12 +460,15 @@ class WorldAndMaterialsPanel(Panel):
 
         if os.path.isfile(os.path.join(materials_folder, "Upgraded Materials.blend")):
             row = box.row()
+            row.scale_y = Big_Button_Scale
             row.operator("materials.upgrade_materials", text="Upgrade Materials")
 
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("materials.fix_materials", text="Fix Materials")
 
         row = box.row()
+        row.scale_y = Big_Button_Scale
         row.operator("materials.swap_textures", icon="UV_SYNC_SELECT")
         
         # PPBR
