@@ -136,7 +136,6 @@ def fix_world():
                             for n in connected_nodes:
                                 if n.type == "TEX_IMAGE" and n.image:
                                     image_texture_node = n
-                            debugger(connected_nodes)
                         
                         if node.type == "GROUP":
                             if "Lazy Biome Color Fix" == node.node_tree.name:
@@ -198,7 +197,7 @@ def fix_world():
                         if WProperties.lazy_biome_fix:
                             material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
                         
-                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem")) and all(part not in material_parts for part in ("cherry", "side")):
+                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem")) or ("redstone" and "dust" in material_parts) and all(part not in material_parts for part in ("cherry", "side")):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -217,7 +216,10 @@ def fix_world():
                                 material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
                                 if "water" in material_parts:
-                                    lbcf_node.inputs["Water"].default_value = True
+                                    lbcf_node.inputs["Mode"].default_value = 2
+
+                                if "redstone" in material_parts:
+                                    lbcf_node.inputs["Mode"].default_value = 3
                 else:
                     Absolute_Solver("m002", slot)
         else:
@@ -496,7 +498,6 @@ def setproceduralpbr():
                             for n in connected_nodes:
                                 if n.type == "TEX_IMAGE" and n.image:
                                     image = n.image
-                            debugger(connected_nodes)
 
                         if node.type == "BUMP":
                             bump_node = node

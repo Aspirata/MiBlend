@@ -7,11 +7,10 @@ from distutils.version import LooseVersion
 def get_resource_packs():
     return bpy.context.scene["resource_packs"]
 
-def set_resource_packs(resource_packs, debug=None):
+def set_resource_packs(resource_packs):
     bpy.context.scene["resource_packs"] = resource_packs
 
-    if debug is not None:
-        print(f"Resource Packs: {bpy.context.scene['resource_packs']}")
+    debugger(f"Resource Packs: {bpy.context.scene['resource_packs']}")
 
 Launchers = {
     "Mojang": ".minecraft\\versions",
