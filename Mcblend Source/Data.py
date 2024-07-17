@@ -3,7 +3,6 @@ import os
 import json
 import zipfile
 import traceback
-import time
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
 main_directory = os.path.dirname(os.path.realpath(__file__))

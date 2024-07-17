@@ -120,7 +120,7 @@ class ResourcePackToggleOperator(Operator):
         resource_packs = get_resource_packs()
         if self.pack_name in resource_packs:
             resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
-            debugger(resource_packs[self.pack_name]["type"])
+            dprint(resource_packs[self.pack_name]["type"])
             set_resource_packs(resource_packs)
         return {'FINISHED'}
 
@@ -219,7 +219,7 @@ class AddResourcePack(Operator):
                         for file in filter(lambda x: x.endswith('.png'), files):
                             if check_suffix(file):
                                 has_pbr = True
-                                debugger(os.path.join(root, file))
+                                dprint(os.path.join(root, file))
                             else:
                                 has_texture = True
 
@@ -229,7 +229,7 @@ class AddResourcePack(Operator):
                             for zip_info in filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist()):
                                 if check_suffix(zip_info.filename):
                                     has_pbr = True
-                                    debugger(zip_info.filename)
+                                    dprint(zip_info.filename)
                                 else:
                                     has_texture = True
                                         
@@ -241,7 +241,7 @@ class AddResourcePack(Operator):
                         for file in filter(lambda x: x.endswith('.png'), files):
                             if check_suffix(file):
                                 has_pbr = True
-                                debugger(zip_info.filename)
+                                dprint(zip_info.filename)
                             else:
                                 has_texture = True
                 
@@ -267,7 +267,7 @@ class AddResourcePack(Operator):
             pack_name = os.path.basename(os.path.dirname(self.filepath))
             resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
         
-        debugger(resource_packs[pack_name]["type"])
+        dprint(resource_packs[pack_name]["type"])
         if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
             set_resource_packs(resource_packs)
             return {'FINISHED'}
@@ -285,11 +285,7 @@ class ApplyResourcePack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        start_time = time.time()
         apply_resources()
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        debugger(f"apply_resources() took {elapsed_time:.4f} seconds to complete.")
         return {'FINISHED'}
 
 class CreateEnvOperator(Operator):

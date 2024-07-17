@@ -10,7 +10,7 @@ def get_resource_packs():
 def set_resource_packs(resource_packs):
     bpy.context.scene["resource_packs"] = resource_packs
 
-    debugger(f"Resource Packs: {bpy.context.scene['resource_packs']}")
+    dprint(f"Resource Packs: {bpy.context.scene['resource_packs']}")
 
 Launchers = {
     "Mojang": ".minecraft\\versions",
@@ -58,11 +58,11 @@ def update_default_pack():
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
         resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True}
-        debugger(resource_packs[default_pack]["path"])
+        dprint(resource_packs[default_pack]["path"])
     else:
         print("MC instance not found")
 
-    if Preferences.dev_tools and Preferences.dev_packs_path:
+    if Preferences.dev_tools and Preferences.dev_packs_path and Preferences.enable_custom_packs_path:
         resource_packs_dir = Preferences.dev_packs_path
     else:
         resource_packs_dir = resource_packs_directory
@@ -79,11 +79,13 @@ def update_default_pack():
     default_path = os.path.join(resource_packs_dir, default_pack)
     resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": False}
 
-
+@ Perf_Time
 def apply_resources():
+
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.resource_properties
 
+    @ Full_Perf_Time
     def fast_find_image(textures_paths, texture_name):
         for texture_path in filter(None, textures_paths):
             dir_path = os.path.dirname(texture_path)
@@ -92,6 +94,7 @@ def apply_resources():
                 return predicted_texture
         return None
     
+    @ Full_Perf_Time
     def zip_unpacker(root_folder, image_name, file=None):
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
@@ -112,6 +115,7 @@ def apply_resources():
                     return extracted_file_path
         return None
     
+    @ Full_Perf_Time
     def find_image(image_name, root_folder):
         if root_folder.endswith(('.zip', '.jar')):
             try:
@@ -134,6 +138,7 @@ def apply_resources():
                             print("Bad Zip File")
         return None
 
+    @ Full_Perf_Time
     def find_texture_users(texture):
         Texture_users = []
         for obj in bpy.data.objects:
@@ -151,6 +156,7 @@ def apply_resources():
         
         return Texture_users
 
+    @ Full_Perf_Time
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
         Users = None
 
@@ -193,6 +199,7 @@ def apply_resources():
                 for user in Users:
                     user.image = user_texture
 
+    @ Full_Perf_Time
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         Texture_Animator = None
         image_texture = bpy.data.images.get(os.path.basename(new_image_texture_path))

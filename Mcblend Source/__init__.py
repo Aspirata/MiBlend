@@ -28,7 +28,7 @@ def InitOnStart():
         
     update_assets()
 
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools:
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start:
         bpy.ops.wm.console_toggle()
 
 @persistent

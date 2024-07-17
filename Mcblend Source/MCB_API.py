@@ -1,8 +1,14 @@
 from .Data import *
+from .Utils.Absolute_Solver import Absolute_Solver
+import time
+import atexit
 
 def PBSDF_compability(Input):
     if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
         return "Subsurface"
+    
+    if Input == "Subsurface Radius" and blender_version("< 4.0.0"):
+        return "Subsurface Color"
     
     if Input == "Specular IOR Level" and blender_version("< 4.0.0"):
         return "Specular"
@@ -18,7 +24,6 @@ def PBSDF_compability(Input):
     
     if Input == "Emission Color" and blender_version("< 4.0.0"):
         return "Emission"
-    
     return Input
 
 def MaterialIn(Array, material, mode="in"):
@@ -47,9 +52,43 @@ def EmissionMode(PBSDF, material):
         if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
             return 3
 
-def debugger(message):
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools:
+def dprint(message):
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
         print(message)
+
+def Full_Perf_Time(func):
+    total_time = 0
+    call_count = 0
+
+    def wrapper(*args, **kwargs):
+        nonlocal total_time, call_count
+        start_time = time.time()
+        func(*args, **kwargs)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        total_time += elapsed_time
+        call_count += 1
+        
+    def print_final_stats():
+        dprint(f"---------------- \nName: {func.__name__}() \nTotal Time: {total_time:.4f} \nAvg Time: {total_time / call_count} \n ----------------")
+
+    atexit.register(print_final_stats)
+    
+    wrapper.total_time = lambda: total_time
+    wrapper.call_count = lambda: call_count
+    wrapper.average_time = lambda: total_time / call_count if call_count > 0 else 0
+
+    return wrapper
+
+def Perf_Time(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        func(*args, **kwargs)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        if elapsed_time > 0.001:
+            dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
+    return wrapper
 
 def GetConnectedSocketFrom(output, tag, material=None):
     try:

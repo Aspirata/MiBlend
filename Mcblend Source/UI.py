@@ -177,149 +177,159 @@ class WorldAndMaterialsPanel(Panel):
         clouds_obj = None
         geonodes_modifier = None 
 
-        if world is not None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
-            if world_material_name in bpy.data.worlds:
-                sky_exists = True
-                world_material = scene.world.node_tree
-                for node in world_material.nodes:
-                    if node.type == 'GROUP':
-                        if "Mcblend Sky" in node.node_tree.name:
-                            node_group = node
-                            break
+        try:
+            if world is not None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+                if world_material_name in bpy.data.worlds:
+                    sky_exists = True
+                    world_material = scene.world.node_tree
+                    for node in world_material.nodes:
+                        if node.type == 'GROUP':
+                            if "Mcblend Sky" in node.node_tree.name:
+                                node_group = node
+                                break
 
-        for obj in scene.objects:
-            if obj.get("Mcblend ID") == "Clouds":
-                clouds_exists = True
-                clouds_obj = obj
-                geonodes_modifier = obj.modifiers.get("Clouds Generator")
-                material_tree = obj.material_slots[0].material.node_tree
-                map_range_node = material_tree.nodes.get("Map Range").inputs[2]
-                base_color = material_tree.nodes.get("Principled BSDF").inputs[0]
-                break
+            for obj in scene.objects:
+                if obj.get("Mcblend ID") == "Clouds":
+                    clouds_exists = True
+                    clouds_obj = obj
+                    geonodes_modifier = obj.modifiers.get("Clouds Generator")
+                    material_tree = obj.material_slots[0].material.node_tree
+                    map_range_node = material_tree.nodes.get("Map Range").inputs[2]
+                    shadow_node = material_tree.nodes.get("Math").inputs[1]
+                    base_color = material_tree.nodes.get("Principled BSDF").inputs[0]
+                    break
 
-        box = layout.box()
-        row = box.row()
-        row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
+            box = layout.box()
+            row = box.row()
+            row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
 
-        row = box.row()
-        row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
-        if clouds_exists:
-            row.prop(scene.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
+            row = box.row()
+            row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
 
-            if scene.env_properties.clouds_settings:
-                sbox = box.box()
-                tbox = sbox.box()
+            # Clouds Settings
 
-                row = tbox.row()
-                row.label(text="Main Settings:", icon="PROPERTIES")
+            if clouds_exists:
+                row.prop(scene.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
 
-                row = tbox.row()                
-                row.prop(clouds_obj, "location", index=2, text="Height")
+                if scene.env_properties.clouds_settings:
+                    sbox = box.box()
+                    tbox = sbox.box()
 
-                row = tbox.row()
-                row.prop(clouds_obj, "visible_shadow", text="Clouds Shadow", toggle=True)
+                    row = tbox.row()
+                    row.label(text="Main Settings:", icon="PROPERTIES")
 
-                tbox = sbox.box()
+                    row = tbox.row()                
+                    row.prop(clouds_obj, "location", index=2, text="Height")
 
-                row = tbox.row()
-                row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
-                row.prop(scene.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
+                    row = tbox.row()
+                    row.prop(clouds_obj, "visible_shadow", text="Clouds Shadow", toggle=True)
 
-                if scene.env_properties.geonodes_settings:
-                    if blender_version("4.x.x"):
+                    tbox = sbox.box()
 
-                        fbox = tbox.box()
-                        row = fbox.row()
-                        row.label(text="Layers Settings:", icon="AXIS_TOP")
-                        row.prop(scene.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.env_properties.layers_settings:
+                    row = tbox.row()
+                    row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
+                    row.prop(scene.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
 
+                    if scene.env_properties.geonodes_settings:
+                        if blender_version("4.x.x"):
+
+                            fbox = tbox.box()
                             row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+                            row.label(text="Layers Settings:", icon="AXIS_TOP")
+                            row.prop(scene.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.layers_settings:
 
-                            row = fbox.row()
-                            row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
 
-                            row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
-                            row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
-                            row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                                row = fbox.row()
+                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                        
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
                     
+                    tbox = sbox.box()
                     row = tbox.row()
-                    row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
+                    row.label(text="Material Settings:", icon="MATERIAL")
+                    row.prop(scene.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
 
-                    row = tbox.row()
-                    row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
-
-                    row = tbox.row()
-                    row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
-
-                    row = tbox.row()
-                    row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
-
-                    row = tbox.row()
-                    row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
-                
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Material Settings:", icon="MATERIAL")
-                row.prop(scene.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
-
-                if scene.env_properties.material_settings:
-
-                    row = tbox.row()
-                    row.prop(base_color, "default_value", text="Color")
-                    
-                    row = tbox.row()
-                    row.prop(map_range_node, "default_value", text="Fade Distance")
-
-        row = box.row() 
-        row.prop(scene.env_properties, "create_sky", text="Create Sky")
-
-        if node_group is not None:
-            row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
-            try:
-                if not node_group.inputs["End"].default_value:
-                    if scene.env_properties.sky_settings:
-                        sbox = box.box()
-
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Main Settings:", icon="PROPERTIES")
-                        row = tbox.row()
-                        row.prop(node_group.inputs["Time"], "default_value", text="Time")
-
-                        if scene.render.engine == "BLENDER_EEVEE_NEXT":
-                            row = tbox.row()
-                            row.prop(bpy.data.worlds[world_material_name], "sun_angle", text="Shadow Softness")
+                    if scene.env_properties.material_settings:
 
                         row = tbox.row()
-                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
-
-                        tbox = sbox.box()
+                        row.prop(base_color, "default_value", text="Color")
+                        
                         row = tbox.row()
-                        row.label(text="Strength:", icon="LIGHT_SUN")
-                        row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.env_properties.strength_settings:
+                        row.prop(map_range_node, "default_value", text="Fade Distance")
+
+                        row = tbox.row()
+                        row.prop(shadow_node, "default_value", text="Shadow intensity")
+
+            row = box.row() 
+            row.prop(scene.env_properties, "create_sky", text="Create Sky")
+
+            # Sky Settings
+
+            if node_group is not None:
+                row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
+                if scene.env_properties.sky_settings:
+                    sbox = box.box()
+
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Main Settings:", icon="PROPERTIES")
+                    row = tbox.row()
+                    row.prop(node_group.inputs["Time"], "default_value", text="Time")
+
+                    if scene.render.engine == "BLENDER_EEVEE_NEXT":
+                        row = tbox.row()
+                        row.prop(bpy.data.worlds[world_material_name], "sun_angle", text="Shadow Softness")
+
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Strength:", icon="LIGHT_SUN")
+                    row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
+                    if scene.env_properties.strength_settings:
+                        if not node_group.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
                             row = tbox.row()
                             row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
                             row = tbox.row()
                             row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                        else:
                             row = tbox.row()
-                            row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
-                                                    
-                        tbox = sbox.box()
+                            row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
                         row = tbox.row()
-                        row.label(text="Colors:", icon="IMAGE")
-                        row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
+                        row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+                                                
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Colors:", icon="IMAGE")
+                    row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
-                        if scene.env_properties.colors_settings:
+                    if scene.env_properties.colors_settings:
+                        if not node_group.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
                             row = tbox.row()
@@ -328,119 +338,75 @@ class WorldAndMaterialsPanel(Panel):
                             row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
                             row = tbox.row()
                             row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
-                        
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Ambient Light Colors:", icon="IMAGE")
-                        row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.env_properties.ambient_colors_settings:
-                            for node in bpy.data.node_groups:
-                                if "Ambient Color" in node.name:
-                                    for Node in node.nodes:
-                                        if Node.type == "VALTORGB":
-                                            row = tbox.row()
-                                            row.label(text=f"{Node.name}:")
-                                            for element in Node.color_ramp.elements:                                                    
-                                                row.prop(element, "color", icon_only=True)
-                        
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Sun & Moon Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                        row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
+                        else:
+                            row = tbox.row()
+                            row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
+                    
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Ambient Light Colors:", icon="IMAGE")
+                    row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                    if scene.env_properties.ambient_colors_settings:
+                        for node in bpy.data.node_groups:
+                            if ("Ambient Color" if not node_group.inputs["End"].default_value else "Mcblend End") in node.name:
+                                for Node in node.nodes:
+                                    if Node.type == "VALTORGB":
+                                        row = tbox.row()
+                                        row.label(text=f"{Node.name}:")
+                                        for element in Node.color_ramp.elements:                                                    
+                                            row.prop(element, "color", icon_only=True)
+                    
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text=("Sun & Moon Rotation:" if not node_group.inputs["End"].default_value else "Star Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                    row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
-                        if scene.env_properties.rotation_settings:
+                    if scene.env_properties.rotation_settings:
+                        if not node_group.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
                             row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
                             row = tbox.row()
                             row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
-
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Other Settings:", icon="COLLAPSEMENU")
-                        row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
-
-                        if scene.env_properties.other_settings:
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
-                else:
-                    if scene.env_properties.sky_settings:
-                        sbox = box.box()
-
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Main Settings:", icon="PROPERTIES")
-                        row = tbox.row()
-                        row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
-                        row = tbox.row()
-                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
-
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Strength:", icon="LIGHT_SUN")
-                        row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.env_properties.strength_settings:
-                            row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
-
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Colors:", icon="IMAGE")
-                        row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.env_properties.colors_settings:
-                            row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
-
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Ambient Light Colors:", icon="IMAGE")
-                        row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.env_properties.ambient_colors_settings:
-                            for node in bpy.data.node_groups:
-                                if node.name == "Mcblend End":
-                                    for Node in node.nodes:
-                                        if Node.type == "VALTORGB":
-                                            row = tbox.row()
-                                            row.label(text=f"{Node.name}:")
-                                            for element in Node.color_ramp.elements:                                                    
-                                                row.prop(element, "color", icon_only=True)
-                        
-                        tbox = sbox.box()
-                        row = tbox.row()
-                        row.label(text="Star Rotation:", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                        row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
-
-                        if scene.env_properties.rotation_settings:
+                        else:
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
-                        
-                        tbox = sbox.box()
+
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Other Settings:", icon="COLLAPSEMENU")
+                    row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+
+                    if scene.env_properties.other_settings:
                         row = tbox.row()
-                        row.label(text="Other Settings:", icon="COLLAPSEMENU")
-                        row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+                        row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
+                        
+                        row = tbox.row()
+                        row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
 
-                        if scene.env_properties.other_settings:
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                        row = tbox.row()
+                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
 
+        except:
+            box = layout.box()
+            row = box.row()
+            row.label(text="An Error occured !", icon="ERROR")
 
-            except Exception as Error:
-                row = box.row()
-                row.label(text="Unknown Error Printed in Console. Report To Aspirata", icon="ERROR")
-                row = box.row()
-                row.label(text="To Open Console Press Window > Toggle System Console")
-                print(Error)
+            row = box.row()
+            row.label(text="This error could be caused by outdated sky or clouds")
+
+            row = box.row()
+            row.label(text="Try to recreate the environment")
+
+            print(traceback.format_exc())
+
+            row = box.row()
+            row.operator("special.open_console")
 
         if clouds_exists or sky_exists:
             row = box.row()

@@ -43,6 +43,7 @@ def DeleteUselessTextures(material):
                 
                 material.node_tree.nodes.remove(node)
 
+@ Perf_Time
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
         if selected_object.material_slots:
@@ -101,6 +102,7 @@ def traverse_nodes(node, input_name, visited=None):
     
     return visited
 
+@ Perf_Time
 def fix_world():
     
     for selected_object in bpy.context.selected_objects:
@@ -224,6 +226,7 @@ def fix_world():
         else:
             Absolute_Solver("m003", selected_object)
 
+@ Perf_Time
 def create_env(self=None):
 
     def clouds_file_comp():
@@ -390,7 +393,7 @@ def create_env(self=None):
 
             bpy.context.object["Mcblend ID"] = "Clouds"
 
-    
+@ Perf_Time
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
         slot = 0
@@ -418,7 +421,8 @@ def fix_materials():
                     Absolute_Solver("m002", slot)
         else:
             Absolute_Solver("m003", selected_object)
-        
+
+@ Perf_Time
 def swap_textures(folder_path):
     def find_image(image_name, root_folder):
         for dirpath, _, files in os.walk(root_folder):
@@ -465,7 +469,8 @@ def swap_textures(folder_path):
             Absolute_Solver("m003", selected_object)
 
 # Set Procedural PBR
-        
+
+@ Perf_Time
 def setproceduralpbr():
 
     Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
@@ -521,7 +526,7 @@ def setproceduralpbr():
                         if PProperties.use_normals:
 
                             if PProperties.normals_selector == 'Bump':
-                                if PNormals is not None:
+                                if PNormals:
                                     material.node_tree.nodes.remove(PNormals)
 
                                 if bump_node is None:
@@ -529,6 +534,7 @@ def setproceduralpbr():
                                     bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
                                     material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), bump_node.inputs['Height'])
                                     material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
+
                                 bump_node.inputs[0].default_value = PProperties.bump_strength
                             else:
                                 if bump_node:
@@ -606,17 +612,10 @@ def setproceduralpbr():
                                 PBSDF.subsurface_method = PProperties.sss_type
 
                                 if PProperties.connect_texture:
-                                    if blender_version("4.x.x"):
-                                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs['Subsurface Radius'])
-                                    else:
-                                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs['Subsurface Color'])
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
                                 else:
-                                    if blender_version("4.x.x"):
-                                        RemoveLinksFrom(PBSDF.inputs["Subsurface Radius"])
-                                    else:
-                                        RemoveLinksFrom(PBSDF.inputs["Subsurface Color"])
+                                    RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                                
                                 if blender_version("4.x.x"):
                                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
@@ -680,16 +679,11 @@ def setproceduralpbr():
                                             if "From Min" in material_properties and "From Max" in material_properties and "To Min" in material_properties and "To Max" in material_properties:
                                                 node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
                             else:
-                                for material_name, material_properties in Emissive_Materials.items():
-                                    if material_name == "Default":
-                                        for property_name, property_value in material_properties.items():
-                                            if property_name == "Divider":
-                                                node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
-                                            else:
-                                                node_group.inputs[property_name].default_value = property_value
+                                for property_name, property_value in Emissive_Materials.get("Default", {}).items():
+                                    node_group.inputs[property_name].default_value = property_value
 
-                                        node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-                                        node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                                node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                             
                             # Color Connection if Nothing Connected
                             if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
