@@ -198,7 +198,7 @@ def fix_world():
                         if WProperties.lazy_biome_fix:
                             material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
                         
-                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine")) or ("redstone" and "dust" in material_parts) and all(part not in material_parts for part in ("cherry", "side")):
+                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) or ("redstone" and "dust" in material_parts) and all(part not in material_parts for part in ("cherry", "side", "azalea")):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -711,48 +711,47 @@ def setproceduralpbr():
                                 if (mult_socket := GetConnectedSocketTo("Multiply", node_group)) is not None:
                                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                                 material.node_tree.nodes.remove(node_group)
+                        if Preferences.dev_tools and Preferences.experimental_features:
+                            if PProperties.proughness:
+                                if proughness_node is None:
+                                    proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                    proughness_node.name = "Procedural Roughness Node"
+                                    proughness_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 90)
+                                    proughness_node.hide = True
 
-                        if PProperties.proughness and Preferences.dev_tools:
-                            if proughness_node is None:
-                                proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
-                                proughness_node.name = "Procedural Roughness Node"
-                                proughness_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 90)
-                                proughness_node.hide = True
+                                proughness_node.interpolation_type = PProperties.pr_interpolation
+                                proughness_node.inputs["From Max"].default_value = 0.0
+                                proughness_node.inputs["From Min"].default_value = 1.0
+                                proughness_node.inputs["To Max"].default_value = PBSDF.inputs["Roughness"].default_value
+                                proughness_node.inputs["To Min"].default_value = PBSDF.inputs["Roughness"].default_value * PProperties.pr_dif
+                                
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), proughness_node.inputs["Value"])
+                                material.node_tree.links.new(proughness_node.outputs[0], PBSDF.inputs["Roughness"])
 
-                            proughness_node.interpolation_type = PProperties.pr_interpolation
-                            proughness_node.inputs["From Max"].default_value = 0.0
-                            proughness_node.inputs["From Min"].default_value = 1.0
-                            proughness_node.inputs["To Max"].default_value = PBSDF.inputs["Roughness"].default_value
-                            proughness_node.inputs["To Min"].default_value = PBSDF.inputs["Roughness"].default_value * PProperties.pr_dif
+                            elif PProperties.pr_revert and proughness_node is not None:
+                                material.node_tree.nodes.remove(proughness_node)
                             
-                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), proughness_node.inputs["Value"])
-                            material.node_tree.links.new(proughness_node.outputs[0], PBSDF.inputs["Roughness"])
+                            if PProperties.pspecular:
+                                if pspecular_node is None:
+                                    pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                    pspecular_node.name = "Procedural Specular Node"
+                                    pspecular_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 200)
+                                    pspecular_node.hide = True
 
-                        elif PProperties.pr_revert and proughness_node is not None:
-                            material.node_tree.nodes.remove(proughness_node)
-                        
-                        if PProperties.pspecular and Preferences.dev_tools:
-                            if pspecular_node is None:
-                                pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
-                                pspecular_node.name = "Procedural Specular Node"
-                                pspecular_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 200)
-                                pspecular_node.hide = True
-
-                            pspecular_node.interpolation_type = PProperties.ps_interpolation
-                            pspecular_node.inputs["From Max"].default_value = 1.0
-                            pspecular_node.inputs["From Min"].default_value = 0.0
-                            pspecular_node.inputs["To Max"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value
-                            pspecular_node.inputs["To Min"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value * PProperties.ps_dif
-                            
-                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
-                            material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
-                            
-                        elif PProperties.ps_revert and pspecular_node is not None:
-                            material.node_tree.nodes.remove(pspecular_node)
+                                pspecular_node.interpolation_type = PProperties.ps_interpolation
+                                pspecular_node.inputs["From Max"].default_value = 1.0
+                                pspecular_node.inputs["From Min"].default_value = 0.0
+                                pspecular_node.inputs["To Max"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value
+                                pspecular_node.inputs["To Min"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value * PProperties.ps_dif
+                                
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
+                                material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
+                                
+                            elif PProperties.ps_revert and pspecular_node is not None:
+                                material.node_tree.nodes.remove(pspecular_node)
 
                 else:
                     Absolute_Solver("m002", slot)
-                
         else:
             Absolute_Solver("m003", selected_object)
 #

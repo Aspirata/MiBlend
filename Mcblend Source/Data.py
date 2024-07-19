@@ -64,10 +64,23 @@ Render_Settings = {
         "eevee.overscan_size": 10.0
     },
 
-    "Aspirata Eevee":{
+    "Aspirata Eevee Viewport":{
+        "eevee.taa_samples": 16,
+        "eevee.taa_render_samples": 16,
+        "eevee.shadow_ray_count": 1,
+        "eevee.shadow_step_count": 16,
+        "eevee.use_volumetric_shadows": True,
+        "eevee.use_raytracing": True,
+        "eevee.ray_tracing_options.resolution_scale": '4',
+        "eevee.ray_tracing_options.trace_max_roughness": 0,
+        "eevee.fast_gi_resolution": '4',
+        "eevee.fast_gi_ray_count": 1,
+        "eevee.fast_gi_step_count": 16,
+    },
+
+    "Aspirata Eevee Render":{
         "eevee.taa_samples": 32,
         "eevee.taa_render_samples": 32,
-        "eevee.use_shadow_jitter_viewport": True,
         "eevee.shadow_ray_count": 2,
         "eevee.shadow_step_count": 16,
         "eevee.use_volumetric_shadows": True,
@@ -75,6 +88,8 @@ Render_Settings = {
         "eevee.ray_tracing_options.resolution_scale": '4',
         "eevee.ray_tracing_options.trace_max_roughness": 0,
         "eevee.fast_gi_resolution": '4',
+        "eevee.fast_gi_ray_count": 2,
+        "eevee.fast_gi_step_count": 16,
         "eevee.use_overscan": True,
         "eevee.overscan_size": 10.0,
     }
@@ -217,7 +232,7 @@ Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 
 Alpha_Blend_Materials = ["water"]
 
-SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet"]
+SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
 
 Translucent_Materials = ["leaves", "glass"]
 

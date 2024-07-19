@@ -49,8 +49,23 @@ class McblendPreferences(AddonPreferences):
     )
 
     dprint: BoolProperty(
-        name="Enable dprint",
+        name="dprint",
         default=True
+    )
+
+    perf_time: BoolProperty(
+        name="Perf_Time",
+        default=False
+    )
+
+    debug_tools: BoolProperty(
+        name="Debug Tools",
+        default=False
+    )
+
+    experimental_features: BoolProperty(
+        name="Experimental Features",
+        default=False
     )
 
     open_console_on_start: BoolProperty(
@@ -106,14 +121,21 @@ class McblendPreferences(AddonPreferences):
         
         box = layout.box()
         row = box.row()
+        row.prop(self, "dev_tools", text="")
         row.label(text="Dev Tools:")                                                   # Dev Tools
-
-        row = box.row()
-        row.prop(self, "dev_tools")
 
         if self.dev_tools:
             row = box.row()
             row.prop(self, "dprint", toggle=True)
+
+            row = box.row()
+            row.prop(self, "perf_time", toggle=True)
+            
+            row = box.row()
+            row.prop(self, "debug_tools", toggle=True)
+
+            row = box.row()
+            row.prop(self, "experimental_features", toggle=True)
 
             row = box.row()
             row.prop(self, "open_console_on_start", toggle=True)
@@ -121,3 +143,6 @@ class McblendPreferences(AddonPreferences):
             row = box.row()
             row.prop(self, "dev_packs_path")
             row.prop(self, "enable_custom_packs_path", text="")
+        else:
+            row = box.row()
+            row.label(text="Dev Tools Disabled")

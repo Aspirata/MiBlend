@@ -86,7 +86,7 @@ def Perf_Time(func):
         func(*args, **kwargs)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        if elapsed_time > 0.001:
+        if elapsed_time > 0.001 and bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.perf_time:
             dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
     return wrapper
 
