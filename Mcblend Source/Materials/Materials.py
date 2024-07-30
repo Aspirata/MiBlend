@@ -197,8 +197,9 @@ def fix_world():
                         
                         if WProperties.lazy_biome_fix:
                             material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
-                        
-                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) or ("redstone" and "dust" in material_parts) and all(part not in material_parts for part in ("cherry", "side", "azalea")):
+
+                            # Lazy Biome Color Fix Exclusions
+                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) and all(part not in material_parts for part in ("cherry", "side", "azalea", "snow")) or ("redstone" and "dust" in material_parts):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:

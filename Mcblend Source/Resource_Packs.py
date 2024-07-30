@@ -85,7 +85,7 @@ def apply_resources():
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.resource_properties
 
-    @ Full_Perf_Time
+
     def fast_find_image(textures_paths, texture_name):
         for texture_path in filter(None, textures_paths):
             dir_path = os.path.dirname(texture_path)
@@ -94,7 +94,7 @@ def apply_resources():
                 return predicted_texture
         return None
     
-    @ Full_Perf_Time
+
     def zip_unpacker(root_folder, image_name, file=None):
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
@@ -115,7 +115,7 @@ def apply_resources():
                     return extracted_file_path
         return None
     
-    @ Full_Perf_Time
+
     def find_image(image_name, root_folder):
         if root_folder.endswith(('.zip', '.jar')):
             try:
@@ -138,7 +138,7 @@ def apply_resources():
                             print("Bad Zip File")
         return None
 
-    @ Full_Perf_Time
+
     def find_texture_users(texture):
         Texture_users = []
         for obj in bpy.data.objects:
@@ -156,7 +156,7 @@ def apply_resources():
         
         return Texture_users
 
-    @ Full_Perf_Time
+
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
         Users = None
 
@@ -199,7 +199,7 @@ def apply_resources():
                 for user in Users:
                     user.image = user_texture
 
-    @ Full_Perf_Time
+
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         Texture_Animator = None
         image_texture = bpy.data.images.get(os.path.basename(new_image_texture_path))

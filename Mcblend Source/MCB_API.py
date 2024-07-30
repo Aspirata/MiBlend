@@ -1,7 +1,6 @@
 from .Data import *
 from .Utils.Absolute_Solver import Absolute_Solver
 import time
-import atexit
 
 def PBSDF_compability(Input):
     if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
@@ -56,7 +55,7 @@ def dprint(message):
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
         print(message)
 
-def Full_Perf_Time(func):
+def Full_Perf_Time(func): # Not Implemented
     total_time = 0
     call_count = 0
 
