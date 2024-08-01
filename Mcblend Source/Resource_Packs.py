@@ -617,7 +617,6 @@ def apply_resources():
                                 if not enabled or "Texture" not in Type:
                                     continue
                                 
-                                
                                 new_image_path = find_image(image_texture, path)
 
                                 if new_image_path is not None and os.path.isfile(new_image_path):

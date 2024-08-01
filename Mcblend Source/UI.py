@@ -534,10 +534,10 @@ class WorldAndMaterialsPanel(Panel):
         if scene.ppbr_properties.advanced_settings:
             sbox = box.box()
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "make_better_emission", text="Make Better Emission")
+            row.prop(scene.ppbr_properties, "make_better_emission")
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "animate_textures", text="Animate Textures")
+            row.prop(scene.ppbr_properties, "animate_textures")
 
             row = sbox.row()
             row.prop(context.scene.ppbr_properties, "change_bsdf")
@@ -548,9 +548,9 @@ class WorldAndMaterialsPanel(Panel):
                 row.label(text="Global PBSDF Settings:", icon="MODIFIER")
                 row = tbox.row()
                 # Добавить все штуки из PBSDF
-                row.prop(scene.ppbr_properties, "specular", slider=True, text="Specular")
+                row.prop(scene.ppbr_properties, "specular", slider=True)
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "roughness", slider=True, text="Roughness")
+                row.prop(scene.ppbr_properties, "roughness", slider=True)
 
             row = sbox.row()
             row.prop(scene.ppbr_properties, "use_sss")

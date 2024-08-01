@@ -74,7 +74,7 @@ def Enchant():
                     if node_group == None:
                         if "Enchantment" not in bpy.data.node_groups:
                             try:
-                                with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                     data_to.node_groups = ["Enchantment"]
                             except:
                                 Absolute_Solver("004", "Materials", traceback.format_exc())

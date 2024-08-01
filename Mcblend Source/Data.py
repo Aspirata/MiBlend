@@ -64,7 +64,7 @@ Render_Settings = {
         "eevee.overscan_size": 10.0
     },
 
-    "Aspirata Eevee Viewport":{
+    "Aspirata Eevee Next Viewport":{
         "eevee.taa_samples": 16,
         "eevee.taa_render_samples": 16,
         "eevee.shadow_ray_count": 1,
@@ -78,7 +78,7 @@ Render_Settings = {
         "eevee.fast_gi_step_count": 16,
     },
 
-    "Aspirata Eevee Render":{
+    "Aspirata Eevee Next Render":{
         "eevee.taa_samples": 32,
         "eevee.taa_render_samples": 32,
         "eevee.shadow_ray_count": 2,
