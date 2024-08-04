@@ -1,79 +1,22 @@
-# Properties
 import bpy
 import os
+import json
+import zipfile
+import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
-from bpy.types import PropertyGroup
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
-materials_file_path = os.path.join(main_directory, "Materials", "Materials.blend")
+resource_packs_directory = os.path.join(main_directory, "Resource Packs")
 materials_folder = os.path.join(main_directory, "Materials")
+nodes_file = os.path.join(materials_folder, "Nodes.blend")
 optimization_folder = os.path.join(main_directory, "Optimization")
+assets_directory = os.path.join(main_directory, "Assets")
 
 clouds_node_tree_name = "Clouds Generator 2"
 world_material_name = "Mcblend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
-
-def CEH(Error_Code, Data=None):
-
-    if Error_Code == 'm002':
-        raise ValueError(f"Material doesn't exist on slot {Data}. Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == 'm003':
-        raise ValueError(f"Object: {Data.name} has no materials. Error code: {Error_Code} DO NOT REPORT")
-
-    if Error_Code == '004':
-        raise ValueError(f"{os.path.basename(os.path.dirname(os.path.realpath(__file__)))}.blend not found. Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == 'm005':
-        raise ValueError(f"Mcblend Sky node not found, maybe you should reappend sky material ? Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == '006':
-        raise ValueError(f"There is no camera in the scene. Error code: {Error_Code} DO NOT REPORT")
-    
-    if Error_Code == '007':
-        raise ValueError(f"Object {Data.name} has type {Data.type}, this type has no vertex groups. Error code: {Error_Code} DO NOT REPORT")
-
-def checkconfig(name):
-    if "const" in main_directory:
-        return Preferences_List["Dev"][name]
-    else:
-        return Preferences_List["Default"][name]
-    
-def blender_version(blender_version, debug=None):
-    major, minor, patch = blender_version.lower().split(".")
-
-    if major != "x":
-        major_c = bpy.app.version[0] == int(major)
-    else:
-        major_c = True
-        
-    if minor != "x":
-        minor_c = bpy.app.version[1] == int(minor)
-    else:
-        minor_c = True
-        
-    if patch != "x":
-        patch_c = bpy.app.version[2] == int(patch)
-    else:
-        patch_c = True
-    
-    if debug != None:
-        print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
-    return major_c and minor_c and patch_c
-
-Preferences_List = {
-    "Dev": {
-        "transparent_ui": True,
-        "enable_warnings": False,
-    },
-
-    "Default": {
-        "transparent_ui": False,
-        "enable_warnings": True,
-    }
-}
 
 Render_Settings = {
     
@@ -91,8 +34,9 @@ Render_Settings = {
         "cycles.adaptive_min_samples": 40,
         "cycles.use_denoising": True,
         "cycles.denoiser": 'OPENIMAGEDENOISE',
-        "cycles.preview_denoising_input_passes": 'RGB_ALBEDO_NORMAL',
-        "cycles.preview_denoising_prefilter": 'ACCURATE',
+        "cycles.denoising_input_passes": 'RGB_ALBEDO_NORMAL',
+        "cycles.denoising_prefilter": 'ACCURATE',
+        "cycles.denoising_quality": 'HIGH',
         "cycles.denoising_use_gpu": True,
         "render.use_persistent_data": True,
         "cycles.max_bounces": 12,
@@ -103,7 +47,7 @@ Render_Settings = {
         "render.preview_pixel_size": '2'
     },
 
-    "Aspirata Eevee": {
+    "Aspirata Eevee (Legacy)": {
         "eevee.use_gtao": True,
         "eevee.use_bloom": True,
         "eevee.bloom_radius": 4.0,
@@ -120,6 +64,35 @@ Render_Settings = {
         "eevee.overscan_size": 10.0
     },
 
+    "Aspirata Eevee Next Viewport":{
+        "eevee.taa_samples": 16,
+        "eevee.taa_render_samples": 16,
+        "eevee.shadow_ray_count": 1,
+        "eevee.shadow_step_count": 16,
+        "eevee.use_volumetric_shadows": True,
+        "eevee.use_raytracing": True,
+        "eevee.ray_tracing_options.resolution_scale": '4',
+        "eevee.ray_tracing_options.trace_max_roughness": 0,
+        "eevee.fast_gi_resolution": '4',
+        "eevee.fast_gi_ray_count": 1,
+        "eevee.fast_gi_step_count": 16,
+    },
+
+    "Aspirata Eevee Next Render":{
+        "eevee.taa_samples": 32,
+        "eevee.taa_render_samples": 32,
+        "eevee.shadow_ray_count": 2,
+        "eevee.shadow_step_count": 16,
+        "eevee.use_volumetric_shadows": True,
+        "eevee.use_raytracing": True,
+        "eevee.ray_tracing_options.resolution_scale": '4',
+        "eevee.ray_tracing_options.trace_max_roughness": 0,
+        "eevee.fast_gi_resolution": '4',
+        "eevee.fast_gi_ray_count": 2,
+        "eevee.fast_gi_step_count": 16,
+        "eevee.use_overscan": True,
+        "eevee.overscan_size": 10.0,
+    }
 }
 
 Emissive_Materials = {
@@ -241,60 +214,35 @@ Emissive_Materials = {
         12: 1,
         "Adder": 0.2,
         "Divider": 80,
+    },
+
+    "powered_rail_on": {
+        "Middle Value": 0.2,
+        11: 0.5,
+        12: 2,
+        "Adder": 0.1,
+        "Divider": 50.0,
     }
 
 }
 
-Backface_Culling_Materials = [
-    "glass",
-    "door",
-    "nether_portal",
-]
+# Materials Categories
 
-Alpha_Blend_Materials = [
-    "water"
-]
+Backface_Culling_Materials = ["glass", "door", "nether_portal"]
 
-SSS_Materials = [
-    "leaves",
-    "grass",
-    "tulip",
-    "oxeye_daisy",
-    "dandelion",
-    "poppy",
-    "blue_orchid",
-    "torchflower",
-    "lily_of_the_valley",
-    "cornflower",
-    "allium",
-    "azure bluet",
-]
+Alpha_Blend_Materials = ["water"]
 
-Metal = [
-    "iron",
-    "gold",
-    "copper",
-    "diamond",
-    "netherite",
-    "minecart",
-    "lantern",
-    "chain",
-    "anvil",
-    "clock",
-    "cauldron",
-    "spyglass",
-    "rail",
-]
+SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
 
-Reflective = [
-    "glass",
-    "ender",
-    "amethyst",
-    "water",
-    "emerald",
-]
+Translucent_Materials = ["leaves", "glass"]
 
-Materials_Array = {
+Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
+
+Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete"]
+
+#
+
+Upgrade_Materials_Array = {
     
     "bricks": "Upgraded Bricks",
 
@@ -317,56 +265,4 @@ Materials_Array = {
     "soul_lantern": "Upgraded Soul Lantern",
 
     "stone": "Upgraded Stone",
-
-    "water_flow": "Upgraded Water Flow"
-}
-
-Assets = {
-    "SRE V2.0": {
-        "Name": "SRE V2.0",
-        "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Simple_edit_V2.0.blend",
-        "Collection_name": "SRE rig"
-    },
-
-    "SRE V2.0b732": {
-        "Name": "SRE V2.0b732",
-        "Type": "Rigs",
-        "Blender Version": "3.6.x",
-        ".blend_name": "Simple_edit_V2.0b732.blend",
-        "Collection_name": "SRE rig"
-    },
-
-    "Creeper": {
-        "Name": "Creeper",
-        "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Creeper.blend",
-        "Collection_name": "Creeper"
-    },
-
-    "Allay": {
-        "Name": "Allay Rig",
-        "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Allay.blend",
-        "Collection_name": "Simple Allay"
-    },
-
-    "Axolotl": {
-        "Name": "Axolotl Rig",
-        "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Axolotl.blend",
-        "Collection_name": "Axolotl"
-    },
-
-    "Warden": {
-        "Name": "Warden",
-        "Type": "Rigs",
-        "Blender Version": "4.x.x",
-        ".blend_name": "Warden.blend",
-        "Collection_name": "Warden"
-    }
 }

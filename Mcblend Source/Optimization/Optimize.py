@@ -1,7 +1,8 @@
 from ..Data import *
+from ..MCB_API import *
+from ..Utils.Absolute_Solver import Absolute_Solver
 
 def Camera_Culling(obj, OProperties, geonodes_modifier):
-    mat_excuder = None
 
     if OProperties.camera_culling_type == 'Vector':
         if bpy.app.version >= (4,1,0):
@@ -55,19 +56,6 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
                 geonodes_modifier["Socket_13"] = 0
             else:
                 geonodes_modifier["Socket_13"] = False
-        
-        #if OProperties.Exclude_Materials:
-            #for node in node_group:
-                #if node.type == "GROUP":
-                    #if "Material Excluder" in node.node_tree.name:
-                        #mat_excuder = node
-                        #break
-
-            #if mat_excuder == None:
-                #Create new Node Group with name "Material Excluder"
-
-            #Set Settings
-                    #Add Materials to exclude
 
     if bpy.app.version < (4, 1, 0):
         geonodes_modifier["Socket_23"] = bpy.context.scene.camera
@@ -87,14 +75,14 @@ def Optimize():
                         with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.1.blend"), link=False) as (data_from, data_to):
                             data_to.node_groups = ["Universal Camera Culling"]
                     except:
-                        CEH('004')
+                        Absolute_Solver('004', "Universal Camera Culling 4.1", traceback.format_exc())
             else:
                 if "Universal Camera Culling" not in bpy.data.node_groups:
                     try:
                         with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.0.blend"), link=False) as (data_from, data_to):
                             data_to.node_groups = ["Universal Camera Culling"]
                     except:
-                        CEH('004')
+                        Absolute_Solver('004', "Universal Camera Culling 4.0", traceback.format_exc())
             
             for obj in selected_objects:
                 if obj.modifiers.get("Universal Camera Culling") == None: 
@@ -107,7 +95,7 @@ def Optimize():
 
                 obj.data.update()
         else:
-            CEH("006")
+            Absolute_Solver("None", error_name="Scene Camera Doesn't Exist", description="There is no camera in the scene")
     else:
         for obj in selected_objects:
             if obj.modifiers.get("Universal Camera Culling") != None:

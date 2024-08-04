@@ -1,0 +1,43 @@
+name: Experimental Branch Auto Build
+
+on:
+  push:
+    branches:
+      - Experimental
+  pull_request:
+    branches:
+      - Experimental
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10.13'
+
+    - name: Install required packages
+      run: |
+        python -m pip install --upgrade pip
+        
+    - name: Add warning to __init__.py
+      run: |
+        BUILD_DATE=$(TZ='Asia/Novosibirsk' date +"%d.%m.%Y %H:%M:%S")
+        sed -i "15 a\    \"warning\": \"This is Experimental Branch Build ($BUILD_DATE)\"," "Mcblend Source/__init__.py"
+
+
+    - name: Prepare Blender Addon
+      run: |
+        mkdir -p "output/Mcblend Experimental Auto Build/Mcblend Source"
+        cp -r "Mcblend Source"/* "output/Mcblend Experimental Auto Build/Mcblend Source/"
+
+    - name: Upload folder as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Mcblend Experimental Auto Build
+        path: "output/Mcblend Experimental Auto Build"

@@ -1,154 +1,123 @@
+from ..MCB_API import *
 from ..Data import *
+from ..Resource_Packs import *
+from ..Utils.Absolute_Solver import Absolute_Solver
 
-# This function checks if a given material's name contains any of the keywords in the provided array. 
-# It returns True if a match is found, and False otherwise.
+# Scan the material for image texture node duplicates > if nothing is connected to the vector then delete else don't touch
+def DeleteUselessTextures(material):
+    texture_nodes = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE"]
+    image_to_nodes = {}
 
-def MaterialIn(Array, material):
-    for material_part in material.name.lower().replace("-", ".").split("."):
-        try:
-            for keyword, other in Array.items():
-                if keyword == material_part:
-                    return True
-        except:
-            for keyword in Array:
-                if keyword in material_part:
-                    return True
-    return False
+    for node in texture_nodes:
+        image = node.image
+        if image is not None:
+            if image in image_to_nodes:
+                image_to_nodes[image].append(node)
+            else:
+                image_to_nodes[image] = [node]
+        else:
+            material.node_tree.nodes.remove(node)
 
-# This function checks if there is a connection between two nodes in a material's node tree based on the specified criteria. 
-# It returns True if a connection is found, and False otherwise.
-        
-def IsConnectedTo(NodeFromName, NodeFromType, NodeToName, NodeToType, index, nodeTo=None):
-    if nodeTo is None:
-        for selected_object in bpy.context.selected_objects:
-            if selected_object.material_slots:
-                for material in selected_object.data.materials:
-                    if material is not None:                       # Materials Check
-                        for Node in material.node_tree.nodes:      # Every Node in Material Check
-                            if NodeToName is not None:
-                                if NodeToName in Node.name:
-                            
-                                    if NodeFromName is not None and NodeFromType is None:
-                                        for link in Node.inputs[index].links:
-                                            if NodeFromName in link.from_node.name:
-                                                return True
-                                    
-                                    if NodeFromType is not None and NodeFromName is None:
-                                        if NodeFromType == link.from_node.type:
+    def get_node_suffix_number(node_name):
+        parts = node_name.split(".")
+        if len(parts) > 1 and parts[-1].isdigit():
+            return int(parts[-1])
+        return 0
 
-                                                return True
-                                        
-                                    if NodeFromName is not None and NodeFromType is not None:
-                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
-                                            
-                            if NodeToType is not None:
-                                if NodeToType == Node.type:
-                                    if NodeFromName is not None and NodeFromType is None:
-                                        for link in Node.inputs[index].links:
-                                            if NodeFromName in link.from_node.name:
-                                                    return True
-                                    
-                                    if NodeFromType is not None and NodeFromName is None:
-                                        if NodeFromType == link.from_node.type:
-                                                return True
-                                        
-                                    if NodeFromName is not None and NodeFromType is not None:
-                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
+    for image, nodes in image_to_nodes.items():
+        if len(nodes) > 1:
+            nodes.sort(key=lambda node: ('.' in node.name, get_node_suffix_number(node.name)))
+            
+            node_to_keep = nodes[0]
+            nodes_to_remove = nodes[1:]
 
-                            if NodeToName is not None and NodeToType is not None:
-                                if NodeToName == Node.name and NodeToType == Node.type:
-                                    if NodeFromName is not None and NodeFromType is None:
-                                        for link in Node.inputs[index].links:
-                                            if NodeFromName in link.from_node.name:
-                                                    return True
-                                    
-                                    if NodeFromType is not None and NodeFromName is None:
-                                        if NodeFromType == link.from_node.type:
-                                                return True
-                                        
-                                    if NodeFromName is not None and NodeFromType is not None:
-                                        if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                                return True
-
-    else:
-        for selected_object in bpy.context.selected_objects:
-            if selected_object.material_slots:
-                for material in selected_object.data.materials:
-                    if material is not None:
-
-                        for link in nodeTo.inputs[index].links:
-                            if NodeFromName is None and NodeFromType is None:
-                                    return True
-
-                            else:
-                                if NodeFromName is not None and NodeFromType is None:
-                                    if NodeFromName in link.from_node.name:
-                                        return True
-
-                                if NodeFromType is not None and NodeFromName is None:
-                                    if NodeFromType == link.from_node.type:
-                                        return True
-
-                                if NodeFromName is not None and NodeFromType is not None:
-                                    if NodeFromName in link.from_node.name and NodeFromType == link.from_node.type:
-                                        return True
-
-def EmissionMode(PBSDF, material):
+            for node in nodes_to_remove:
+                if any(input.links for input in node.inputs):
+                    continue
                 
-        if bpy.context.scene.world_properties.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials, material)):
-            return 1
+                output_number = -1
+                for output in node.outputs:
+                    output_number += 1
+                    for link in output.links:
+                        material.node_tree.links.new(node_to_keep.outputs[output_number], link.to_socket)
+                
+                material.node_tree.nodes.remove(node)
 
-        if bpy.context.scene.world_properties.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
-            return 2
-        
-        if bpy.context.scene.world_properties.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials, material):
-            return 3
-
+@ Perf_Time
 def upgrade_materials():
     for selected_object in bpy.context.selected_objects:
-        slot = 0
         if selected_object.material_slots:
-            slot += 1
             for i, material in enumerate(selected_object.data.materials):
-                if material is not None:
-                    for original_material, upgraded_material in Materials_Array.items():
+                if material is not None and material.use_nodes:
+                    for original_material, upgraded_material in Upgrade_Materials_Array.items():
                         for material_part in material.name.lower().replace("-", ".").split("."):
                             if original_material == material_part:
                                 if upgraded_material not in bpy.data.materials:
                                     try:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Upgraded Materials.blend"), link=False) as (data_from, data_to):
                                             data_to.materials = [upgraded_material]
                                     except:
-                                        CEH('004')
+                                        Absolute_Solver('004', "Upgraded Materials", traceback.format_exc())
 
                                     appended_material = bpy.data.materials.get(upgraded_material)
                                     selected_object.data.materials[i] = appended_material
                                 else:
                                     selected_object.data.materials[i] = bpy.data.materials[upgraded_material]
-
-                                selected_object.data.update()
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", i)
         else:
-            CEH('m003', Data=selected_object)
+            Absolute_Solver("m003", selected_object)
 
 # Fix World
-                        
+
+def get_linked_nodes(node, input_name):
+    linked_nodes = []
+    if input_name in node.inputs and node.inputs[input_name].is_linked:
+        for link in node.inputs[input_name].links:
+            linked_nodes.append(link.from_node)
+            linked_nodes.extend(get_all_linked_nodes(link.from_node))
+    return linked_nodes
+
+def get_all_linked_nodes(node):
+    linked_nodes = []
+    for input_name, input_socket in node.inputs.items():
+        if input_socket.is_linked:
+            for link in input_socket.links:
+                linked_nodes.append(link.from_node)
+                linked_nodes.extend(get_all_linked_nodes(link.from_node))
+    return linked_nodes
+
+def traverse_nodes(node, input_name, visited=None):
+    if visited is None:
+        visited = set()
+    
+    if node in visited:
+        return visited
+    
+    visited.add(node)
+    
+    linked_nodes = get_linked_nodes(node, input_name)
+    for linked_node in linked_nodes:
+        traverse_nodes(linked_node, input_name, visited)
+    
+    return visited
+
+@ Perf_Time
 def fix_world():
+    
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
+                if material is not None and material.use_nodes:
                     PBSDF = None
                     image_texture_node = None
+                    lbcf_node = None
                     scene = bpy.context.scene
                     WProperties = scene.world_properties
 
-                    if MaterialIn(Alpha_Blend_Materials, material):
+                    if MaterialIn(Alpha_Blend_Materials, material) and WProperties.use_alpha_blend:
                         material.blend_method = 'BLEND'
                     else:
                         material.blend_method = 'HASHED'
@@ -156,31 +125,31 @@ def fix_world():
                     material.shadow_method = 'HASHED'
 
                     if WProperties.delete_useless_textures:
-                        for node in material.node_tree.nodes:
-                            if node.type == "TEX_IMAGE" and ".00" in node.name:
-                                material.node_tree.nodes.remove(node)
+                        DeleteUselessTextures(material)
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            if ".00" not in node.name:
-                                image_texture_node = node
-                            image_texture_node.interpolation = "Closest"
+                            node.interpolation = "Closest"
 
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
+                            connected_nodes = traverse_nodes(node, "Base Color")
+                            for n in connected_nodes:
+                                if n.type == "TEX_IMAGE" and n.image:
+                                    image_texture_node = n
+                        
+                        if node.type == "GROUP":
+                            if "Lazy Biome Color Fix" == node.node_tree.name:
+                                lbcf_node = node
                                 
-                    if (image_texture_node and PBSDF) != None:
-                        if not IsConnectedTo(None, None, None, None, "Alpha", PBSDF):
+                    if image_texture_node and PBSDF:
+                        if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) is None:
                             material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                         
                         # Emission
                         if EmissionMode(PBSDF, material):
-                            if blender_version("4.x.x"):
-                                if not IsConnectedTo(None, None, None, None, "Emission Color", PBSDF):
-                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
-                            else:
-                                if not IsConnectedTo(None, None, None, None, "Emission", PBSDF):
-                                    material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission"])
+                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
 
                             if (EmissionMode(PBSDF, material) == 1 or EmissionMode(PBSDF, material) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
                                 PBSDF.inputs["Emission Strength"].default_value = 1
@@ -198,30 +167,21 @@ def fix_world():
                                             bfc_node = node
                                             break
                                 
-                                if bfc_node == None:
+                                if bfc_node is None:
                                     if "Backface Culling" not in bpy.data.node_groups:
                                         try:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["Backface Culling"]
                                         except:
-                                            CEH("004")
+                                            Absolute_Solver("004", "Materials", traceback.format_exc())
                                     
                                     bfc_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                                     bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
                                     bfc_node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
 
-                                material.node_tree.links.new(image_texture_node.outputs[1], bfc_node.inputs[0])
-
-                                for node in material.node_tree.nodes:
-                                    if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs["Alpha"].links:                                            
-                                            if link.from_node.name != bfc_node.name:                                                
-                                                for output in link.from_node.outputs:
-                                                    for link_out in output.links:
-                                                        if link_out.to_socket.node.name == node.name:                                                                                                                    
-                                                            material.node_tree.links.new(link_out.from_socket, bfc_node.inputs[0]) 
-                                                            break
-                            
+                                if GetConnectedSocketTo("Alpha", PBSDF).node != bfc_node:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Alpha", PBSDF), bfc_node.inputs[0])
+                                        
                                 material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
                         else:
                             if MaterialIn(Backface_Culling_Materials, material):
@@ -229,121 +189,113 @@ def fix_world():
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "GROUP":
-                                        if "Backface Culling" in node.node_tree.name:                                            
-                                            for link in node.inputs[0].links:     
-                                                for output in link.from_node.outputs:
-                                                    for link_out in output.links:
-                                                        if link_out.to_socket.node.name == node.name:                                                                                                                    
-                                                            material.node_tree.links.new(link_out.from_socket, PBSDF.inputs["Alpha"])
+                                        if "Backface Culling" in node.node_tree.name:                                                                                              
+                                            material.node_tree.links.new(GetConnectedSocketTo(0, node), PBSDF.inputs["Alpha"])
                                             material.node_tree.nodes.remove(node)
 
                                 material.use_backface_culling = False
+                        
+                        if WProperties.lazy_biome_fix:
+                            material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
 
-                        selected_object.data.update()
+                            # Lazy Biome Color Fix Exclusions
+                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) and all(part not in material_parts for part in ("cherry", "side", "azalea", "snow")) or ("redstone" and "dust" in material_parts):
+                                if lbcf_node is None:
+                                    if "Lazy Biome Color Fix" not in bpy.data.node_groups:
+                                        try:
+                                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                                                data_to.node_groups = ["Lazy Biome Color Fix"]
+                                        except:
+                                            Absolute_Solver("004", "Materials", traceback.format_exc())
+                                    
+                                    lbcf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                    lbcf_node.node_tree = bpy.data.node_groups["Lazy Biome Color Fix"]
+                                    lbcf_node.location = (PBSDF.location.x - 170, PBSDF.location.y)
+
+                                if GetConnectedSocketTo("Base Color", PBSDF).node != lbcf_node:
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), lbcf_node.inputs["Texture"])
+                                        
+                                material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
+
+                                if "water" in material_parts:
+                                    lbcf_node.inputs["Mode"].default_value = 2
+
+                                if "redstone" in material_parts:
+                                    lbcf_node.inputs["Mode"].default_value = 3
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", slot)
         else:
-            CEH('m003', Data=selected_object)
+            Absolute_Solver("m003", selected_object)
 
+@ Perf_Time
 def create_env(self=None):
+
+    def clouds_file_comp():
+        if blender_version("4.x.x"):
+            return "4.0"
+        else:
+            return "3.6"
+        
     scene = bpy.context.scene
     world = scene.world
     clouds_exists = False
     sky_exists = False
 
-    if (any(node.name == clouds_node_tree_name for node in bpy.data.node_groups)):
+    if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
         clouds_exists = True
 
-    if world != None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+    if world is not None and "Mcblend Sky" in bpy.data.node_groups:
         if world_material_name in bpy.data.worlds:
             sky_exists = True
     
-    if clouds_exists == True or sky_exists == True:
+    if clouds_exists or sky_exists:
 
         # Recreate Sky
-        if self != None:
-
-            if self.reset_settings == True:
+        if self is not None:
+            if self.reset_settings:
                 world_material = bpy.context.scene.world.node_tree
+                group = bpy.data.node_groups["Mcblend Sky"]
 
                 for node in world_material.nodes:
                     if node.type == 'GROUP':
                         if "Mcblend Sky" in node.node_tree.name:
                             if blender_version("4.x.x"):
-                                for group in bpy.data.node_groups:
-                                    if node.node_tree.name in group.name:
-                                        node.inputs["Time"].default_value = group.interface.items_tree["Time"].default_value
-                                        node.inputs["Rotation"].default_value[0] = group.interface.items_tree["Rotation"].default_value[0]
-                                        node.inputs["Rotation"].default_value[1] = group.interface.items_tree["Rotation"].default_value[1]
-                                        node.inputs["Rotation"].default_value[2] = group.interface.items_tree["Rotation"].default_value[2]
-                                        node.inputs["Pixelated Stars"].default_value = group.interface.items_tree["Pixelated Stars"].default_value
-                                        node.inputs["Stars Amount"].default_value = group.interface.items_tree["Stars Amount"].default_value
-                                        node.inputs["Rain"].default_value = group.interface.items_tree["Rain"].default_value
-                                        node.inputs["End"].default_value = group.interface.items_tree["End"].default_value
-                                        node.inputs["End Stars Rotation"].default_value[0] = group.interface.items_tree["End Stars Rotation"].default_value[0]
-                                        node.inputs["End Stars Rotation"].default_value[1] = group.interface.items_tree["End Stars Rotation"].default_value[1]
-                                        node.inputs["End Stars Rotation"].default_value[2] = group.interface.items_tree["End Stars Rotation"].default_value[2]
-                                        node.inputs["End Stars Strength"].default_value = group.interface.items_tree["End Stars Strength"].default_value
-                                        node.inputs["End Stars Color"].default_value  = group.interface.items_tree["End Stars Color"].default_value
-                                        node.inputs["Moon Strenght"].default_value = group.interface.items_tree["Moon Strenght"].default_value
-                                        node.inputs["Sun Strength"].default_value = group.interface.items_tree["Sun Strength"].default_value
-                                        node.inputs["Stars Strength"].default_value = group.interface.items_tree["Stars Strength"].default_value
-                                        node.inputs["Camera Ambient Light Strength"].default_value = group.interface.items_tree["Camera Ambient Light Strength"].default_value
-                                        node.inputs["Non-Camera Ambient Light Strength"].default_value = group.interface.items_tree["Non-Camera Ambient Light Strength"].default_value
-                                        node.inputs["Moon Color"].default_value = group.interface.items_tree["Moon Color"].default_value
-                                        node.inputs["Sun Color"].default_value = group.interface.items_tree["Sun Color"].default_value
-                                        node.inputs["Sun Color In Sunset"].default_value = group.interface.items_tree["Sun Color In Sunset"].default_value
-                                        node.inputs["Stars Color"].default_value  = group.interface.items_tree["Stars Color"].default_value
+                                for socket in node.inputs:
+                                    try:
+                                        vec_counter = 0
+                                        for vec in socket.default_value:
+                                            vec_counter += 1
+                                            vec = group.interface.items_tree[socket.name].default_value[vec_counter]
+                                    except:
+                                        socket.default_value = group.interface.items_tree[socket.name].default_value
                             else:
-                                for group in bpy.data.node_groups:
-                                    if node.node_tree.name in group.name:
-                                        node.inputs["Time"].default_value = group.inputs["Time"].default_value
-                                        node.inputs["Rotation"].default_value[0] = group.inputs["Rotation"].default_value[0]
-                                        node.inputs["Rotation"].default_value[1] = group.inputs["Rotation"].default_value[1]
-                                        node.inputs["Rotation"].default_value[2] = group.inputs["Rotation"].default_value[2]
-                                        node.inputs["Pixelated Stars"].default_value = group.inputs["Pixelated Stars"].default_value
-                                        node.inputs["Stars Amount"].default_value = group.inputs["Stars Amount"].default_value
-                                        node.inputs["Rain"].default_value = group.inputs["Rain"].default_value
-                                        node.inputs["End"].default_value = group.inputs["End"].default_value
-                                        node.inputs["End Stars Rotation"].default_value[0] = group.inputs["End Stars Rotation"].default_value[0]
-                                        node.inputs["End Stars Rotation"].default_value[1] = group.inputs["End Stars Rotation"].default_value[1]
-                                        node.inputs["End Stars Rotation"].default_value[2] = group.inputs["End Stars Rotation"].default_value[2]
-                                        node.inputs["End Stars Strength"].default_value = group.inputs["End Stars Strength"].default_value
-                                        node.inputs["End Stars Color"].default_value  = group.inputs["End Stars Color"].default_value
-                                        node.inputs["Moon Strenght"].default_value = group.inputs["Moon Strenght"].default_value
-                                        node.inputs["Sun Strength"].default_value = group.inputs["Sun Strength"].default_value
-                                        node.inputs["Stars Strength"].default_value = group.inputs["Stars Strength"].default_value
-                                        node.inputs["Camera Ambient Light Strength"].default_value = group.inputs["Camera Ambient Light Strength"].default_value
-                                        node.inputs["Non-Camera Ambient Light Strength"].default_value = group.inputs["Non-Camera Ambient Light Strength"].default_value
-                                        node.inputs["Moon Color"].default_value = group.inputs["Moon Color"].default_value
-                                        node.inputs["Sun Color"].default_value = group.inputs["Sun Color"].default_value
-                                        node.inputs["Sun Color In Sunset"].default_value = group.inputs["Sun Color In Sunset"].default_value
-                                        node.inputs["Stars Color"].default_value  = group.inputs["Stars Color"].default_value
+                                try:
+                                    vec_counter = 0
+                                    for vec in socket.default_value:
+                                        vec_counter += 1
+                                        vec = group.inputs[socket.name].default_value[vec_counter]
+                                except:
+                                        socket.default_value = group.inputs[socket.name].default_value
 
             if self.create_sky == 'Recreate Sky':
-                if world == bpy.data.worlds.get(world_material_name):
-
+                if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) is not None:
                     bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
                 
                 for group in bpy.data.node_groups:
                     if "Mcblend" in group.name:
                         bpy.data.node_groups.remove(group)
-
                 try:
-                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
                     appended_world_material = bpy.data.worlds.get(world_material_name)
                     bpy.context.scene.world = appended_world_material
                 except:
-                    CEH('004')
+                    Absolute_Solver('004', "Nodes", traceback.format_exc())
 
-            if self.create_sky == 'Create Sky':
+            elif self.create_sky == 'Create Sky' and world_material_name in bpy.data.worlds:
+                bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
 
-                if world_material_name in bpy.data.worlds:
-                    bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
-                else:
-                    print("World not found (Create Sky)")
-
+            # Recreate Clouds
             if self.create_clouds == 'Recreate Clouds':
                 for obj in scene.objects:
                     if obj.get("Mcblend ID") == "Clouds":
@@ -354,19 +306,12 @@ def create_env(self=None):
 
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
-                
-                if blender_version("4.x.x"):
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                try:
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
-
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
                         data_to.materials = ["Clouds"]
-                else:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
+                except:
+                    Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
 
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
@@ -382,28 +327,28 @@ def create_env(self=None):
 
                 if clouds_node_tree_name in bpy.data.node_groups:
                     bpy.data.node_groups[clouds_node_tree_name]
-                else:
-                    print("Clouds geometry nodes not found (Create Clouds)")
                 
                 if "Clouds" in bpy.data.materials:
                     bpy.data.materials["Clouds"]
                 else:
-                    print("Clouds material not found (Create Clouds)")
+                    Absolute_Solver("007", "Clouds Material")
 
-                for obj in scene.objects:
-                    if obj.get("Mcblend ID") == "Clouds":
-                        clouds_exists =True
+                if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
+                    clouds_exists =True
 
-                if clouds_exists == False:
-                    bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
-                    bpy.context.object.name = "Clouds"
-                    bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
-                    geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
-                    geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+                if clouds_node_tree_name in bpy.data.node_groups:
+                    if not clouds_exists:
+                        bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
+                        bpy.context.object.name = "Clouds"
+                        bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
+                        geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+                        geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+                else:
+                    Absolute_Solver("007", clouds_node_tree_name)
 
                     bpy.context.object["Mcblend ID"] = "Clouds"
         else:
-            bpy.ops.wm.recreate_env('INVOKE_DEFAULT')
+            bpy.ops.special.recreate_env('INVOKE_DEFAULT')
 
     else:
         
@@ -411,44 +356,35 @@ def create_env(self=None):
         if scene.env_properties.create_sky:
             try:
                 if world_material_name not in bpy.data.worlds:
-                    with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
                     appended_world_material = bpy.data.worlds.get(world_material_name)
                 else:
                     appended_world_material = bpy.data.worlds[world_material_name]
                 bpy.context.scene.world = appended_world_material
             except:
-                CEH("004")
+                Absolute_Solver("004", "Nodes", traceback.format_exc())
 
         for obj in scene.objects:
             if obj.get("Mcblend ID") == "Clouds":
                 clouds_exists = True
 
-        if scene.env_properties.create_clouds and clouds_exists == False:               
-            if blender_version("4.x.x"):     
+        # Create Clouds
+        if scene.env_properties.create_clouds and not clouds_exists:
+            try:
                 if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
                 else:
                     bpy.data.node_groups[clouds_node_tree_name]
                 
                 if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 4.0.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
                         data_to.materials = ["Clouds"]
                 else:
                     bpy.data.materials["Clouds"]
-            else:
-                if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                else:
-                    bpy.data.node_groups[clouds_node_tree_name]
-                
-                if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", "Clouds Generator 3.6.blend"), link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
-                else:
-                    bpy.data.materials["Clouds"]
+            except:
+                Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
 
             bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
@@ -457,19 +393,15 @@ def create_env(self=None):
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
             bpy.context.object["Mcblend ID"] = "Clouds"
-            
 
-    bpy.context.view_layer.update()
-
-# Fix materials
-    
+@ Perf_Time
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
+                if material is not None and material.use_nodes:
                     image_texture_node = None
                     PBSDF = None
 
@@ -478,48 +410,99 @@ def fix_materials():
 
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
-                            if ".00" not in node.name:
-                                image_texture_node = node
-                            node.interpolation = "Closest" 
+                            image_texture_node = node
+                            node.interpolation = "Closest"
                         
                         if node.type == "BSDF_PRINCIPLED":
                             PBSDF = node
 
-                    if (image_texture_node and PBSDF) != None:
+                    if (image_texture_node and PBSDF) is not None:
                         material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
                 else:
-                    CEH('m002', slot)
+                    Absolute_Solver("m002", slot)
         else:
-            CEH('m003', selected_object)
+            Absolute_Solver("m003", selected_object)
+
+@ Perf_Time
+def swap_textures(folder_path):
+    def find_image(image_name, root_folder):
+        for dirpath, _, files in os.walk(root_folder):
+            for file in files:
+                if file == image_name:
+                    return os.path.join(dirpath, file)
+
+                if file.endswith(('.zip', '.jar')):
+                    archive_path = os.path.join(dirpath, file)
+                    with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                        file_list = zip_ref.namelist()
+                        if image_name in file_list:
+                            extract_path = os.path.join(main_directory, 'Resource Packs', os.path.splitext(file)[0])
+                            extracted_file_path = zip_ref.extract(image_name, extract_path)
+                            return extracted_file_path
+                
+                format_fixed = os.path.join(dirpath, "short_" + image_name)
+                if os.path.isfile(format_fixed):
+                    return format_fixed
+
+                format_fixed = os.path.join(dirpath, image_name.replace("short_", ""))
+                if os.path.isfile(format_fixed):
+                    return format_fixed
             
-        selected_object.data.update()
-#
-        
-# Set Procedural PBR
-        
-def setproceduralpbr():
+        return None
+    
     for selected_object in bpy.context.selected_objects:
-        counter = -1
         slot = 0
         if selected_object.material_slots:
             for material in selected_object.data.materials:
                 slot += 1
-                if material is not None:
-                    image_texture_node = None
+                if material is not None and material.use_nodes:
+                    for node in material.node_tree.nodes:
+                        if node.type == "TEX_IMAGE" and node.image is not None:
+                            new_image_path = find_image(node.image.name, folder_path)
+                            if new_image_path is not None:
+                                if node.image.name in bpy.data.images:
+                                    bpy.data.images.remove(bpy.data.images[node.image.name], do_unlink=True)
+
+                                node.image = bpy.data.images.load(new_image_path)
+                else:
+                    Absolute_Solver("m002", slot)
+        else:
+            Absolute_Solver("m003", selected_object)
+
+# Set Procedural PBR
+
+@ Perf_Time
+def setproceduralpbr():
+
+    Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
+
+    for selected_object in bpy.context.selected_objects:
+        slot = 0
+        if selected_object.material_slots:
+            for material in selected_object.data.materials:
+                slot += 1
+                if material is not None and material.use_nodes:
                     PBSDF = None
+                    image = None
                     bump_node = None
+                    proughness_node = None
+                    pspecular_node = None
                     PNormals = None
+                    ITexture_Animator = None
+                    Texture_Animator = None
                     image_difference_X = 1
                     image_difference_Y = 1
-                    PNormals_exists = False
                     Current_node_tree = None
                     scene = bpy.context.scene
                     PProperties = scene.ppbr_properties
 
                     for node in material.node_tree.nodes:
-                        if node.type == "TEX_IMAGE":
-                            if ".00" not in node.name:
-                                image_texture_node = node
+                        if node.type == "BSDF_PRINCIPLED":
+                            PBSDF = node
+                            connected_nodes = traverse_nodes(node, "Base Color")
+                            for n in connected_nodes:
+                                if n.type == "TEX_IMAGE" and n.image:
+                                    image = n.image
 
                         if node.type == "BUMP":
                             bump_node = node
@@ -529,252 +512,251 @@ def setproceduralpbr():
                                 PNormals = node
                                 Current_node_tree = node.node_tree
 
-                        if node.type == "BSDF_PRINCIPLED":
-                            PBSDF = node
+                            if "Texture Animator" in node.node_tree.name:
+                                Texture_Animator = node
+                        
+                        if node.type == "MAP_RANGE":
+                            if "Procedural Roughness Node" in node.name:
+                                proughness_node = node
+                            
+                            if "Procedural Specular Node" in node.name:
+                                pspecular_node = node
 
-                    if PBSDF is not None:
-                        if image_texture_node is not None:
-                            # Use Normals
-                            if PProperties.use_normals:
+                    if PBSDF and image:
+                        # Use Normals
+                        if PProperties.use_normals:
 
-                                if PProperties.normals_selector == 'Bump':
-                                    if PNormals is not None:
-                                        material.node_tree.nodes.remove(PNormals)
-
-                                    if image_texture_node and bump_node is None:
-                                        bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
-                                        bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
-                                        material.node_tree.links.new(image_texture_node.outputs["Color"], bump_node.inputs['Height'])
-                                        material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-                                        bump_node.inputs[0].default_value = PProperties.bump_strength
-
-                                    if bump_node is not None:
-                                        bump_node.inputs[0].default_value = PProperties.bump_strength
-                                else:
-                                    if bump_node is not None:
-                                        material.node_tree.nodes.remove(bump_node)
-                                    
-                                    if PNormals is None:
-                                        if f"PNormals; {material.name}" in bpy.data.node_groups:
-                                            PNormals_exists = True
-                                            Current_node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
-                                        
-                                        if PNormals_exists == False:
-                                            with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                                data_to.node_groups = ["PNormals"]
-
-                                            counter += 1
-
-                                            PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
-
-                                            try:
-                                                bpy.data.node_groups[f"PNormals.{counter}"].name = f"PNormals; {material.name}"
-                                                PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
-                                                for node in PNormals.node_tree.nodes:
-                                                    if node.type == "TEX_IMAGE":
-                                                        node.image = image_texture_node.image
-                                            except:
-                                                bpy.data.node_groups[f"PNormals"].name = f"PNormals; {material.name}"
-                                                PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
-                                                for node in PNormals.node_tree.nodes:
-                                                    if node.type == "TEX_IMAGE":
-                                                        node.image = image_texture_node.image
-
-                                            PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
-
-                                        else:
-                                            PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                            PNormals.node_tree = Current_node_tree
-                                            PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
-                                            for node in bpy.data.node_groups[Current_node_tree.name].nodes:
-                                                if node.type == "TEX_IMAGE":
-                                                    node.image = image_texture_node.image
-
-                                    else:
-                                        for node in bpy.data.node_groups[Current_node_tree.name].nodes:
-                                            if node.type == "TEX_IMAGE":
-                                                node.image = image_texture_node.image
-                                    
-
-                                    if image_texture_node.image.size[0] > image_texture_node.image.size[1]:
-                                        image_difference_X = image_texture_node.image.size[1] / image_texture_node.image.size[0]
-
-                                    if image_texture_node.image.size[0] < image_texture_node.image.size[1]:
-                                        image_difference_Y = image_texture_node.image.size[0] / image_texture_node.image.size[1]
-
-                                    PNormals.inputs["Size"].default_value = PProperties.pnormals_size
-                                    PNormals.inputs["Blur"].default_value = PProperties.pnormals_blur
-                                    PNormals.inputs["Strength"].default_value = PProperties.pnormals_strength
-                                    PNormals.inputs["Exclude"].default_value = PProperties.pnormals_exclude
-                                    PNormals.inputs["Min"].default_value = PProperties.pnormals_min
-                                    PNormals.inputs["Max"].default_value = PProperties.pnormals_max
-                                    PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_difference_X
-                                    PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_difference_Y
-
-                                    material.node_tree.links.new(PNormals.outputs['Normal'], PBSDF.inputs['Normal'])
-                            else:
-                                
-                                if bump_node is not None:
-                                    material.node_tree.nodes.remove(bump_node)
-                                
-                                if PNormals is not None:
+                            if PProperties.normals_selector == 'Bump':
+                                if PNormals:
                                     material.node_tree.nodes.remove(PNormals)
 
+                                if bump_node is None:
+                                    bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
+                                    bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), bump_node.inputs['Height'])
+                                    material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
+
+                                bump_node.inputs[0].default_value = PProperties.bump_strength
+                            else:
+                                if bump_node:
+                                    material.node_tree.nodes.remove(bump_node)
                                 
+                                if PNormals is None:
+                                    if f"PNormals; {material.name}" in bpy.data.node_groups:
+                                        Current_node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
+
+                                        PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                        PNormals.node_tree = Current_node_tree
+                                        PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
+                                    
+                                    else:
+                                        with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                                            data_to.node_groups = ["PNormals"]
+
+                                        PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
+
+                                        bpy.data.node_groups[f"PNormals"].name = f"PNormals; {material.name}"
+                                        PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
+                                        Current_node_tree = PNormals.node_tree
+                                        PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
+
+                                for node in material.node_tree.nodes:
+                                    if node.type == "GROUP":
+                                        if "Animated;" in node.node_tree.name:
+                                            if node.node_tree.name.replace("Animated; ", "") == Current_node_tree.name.replace("PNormals; ", ""):
+                                                ITexture_Animator = node
+                                                image = bpy.data.images[node.node_tree.name.replace("Animated; ", "") + ".png"]
+
+                                for node in Current_node_tree.nodes:
+                                    if node.type == "TEX_IMAGE":
+                                        node.image = image
+
+                                if image.size[0] > image.size[1]:
+                                    image_difference_X = image.size[1] / image.size[0]
+
+                                if image.size[0] < image.size[1]:
+                                    image_difference_Y = image.size[0] / image.size[1]
+
+                                PNormals.inputs["Size"].default_value = PProperties.pnormals_size
+                                PNormals.inputs["Blur"].default_value = PProperties.pnormals_blur
+                                PNormals.inputs["Strength"].default_value = PProperties.pnormals_strength
+                                PNormals.inputs["Exclude"].default_value = PProperties.pnormals_exclude
+                                PNormals.inputs["Min"].default_value = PProperties.pnormals_min
+                                PNormals.inputs["Max"].default_value = PProperties.pnormals_max
+                                PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_difference_X
+                                PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_difference_Y
+
+                                material.node_tree.links.new(PNormals.outputs['Normal Map'], PBSDF.inputs['Normal'])
+
+                                if ITexture_Animator is not None: 
+                                    material.node_tree.links.new(ITexture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
+                                
+                                if Texture_Animator is not None: 
+                                    material.node_tree.links.new(Texture_Animator.outputs['Current Frame'], PNormals.inputs['Vector'])
+
+                        elif PProperties.revert_normals:
+                            
+                            if bump_node is not None:
+                                material.node_tree.nodes.remove(bump_node)
+                            
+                            if PNormals is not None:
+                                material.node_tree.nodes.remove(PNormals)
+
                         # Change PBSDF Settings                                
                         if PProperties.change_bsdf:
                             PBSDF.inputs["Roughness"].default_value = PProperties.roughness
-                            if blender_version("4.x.x"):
-                                PBSDF.inputs["Specular IOR Level"].default_value = PProperties.specular
-                            else:
-                                PBSDF.inputs["Specular"].default_value = PProperties.specular
-
+                            PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
 
                         # Use SSS                            
-                        if PProperties.use_sss  == True:
-                            if MaterialIn(SSS_Materials, material):
+                        if PProperties.use_sss :
+                            if MaterialIn(SSS_Materials, material) or PProperties.sss_skip:
                                 PBSDF.subsurface_method = PProperties.sss_type
 
                                 if PProperties.connect_texture:
-                                    for node in material.node_tree.nodes:
-                                        if node.type == "BSDF_PRINCIPLED":
-                                            for link in node.inputs[0].links:
-                                                if blender_version("4.x.x"):
-                                                    material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Radius'])
-                                                else:
-                                                    material.node_tree.links.new(link.from_socket, PBSDF.inputs['Subsurface Color'])
+                                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
                                 else:
-                                    for link in material.node_tree.links:
-                                        if blender_version("4.x.x"):
-                                            if link.to_socket == PBSDF.inputs["Subsurface Radius"]:
-                                                material.node_tree.links.remove(link)
-                                        else:
-                                            if link.to_socket == PBSDF.inputs["Subsurface Color"]:
-                                                material.node_tree.links.remove(link)
+                                    RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                                
                                 if blender_version("4.x.x"):
                                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
                                 else:
                                     PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
 
-                                PBSDF.inputs["Subsurface Radius"].default_value[0] = 1.0
-                                PBSDF.inputs["Subsurface Radius"].default_value[1] = 1.0
-                                PBSDF.inputs["Subsurface Radius"].default_value[2] = 1.0
-                        else:
-                            if blender_version("4.x.x"):
-                                PBSDF.inputs["Subsurface Weight"].default_value = 0
-                            else:
-                                PBSDF.inputs["Subsurface"].default_value = 0
+                                PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
+                        elif PProperties.revert_sss:
+                            PBSDF.inputs[PBSDF_compability("Subsurface Weight")].default_value = 0
 
+                        # Use Translucency
+                        if MaterialIn(Translucent_Materials, material):
+                            if PProperties.use_translucency:
+                                    PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
+                            elif PProperties.revert_translucency:
+                                PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
 
                         # Make Metals                            
-                        if PProperties.make_metal == True and MaterialIn(Metal, material):
+                        if PProperties.make_metal and MaterialIn(Metal, material):
                             PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
                             PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
 
                             
                         # Make Reflections                            
-                        if PProperties.make_reflections == True and MaterialIn(Reflective, material):
+                        if PProperties.make_reflections and MaterialIn(Reflective, material):
                             PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
 
-                        # Make Better Emission and Animate Textures                            
-                        if (PProperties.make_better_emission == True or PProperties.animate_textures == True) and EmissionMode(PBSDF, material):
-                            image_texture_node = None
+                        # Make Better Emission and Animate Textures
+                        if (PProperties.make_better_emission or PProperties.animate_textures) and EmissionMode(PBSDF, material):
                             node_group = None
-                            
-                            # Texture Check
-                            for node in material.node_tree.nodes:
-                                if node.type == "TEX_IMAGE":
-                                    if ".00" not in node.name:
-                                        image_texture_node = node
 
                             # The Main Thing
-                            if image_texture_node != None:
 
-                                for node in material.node_tree.nodes:
-                                    if node.type == "GROUP":
-                                        if BATGroup in node.node_tree.name:
-                                            node_group = node
-                                            break
-
-                                # BATGroup Import if BATGroup isn't in File
-                                if node_group == None:
-                                    if BATGroup not in bpy.data.node_groups:
-                                        with bpy.data.libraries.load(materials_file_path, link=False) as (data_from, data_to):
-                                            data_to.node_groups = [BATGroup]
-
-                                    node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                    node_group.node_tree = bpy.data.node_groups[BATGroup]
-
-                                # Settings Set
-                                if MaterialIn(Emissive_Materials, material) == True:
-                                    for material_part in material.name.lower().replace("-", ".").split("."):
-                                        for material_name, material_properties in Emissive_Materials.items():
-                                            if material_name == material_part:
-                                                for property_name, property_value in material_properties.items():
-                                                    if property_name == "Divider":
-                                                        node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
-                                                    else:
-                                                        node_group.inputs[property_name].default_value = property_value
-
-                                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-
-                                                if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
-                                                    node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
-                                else:
-                                    for material_name, material_properties in Emissive_Materials.items():
-                                        if material_name == "Default":
-                                            for property_name, property_value in material_properties.items():
-                                                if property_name == "Divider":
-                                                    node_group.inputs[property_name].default_value = property_value * bpy.context.scene.render.fps/30
-                                                else:
-                                                    node_group.inputs[property_name].default_value = property_value
-
-                                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-                                            node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
-                                
-                                # Color Connection if Nothing Connected
-                                if blender_version("4.x.x"):
-                                    if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", "Emission Color"):
-                                        material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission Color"])
-                                else:
-                                    if not IsConnectedTo(None, None, None, "BSDF_PRINCIPLED", "Emission"):
-                                        material.node_tree.links.new(image_texture_node.outputs[0], PBSDF.inputs["Emission"])
-                                    
-                                for node in material.node_tree.nodes:
-                                    if node.type == "BSDF_PRINCIPLED":
-                                        for link in node.inputs["Emission Strength"].links:
-                                            if link.from_node != node_group:
-                                                for output in link.from_node.outputs:
-                                                    for link in output.links:
-                                                        if link.to_socket.node.name == node.name:
-                                                            material.node_tree.links.new(link.from_socket, node_group.inputs["Multiply"])
-
-                                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
-                                if blender_version("4.x.x"):
-                                    material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
-                                else:
-                                    material.node_tree.links.new(image_texture_node.outputs[0], node_group.inputs["Emission Color"])
-                                material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
-
-                        if PProperties.make_better_emission == False and PProperties.animate_textures == False:
                             for node in material.node_tree.nodes:
-                                if node.type == 'GROUP':
+                                if node.type == "GROUP":
                                     if BATGroup in node.node_tree.name:
-                                        material.node_tree.nodes.remove(node)
+                                        node_group = node
+                                        break
+
+                            # BATGroup Import if BATGroup isn't in File
+                            if node_group is None:
+                                if BATGroup not in bpy.data.node_groups:
+                                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                                        data_to.node_groups = [BATGroup]
+
+                                node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                node_group.node_tree = bpy.data.node_groups[BATGroup]
+
+                            # Settings Set
+                            if MaterialIn(Emissive_Materials.keys(), material, "=="):
+                                for material_part in material.name.lower().replace("-", ".").split("."):
+                                    for material_name, material_properties in Emissive_Materials.items():
+                                        if material_name == material_part:
+                                            for property_name, property_value in material_properties.items():
+                                                node_group.inputs[property_name].default_value = property_value
+
+                                            if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
+                                                node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                                            
+                                            if "From Min" in material_properties and "From Max" in material_properties and "To Min" in material_properties and "To Max" in material_properties:
+                                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                            else:
+                                for property_name, property_value in Emissive_Materials.get("Default", {}).items():
+                                    node_group.inputs[property_name].default_value = property_value
+
+                                node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                                node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                            
+                            # Color Connection if Nothing Connected
+                            if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
+                            
+                            try:
+                                if (emit_socket := GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node) != node_group:
+                                    material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
+                            except:
+                                pass
+
+                            node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
+                            material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
+
+                        if not PProperties.make_better_emission and not PProperties.animate_textures:
+                            node_group = None
+                            for node in material.node_tree.nodes:
+                                if node.type == "GROUP":
+                                    if BATGroup in node.node_tree.name:
+                                        node_group = node
+                                        break
+                            
+                            if node_group is not None:
+                                if (mult_socket := GetConnectedSocketTo("Multiply", node_group)) is not None:
+                                    material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
+                                material.node_tree.nodes.remove(node_group)
+                        if Preferences.dev_tools and Preferences.experimental_features:
+                            if PProperties.proughness:
+                                if proughness_node is None:
+                                    proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                    proughness_node.name = "Procedural Roughness Node"
+                                    proughness_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 90)
+                                    proughness_node.hide = True
+
+                                proughness_node.interpolation_type = PProperties.pr_interpolation
+                                proughness_node.inputs["From Max"].default_value = 0.0
+                                proughness_node.inputs["From Min"].default_value = 1.0
+                                proughness_node.inputs["To Max"].default_value = PBSDF.inputs["Roughness"].default_value
+                                proughness_node.inputs["To Min"].default_value = PBSDF.inputs["Roughness"].default_value * PProperties.pr_dif
+                                
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), proughness_node.inputs["Value"])
+                                material.node_tree.links.new(proughness_node.outputs[0], PBSDF.inputs["Roughness"])
+
+                            elif PProperties.pr_revert and proughness_node is not None:
+                                material.node_tree.nodes.remove(proughness_node)
+                            
+                            if PProperties.pspecular:
+                                if pspecular_node is None:
+                                    pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
+                                    pspecular_node.name = "Procedural Specular Node"
+                                    pspecular_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 200)
+                                    pspecular_node.hide = True
+
+                                pspecular_node.interpolation_type = PProperties.ps_interpolation
+                                pspecular_node.inputs["From Max"].default_value = 1.0
+                                pspecular_node.inputs["From Min"].default_value = 0.0
+                                pspecular_node.inputs["To Max"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value
+                                pspecular_node.inputs["To Min"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value * PProperties.ps_dif
+                                
+                                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
+                                material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
+                                
+                            elif PProperties.ps_revert and pspecular_node is not None:
+                                material.node_tree.nodes.remove(pspecular_node)
+
                 else:
-                    CEH('m002', slot)
-                
+                    Absolute_Solver("m002", slot)
         else:
-            CEH('m003', Data=selected_object)
-            
-        selected_object.data.update()
+            Absolute_Solver("m003", selected_object)
 #
         
 # TODO:
     # Upgrade World - Сделать так чтобы выбирались определённые фейсы у мира > они отделялись от него в отдельный объект > Как-то группировались > Производилась замена этих объектов на риги (Сундук)
-    # Texture logic - Сделать использование текстур из папки, например из папки tex или из папки майнкрафта
     # Upgrade World - Сщединённое стекло: Импортировать текстуры соединённого > Выбираются фейсы с материалом стекла > Математически вычислить находятся ли стёкла рядом (if Glass.location.x + 1: поставить сообтветствующую текстуру стекла)
