@@ -1,7 +1,9 @@
 from .Data import *
-from .Translator import *
+from .MCB_API import *
+from .Assets import Assets
+from bpy.types import PropertyGroup
 
-class FixWorldProperties(PropertyGroup):
+class WorldProperties(PropertyGroup):
 
     backface_culling: BoolProperty(
         name="Backface Culling",
@@ -15,21 +17,127 @@ class FixWorldProperties(PropertyGroup):
         description=""
     )
 
-    def emissiondetectionfix():
-        if blender_version("3.6.x"):
-            default='Manual'
-        else:
-            default='Automatic & Manual'
-        return default
-
-    emissiondetection: EnumProperty(
-        items=[('Automatic', 'Automatic', ''), 
-            ('Automatic & Manual', 'Automatic & Manual', ''),
-            ('Manual', 'Manual', '')],
-        name="emissiondetection",
-        default=emissiondetectionfix()
+    lazy_biome_fix: BoolProperty(
+        name="Lazy Biome Color Fix",
+        default=True,
     )
 
+    def alpha_blend_fix(): # Fix for Eevee Next
+        if blender_version(">= 4.2.0"):
+            return False
+        else:
+            return True
+
+    use_alpha_blend: BoolProperty(
+        name="Use Alpha Blend",
+        default=alpha_blend_fix(),
+    )
+
+
+
+
+class ResourcePackProperties(PropertyGroup):
+    
+    toggle_resource_packs_list: BoolProperty(
+        name="Resource Packs List",
+        default=True,
+    )
+
+    resource_packs_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
+    )
+
+    ignore_dublicates: BoolProperty(
+        name="Ignore Dublicates",
+        default=True,
+    )
+
+    use_additional_textures: BoolProperty(
+        name="Use Additional Textures",
+        default=True,
+    )
+
+    textures_settings: BoolProperty(
+        name="Textures Settings",
+        default=False,
+    )
+
+    use_i: BoolProperty(
+        name="Use Image Textures",
+        default=True,
+    )
+
+    use_n: BoolProperty(
+        name="Use Normal Textures",
+        default=True,
+    )
+
+    use_s: BoolProperty(
+        name="Use Specular Textures",
+        default=True,
+    )
+
+    s_settings: BoolProperty(
+        name="Specular Settings",
+        default=False,
+    )
+
+    roughness: BoolProperty(
+        name="Use Roughness",
+        default=True,
+    )
+
+    metallic: BoolProperty(
+        name="Use Metallic",
+        default=True,
+    )
+
+    sss: BoolProperty(
+        name="Use SSS",
+        default=True,
+    )
+
+    specular: BoolProperty(
+        name="Use Specular",
+        default=True,
+    )
+
+    emission: BoolProperty(
+        name="Use Emssion",
+        default=True,
+    )
+
+    use_e: BoolProperty(
+        name="Use Emission Textures",
+        default=True,
+    )
+
+    animate_textures: BoolProperty(
+        name="Animate Textures",
+        default=True,
+    )
+
+    animate_textures_settings: BoolProperty(
+        name="Animate Textures Settings",
+        default=False,
+    )
+
+    interpolate: BoolProperty(
+        name="Interpolate",
+        default=True,
+    )
+
+    only_fix_uv: BoolProperty(
+        name="Only Fix UV",
+        default=False,
+    )
+
+
+
+
+class MaterialsProperties(PropertyGroup):
+    pass
 
 
 
@@ -38,9 +146,15 @@ class FixWorldProperties(PropertyGroup):
 class PPBRProperties(PropertyGroup):
 
     use_normals: BoolProperty(
-        name=Translate("Use Normals"),
+        name="Use Normals",
         default=True,
         description="Enables Normals In Materials"
+    )
+
+    revert_normals: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
     )
 
     normals_selector: EnumProperty(
@@ -51,7 +165,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     normals_settings: BoolProperty(
-        name=Translate("Normals Settings"),
+        name="Normals Settings",
         default=False,
         description=""
     )
@@ -128,14 +242,141 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    use_sss: BoolProperty(
-        name=Translate("Use SSS"),
+    pspecular: BoolProperty(
+        name="Procedural Specular",
         default=True,
         description=""
     )
 
+    pspecular_settings: BoolProperty(
+        name="Procedural Specular Settings",
+        default=False,
+        description=""
+    )
+
+    ps_interpolation: EnumProperty(
+        items=[('LINEAR', 'Linear', ''), 
+            ('SMOOTHSTEP', 'Smooth Step', ''),
+            ('SMOOTHERSTEP', 'Smoother Step', '')],
+        name="Interpolation",
+        default='LINEAR'
+    )
+
+    ps_dif: FloatProperty(
+        name="Difference",
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        description="Value 1 will be Ignored"
+    )
+
+    ps_revert: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+    
+
+    proughness: BoolProperty(
+        name="Procedural Roughness",
+        default=True,
+        description=""
+    )
+
+    proughness_settings: BoolProperty(
+        name="Procedural Roughness Settings",
+        default=False,
+        description=""
+    )
+
+    pr_interpolation: EnumProperty(
+        items=[('LINEAR', 'Linear', ''), 
+            ('SMOOTHSTEP', 'Smooth Step', ''),
+            ('SMOOTHERSTEP', 'Smoother Step', '')],
+        name="Interpolation",
+        default='LINEAR'
+    )
+
+    pr_dif: FloatProperty(
+        name="Difference",
+        default=0.6,
+        min=0.0,
+        max=1.0,
+        description="Value 1 will be Ignored"
+    )
+    
+    pr_revert: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
+    advanced_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
+        description=""
+    )
+
+    make_better_emission: BoolProperty(
+        name="Make Better Emission",
+        default=True,
+        description=""
+    )
+
+    animate_textures: BoolProperty(
+        name="Procedurally Animate textures",
+        default=False,
+        description=""
+    )
+
+    change_bsdf: BoolProperty(
+        name="Change BSDF Settings",
+        default=True,
+        description=""
+    )
+
+    change_bsdf_settings: BoolProperty(
+        name="Change BSDF Settings Settings LoL",
+        default=False,
+        description=""
+    )
+
+    specular: FloatProperty(
+        name="Specular",
+        default=0.4,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    roughness: FloatProperty(
+        name="Roughness",
+        default=0.6,
+        min=0.0,
+        max=1.0,
+        description=""
+    )
+
+    use_sss: BoolProperty(
+        name="Use SSS",
+        default=True,
+        description=""
+    )
+
+    revert_sss: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
+    sss_skip: BoolProperty(
+        name="Apply To All Materials",
+        default=False,
+        description=""
+    )
+
     sss_settings: BoolProperty(
-        name=Translate("SSS Settings"),
+        name="SSS Settings",
         default=False,
         description=""
     )
@@ -177,6 +418,32 @@ class PPBRProperties(PropertyGroup):
         min=0.0,
         max=10.0,
         subtype='DISTANCE',
+        description=""
+    )
+
+    use_translucency: BoolProperty(
+        name="Use Translucency",
+        default=True,
+        description=""
+    )
+
+    revert_translucency: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
+    translucency_settings: BoolProperty(
+        name="Metal Settings",
+        default=False,
+        description=""
+    )
+
+    translucency: FloatProperty(
+        name="Translucency",
+        default=0.4,
+        min=0.0,
+        max=1.0,
         description=""
     )
 
@@ -228,52 +495,6 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    make_better_emission: BoolProperty(
-        name="Make Better Emission",
-        default=True,
-        description=""
-    )
-
-    animate_textures: BoolProperty(
-        name="Animate textures",
-        default=True,
-        description=""
-    )
-
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
-        default=False,
-        description=""
-    )
-
-    change_bsdf: BoolProperty(
-        name="Change BSDF",
-        default=True,
-        description=""
-    )
-
-    change_bsdf_settings: BoolProperty(
-        name="Change BSDF Settings",
-        default=False,
-        description=""
-    )
-
-    specular: FloatProperty(
-        name="Specular",
-        default=0.4,
-        min=0.0,
-        max=1.0,
-        description=""
-    )
-
-    roughness: FloatProperty(
-        name="Roughness",
-        default=0.6,
-        min=0.0,
-        max=1.0,
-        description=""
-    )
-
 
 
 
@@ -281,32 +502,52 @@ class PPBRProperties(PropertyGroup):
 
 class CreateEnvProperties(PropertyGroup):
 
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
+    sky_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
+    clouds_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
+    geonodes_settings: BoolProperty(
+        default=True,
+        description=""
+    )
+
+    material_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
+    layers_settings: BoolProperty(
         default=False,
         description=""
     )
 
     strength_settings: BoolProperty(
-        name="Strength Settings",
         default=False,
         description=""
     )
 
     colors_settings: BoolProperty(
-        name="Colors Settings",
         default=False,
         description=""
     )
 
     ambient_colors_settings: BoolProperty(
-        name="Ambient Colors Settings",
         default=False,
         description=""
     )
 
     rotation_settings: BoolProperty(
-        name="Rotation Settings",
+        default=False,
+        description=""
+    )
+
+    other_settings: BoolProperty(
         default=False,
         description=""
     )
@@ -509,3 +750,25 @@ class UtilsProperties(PropertyGroup):
         name="Vertex Group Name",
         description=""
     )
+
+
+
+
+class AssetsProperties(PropertyGroup):
+
+    asset_index: bpy.props.IntProperty(
+        default=0
+    )
+
+    def categories():
+        categories = [('All', "All", "")]
+        categories.extend([(cat, cat, "") for cat in Assets.keys()])
+        return categories
+
+    asset_category: bpy.props.EnumProperty(
+        name="Category",
+        items=categories(),
+        default='All',
+    )
+
+    asset_items: bpy.props.CollectionProperty(type=PropertyGroup)
