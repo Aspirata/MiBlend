@@ -9,17 +9,6 @@ from .Operators import *
 from .Properties import *
 from bpy.app.handlers import persistent
 
-bl_info = {
-    "name": "Mcblend",
-    "author": "Aspirata",
-    "version": (0, 5, 0),
-    "blender": (3, 6, 0),
-    "doc_url": "https://github.com/Aspirata/Mcblend/wiki",
-    "tracker_url": "https://github.com/Aspirata/Mcblend/issues",
-    "location": "View3D > Addons Tab",
-    "description": "A useful tool for creating minecraft content in blender",
-}
-
 def InitOnStart():
 
     if "resource_packs" not in bpy.context.scene:
