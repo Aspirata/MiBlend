@@ -474,8 +474,8 @@ def swap_textures(folder_path):
 @ Perf_Time
 def setproceduralpbr():
 
-    Preferences = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
-
+    Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+        
     for selected_object in bpy.context.selected_objects:
         slot = 0
         if selected_object.material_slots:

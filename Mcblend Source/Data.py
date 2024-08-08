@@ -238,7 +238,7 @@ Translucent_Materials = ["leaves", "glass"]
 
 Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
-Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete"]
+Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
 #
 
