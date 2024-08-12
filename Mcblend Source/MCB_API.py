@@ -97,14 +97,12 @@ def GetConnectedSocketFrom(output, tag, material=None):
                 if node.type == tag:
                     output_socket = node.outputs[output]
                     for link in output_socket.links:
-                        to_node = link.to_node
                         to_sockets.append(link.to_socket)
             return to_sockets
         
         else:
             output_socket = tag.outputs[output]
             for link in output_socket.links:
-                to_node = link.to_node
                 to_sockets.append(link.to_socket)
             return to_sockets
     except:

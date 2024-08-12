@@ -424,10 +424,10 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="Materials", icon="MATERIAL_DATA")
 
-        if os.path.isfile(os.path.join(materials_folder, "Upgraded Materials.blend")):
+        if os.path.isfile(os.path.join(materials_folder, "Replaced Materials.blend")):
             row = box.row()
             row.scale_y = Big_Button_Scale
-            row.operator("materials.upgrade_materials", text="Upgrade Materials")
+            row.operator("materials.replace_materials", text="Replace Materials")
 
         row = box.row()
         row.scale_y = Big_Button_Scale

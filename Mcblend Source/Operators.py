@@ -298,12 +298,12 @@ class CreateEnvOperator(Operator):
         return {'FINISHED'}
         
 class UpgradeMaterialsOperator(Operator):
-    bl_idname = "materials.upgrade_materials"
+    bl_idname = "materials.replace_materials"
     bl_label = "Upgrade Materials"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        Materials.upgrade_materials()
+        Materials.replace_materials()
         return {'FINISHED'}
 
 class FixMaterialsOperator(Operator):

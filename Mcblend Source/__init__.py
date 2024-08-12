@@ -35,7 +35,7 @@ def InitOnStart():
 def load_post_handler(dummy):
     InitOnStart()
 
-classes = [McblendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Paneles
+classes = [McblendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties, UtilsProperties, AssetsProperties, # Properties
     WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators

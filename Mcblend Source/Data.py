@@ -242,7 +242,7 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 
 #
 
-Upgrade_Materials_Array = {
+Replace_Materials_Array = {
     
     "bricks": "Upgraded Bricks",
 

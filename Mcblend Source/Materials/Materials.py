@@ -3,7 +3,7 @@ from ..Data import *
 from ..Resource_Packs import *
 from ..Utils.Absolute_Solver import Absolute_Solver
 
-# Scan the material for image texture node duplicates > if nothing is connected to the vector then delete else don't touch
+# Scan the material for image texture node duplicates > if nothing is connected to the vector input then delete and restore connections else don't touch
 def DeleteUselessTextures(material):
     texture_nodes = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE"]
     image_to_nodes = {}
@@ -44,20 +44,22 @@ def DeleteUselessTextures(material):
                 material.node_tree.nodes.remove(node)
 
 @ Perf_Time
-def upgrade_materials():
+def replace_materials():
     for selected_object in bpy.context.selected_objects:
         if selected_object.material_slots:
             for i, material in enumerate(selected_object.data.materials):
                 if material is not None and material.use_nodes:
-                    for original_material, upgraded_material in Upgrade_Materials_Array.items():
+                    # Maybe replace this with material name format | original_material: upgraded_material
+                    # so, after replacing script will fix the name to | upgraded_material
+                    for original_material, upgraded_material in Replace_Materials_Array.items():
                         for material_part in material.name.lower().replace("-", ".").split("."):
                             if original_material == material_part:
                                 if upgraded_material not in bpy.data.materials:
                                     try:
-                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Upgraded Materials.blend"), link=False) as (data_from, data_to):
+                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
                                             data_to.materials = [upgraded_material]
                                     except:
-                                        Absolute_Solver('004', "Upgraded Materials", traceback.format_exc())
+                                        Absolute_Solver('004', "Replaced Materials", traceback.format_exc())
 
                                     appended_material = bpy.data.materials.get(upgraded_material)
                                     selected_object.data.materials[i] = appended_material
@@ -199,7 +201,7 @@ def fix_world():
                             material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
 
                             # Lazy Biome Color Fix Exclusions
-                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) and all(part not in material_parts for part in ("cherry", "side", "azalea", "snow")) or ("redstone" and "dust" in material_parts):
+                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) and all(part not in material_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or ("redstone" and "dust" in material_parts):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -532,7 +534,7 @@ def setproceduralpbr():
 
                                 if bump_node is None:
                                     bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
-                                    bump_node.location = (PBSDF.location.x - 200, PBSDF.location.y - 100)
+                                    bump_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
                                     material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), bump_node.inputs['Height'])
                                     material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
 
@@ -547,7 +549,7 @@ def setproceduralpbr():
 
                                         PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
                                         PNormals.node_tree = Current_node_tree
-                                        PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
+                                        PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
                                     
                                     else:
                                         with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -558,7 +560,7 @@ def setproceduralpbr():
                                         bpy.data.node_groups[f"PNormals"].name = f"PNormals; {material.name}"
                                         PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
                                         Current_node_tree = PNormals.node_tree
-                                        PNormals.location = (PBSDF.location.x - 200, PBSDF.location.y - 132)
+                                        PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
 
                                 for node in material.node_tree.nodes:
                                     if node.type == "GROUP":
@@ -712,6 +714,7 @@ def setproceduralpbr():
                                 if (mult_socket := GetConnectedSocketTo("Multiply", node_group)) is not None:
                                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                                 material.node_tree.nodes.remove(node_group)
+
                         if Preferences.dev_tools and Preferences.experimental_features:
                             if PProperties.proughness:
                                 if proughness_node is None:
