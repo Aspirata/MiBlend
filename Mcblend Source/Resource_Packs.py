@@ -35,14 +35,14 @@ def update_default_pack():
             folders = os.path.join(os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA'), path)
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
-                    if version := version_formatter(folder):
+                    if version := version_formatter(folder) and os.path.isfile(os.path.join(os.getenv('APPDATA'), path, folder, folder)):
                         versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
         
         if Preferences.mc_instances_path:
             folders = Preferences.mc_instances_path
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
-                    if version := version_formatter(folder):
+                    if version := version_formatter(folder) and os.path.isfile(os.path.join(os.getenv('APPDATA'), path, folder, folder)):
                         versions[version] = (folder, Preferences.mc_instances_path)
             
         if versions:
