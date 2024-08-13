@@ -35,15 +35,21 @@ def update_default_pack():
             folders = os.path.join(os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA'), path)
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
-                    if version := version_formatter(folder) and os.path.isfile(os.path.join(os.getenv('APPDATA'), path, folder, folder)):
+                    if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os.getenv('APPDATA'), path, folder, f"{folder}.jar")):
                         versions[version] = (folder, os.path.join(os.getenv('APPDATA'), path))
+                        dprint(f"{instance_path} valid")
+                    else:
+                        dprint(f"{instance_path} invalid")
         
         if Preferences.mc_instances_path:
             folders = Preferences.mc_instances_path
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
-                    if version := version_formatter(folder) and os.path.isfile(os.path.join(os.getenv('APPDATA'), path, folder, folder)):
+                    if (version := version_formatter(folder)) and os.path.isfile(os.path.join(os.getenv('APPDATA'), path, folder, f"{folder}.jar")):
                         versions[version] = (folder, Preferences.mc_instances_path)
+                        dprint(f"{instance_path} valid")
+                    else:
+                        dprint(f"{instance_path} invalid")
             
         if versions:
             latest_version = max(versions, key=lambda x: LooseVersion(x))
