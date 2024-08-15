@@ -36,7 +36,8 @@ def load_post_handler(dummy):
     InitOnStart()
 
 classes = [McblendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
-    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties, UtilsProperties, AssetsProperties, # Properties
+    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties,                                    # Properties
+    UtilsProperties, AssetTagItem, AssetsProperties,                                                                                                               
     WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       

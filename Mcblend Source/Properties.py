@@ -754,21 +754,38 @@ class UtilsProperties(PropertyGroup):
 
 
 
+class AssetTagItem(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
+    enabled: bpy.props.BoolProperty(default=False)
+
 class AssetsProperties(PropertyGroup):
 
     asset_index: bpy.props.IntProperty(
         default=0
     )
 
-    def categories():
-        categories = [('All', "All", "")]
-        categories.extend([(cat, cat, "") for cat in Assets.keys()])
-        return categories
+    def get_tags():
+        unique_tags = set()
+    
+        for asset_data in Assets.values():
+            tags = asset_data.get("Tags", [])
+            unique_tags.update(tags)
+        
+        unique_tags = sorted(unique_tags)
+        return [('All', "All", "")] + [(tag, tag, "") for tag in unique_tags]
 
-    asset_category: bpy.props.EnumProperty(
-        name="Category",
-        items=categories(),
-        default='All',
-    )
+    filters: bpy.props.BoolProperty(
+        name="Filters",
+        description="",
+        default=False
+        )
+
+    sort_by_version: bpy.props.BoolProperty(
+        name="Sort By Version",
+        description="",
+        default=True
+        )
+
+    tags: bpy.props.CollectionProperty(type=AssetTagItem)
 
     asset_items: bpy.props.CollectionProperty(type=PropertyGroup)

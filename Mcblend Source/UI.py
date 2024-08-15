@@ -757,24 +757,6 @@ class AssetPanel(Panel):
 
     def draw(self, context):
 
-        def importcategoryfix():
-            asset_category = context.scene.assetsproperties.asset_category
-
-            if asset_category == "Scripts":
-                return "Run Script"
-            
-            if asset_category == "Rigs":
-                return "Import Rig"
-            
-            if asset_category == "Shader Nodes":
-                return "Import Node Group"
-            
-            if asset_category == "Geo Nodes":
-                return "Import Geo Node"
-
-            if asset_category == "Model":
-                return "Import Model"
-
         layout = self.layout
         
         if Preferences.transparent_ui:
@@ -783,11 +765,6 @@ class AssetPanel(Panel):
             self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
-
-        row = box.row()
-        row.label(text="Asset Category:")
-        row = box.row()
-        row.prop(context.scene.assetsproperties, "asset_category", text="")
 
         box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
 
@@ -799,32 +776,77 @@ class AssetPanel(Panel):
             remove_attr = row.operator("special.remove_attribute", text="Remove Assets List")
             remove_attr.attribute = "assetsproperties.asset_items"
 
+        # Filters
+
+        row = box.row()
+        row.prop(bpy.context.scene.assetsproperties, "filters", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.assetsproperties.filters else "TRIA_RIGHT"))
+
+        if bpy.context.scene.assetsproperties.filters:
+
+            sbox = box.box()
+
+            primary_tags = ["Rig", "Script", "Model"]
+            secondary_tags = ["Vanilla", "Realistic"]
+
+            row = sbox.row()
+            row.label(text="Tags:")
+            row = sbox.row()
+
+            split = row.split(factor=0.33)
+
+            # First column: Primary
+            col_primary = split.column()
+            col_primary.label(text="Primary")
+            for tag in context.scene.assetsproperties.tags:
+                if tag.name in primary_tags:
+                    col_primary.prop(tag, "enabled", text=tag.name)
+
+            # Second column: Secondary
+            col_secondary = split.column()
+            col_secondary.label(text="Secondary")
+            for tag in context.scene.assetsproperties.tags:
+                if tag.name in secondary_tags:
+                    col_secondary.prop(tag, "enabled", text=tag.name)
+
+            # Third column: Other
+            col_other = split.column()
+            col_other.label(text="Other")
+            for tag in context.scene.assetsproperties.tags:
+                if tag.name not in primary_tags and tag.name not in secondary_tags:
+                    col_other.prop(tag, "enabled", text=tag.name)
+
+            row = sbox.row()
+            row.prop(bpy.context.scene.assetsproperties, "sort_by_version", toggle=True)
+
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset", text=importcategoryfix())
+        row.operator("assets.import_asset")
 
 class Assets_List_UL_(bpy.types.UIList):
 
     def get_custom_icon(self, item):
-        for category, assets in Assets.items():
-            if item.name in assets:
-                asset_type = category
+        if item.name in Assets:
+            asset_info = Assets[item.name]
+            tags = asset_info.get("Tags", [])
 
-                if asset_type == "Rigs":
+            if tags:
+                first_tag = tags[0]
+
+                if first_tag == "Rig":
                     return "ARMATURE_DATA"
                 
-                if asset_type == "Scripts":
+                elif first_tag == "Script":
                     return "FILE_SCRIPT"
                 
-                if asset_type == "Shader Nodes":
+                elif first_tag == "Shader Nodes":
                     return "NODE"
                 
-                if asset_type == "Geo Nodes":
+                elif first_tag == "Geo Nodes":
                     return "GEOMETRY_NODES"
-
-                if asset_type == "Model":
-                    return "OBJECT_DATA"
                 
+                elif first_tag == "Model":
+                    return "OBJECT_DATA"
+                    
         return "QUESTION"
 
 
@@ -836,32 +858,21 @@ class Assets_List_UL_(bpy.types.UIList):
         flt_flags = []
         flt_neworder = []
 
-        asset_category = context.scene.assetsproperties.asset_category
+        selected_tags = [tag.name for tag in context.scene.assetsproperties.tags if tag.enabled]
 
         for index, item in enumerate(data.asset_items):
-            found = False
-            for category, assets in Assets.items():
-                if item.name in assets:
-                    try:
-                        if blender_version(assets[item.name]["Blender_version"]):
-                            if asset_category == "All" or category == asset_category:
-                                flt_flags.append(self.bitflag_filter_item)
-                            else:
-                                flt_flags.append(0)
-                        else:
-                            flt_flags.append(0)
-                    except KeyError:
-                        if asset_category == "All" or category == asset_category:
-                            flt_flags.append(self.bitflag_filter_item)
-                        else:
-                            flt_flags.append(0)
-                    found = True
-                    break
+            asset_name = item.name
 
-            if not found:
+            if asset_name in Assets:
+                asset_data = Assets[asset_name]
+                asset_tags = asset_data.get("Tags", [])
+                asset_bl_version = asset_data.get("Blender_version", "x.x.x")
+
+                if "All" in selected_tags or any(tag in asset_tags for tag in selected_tags) and (blender_version(asset_bl_version) or not context.scene.assetsproperties.sort_by_version):
+                    flt_flags.append(self.bitflag_filter_item)
+                else:
+                    flt_flags.append(0)
+            else:
                 flt_flags.append(0)
-        
-        while len(flt_flags) < len(data.asset_items):
-            flt_flags.append(0)
 
         return flt_flags, flt_neworder

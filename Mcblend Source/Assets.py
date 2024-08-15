@@ -35,18 +35,36 @@ def append_asset(asset_name, asset_category):
         Absolute_Solver(tech_things=traceback.print_exc(), data=asset_name, error_name="Bad Asset Import", description="Can't Import {Data} Asset")
 
 def update_assets():
+
+    # Assets
+
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
 
-    all_keys = []
-
-    for category, assets in Assets.items():
-        for key in assets.keys():
-            all_keys.append(key)
-
-    for key in sorted(all_keys):
+    dprint(sorted(Assets.keys()))
+    for key in sorted(Assets.keys()):
+        dprint(key)
         item = items.add()
         item.name = key
+
+    # Tags
+
+    tags = bpy.context.scene.assetsproperties.tags
+    tags.clear()
+    unique_tags = set()
+
+    for asset_data in Assets.values():
+        asset_tags = asset_data.get("Tags", [])
+        unique_tags.update(asset_tags)
+
+    unique_tags.add("All")
+    unique_tags = sorted(unique_tags)
+
+    for tag in unique_tags:
+        item = tags.add()
+        item.name = tag
+        if tag == "All":
+            item.enabled = True
     
 def run_python_script(file_path):
 
@@ -70,71 +88,78 @@ def run_python_script(file_path):
         Absolute_Solver(tech_things=traceback.print_exc(), data=file_path, error_name="Bad Script Execution", description="Can't Execute Script from {Data}")
 
 Assets = {
-    "Rigs": {
-        "SRE V2.0": {
-            "Blender_version": "4.x.x",
-            "File_name": "Simple_edit_V2.0.blend",
-            "Collection_name": "SRE rig"
-        },
-
-        "SRE V2.0b732": {
-            "Blender_version": "3.6.x",
-            "File_name": "Simple_edit_V2.0b732.blend",
-            "Collection_name": "SRE rig"
-        },
-
-        "Creeper": {
-            "Blender_version": "4.x.x",
-            "File_name": "Creeper.blend",
-            "Collection_name": "Creeper"
-        },
-
-        "Allay": {
-            "Blender_version": "4.x.x",
-            "File_name": "Allay.blend",
-            "Collection_name": "Simple Allay"
-        },
-
-        "Axolotl": {
-            "Blender_version": "4.x.x",
-            "File_name": "Axolotl.blend",
-            "Collection_name": "Axolotl"
-        },
-
-        "Warden": {
-            "Blender_version": "4.x.x",
-            "File_name": "Warden.blend",
-            "Collection_name": "Warden"
-        },
+    "SRE V2.0": {
+        "Blender_version": "4.x.x",
+        "File_name": "Simple_edit_V2.0.blend",
+        "Collection_name": "SRE rig",
+        "Tags": ["Rig", "Vanilla"]
     },
 
-    "Scripts": {
+    "SRE V2.0b732": {
+        "Blender_version": "3.6.x",
+        "File_name": "Simple_edit_V2.0b732.blend",
+        "Collection_name": "SRE rig",
+        "Tags": ["Rig", "Vanilla"]
+    },
 
-        "Sleep After Render": {
-            "File_name": "Sleep After Render.py",
-        },
+    "Creeper": {
+        "Blender_version": "4.x.x",
+        "File_name": "Creeper.blend",
+        "Collection_name": "Creeper",
+        "Tags": ["Rig", "Vanilla"]
+    },
 
-        "Convert DBSDF 2 PBSDF": {
-            "File_name": "Convert DBSDF 2 PBSDF.py",
-        },
+    "Allay": {
+        "Blender_version": "4.x.x",
+        "File_name": "Allay.blend",
+        "Collection_name": "Simple Allay",
+        "Tags": ["Rig", "Vanilla"]
+    },
 
-        "Fix Shade Auto Smooth": {
-            "Blender_version": "< 4.1.0",
-            "File_name": "Fix Shade Auto Smooth.py",
-        },
+    "Axolotl": {
+        "Blender_version": "4.x.x",
+        "File_name": "Axolotl.blend",
+        "Collection_name": "Axolotl",
+        "Tags": ["Rig", "Vanilla"]
+    },
 
-        "Enable Jittered Shadows": {
-            "Blender_version": ">= 4.2.0",
-            "File_name": "Jittered Shadows.py",
-        },
+    "Warden": {
+        "Blender_version": "4.x.x",
+        "File_name": "Warden.blend",
+        "Collection_name": "Warden",
+        "Tags": ["Rig", "Vanilla"]
+    },
 
-        "Enable Contact Shadows": {
-            "Blender_version": "< 4.2.0",
-            "File_name": "Contact Shadows.py",
-        },
+    "Sleep After Render": {
+        "File_name": "Sleep After Render.py",
+        "Tags": ["Script"]
+    },
 
-        "ACES Textures Fix": {
-            "File_name": "ACES Textures Fix.py",
-        },
+    "Convert DBSDF 2 PBSDF": {
+        "File_name": "Convert DBSDF 2 PBSDF.py",
+        "Tags": ["Script"]
+    },
+
+    "Fix Shade Auto Smooth": {
+        "Blender_version": "< 4.1.0",
+        "File_name": "Fix Shade Auto Smooth.py",
+        "Tags": ["Script"]
+    },
+
+    "Enable Jittered Shadows": {
+        "Blender_version": ">= 4.2.0",
+        "File_name": "Jittered Shadows.py",
+        "Tags": ["Script"]
+    },
+
+    "Enable Contact Shadows": {
+        "Blender_version": "< 4.2.0",
+        "File_name": "Contact Shadows.py",
+        "Tags": ["Script"]
+    },
+
+    "ACES Textures Fix": {
+        "File_name": "ACES Textures Fix.py",
+        "Tags": ["Script"]
     },
 }
