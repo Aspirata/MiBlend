@@ -12,7 +12,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "Mcblend",
     "author": "Aspirata",
-    "version": (0, 5, 0),
+    "version": (0, 5, 1),
     "blender": (3, 6, 0),
     "doc_url": "https://github.com/Aspirata/Mcblend/wiki",
     "tracker_url": "https://github.com/Aspirata/Mcblend/issues",
