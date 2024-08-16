@@ -1,6 +1,5 @@
 from .Data import *
 from .MCB_API import *
-from .Assets import Assets
 from bpy.types import PropertyGroup
 
 class WorldProperties(PropertyGroup):
@@ -755,37 +754,50 @@ class UtilsProperties(PropertyGroup):
 
 
 class AssetTagItem(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    enabled: bpy.props.BoolProperty(default=False)
+    name: StringProperty()
+    enabled: BoolProperty(default=False)
 
 class AssetsProperties(PropertyGroup):
 
-    asset_index: bpy.props.IntProperty(
-        default=0
-    )
+    asset_items: bpy.props.CollectionProperty(type=PropertyGroup)
 
-    def get_tags():
-        unique_tags = set()
-    
-        for asset_data in Assets.values():
-            tags = asset_data.get("Tags", [])
-            unique_tags.update(tags)
-        
-        unique_tags = sorted(unique_tags)
-        return [('All', "All", "")] + [(tag, tag, "") for tag in unique_tags]
+    asset_index: IntProperty(default=0)
 
-    filters: bpy.props.BoolProperty(
+    filters: BoolProperty(
         name="Filters",
         description="",
         default=False
         )
 
-    sort_by_version: bpy.props.BoolProperty(
-        name="Sort By Version",
+    def get_tags(self):
+        unique_tags = set()
+
+        for root, dirs, files in os.walk(assets_directory):
+            for file in files:
+                if file.endswith(".json"):
+                    json_path = os.path.join(root, file)
+                    with open(json_path, 'r') as f:
+                        asset_data = json.load(f)
+                        tags = asset_data.get("Tags", [])
+                        unique_tags.update(tags)
+
+        unique_tags = sorted(unique_tags)
+        return [('All', "All", "")] + [(tag, tag, "") for tag in unique_tags]
+
+    tags: bpy.props.CollectionProperty(type=AssetTagItem)
+    
+    
+    tags_mode: EnumProperty(
+        items=[("and", "And", ""), ("or", "Or", "")],
+        description="",
+        name="tags_mode",
+        default='or',
+    )
+
+    filter_by_version: BoolProperty(
+        name="Filter By Blender Version",
         description="",
         default=True
         )
-
-    tags: bpy.props.CollectionProperty(type=AssetTagItem)
-
-    asset_items: bpy.props.CollectionProperty(type=PropertyGroup)
+    
+    

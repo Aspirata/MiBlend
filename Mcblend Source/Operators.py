@@ -393,6 +393,47 @@ class AssingVertexGroupOperator(Operator):
         VertexRiggingTool()
         return {'FINISHED'}
 
+class AddAsset(Operator):
+    bl_idname = "assets.add_asset"
+    bl_label = "Add Asset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    Type: bpy.props.EnumProperty(items=[('Scene Only', 'Scene Only', ''), ('Presistent', 'Presistent', '')])
+
+    def execute(self, context):
+
+        props = context.scene.asset_properties
+        zip_path = props.zip_file
+
+        if self.filepath.endswith('.zip'):
+
+            extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
+            if os.path.exists(extract_path):
+                for file in os.listdir(extract_path):
+                    os.remove(os.path.join(extract_path, file))
+            os.makedirs(extract_path, exist_ok=True)
+
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_path)
+            
+            info_file_path = os.path.join(extract_path, "asset_info.json")
+            
+            if os.path.exists(info_file_path):
+                with open(info_file_path, 'r') as f:
+                    asset_data = json.load(f)
+            else:
+                dprint("asset_info Doesn't Exists")
+            
+        else:
+            dprint("The File isn't a zip file")
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
     bl_label = "Import Asset"
@@ -403,15 +444,15 @@ class ImportAssetOperator(Operator):
         items = bpy.context.scene.assetsproperties.asset_items
 
         if current_index < 0 or current_index >= len(items):
-            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index", mode="Full")
+            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
             return {'CANCELLED'}
 
-        asset_name = items[current_index].name
-
-        for category, assets in Assets.items():
-            if asset_name in assets:
-                append_asset(asset_name, category)
-                break
+        asset_data = items[current_index]
+        
+        if os.path.exists(asset_data.get("File_path", "")):
+            append_asset(asset_data)
+        else:
+            dprint(asset_data.get("path", ""))
         return {'FINISHED'}
     
 class ManualAssetsUpdateOperator(Operator):

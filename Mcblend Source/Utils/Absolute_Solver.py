@@ -50,13 +50,23 @@ Absolute_Solver_Errors = {
         "Description": "Create feature uses alredy imported asset to your file, so if you see this message then your file doesn't have {Data} and you should probably use recreate feature instead",
         "Mode": "Full"
     },
+
+    "u008": {
+        "Error Name": "Bad Asset Addition",
+        "Description": "Cannot add the asset | {Data}. Report to the Asset Creator",
+    },
+
+    "009": {
+        "Error Name": "Bad Asset Import",
+        "Description": "Cannot Import {Data}",
+    },
 }
 
 # Calls AS
 # P.S Variables after "tech_things" made for calling AS with an error that isn't in the Absolute_Solver_Errors
 # An example of this special error - Assets.py | 35 line
 
-def Absolute_Solver(error_code="None", data="None", tech_things="None", error_name="None", description="None", mode="Smart"):
+def Absolute_Solver(error_code: str="None", data: str ="None", tech_things:str ="None", error_name: str="None", description: str="None", mode: str="Smart"):
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
     try:
         def GetASText(error_code, text):

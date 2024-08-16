@@ -1,7 +1,6 @@
 from .MCB_API import *
 from .Data import *
 from bpy.types import Panel
-from .Assets import Assets
 from .Resource_Packs import get_resource_packs
 
 class WorldAndMaterialsPanel(Panel):
@@ -748,6 +747,24 @@ class UtilsPanel(Panel):
         row.scale_y = Big_Button_Scale
         row.operator("utils.assingvertexgroup")
 
+def import_asset_text(index):
+    if index <= len(bpy.context.scene.assetsproperties.asset_items) and len(bpy.context.scene.assetsproperties.asset_items) > 0:
+        asset_type = bpy.context.scene.assetsproperties.asset_items[index].get("Type", "")
+
+        if asset_type == "Rig":
+            return "Append Rig"
+        
+        elif asset_type == "Script":
+            return "Run Script"
+        
+        elif asset_type == "Model":
+            return "Append Model"
+        
+        elif asset_type == "Shader Node":
+            return "Append Shader Node"
+
+    return "Import Asset"
+
 class AssetPanel(Panel):
     bl_label = "Assets"
     bl_idname = "assets.panel"
@@ -785,8 +802,8 @@ class AssetPanel(Panel):
 
             sbox = box.box()
 
-            primary_tags = ["Rig", "Script", "Model"]
-            secondary_tags = ["Vanilla", "Realistic"]
+            primary_tags = ["Rig", "Script", "Shader Node", "Model"]
+            secondary_tags = ["Vanilla", "Realistic", "Node"]
 
             row = sbox.row()
             row.label(text="Tags:")
@@ -816,62 +833,57 @@ class AssetPanel(Panel):
                     col_other.prop(tag, "enabled", text=tag.name)
 
             row = sbox.row()
-            row.prop(bpy.context.scene.assetsproperties, "sort_by_version", toggle=True)
+            row.label(text="Tags Mode:")
+            row.prop(bpy.context.scene.assetsproperties, "tags_mode", expand=True)
+            row = sbox.row()
+            row.prop(bpy.context.scene.assetsproperties, "filter_by_version", toggle=True)
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset")
+        row.operator("assets.import_asset", text=import_asset_text(bpy.context.scene.assetsproperties.asset_index))
 
 class Assets_List_UL_(bpy.types.UIList):
 
     def get_custom_icon(self, item):
-        if item.name in Assets:
-            asset_info = Assets[item.name]
-            tags = asset_info.get("Tags", [])
+        asset_type = item.get("Type", "")
 
-            if tags:
-                first_tag = tags[0]
-
-                if first_tag == "Rig":
-                    return "ARMATURE_DATA"
-                
-                elif first_tag == "Script":
-                    return "FILE_SCRIPT"
-                
-                elif first_tag == "Shader Nodes":
-                    return "NODE"
-                
-                elif first_tag == "Geo Nodes":
-                    return "GEOMETRY_NODES"
-                
-                elif first_tag == "Model":
-                    return "OBJECT_DATA"
-                    
+        if asset_type == "Rig":
+            return "ARMATURE_DATA"
+        elif asset_type == "Script":
+            return "FILE_SCRIPT"
+        elif asset_type == "Shader Node":
+            return "NODE"
+        elif asset_type == "Geo Nodes":
+            return "GEOMETRY_NODES"
+        elif asset_type == "Model":
+            return "OBJECT_DATA"
+        
         return "QUESTION"
 
-
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        custom_icon = self.get_custom_icon(item)
-        layout.label(text=item.name, icon=custom_icon)
+        row = layout.row()
+        row.label(text=item.get("Asset_name"), icon=self.get_custom_icon(item))
+        #row.label(text="", icon="INFO_LARGE") Maybe make an info button
     
     def filter_items(self, context, data, property):
         flt_flags = []
         flt_neworder = []
 
         selected_tags = [tag.name for tag in context.scene.assetsproperties.tags if tag.enabled]
+        tags_mode = context.scene.assetsproperties.tags_mode
 
         for index, item in enumerate(data.asset_items):
-            asset_name = item.name
+            item_tags = item.get('Tags', [])
+            matches_tags = False
 
-            if asset_name in Assets:
-                asset_data = Assets[asset_name]
-                asset_tags = asset_data.get("Tags", [])
-                asset_bl_version = asset_data.get("Blender_version", "x.x.x")
+            if tags_mode == "and":
+                matches_tags = all(tag in item_tags for tag in selected_tags) and len(selected_tags) > 0
+            else:
+                matches_tags = any(tag in item_tags for tag in selected_tags)
 
-                if "All" in selected_tags or any(tag in asset_tags for tag in selected_tags) and (blender_version(asset_bl_version) or not context.scene.assetsproperties.sort_by_version):
-                    flt_flags.append(self.bitflag_filter_item)
-                else:
-                    flt_flags.append(0)
+            if ("All" in selected_tags or matches_tags) and \
+           (blender_version(item.get('Blender_version', "x.x.x")) or not context.scene.assetsproperties.filter_by_version):
+                flt_flags.append(self.bitflag_filter_item)
             else:
                 flt_flags.append(0)
 

@@ -2,7 +2,7 @@ from .Data import *
 from .Utils.Absolute_Solver import Absolute_Solver
 import time
 
-def PBSDF_compability(Input):
+def PBSDF_compability(Input: str) -> str:
     if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
         return "Subsurface"
     
@@ -51,7 +51,7 @@ def EmissionMode(PBSDF, material):
         if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
             return 3
 
-def dprint(message):
+def dprint(message: str):
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
         print(message)
 
@@ -89,7 +89,7 @@ def Perf_Time(func):
             dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
     return wrapper
 
-def GetConnectedSocketFrom(output, tag, material=None):
+def GetConnectedSocketFrom(output, tag: str, material=None):
     try:
         to_sockets = []
         if material is not None:
@@ -117,7 +117,7 @@ def RemoveLinksFrom(sockets):
         for link in sockets.links:
             sockets.node.id_data.links.remove(link)
 
-def GetConnectedSocketTo(input, tag, material=None):
+def GetConnectedSocketTo(input, tag: str, material=None):
     try:
         if material is not None:
             for node in material.node_tree.nodes:
@@ -140,7 +140,7 @@ def GetConnectedSocketTo(input, tag, material=None):
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
-def blender_version(blender_version, debug=None):
+def blender_version(blender_version: str, debug=None) -> bool:
     
     try:
         version_parts = blender_version.lower().split(".")

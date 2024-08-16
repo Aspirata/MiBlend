@@ -1,73 +1,38 @@
+from genericpath import isfile
 from .Data import *
 from .MCB_API import *
 import sys
 from .Utils.Absolute_Solver import Absolute_Solver
 
-def get_asset_path(category, asset_name):
+def append_snode(asset_data):
+    Node_name = asset_data.get("Node_name", "")
+    Script_path = asset_data.get("Script_path", "")
 
-    try:
-        asset_data = Assets[category][asset_name]
-        asset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Assets", category, asset_data["File_name"])
-        return asset_path, asset_data
-    except KeyError:
-        print(f"Asset '{asset_name}' in category '{category}' not found.")
-        return None, None
+    if Node_name not in bpy.data.node_groups:
+        try:
+            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                data_to.node_groups = [Node_name]
+        except:
+            Absolute_Solver("009", Node_name, traceback.format_exc())
     
-def append_asset(asset_name, asset_category):
-    asset_path, asset_data = get_asset_path(asset_category, asset_name)
-    if asset_path is None:
-        return
-    
-    try:
-        if asset_category == "Rigs":
-            collection_name = asset_data["Collection_name"]
+    if os.isfile(Script_path):
+        run_python_script(Script_path)
+    else:
+        for selected_object in bpy.context.selected_objects:
+            slot = 0
+            if selected_object.material_slots:
+                for material in selected_object.data.materials:
+                    slot += 1
+                    if material is not None and material.use_nodes:
+                        Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                        Node.node_tree = bpy.data.node_groups[Node_name]
+                        #Node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
+                    else:
+                        Absolute_Solver("m002", slot)
+            else:
+                Absolute_Solver("m003", selected_object)
 
-            with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
-                data_to.collections = [collection_name]
-
-            for collection in data_to.collections:
-                bpy.context.collection.children.link(collection)
-
-        elif asset_category == "Scripts":
-            run_python_script(asset_path)
-        
-    except:
-        Absolute_Solver(tech_things=traceback.print_exc(), data=asset_name, error_name="Bad Asset Import", description="Can't Import {Data} Asset")
-
-def update_assets():
-
-    # Assets
-
-    items = bpy.context.scene.assetsproperties.asset_items
-    items.clear()
-
-    dprint(sorted(Assets.keys()))
-    for key in sorted(Assets.keys()):
-        dprint(key)
-        item = items.add()
-        item.name = key
-
-    # Tags
-
-    tags = bpy.context.scene.assetsproperties.tags
-    tags.clear()
-    unique_tags = set()
-
-    for asset_data in Assets.values():
-        asset_tags = asset_data.get("Tags", [])
-        unique_tags.update(asset_tags)
-
-    unique_tags.add("All")
-    unique_tags = sorted(unique_tags)
-
-    for tag in unique_tags:
-        item = tags.add()
-        item.name = tag
-        if tag == "All":
-            item.enabled = True
-    
 def run_python_script(file_path):
-
     def import_all_from_module(module_name, module_path=None):
         if module_path:
             if module_path not in sys.path:
@@ -87,79 +52,96 @@ def run_python_script(file_path):
     except:
         Absolute_Solver(tech_things=traceback.print_exc(), data=file_path, error_name="Bad Script Execution", description="Can't Execute Script from {Data}")
 
-Assets = {
-    "SRE V2.0": {
-        "Blender_version": "4.x.x",
-        "File_name": "Simple_edit_V2.0.blend",
-        "Collection_name": "SRE rig",
-        "Tags": ["Rig", "Vanilla"]
-    },
+def append_asset(asset_data):
+    asset_name = asset_data.get("Asset_name")
+    asset_path = asset_data.get("File_path", "")
+    asset_type = asset_data.get("Type", "")
 
-    "SRE V2.0b732": {
-        "Blender_version": "3.6.x",
-        "File_name": "Simple_edit_V2.0b732.blend",
-        "Collection_name": "SRE rig",
-        "Tags": ["Rig", "Vanilla"]
-    },
+    try:
+        if asset_type == "Rig":
+            with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
+                data_to.collections = [asset_data.get("Collection_name")]
 
-    "Creeper": {
-        "Blender_version": "4.x.x",
-        "File_name": "Creeper.blend",
-        "Collection_name": "Creeper",
-        "Tags": ["Rig", "Vanilla"]
-    },
+            for collection in data_to.collections:
+                if collection:
+                    bpy.context.collection.children.link(collection)
 
-    "Allay": {
-        "Blender_version": "4.x.x",
-        "File_name": "Allay.blend",
-        "Collection_name": "Simple Allay",
-        "Tags": ["Rig", "Vanilla"]
-    },
+        elif asset_type == "Script":
+            run_python_script(asset_path)
+        
+        elif asset_type == "Shader Node":
+            append_snode(asset_data)
+        
+    except:
+        Absolute_Solver(tech_things=traceback.format_exc(), data=asset_name, error_name="Bad Asset Import", description=f"Can't Import {asset_name} Asset")
 
-    "Axolotl": {
-        "Blender_version": "4.x.x",
-        "File_name": "Axolotl.blend",
-        "Collection_name": "Axolotl",
-        "Tags": ["Rig", "Vanilla"]
-    },
+def update_assets():
+    items = bpy.context.scene.assetsproperties.asset_items
+    items.clear()
 
-    "Warden": {
-        "Blender_version": "4.x.x",
-        "File_name": "Warden.blend",
-        "Collection_name": "Warden",
-        "Tags": ["Rig", "Vanilla"]
-    },
+    assets_list = []
+    for root, dirs, files in os.walk(assets_directory):
+        for file in files:
+            if file.endswith(".json"):
+                json_path = os.path.join(root, file)
+                with open(json_path, 'r') as f:
+                    asset_data = json.load(f)
+    
+                try:
+                    format_version = asset_data.get("Format_version")
 
-    "Sleep After Render": {
-        "File_name": "Sleep After Render.py",
-        "Tags": ["Script"]
-    },
+                    if format_version == "dev":
+                        continue 
 
-    "Convert DBSDF 2 PBSDF": {
-        "File_name": "Convert DBSDF 2 PBSDF.py",
-        "Tags": ["Script"]
-    },
+                    asset_name = asset_data.get("Asset_name")
+                    asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")))
+                    asset_tags = asset_data.get("Tags", [])
 
-    "Fix Shade Auto Smooth": {
-        "Blender_version": "< 4.1.0",
-        "File_name": "Fix Shade Auto Smooth.py",
-        "Tags": ["Script"]
-    },
+                    if format_version != "test":
+                        if not asset_name:
+                            dprint("Asset_name is not defined")
+                            continue
+                        if not asset_file_path:
+                            dprint("File_path is not defined")
+                            continue
+                        if not os.path.isfile(asset_file_path):
+                            dprint(f"Cannot find the asset file: {asset_file_path}")
+                            continue
+                        if not asset_tags:
+                            dprint("Tags are not defined")
+                            continue
 
-    "Enable Jittered Shadows": {
-        "Blender_version": ">= 4.2.0",
-        "File_name": "Jittered Shadows.py",
-        "Tags": ["Script"]
-    },
+                    asset_info = {}
+                    for key, value in asset_data.items():
+                        if key not in ["Format_version"]:
+                            asset_info[key] = value
 
-    "Enable Contact Shadows": {
-        "Blender_version": "< 4.2.0",
-        "File_name": "Contact Shadows.py",
-        "Tags": ["Script"]
-    },
+                    asset_info["Type"] = asset_tags[0]
 
-    "ACES Textures Fix": {
-        "File_name": "ACES Textures Fix.py",
-        "Tags": ["Script"]
-    },
-}
+                    assets_list.append(asset_info)
+                except:
+                    Absolute_Solver("u008", asset_data.get("Asset_name"), traceback.format_exc())
+    
+    for asset in sorted(assets_list, key=lambda x: x["Asset_name"]):
+        item = items.add()
+        for key, value in asset.items():
+            item[key] = value
+
+    # Tags
+    current_states = {tag.name: tag.enabled for tag in bpy.context.scene.assetsproperties.tags}
+
+    tags = bpy.context.scene.assetsproperties.tags
+    tags.clear()
+    unique_tags = set()
+
+    for asset in items:
+        asset_tags = asset.get("Tags", [])
+        unique_tags.update(asset_tags)
+
+    unique_tags.add("All")
+    unique_tags = sorted(unique_tags)
+
+    for tag in unique_tags:
+        item = tags.add()
+        item.name = tag
+        item.enabled = current_states.get(tag, tag == "All")
