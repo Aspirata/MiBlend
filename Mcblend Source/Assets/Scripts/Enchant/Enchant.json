@@ -1,8 +1,0 @@
-{
-    "Format_version": "dev",
-    "Asset_name": "Enchantment",
-    "File_path": "Shader Nodes\\Enchantment\\Enchantment.blend",
-    "Node_name": "Enchantment",
-    "Script_path": "Shader Nodes\\Enchantment\\Enchantment.py",
-    "Tags": ["Shader Node", "Node"]
-}

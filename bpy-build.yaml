@@ -1,5 +1,5 @@
-addon_folder: Mcblend Source
-build_name: Mcblend Source
+addon_folder: Mcblend_Source
+build_name: Mcblend_Source
 
 install_versions:
   - 3.6+

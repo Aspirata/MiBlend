@@ -1,0 +1,7 @@
+{
+    "Format_version": "a003",
+    "Blender_version": "< 4.1.0",
+    "Asset_name": "Fix Shade Auto Smooth",
+    "File_path": "Scripts\\Fix Shade Auto Smooth\\Fix Shade Auto Smooth.py",
+    "Tags": ["Script"]
+}

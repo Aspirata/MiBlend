@@ -1,0 +1,7 @@
+{
+    "Format_version": "a003",
+    "Blender_version": ">= 4.2.0",
+    "Asset_name": "Jittered Shadows",
+    "File_path": "Scripts\\Jittered Shadows\\Jittered Shadows.py",
+    "Tags": ["Script"]
+}
