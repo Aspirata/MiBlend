@@ -34,7 +34,7 @@ jobs:
     - name: Prepare Blender Addon
       run: |
         mkdir -p "output/Mcblend Experimental Auto Build/Mcblend Source"
-        cp -r "Mcblend Source"/* "output/Mcblend Experimental Auto Build/Mcblend Source/"
+        cp -r "Mcblend_Source"/* "output/Mcblend Experimental Auto Build/Mcblend_Source/"
 
     - name: Upload folder as artifact
       uses: actions/upload-artifact@v4
