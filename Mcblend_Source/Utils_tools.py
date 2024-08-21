@@ -1,6 +1,5 @@
 import bpy
 import os
-from .Data import *
 from .MCB_API import *
 
 def VertexRiggingTool():

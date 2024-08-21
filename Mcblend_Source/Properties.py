@@ -701,36 +701,6 @@ class UtilsProperties(PropertyGroup):
         description="Select Settings to Use",
     )
 
-    enchant_settings: BoolProperty(
-        name="Enchant Settings",
-        default=False,
-        description=""
-    )
-
-    divider: FloatProperty(
-        name="Divider",
-        description="",
-        default=70.0,
-        min=0.0,
-        max=100000.0
-    )
-
-    camera_strenght: FloatProperty(
-        name="Camera Strenght",
-        description="",
-        default=1.0,
-        min=0.0,
-        max=1000000.0
-    )
-
-    non_camera_strenght: FloatProperty(
-        name="Non-Camera Strenght",
-        description="",
-        default=1.0,
-        min=0.0,
-        max=1000000.0
-    )
-
     armature: bpy.props.PointerProperty(
         name="Armature",
         description="",

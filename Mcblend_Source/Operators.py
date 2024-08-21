@@ -376,15 +376,6 @@ class SetRenderSettingsOperator(Operator):
         SetRenderSettings(current_preset)
         return {'FINISHED'}
     
-class EnchantOperator(Operator):
-    bl_idname = "utils.enchant"
-    bl_label = "Enchant Object"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        Enchant()
-        return {'FINISHED'}
-    
 class AssingVertexGroupOperator(Operator):
     bl_idname = "utils.assingvertexgroup"
     bl_label = "Assing Vertex Group"
@@ -393,6 +384,52 @@ class AssingVertexGroupOperator(Operator):
     def execute(self, context):
         VertexRiggingTool()
         return {'FINISHED'}
+
+class SavePropertiesOperator(Operator):
+    bl_idname = "assets.save_properties"
+    bl_label = "Save Properties"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        current_index = bpy.context.scene.assetsproperties.asset_index
+        items = bpy.context.scene.assetsproperties.asset_items
+
+        if current_index < 0 or current_index >= len(items):
+            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
+            return {'CANCELLED'}
+        
+        current_asset = items[current_index]
+
+        properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
+
+        blend_file_path = current_asset.get("File_path", "")
+        json_file_path = os.path.join(assets_directory, os.path.splitext(blend_file_path)[0] + ".json")
+
+        if not os.path.isfile(json_file_path):
+            self.report({'ERROR'}, f"File not found: {json_file_path}")
+            return {'CANCELLED'}
+
+        try:
+            # Загружаем текущие данные из JSON
+            with open(json_file_path, 'r') as json_file:
+                asset_data = json.load(json_file)
+
+            # Обновляем только соответствующие переменные
+            for key, value in properties.items():
+                json_key = key + '_property'
+                if json_key in asset_data:
+                    asset_data[json_key] = value
+
+            # Сохраняем обновленный JSON обратно в файл
+            with open(json_file_path, 'w') as json_file:
+                json.dump(asset_data, json_file, indent=4)
+            
+            self.report({'INFO'}, f"Properties saved to {json_file_path}")
+            return {'FINISHED'}
+        
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to save properties: {str(e)}")
+            return {'CANCELLED'}
 
 class AddAsset(Operator):
     bl_idname = "assets.add_asset"
@@ -405,6 +442,7 @@ class AddAsset(Operator):
     def execute(self, context):
         zip_path = self.filepath
 
+        # Add folder support 19.08.24
         if zip_path.endswith('.zip'):
             extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
             if os.path.exists(extract_path):

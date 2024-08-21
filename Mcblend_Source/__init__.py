@@ -41,7 +41,7 @@ classes = [McblendPreferences, AbsoluteSolverPanel, RecreateEnvironment,        
     WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
-    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, EnchantOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator,
+    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator, SavePropertiesOperator,
     ManualAssetsUpdateOperator,
 ]
 

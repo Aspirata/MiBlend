@@ -714,25 +714,6 @@ class UtilsPanel(Panel):
 
         box = layout.box()
         row = box.row()
-        row.label(text="Materials", icon="MATERIAL")
-
-        row = box.row()
-        row.scale_x = 1.3
-        row.prop(bpy.context.scene.utilsproperties, "enchant_settings", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.utilsproperties.enchant_settings else "TRIA_RIGHT"), icon_only=True)
-        row.scale_y = Big_Button_Scale
-        row.operator("utils.enchant", text="Enchant Objects")
-
-        if bpy.context.scene.utilsproperties.enchant_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "divider")
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "camera_strenght")
-            row = sbox.row()
-            row.prop(bpy.context.scene.utilsproperties, "non_camera_strenght")
-
-        box = layout.box()
-        row = box.row()
         row.label(text="Rigging", icon="ARMATURE_DATA")
         row = box.row()
         row.prop(bpy.context.scene.utilsproperties, "armature")
@@ -773,40 +754,58 @@ class AssetPanel(Panel):
     bl_category = 'Mcblend'
 
     def draw(self, context):
-
         layout = self.layout
+        prefs = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+        assets_props = context.scene.assetsproperties
         
-        if Preferences.transparent_ui:
+        if prefs.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
             self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
 
-        box.template_list("Assets_List_UL_", "", context.scene.assetsproperties, "asset_items", bpy.context.scene.assetsproperties, "asset_index")
+        box.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
         row = box.row()
         row.operator("assets.add_asset")
-
-        row = box.row()
         row.operator("assets.update_assets")
 
-        if Preferences.dev_tools and Preferences.debug_tools:
+        if prefs.dev_tools and prefs.debug_tools:
             row = box.row()
             remove_attr = row.operator("special.remove_attribute", text="Remove Assets List")
             remove_attr.attribute = "assetsproperties.asset_items"
 
+        current_index = assets_props.asset_index
+        items = assets_props.asset_items
+
+        if current_index >= 0 and current_index < len(items):
+            current_asset = items[current_index]
+
+            if current_asset.get("has_properties", False):
+                properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key.lower()}
+
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text="Properties:")
+                for key, value in properties.items():
+                    row = sbox.row()
+                    if isinstance(value, (bool, int, float, str)):
+                        row.prop(current_asset, f'["{key}_property"]', text=key)
+                    else:
+                        row.label(text=f"{key}: {value}")
+                
+                row = sbox.row()
+                row.operator("assets.save_properties")
+        
         # Filters
-
         row = box.row()
-        row.prop(bpy.context.scene.assetsproperties, "filters", toggle=True, icon=("TRIA_DOWN" if bpy.context.scene.assetsproperties.filters else "TRIA_RIGHT"))
+        row.prop(assets_props, "filters", toggle=True, icon=("TRIA_DOWN" if assets_props.filters else "TRIA_RIGHT"))
 
-        if bpy.context.scene.assetsproperties.filters:
-
+        if assets_props.filters:
             sbox = box.box()
-
-            primary_tags = ["Rig", "Script", "Shader Node", "Model"]
-            secondary_tags = ["Vanilla", "Realistic", "Node"]
+            primary_tags = {"Rig", "Script", "Shader Node", "Model"}
+            secondary_tags = {"Vanilla", "Realistic", "Node"}
 
             row = sbox.row()
             row.label(text="Tags:")
@@ -814,80 +813,65 @@ class AssetPanel(Panel):
 
             split = row.split(factor=0.33)
 
-            # First column: Primary
             col_primary = split.column()
             col_primary.label(text="Primary")
-            for tag in context.scene.assetsproperties.tags:
+            for tag in assets_props.tags:
                 if tag.name in primary_tags:
                     col_primary.prop(tag, "enabled", text=tag.name)
 
-            # Second column: Secondary
             col_secondary = split.column()
             col_secondary.label(text="Secondary")
-            for tag in context.scene.assetsproperties.tags:
+            for tag in assets_props.tags:
                 if tag.name in secondary_tags:
                     col_secondary.prop(tag, "enabled", text=tag.name)
 
-            # Third column: Other
             col_other = split.column()
             col_other.label(text="Other")
-            for tag in context.scene.assetsproperties.tags:
+            for tag in assets_props.tags:
                 if tag.name not in primary_tags and tag.name not in secondary_tags:
                     col_other.prop(tag, "enabled", text=tag.name)
 
             row = sbox.row()
             row.label(text="Tags Mode:")
-            row.prop(bpy.context.scene.assetsproperties, "tags_mode", expand=True)
+            row.prop(assets_props, "tags_mode", expand=True)
             row = sbox.row()
-            row.prop(bpy.context.scene.assetsproperties, "filter_by_version", toggle=True)
+            row.prop(assets_props, "filter_by_version", toggle=True)
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset", text=import_asset_text(bpy.context.scene.assetsproperties.asset_index))
+        row.operator("assets.import_asset", text=import_asset_text(current_index))
+
 
 class Assets_List_UL_(bpy.types.UIList):
 
     def get_custom_icon(self, item):
         asset_type = item.get("Type", "")
-
-        if asset_type == "Rig":
-            return "ARMATURE_DATA"
-        elif asset_type == "Script":
-            return "FILE_SCRIPT"
-        elif asset_type == "Shader Node":
-            return "NODE"
-        elif asset_type == "Geo Nodes":
-            return "GEOMETRY_NODES"
-        elif asset_type == "Model":
-            return "OBJECT_DATA"
-        
-        return "QUESTION"
+        return {
+            "Rig": "ARMATURE_DATA",
+            "Script": "FILE_SCRIPT",
+            "Shader Node": "NODE",
+            "Geo Nodes": "GEOMETRY_NODES",
+            "Model": "OBJECT_DATA",
+        }.get(asset_type, "QUESTION")
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        row = layout.row()
-        row.label(text=item.get("Asset_name"), icon=self.get_custom_icon(item))
-        #row.label(text="", icon="INFO_LARGE") Maybe make an info button
+        layout.row().label(text=item.get("Asset_name", "Unknown"), icon=self.get_custom_icon(item))
     
     def filter_items(self, context, data, property):
         flt_flags = []
-        flt_neworder = []
-
-        selected_tags = [tag.name for tag in context.scene.assetsproperties.tags if tag.enabled]
+        selected_tags = {tag.name for tag in context.scene.assetsproperties.tags if tag.enabled}
         tags_mode = context.scene.assetsproperties.tags_mode
+        filter_by_version = context.scene.assetsproperties.filter_by_version
 
         for index, item in enumerate(data.asset_items):
-            item_tags = item.get('Tags', [])
-            matches_tags = False
-
-            if tags_mode == "and":
-                matches_tags = all(tag in item_tags for tag in selected_tags) and len(selected_tags) > 0
-            else:
-                matches_tags = any(tag in item_tags for tag in selected_tags)
+            item_tags = set(item.get('Tags', []))
+            matches_tags = (tags_mode == "and" and selected_tags.issubset(item_tags)) or \
+                           (tags_mode == "or" and selected_tags.intersection(item_tags))
 
             if ("All" in selected_tags or matches_tags) and \
-           (blender_version(item.get('Blender_version', "x.x.x")) or not context.scene.assetsproperties.filter_by_version):
+               (blender_version(item.get('Blender_version', "x.x.x")) or not filter_by_version):
                 flt_flags.append(self.bitflag_filter_item)
             else:
                 flt_flags.append(0)
 
-        return flt_flags, flt_neworder
+        return flt_flags, []

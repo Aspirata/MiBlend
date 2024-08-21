@@ -72,19 +72,15 @@ def Absolute_Solver(error_code: str="None", data: str ="None", tech_things:str =
         def GetASText(error_code, text):
             try:
                 return Absolute_Solver_Errors[error_code][text]
-            except:
+            except KeyError:
                 return None
         
         if error_code is not None:
-            error_name = GetASText(error_code, "Error Name")
+            error_name = Absolute_Solver_Errors[error_code].get("Error Name")
         
-        if description is None:
-            description = GetASText(error_code, 'Description')
+            description = Absolute_Solver_Errors[error_code].get('Description', None)
 
-        try:
-            mode = Absolute_Solver_Errors[error_code]["Mode"]
-        except:
-            mode = "Smart"
+            mode = Absolute_Solver_Errors[error_code].get("Mode", "Smart")
 
         if (mode == Preferences.as_mode or mode == "Smart") and Preferences.as_mode != "None":
             bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = error_name, Description = description.format(Data=data), Tech_Things = str(tech_things))

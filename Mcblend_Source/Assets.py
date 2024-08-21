@@ -1,45 +1,61 @@
 from .Data import *
 from .MCB_API import *
-import sys
 from .Utils.Absolute_Solver import Absolute_Solver
 
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
-    Script_path = asset_data.get("Script_path", "")
+    Append_mode = asset_data.get("Append_mode", "Active Only")
+    Blend_file = os.path.join(assets_directory, asset_data.get("File_path", ""))
+    Script_path = os.path.join(assets_directory, asset_data.get("Script_path", ""))
 
-    if Node_name not in bpy.data.node_groups:
-        try:
-            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                data_to.node_groups = [Node_name]
-        except:
-            Absolute_Solver("009", Node_name, traceback.format_exc())
-    
     if os.path.isfile(Script_path):
-        run_python_script(Script_path)
-    else:
+        run_python_script(asset_data.get("Asset_name"), Script_path)
+        dprint(f"{Node_name} Script Found")
+
+    elif Append_mode == "Every Selected":
+        dprint(f"{Node_name} Script Not Found, using default algorithm")
         for selected_object in bpy.context.selected_objects:
             slot = 0
             if selected_object.material_slots:
                 for material in selected_object.data.materials:
                     slot += 1
                     if material is not None and material.use_nodes:
+                        if Node_name not in bpy.data.node_groups:
+                            try:
+                                with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                                    data_to.node_groups = [Node_name]
+                            except:
+                                Absolute_Solver("009", Node_name, traceback.format_exc())
+
                         Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                         Node.node_tree = bpy.data.node_groups[Node_name]
-                        #Node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
                     else:
                         Absolute_Solver("m002", slot)
             else:
                 Absolute_Solver("m003", selected_object)
 
-def run_python_script(asset_data):
-    asset_name = asset_data.get("Asset_name")
-    asset_path = os.path.join(assets_directory, asset_data.get("File_path", ""))
+    elif Append_mode == "Active Only":
+        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        active_obj = bpy.context.active_object
+        if active_obj and active_obj.active_material:
+            current_material = active_obj.active_material
+            if current_material.use_nodes:
+                if Node_name not in bpy.data.node_groups:
+                    try:
+                        with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                            data_to.node_groups = [Node_name]
+                    except:
+                        Absolute_Solver("009", Node_name, traceback.format_exc())
 
+                Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
+                Node.node_tree = bpy.data.node_groups[Node_name]
+
+def run_python_script(name, path):
     try:
-        with open(asset_path, 'r') as file:
+        with open(path, 'r') as file:
             exec(file.read())
     except:
-        Absolute_Solver("009", asset_name, traceback.print_exc())
+        Absolute_Solver("009", name, traceback.print_exc())
 
 def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name")
@@ -56,7 +72,7 @@ def append_asset(asset_data):
                     bpy.context.collection.children.link(collection)
 
         elif asset_type == "Script":
-            run_python_script(asset_data)
+            run_python_script(asset_name, asset_path)
         
         elif asset_type == "Shader Node":
             append_snode(asset_data)
@@ -106,6 +122,9 @@ def update_assets():
                             asset_info[key] = value
 
                     asset_info["Type"] = asset_tags[0]
+
+                    if any('property' in key.lower() for key in asset_info):
+                        asset_info["has_properties"] = True
 
                     assets_list.append(asset_info)
                 except:

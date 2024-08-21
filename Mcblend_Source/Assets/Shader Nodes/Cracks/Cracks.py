@@ -1,16 +1,15 @@
+import sys
+
+addon_dir = os.path.dirname(os.path.abspath(__file__))
+if addon_dir not in sys.path:
+    sys.path.append(addon_dir)
+
+from MCB_API import GetConnectedSocketTo
+
 active_obj = bpy.context.active_object
 if active_obj and active_obj.active_material:
     current_material = active_obj.active_material
     if current_material.use_nodes:
-
-        if "Cracks Overlay" not in bpy.data.node_groups:
-            try:
-                with bpy.data.libraries.load(os.path.dirname(os.path.abspath(__file__)), link=False) as (data_from, data_to):
-                    data_to.node_groups = ["Cracks Overlay"]
-            except:
-                #Absolute_Solver("004", "Materials", traceback.format_exc())
-                dprint("Placeholder | Cracks.py")
-
         PBSDF = None
         co_node = None
 
