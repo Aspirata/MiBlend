@@ -1,8 +1,24 @@
 import bpy
+import os
+import json
 
-mode = 1
-overblur = 20.0
-world_jitter = True
+addon_dir = os.path.dirname(os.path.abspath(__file__))
+
+current_index = bpy.context.scene.assetsproperties.asset_index
+items = bpy.context.scene.assetsproperties.asset_items
+
+current_asset = items[current_index]
+
+json_file_path = os.path.join(addon_dir, "Assets", os.path.splitext(current_asset.get("File_path", ""))[0] + ".json")
+
+with open(json_file_path, 'r') as json_file:
+    asset_data = json.load(json_file)
+
+properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key.lower()}
+
+mode = properties.get("Mode", asset_data["Mode_property"])
+overblur = properties.get("Overblur", asset_data["Overblur_property"])
+world_jitter = properties.get("World Jitter", asset_data["World Jitter_property"])
 
 if mode == 0:
     for obj in bpy.context.selected_objects:

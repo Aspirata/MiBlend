@@ -1,21 +1,25 @@
 import bpy
+import os
+import json
 
-UAS_API = {
+addon_dir = os.path.dirname(os.path.abspath(__file__))
 
-    "Properties": {
+current_index = bpy.context.scene.assetsproperties.asset_index
+items = bpy.context.scene.assetsproperties.asset_items
 
-        "distance": {
-            "Type": "FloatProperty",
-            "Name": "Distance",
-            "Default": 0.2
-        }
-    }
-}
+current_asset = items[current_index]
 
-mode = 1
-distance = 0.2
-bias = 0.03
-thickness = 0.01
+json_file_path = current_asset.get("File_path", "") + ".json"
+
+with open(json_file_path, 'r') as json_file:
+    asset_data = json.load(json_file)
+
+properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key.lower()}
+
+mode = properties.get("Mode", asset_data["Mode_property"])
+distance = properties.get("Distance", asset_data["Distance_property"])
+bias = properties.get("Bias", asset_data["Bias_property"])
+thickness = properties.get("Thickness", asset_data["Thickness_property"])
 
 if mode == 0:
     for obj in bpy.context.selected_objects:

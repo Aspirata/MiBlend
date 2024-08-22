@@ -1,7 +1,10 @@
 {
-    "Format_version": "a003",
+    "Format_version": "a007",
     "Blender_version": ">= 4.2.0",
     "Asset_name": "Jittered Shadows",
-    "File_path": "Scripts\\Jittered Shadows\\Jittered Shadows.py",
+    "File_path": "Scripts\\Jittered Shadows\\Jittered Shadows",
+    "Mode_property": 1,
+    "Overblur_property": 20.0,
+    "World Jitter_property": true,
     "Tags": ["Script"]
 }

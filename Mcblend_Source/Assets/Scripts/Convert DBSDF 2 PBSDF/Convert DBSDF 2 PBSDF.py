@@ -1,23 +1,10 @@
 import bpy
-def GetConnectedSocketTo(input, tag, material=None):
-    if material is not None:
-        for node in material.node_tree.nodes:
-            if node.type == tag:
-                input_socket = node.inputs[input]
-                for link in input_socket.links:
-                    from_node = link.from_node
-                    for output in from_node.outputs:
-                        for link in output.links:
-                            if link.to_socket.name == input_socket.name:
-                                return link.from_socket
-    else:
-        input_socket = tag.inputs[input]
-        for link in input_socket.links:
-            from_node = link.from_node
-            for output in from_node.outputs:
-                for link in output.links:
-                    if link.to_socket.name == input_socket.name:
-                        return link.from_socket
+
+addon_dir = os.path.dirname(os.path.abspath(__file__))
+if addon_dir not in sys.path:
+    sys.path.append(addon_dir)
+
+from MCB_API import GetConnectedSocketTo
 
 for selected_object in bpy.context.selected_objects:
     slot = 0
@@ -53,9 +40,9 @@ for selected_object in bpy.context.selected_objects:
                         PBSDF.location = (Output.location.x - 280, Output.location.y)
                         PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
                     
-                    material.node_tree.links.new(GetConnectedSocketTo(0, "BSDF_DIFFUSE", material), PBSDF.inputs["Base Color"])
+                    material.node_tree.links.new(GetConnectedSocketTo(0, DBSDF), PBSDF.inputs["Base Color"])
 
-                    material.node_tree.links.new(GetConnectedSocketTo(0, "MIX_SHADER", material), PBSDF.inputs["Alpha"])
+                    material.node_tree.links.new(GetConnectedSocketTo(0, MixShader), PBSDF.inputs["Alpha"])
                     
                     if MixShader != None:
                         material.node_tree.nodes.remove(MixShader)

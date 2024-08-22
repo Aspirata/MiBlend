@@ -1,8 +1,8 @@
 {
-    "Format_version": "a003",
+    "Format_version": "a007",
     "Asset_name": "Allay",
     "Blender_version": "4.x.x",
-    "File_path": "Rigs\\Allay\\Allay.blend",
+    "File_path": "Rigs\\Allay\\Allay",
     "Collection_name": "Simple Allay",
     "Tags": ["Rig", "Vanilla"]
 }

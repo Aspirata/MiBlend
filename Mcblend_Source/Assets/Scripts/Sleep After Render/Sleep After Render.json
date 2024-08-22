@@ -1,6 +1,6 @@
 {
-    "Format_version": "a003",
+    "Format_version": "a007",
     "Asset_name": "Sleep After Render",
-    "File_path": "Scripts\\Sleep After Render\\Sleep After Render.py",
+    "File_path": "Scripts\\Sleep After Render\\Sleep After Render",
     "Tags": ["Script"]
 }

@@ -1,5 +1,4 @@
 import sys
-import json
 
 addon_dir = os.path.dirname(os.path.abspath(__file__))
 if addon_dir not in sys.path:
@@ -12,7 +11,7 @@ items = bpy.context.scene.assetsproperties.asset_items
 
 current_asset = items[current_index]
 
-json_file_path = os.path.join(addon_dir, "Assets", current_asset.get("File_path", ""))
+json_file_path = current_asset.get("File_path", "") + ".json"
 
 with open(json_file_path, 'r') as json_file:
     asset_data = json.load(json_file)

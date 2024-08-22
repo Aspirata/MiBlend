@@ -5,8 +5,56 @@ from .Utils.Absolute_Solver import Absolute_Solver
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
     Append_mode = asset_data.get("Append_mode", "Active Only")
-    Blend_file = os.path.join(assets_directory, asset_data.get("File_path", ""))
-    Script_path = os.path.join(assets_directory, asset_data.get("Script_path", ""))
+    Blend_file = asset_data.get("File_path", "") + ".blend"
+    Script_path = asset_data.get("File_path", "") + ".py"
+
+    if os.path.isfile(Script_path):
+        run_python_script(asset_data.get("Asset_name"), Script_path)
+        dprint(f"{Node_name} Script Found")
+
+    elif Append_mode == "Every Selected":
+        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        for selected_object in bpy.context.selected_objects:
+            slot = 0
+            if selected_object.material_slots:
+                for material in selected_object.data.materials:
+                    slot += 1
+                    if material is not None and material.use_nodes:
+                        if Node_name not in bpy.data.node_groups:
+                            try:
+                                with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                                    data_to.node_groups = [Node_name]
+                            except:
+                                Absolute_Solver("009", Node_name, traceback.format_exc())
+
+                        Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                        Node.node_tree = bpy.data.node_groups[Node_name]
+                    else:
+                        Absolute_Solver("m002", slot)
+            else:
+                Absolute_Solver("m003", selected_object)
+
+    elif Append_mode == "Active Only":
+        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        active_obj = bpy.context.active_object
+        if active_obj and active_obj.active_material:
+            current_material = active_obj.active_material
+            if current_material.use_nodes:
+                if Node_name not in bpy.data.node_groups:
+                    try:
+                        with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                            data_to.node_groups = [Node_name]
+                    except:
+                        Absolute_Solver("009", Node_name, traceback.format_exc())
+
+                Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
+                Node.node_tree = bpy.data.node_groups[Node_name]
+
+def append_gnode(asset_data):
+    Node_name = asset_data.get("Node_name", "")
+    Append_mode = asset_data.get("Append_mode", "Active Only")
+    Blend_file = asset_data.get("File_path", "") + ".blend"
+    Script_path = asset_data.get("File_path", "") + ".py"
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -59,12 +107,12 @@ def run_python_script(name, path):
 
 def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name")
-    asset_path = os.path.join(assets_directory, asset_data.get("File_path", ""))
+    asset_path = asset_data.get("File_path", "")
     asset_type = asset_data.get("Type", "")
 
     try:
         if asset_type == "Rig" or asset_type == "Model":
-            with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
+            with bpy.data.libraries.load(asset_path + ".blend", link=False) as (data_from, data_to):
                 data_to.collections = [asset_data.get("Collection_name")]
 
             for collection in data_to.collections:
@@ -72,7 +120,7 @@ def append_asset(asset_data):
                     bpy.context.collection.children.link(collection)
 
         elif asset_type == "Script":
-            run_python_script(asset_name, asset_path)
+            run_python_script(asset_name, asset_path + ".py")
         
         elif asset_type == "Shader Node":
             append_snode(asset_data)
@@ -99,8 +147,12 @@ def update_assets():
                         continue 
 
                     asset_name = asset_data.get("Asset_name")
-                    asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")))
                     asset_tags = asset_data.get("Tags", [])
+
+                    if asset_tags[0] != "Script":
+                        asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".blend")
+                    else:
+                        asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".py")
 
                     if format_version != "test":
                         if not asset_name:
@@ -122,6 +174,7 @@ def update_assets():
                             asset_info[key] = value
 
                     asset_info["Type"] = asset_tags[0]
+                    asset_info["File_path"] = os.path.join(root, os.path.basename(asset_data.get("File_path", "")))
 
                     if any('property' in key.lower() for key in asset_info):
                         asset_info["has_properties"] = True

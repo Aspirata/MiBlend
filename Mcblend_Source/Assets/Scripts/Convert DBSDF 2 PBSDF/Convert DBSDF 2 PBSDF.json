@@ -1,6 +1,6 @@
 {
-    "Format_version": "a003",
+    "Format_version": "a007",
     "Asset_name": "Convert DBSDF 2 PBSDF",
-    "File_path": "Scripts\\Convert DBSDF 2 PBSDF\\Convert DBSDF 2 PBSDF.py",
+    "File_path": "Scripts\\Convert DBSDF 2 PBSDF\\Convert DBSDF 2 PBSDF",
     "Tags": ["Script"]
 }

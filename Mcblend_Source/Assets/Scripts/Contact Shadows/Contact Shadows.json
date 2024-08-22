@@ -1,7 +1,11 @@
 {
-    "Format_version": "a003",
+    "Format_version": "a007",
     "Blender_version": "< 4.2.0",
     "Asset_name": "Contact Shadows",
-    "File_path": "Scripts\\Contact Shadows\\Contact Shadows.py",
+    "File_path": "Scripts\\Contact Shadows\\Contact Shadows",
+    "Mode_property": 1,
+    "Distance_property": 0.2,
+    "Bias_property": 0.03,
+    "Thickness_property": 0.01,
     "Tags": ["Script"]
 }

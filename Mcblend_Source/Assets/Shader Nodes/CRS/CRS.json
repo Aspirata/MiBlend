@@ -1,7 +1,7 @@
 {
-    "Format_version": "a004",
+    "Format_version": "a007",
     "Asset_name": "Camera Ray Separator",
-    "File_path": "Shader Nodes\\CRS\\CRS.blend",
+    "File_path": "Shader Nodes\\CRS\\CRS",
     "Node_name": "Camera Ray Separator",
     "Append_mode": "Active Only",
     "Tags": ["Shader Node", "Node"]

@@ -437,38 +437,49 @@ class AddAsset(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="DIR_PATH")
-    asset_type: bpy.props.EnumProperty(items=[('Scene Only', 'Scene Only', ''), ('Presistent', 'Presistent', '')], name="Type")
 
     def execute(self, context):
-        zip_path = self.filepath
+        path = self.filepath
+        asset_type = 'Presistent'
 
-        # Add folder support 19.08.24
-        if zip_path.endswith('.zip'):
+        if os.path.isdir(path):
+            asset_type = 'Scene Only'
+            extract_path = path
+            dprint(f"Temporary asset mode enabled. Using folder: {extract_path}")
+        else:
             extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
+
             if os.path.exists(extract_path):
                 shutil.rmtree(extract_path)
             os.makedirs(extract_path, exist_ok=True)
 
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_path)
+            if path.endswith('.zip'):
+                with zipfile.ZipFile(path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_path)
+                dprint(f"ZIP file extracted to {extract_path}")
+            else:
+                dprint("The provided path is neither a directory nor a ZIP file.")
+                return {'CANCELLED'}
 
-            json_file_path = None
-            for root, dirs, files in os.walk(extract_path):
-                for file in files:
-                    if file.endswith('.json'):
-                        json_file_path = os.path.join(root, file)
-                        break
-                if json_file_path:
+        json_file_path = None
+        for root, dirs, files in os.walk(extract_path):
+            for file in files:
+                if file.endswith('.json'):
+                    json_file_path = os.path.join(root, file)
                     break
-
             if json_file_path:
-                with open(json_file_path, 'r') as f:
-                    asset_data = json.load(f)
+                break
 
-                file_path_in_json = os.path.dirname(asset_data.get("File_path"))
-                if file_path_in_json:
+        if json_file_path:
+            with open(json_file_path, 'r') as f:
+                asset_data = json.load(f)
+
+            file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
+            if file_path_in_json:
+                if asset_type == 'Scene Only':
+                    dprint(f"Using temporary asset in {extract_path}")
+                else:
                     destination_path = os.path.join(assets_directory, file_path_in_json)
-
                     os.makedirs(destination_path, exist_ok=True)
 
                     for item in os.listdir(extract_path):
@@ -480,13 +491,11 @@ class AddAsset(Operator):
                         else:
                             shutil.copy2(src_path, dst_path)
 
-                    dprint(f"Asset files have been successfully copied to {destination_path}")
-                else:
-                    dprint("File_path not specified in the JSON file")
+                    dprint(f"Persistent asset files successfully copied to {destination_path}")
             else:
-                dprint("No .json file found in the extracted content")
+                dprint("File_path not specified in the JSON file")
         else:
-            dprint("The file isn't a zip file")
+            dprint("No .json file found in the extracted content")
 
         update_assets()
         
@@ -510,11 +519,12 @@ class ImportAssetOperator(Operator):
             return {'CANCELLED'}
 
         asset_data = items[current_index]
+        File_path = (asset_data.get("File_path", "") + ".blend") if asset_data.get("Type", "") != "Script" else (asset_data.get("File_path", "") + ".blend")
         
-        if os.path.isfile(os.path.join(assets_directory, asset_data.get("File_path", ""))):
+        if os.path.isfile(File_path):
             append_asset(asset_data)
         else:
-            dprint(f"{os.path.join(assets_directory, asset_data.get('File_path', ''))} is invalid")
+            dprint(f"{File_path} not a file")
         return {'FINISHED'}
     
 class ManualAssetsUpdateOperator(Operator):
