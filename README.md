@@ -1,15 +1,15 @@
-# Mcblend
+# MiBlend
 A useful tool for creating minecraft content in blender
 
-**Thanks to woodplank**, who made a video about Mcblend, he used v0.4.0 M2, so this video is a bit outdated
+**Thanks to woodplank**, who made a video about MiBlend, he used v0.4.0 M2, so this video is a bit outdated
 
 https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 
-## Mcblend is in beta state, so expect bugs and changes during development
+## MiBlend is in beta state, so expect bugs and changes during development
 
-To Install this brach as addon you need to pack Mcblend Source folder to .zip file and install it as addon **OR** you can download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in Mcblend Folder (**Default Resource Packs won't be built !**) **OR** you can go to https://github.com/Aspirata/Mcblend/actions/workflows/Addon%20Build.yaml and download artifact from the lastest auto build (**YOU NEED A GITHUB ACCOUNT TO DOWNLOAD ARTIFACTS !**)
+To Install this brach as addon you need to pack Mcblend Source folder to .zip file and install it as addon **OR** you can download bab (https://github.com/Moo-Ack-Productions/bpy-build) and run bab in cmd in MiBlend Folder (**Default Resource Packs won't be built !**) **OR** you can go to https://github.com/Aspirata/MiBlend/actions/workflows/Addon%20Build.yaml and download artifact from the lastest auto build (**YOU NEED A GITHUB ACCOUNT TO DOWNLOAD ARTIFACTS !**)
 
-## Plan for v0.5.0 - https://github.com/users/Aspirata/projects/2
+## Plan for v0.6.0 - https://github.com/users/Aspirata/projects/3
 
 ### If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
 
