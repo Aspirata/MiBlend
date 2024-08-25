@@ -58,7 +58,7 @@ def replace_materials():
             if selected_object.material_slots:
                 for i, material in enumerate(selected_object.data.materials):
                     if material is not None:
-                        for material_part in material.name.lower().replace("-", ".").split("."):
+                        for material_part in format_material_name(material.name):
                             if upgraded_material := original_materials_list.get(material_part, None):
                                 if upgraded_material not in bpy.data.materials:
                                     try:
@@ -204,10 +204,10 @@ def fix_world():
                                 material.use_backface_culling = False
                         
                         if WProperties.lazy_biome_fix:
-                            material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
+                            texture_parts = format_texture_name(image_texture_node.image.name.replace(".png", ""))
 
                             # Lazy Biome Color Fix Exclusions
-                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) and all(part not in material_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or ("redstone" and "dust" in material_parts):
+                            if any(part in texture_parts for part in ("grass", "water", "leaves", "pink_petals_stem", "lily", "vine", "fern")) and all(part not in texture_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or ("redstone" and "dust" in texture_parts):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -225,10 +225,10 @@ def fix_world():
                                         
                                 material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
-                                if "water" in material_parts:
+                                if "water" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 2
 
-                                if "redstone" in material_parts:
+                                if "redstone" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 3
                 else:
                     Absolute_Solver("m002", slot)
@@ -676,7 +676,7 @@ def setproceduralpbr():
 
                             # Settings Set
                             if MaterialIn(Emissive_Materials.keys(), material, "=="):
-                                for material_part in material.name.lower().replace("-", ".").split("."):
+                                for material_part in format_material_name(material.name):
                                     for material_name, material_properties in Emissive_Materials.items():
                                         if material_name == material_part:
                                             for property_name, property_value in material_properties.items():

@@ -606,7 +606,6 @@ def apply_resources():
                             normal_map_node = node
 
                     if image_texture is not None:
-                        
                         try:
                             relevant_node = image_texture_node or ITexture_Animator
                             if abs(relevant_node.location.x - PBSDF.location.x) < 500:
