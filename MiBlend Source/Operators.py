@@ -60,7 +60,7 @@ class RecreateEnvironment(Operator):
         if world is not None:
             for node in world.node_tree.nodes:
                 if node.type == 'GROUP':
-                    if "Mcblend Sky" in node.node_tree.name:
+                    if "MiBlend Sky" in node.node_tree.name:
                         row.prop(self, "reset_settings")
                         row = box.row()
 

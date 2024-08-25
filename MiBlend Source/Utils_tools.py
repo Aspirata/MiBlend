@@ -1,5 +1,3 @@
-import bpy
-import os
 from .Data import *
 from .MIB_API import *
 

@@ -249,10 +249,10 @@ def create_env(self=None):
     clouds_exists = False
     sky_exists = False
 
-    if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
+    if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
         clouds_exists = True
 
-    if world is not None and "Mcblend Sky" in bpy.data.node_groups:
+    if world is not None and "MiBlend Sky" in bpy.data.node_groups:
         if world_material_name in bpy.data.worlds:
             sky_exists = True
     
@@ -262,11 +262,11 @@ def create_env(self=None):
         if self is not None:
             if self.reset_settings:
                 world_material = bpy.context.scene.world.node_tree
-                group = bpy.data.node_groups["Mcblend Sky"]
+                group = bpy.data.node_groups["MiBlend Sky"]
 
                 for node in world_material.nodes:
                     if node.type == 'GROUP':
-                        if "Mcblend Sky" in node.node_tree.name:
+                        if "MiBlend Sky" in node.node_tree.name:
                             if blender_version("4.x.x"):
                                 for socket in node.inputs:
                                     try:
@@ -290,7 +290,7 @@ def create_env(self=None):
                     bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
                 
                 for group in bpy.data.node_groups:
-                    if "Mcblend" in group.name:
+                    if "MiBlend" in group.name:
                         bpy.data.node_groups.remove(group)
                 try:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -306,7 +306,7 @@ def create_env(self=None):
             # Recreate Clouds
             if self.create_clouds == 'Recreate Clouds':
                 for obj in scene.objects:
-                    if obj.get("Mcblend ID") == "Clouds":
+                    if obj.get("MiBlend ID") == "Clouds":
                         bpy.data.objects.remove(obj, do_unlink=True)
 
                 if clouds_node_tree_name in bpy.data.node_groups:
@@ -327,7 +327,7 @@ def create_env(self=None):
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
-                bpy.context.object["Mcblend ID"] = "Clouds"
+                bpy.context.object["MiBlend ID"] = "Clouds"
             
             clouds_exists = False
             
@@ -341,7 +341,7 @@ def create_env(self=None):
                 else:
                     Absolute_Solver("007", "Clouds Material")
 
-                if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
+                if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
                     clouds_exists =True
 
                 if clouds_node_tree_name in bpy.data.node_groups:
@@ -354,7 +354,7 @@ def create_env(self=None):
                 else:
                     Absolute_Solver("007", clouds_node_tree_name)
 
-                    bpy.context.object["Mcblend ID"] = "Clouds"
+                    bpy.context.object["MiBlend ID"] = "Clouds"
         else:
             bpy.ops.special.recreate_env('INVOKE_DEFAULT')
 
@@ -374,7 +374,7 @@ def create_env(self=None):
                 Absolute_Solver("004", "Nodes", traceback.format_exc())
 
         for obj in scene.objects:
-            if obj.get("Mcblend ID") == "Clouds":
+            if obj.get("MiBlend ID") == "Clouds":
                 clouds_exists = True
 
         # Create Clouds
@@ -400,7 +400,7 @@ def create_env(self=None):
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
-            bpy.context.object["Mcblend ID"] = "Clouds"
+            bpy.context.object["MiBlend ID"] = "Clouds"
 
 @ Perf_Time
 def fix_materials():
