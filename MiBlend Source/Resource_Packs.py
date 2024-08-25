@@ -100,7 +100,6 @@ def apply_resources():
                 return predicted_texture
         return None
     
-
     def zip_unpacker(root_folder, image_name, file=None):
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
@@ -143,7 +142,6 @@ def apply_resources():
                         except zipfile.BadZipFile:
                             print("Bad Zip File")
         return None
-
 
     def find_texture_users(texture):
         Texture_users = []
