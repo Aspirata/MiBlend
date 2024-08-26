@@ -207,7 +207,8 @@ def fix_world():
                             texture_parts = format_texture_name(image_texture_node.image.name.replace(".png", ""))
 
                             # Lazy Biome Color Fix Exclusions
-                            if any(part in texture_parts for part in ("grass", "water", "leaves", "pink_petals_stem", "lily", "vine", "fern")) and all(part not in texture_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or ("redstone" and "dust" in texture_parts):
+                            if any(part in texture_parts for part in ("grass", "water", "leaves", "lily", "vine", "fern")) and all(part not in texture_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or \
+                                ("redstone" and "dust" in texture_parts) or ("pink" and "stem" in texture_parts):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
