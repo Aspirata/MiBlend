@@ -732,17 +732,10 @@ def import_asset_text(index):
     if index <= len(bpy.context.scene.assetsproperties.asset_items) and len(bpy.context.scene.assetsproperties.asset_items) > 0:
         asset_type = bpy.context.scene.assetsproperties.asset_items[index].get("Type", "")
 
-        if asset_type == "Rig":
-            return "Append Rig"
-        
-        elif asset_type == "Script":
+        if asset_type == "Script":
             return "Run Script"
-        
-        elif asset_type == "Model":
-            return "Append Model"
-        
-        elif asset_type == "Shader Node":
-            return "Append Shader Node"
+        else:
+            return f"Import {asset_type}"
 
     return "Import Asset"
 
@@ -848,7 +841,9 @@ class Assets_List_UL_(bpy.types.UIList):
         asset_type = item.get("Type", "")
         return {
             "Rig": "ARMATURE_DATA",
+            "Material": "MATERIAL_DATA",
             "Script": "FILE_SCRIPT",
+            "Compositor Node": "MATERIAL_DATA",
             "Shader Node": "NODE",
             "Geo Nodes": "GEOMETRY_NODES",
             "Model": "OBJECT_DATA",

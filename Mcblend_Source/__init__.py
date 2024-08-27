@@ -21,6 +21,9 @@ bl_info = {
 }
 
 def InitOnStart():
+    
+    bpy.context.scene["mib_options"] = {}
+    mib_options = bpy.context.scene["mib_options"]
 
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
