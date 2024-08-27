@@ -21,13 +21,15 @@ bl_info = {
 }
 
 def InitOnStart():
-    
-    bpy.context.scene["mib_options"] = {}
-    mib_options = bpy.context.scene["mib_options"]
 
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
         update_default_pack()
+    
+    if "mib_options" not in bpy.context.scene:
+        bpy.context.scene["mib_options"] = {}
+
+    mib_options = bpy.context.scene["mib_options"]
     
     original_materials_list = {}
     with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):

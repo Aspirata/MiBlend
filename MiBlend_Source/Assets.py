@@ -5,8 +5,8 @@ from .Utils.Absolute_Solver import Absolute_Solver
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
     Append_mode = asset_data.get("Append_mode", "Active Only")
-    Blend_file = asset_data.get("File_path", "") + ".blend"
-    Script_path = asset_data.get("File_path", "") + ".py"
+    Blend_file = asset_data.get("File_path", "")
+    Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -53,8 +53,8 @@ def append_snode(asset_data):
 def append_gnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
     Append_mode = asset_data.get("Append_mode", "Active Only")
-    Blend_file = asset_data.get("File_path", "") + ".blend"
-    Script_path = asset_data.get("File_path", "") + ".py"
+    Blend_file = asset_data.get("File_path", "")
+    Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -120,7 +120,7 @@ def append_asset(asset_data):
                     bpy.context.collection.children.link(collection)
 
         elif asset_type == "Script":
-            run_python_script(asset_name, asset_path + ".py")
+            run_python_script(asset_name, asset_path)
         
         elif asset_type == "Shader Node":
             append_snode(asset_data)
@@ -131,58 +131,64 @@ def append_asset(asset_data):
 def update_assets():
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
-
     assets_list = []
-    for root, dirs, files in os.walk(assets_directory):
-        for file in files:
-            if file.endswith(".json"):
-                json_path = os.path.join(root, file)
-                with open(json_path, 'r') as f:
-                    asset_data = json.load(f)
+
+    directories_to_scan = [assets_directory]
     
-                try:
-                    format_version = asset_data.get("Format_version")
+    temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", {})
+    directories_to_scan.extend(temp_assets_paths.values())
 
-                    if format_version == "dev":
-                        continue 
-
-                    asset_name = asset_data.get("Asset_name")
-                    asset_tags = asset_data.get("Tags", [])
-
-                    if asset_tags[0] != "Script":
-                        asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".blend")
-                    else:
-                        asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".py")
-
-                    if format_version != "test":
-                        if not asset_name:
-                            dprint("Asset_name is not defined")
-                            continue
-                        if not asset_file_path:
-                            dprint("File_path is not defined")
-                            continue
-                        if not os.path.isfile(asset_file_path):
-                            dprint(f"Cannot find the asset file: {asset_file_path}")
-                            continue
-                        if not asset_tags:
-                            dprint("Tags are not defined")
-                            continue
-
-                    asset_info = {}
-                    for key, value in asset_data.items():
-                        if key not in ["Format_version"]:
-                            asset_info[key] = value
-
-                    asset_info["Type"] = asset_tags[0]
-                    asset_info["File_path"] = os.path.join(root, os.path.basename(asset_data.get("File_path", "")))
-
-                    if any('property' in key.lower() for key in asset_info):
-                        asset_info["has_properties"] = True
-
-                    assets_list.append(asset_info)
-                except:
-                    Absolute_Solver("u008", asset_data.get("Asset_name"), traceback.format_exc())
+    for directory in directories_to_scan:
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith(".json"):
+                    json_path = os.path.join(root, file)
+                    with open(json_path, 'r') as f:
+                        asset_data = json.load(f)
     
+                    try:
+                        format_version = asset_data.get("Format_version")
+
+                        if format_version == "dev":
+                            continue 
+
+                        asset_name = asset_data.get("Asset_name")
+                        asset_tags = asset_data.get("Tags", [])
+
+                        if asset_tags[0] != "Script":
+                            asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".blend")
+                        else:
+                            asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".py")
+
+                        if format_version != "test":
+                            if not asset_name:
+                                dprint("Asset_name is not defined")
+                                continue
+                            if not asset_file_path:
+                                dprint("File_path is not defined")
+                                continue
+                            if not os.path.isfile(asset_file_path):
+                                dprint(f"Cannot find the asset file: {asset_file_path}")
+                                continue
+                            if not asset_tags:
+                                dprint("Tags are not defined")
+                                continue
+
+                        asset_info = {}
+                        for key, value in asset_data.items():
+                            if key not in ["Format_version"]:
+                                asset_info[key] = value
+
+                        asset_info["Type"] = asset_tags[0]
+                        asset_info["File_path"] = asset_file_path
+
+                        if any('property' in key.lower() for key in asset_info):
+                            asset_info["has_properties"] = True
+
+                        assets_list.append(asset_info)
+                    except:
+                        Absolute_Solver("u008", asset_data.get("Asset_name"), traceback.format_exc())
+
     for asset in sorted(assets_list, key=lambda x: x["Asset_name"]):
         item = items.add()
         for key, value in asset.items():

@@ -440,12 +440,12 @@ class AddAsset(Operator):
 
     def execute(self, context):
         path = self.filepath
+        json_file_path = None
         asset_type = 'Presistent'
 
-        if os.path.isdir(path):
+        if path.endswith('.json'):
             asset_type = 'Scene Only'
-            extract_path = path
-            dprint(f"Temporary asset mode enabled. Using folder: {extract_path}")
+            json_file_path = path
         else:
             extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
 
@@ -460,25 +460,33 @@ class AddAsset(Operator):
             else:
                 dprint("The provided path is neither a directory nor a ZIP file.")
                 return {'CANCELLED'}
-
-        json_file_path = None
-        for root, dirs, files in os.walk(extract_path):
-            for file in files:
-                if file.endswith('.json'):
-                    json_file_path = os.path.join(root, file)
+            
+        if asset_type == "Presistent":
+            for root, dirs, files in os.walk(extract_path):
+                for file in files:
+                    if file.endswith('.json'):
+                        json_file_path = os.path.join(root, file)
+                        break
+                if json_file_path:
                     break
-            if json_file_path:
-                break
 
-        if json_file_path:
+        if os.path.isfile(json_file_path):
             with open(json_file_path, 'r') as f:
                 asset_data = json.load(f)
 
             file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
             if file_path_in_json:
                 if asset_type == 'Scene Only':
-                    bpy.context.scene["mib_options"]["temp_assets_paths"][asset_data.get("Asset_name", "")] = os.path.dirname(json_file_path)
-                    dprint(f"Using temporary asset in {extract_path}")
+                    mib_options = bpy.context.scene["mib_options"]
+
+                    if "temp_assets_paths" not in mib_options:
+                        mib_options["temp_assets_paths"] = {}
+
+                    temp_assets_path = mib_options["temp_assets_paths"]
+
+                    temp_assets_path[asset_data.get("Asset_name", "")] = os.path.dirname(json_file_path)
+                    dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
+                    dprint(temp_assets_path.get(asset_data.get("Asset_name", "")))
                 else:
                     destination_path = os.path.join(assets_directory, file_path_in_json)
                     os.makedirs(destination_path, exist_ok=True)
@@ -520,7 +528,7 @@ class ImportAssetOperator(Operator):
             return {'CANCELLED'}
 
         asset_data = items[current_index]
-        File_path = (asset_data.get("File_path", "") + ".blend") if asset_data.get("Type", "") != "Script" else (asset_data.get("File_path", "") + ".blend")
+        File_path = asset_data.get("File_path", "")
         
         if os.path.isfile(File_path):
             append_asset(asset_data)
