@@ -1,5 +1,5 @@
-from Mcblend_Source.Data import *
-from Mcblend_Source.Utils.Absolute_Solver import Absolute_Solver
+from MiBlend_Source.Data import *
+from MiBlend_Source.Utils.Absolute_Solver import Absolute_Solver
 import time
 
 def PBSDF_compability(Input: str) -> str:

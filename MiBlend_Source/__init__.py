@@ -1,6 +1,6 @@
 from .Data import *
-from .Preferences import McblendPreferences
-from .MCB_API import *
+from .Preferences import MiBlendPreferences
+from .MIB_API import *
 from .Assets import update_assets
 from .Utils.Absolute_Solver import AbsoluteSolverPanel
 from .Resource_Packs import update_default_pack
@@ -10,7 +10,7 @@ from .Properties import *
 from bpy.app.handlers import persistent
 
 bl_info = {
-    "name": "Mcblend",
+    "name": "MiBlend",
     "author": "Aspirata",
     "version": (0, 6, 0),
     "blender": (3, 6, 0),
@@ -28,7 +28,20 @@ def InitOnStart():
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
         update_default_pack()
+    
+    original_materials_list = {}
+    with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+        for material_name in data_from.materials:
+            split_name = material_name.split(" | ")
         
+            if len(split_name) > 1 and "Dev" not in split_name:
+                original_materials_list[split_name[0]] = split_name[1]
+
+    if len(original_materials_list) > 0:
+        mib_options["is_replaced_materials"] = True
+    else:
+        mib_options["is_replaced_materials"] = False
+
     update_assets()
 
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start:
@@ -38,7 +51,7 @@ def InitOnStart():
 def load_post_handler(dummy):
     InitOnStart()
 
-classes = [McblendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
+classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties,                                    # Properties
     UtilsProperties, AssetTagItem, AssetsProperties,                                                                                                               
     WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels

@@ -28,13 +28,13 @@ jobs:
     - name: Add warning to __init__.py
       run: |
         BUILD_DATE=$(TZ='Asia/Novosibirsk' date +"%d.%m.%Y %H:%M:%S")
-        sed -i "15 a\    \"warning\": \"This is Experimental Branch Build ($BUILD_DATE)\"," "Mcblend_Source/__init__.py"
+        sed -i "15 a\    \"warning\": \"This is Experimental Branch Build ($BUILD_DATE)\"," "MiBlend_Source/__init__.py"
 
 
     - name: Prepare Blender Addon
       run: |
-        mkdir -p "output/Mcblend Experimental Auto Build/Mcblend_Source"
-        cp -r "Mcblend_Source"/* "output/Mcblend Experimental Auto Build/Mcblend_Source/"
+        mkdir -p "output/Mcblend Experimental Auto Build/MiBlend_Source"
+        cp -r "MiBlend_Source"/* "output/Mcblend Experimental Auto Build/MiBlend_Source/"
 
     - name: Upload folder as artifact
       uses: actions/upload-artifact@v4

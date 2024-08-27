@@ -1,5 +1,5 @@
-addon_folder: Mcblend_Source
-build_name: Mcblend_Source
+addon_folder: MiBlend_Source
+build_name: MiBlend_Source
 
 install_versions:
   - 3.6+

@@ -1,6 +1,5 @@
 from .Data import *
 from .MIB_API import *
-from .Assets import Assets
 from bpy.types import PropertyGroup
 
 class WorldProperties(PropertyGroup):
