@@ -51,7 +51,13 @@ def EmissionMode(PBSDF, material):
         if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
             return 3
 
-def dprint(message: str):
+def format_texture_name(texture_name):
+    return texture_name.lower().replace("-", "_").split("_")
+
+def format_material_name(material_name):
+    return material_name.lower().replace("-", "_").split(".")
+
+def dprint(message):
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
         print(message)
 

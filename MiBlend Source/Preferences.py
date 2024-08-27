@@ -1,8 +1,8 @@
 from bpy.types import AddonPreferences
-from .MCB_API import blender_version
+from .MIB_API import blender_version
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 
-class McblendPreferences(AddonPreferences):
+class MiBlendPreferences(AddonPreferences):
     bl_idname = __package__
 
     transparent_ui: BoolProperty(

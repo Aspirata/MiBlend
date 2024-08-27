@@ -1,4 +1,4 @@
-from ..MCB_API import *
+from ..MIB_API import *
 from ..Data import *
 from ..Resource_Packs import *
 from ..Utils.Absolute_Solver import Absolute_Solver
@@ -48,32 +48,33 @@ def replace_materials():
     original_materials_list = {}
     with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
         for material_name in data_from.materials:
-            split_name = material_name.split("|")
+            split_name = material_name.split(" | ")
         
-            if len(split_name) == 2:
+            if len(split_name) > 1 and "Dev" not in split_name:
                 original_materials_list[split_name[0]] = split_name[1]
 
-    for selected_object in bpy.context.selected_objects:
-        if selected_object.material_slots:
-            for i, material in enumerate(selected_object.data.materials):
-                if material is not None and material.use_nodes:
-                    for material_part in material.name.lower().replace("-", ".").split("."):
-                        if upgraded_material := original_materials_list.get(material_part, None):
-                            if upgraded_material not in bpy.data.materials:
-                                try:
-                                    with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
-                                        data_to.materials = [upgraded_material]
-                                except:
-                                    Absolute_Solver('004', "Replaced Materials", traceback.format_exc())
-
-                            appended_material = bpy.data.materials.get(upgraded_material)
-                            appended_material.name = upgraded_material
-                            selected_object.data.materials[i] = appended_material
-                            break
-                else:
-                    Absolute_Solver("m002", i)
-        else:
-            Absolute_Solver("m003", selected_object)
+    if len(original_materials_list) > 0:
+        for selected_object in bpy.context.selected_objects:
+            if selected_object.material_slots:
+                for i, material in enumerate(selected_object.data.materials):
+                    if material is not None:
+                        for material_part in format_material_name(material.name):
+                            if upgraded_material := original_materials_list.get(material_part, None):
+                                if upgraded_material not in bpy.data.materials:
+                                    try:
+                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+                                            data_to.materials = [f"{material_part} | {upgraded_material}"]
+                                    except:
+                                        Absolute_Solver('004', "Replaced Materials", traceback.format_exc())
+                                        
+                                appended_material = bpy.data.materials.get(f"{material_part} | {upgraded_material}")
+                                appended_material.name = upgraded_material
+                                selected_object.data.materials[i] = appended_material
+                                break
+                    else:
+                        Absolute_Solver("m002", i)
+            else:
+                Absolute_Solver("m003", selected_object)
 
 # Fix World
 
@@ -203,10 +204,11 @@ def fix_world():
                                 material.use_backface_culling = False
                         
                         if WProperties.lazy_biome_fix:
-                            material_parts = image_texture_node.image.name.lower().replace(".png", "").replace("-", "_").split("_")
+                            texture_parts = format_texture_name(image_texture_node.image.name.replace(".png", ""))
 
                             # Lazy Biome Color Fix Exclusions
-                            if any(part in material_parts for part in ("grass", "water", "leaves", "stem", "lily", "vine", "fern")) and all(part not in material_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or ("redstone" and "dust" in material_parts):
+                            if any(part in texture_parts for part in ("grass", "water", "leaves", "lily", "vine", "fern")) and all(part not in texture_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or \
+                                ("redstone" and "dust" in texture_parts) or ("pink" and "stem" in texture_parts):
                                 if lbcf_node is None:
                                     if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                                         try:
@@ -224,10 +226,10 @@ def fix_world():
                                         
                                 material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
-                                if "water" in material_parts:
+                                if "water" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 2
 
-                                if "redstone" in material_parts:
+                                if "redstone" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 3
                 else:
                     Absolute_Solver("m002", slot)
@@ -248,10 +250,10 @@ def create_env(self=None):
     clouds_exists = False
     sky_exists = False
 
-    if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
+    if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
         clouds_exists = True
 
-    if world is not None and "Mcblend Sky" in bpy.data.node_groups:
+    if world is not None and "MiBlend Sky" in bpy.data.node_groups:
         if world_material_name in bpy.data.worlds:
             sky_exists = True
     
@@ -261,11 +263,11 @@ def create_env(self=None):
         if self is not None:
             if self.reset_settings:
                 world_material = bpy.context.scene.world.node_tree
-                group = bpy.data.node_groups["Mcblend Sky"]
+                group = bpy.data.node_groups["MiBlend Sky"]
 
                 for node in world_material.nodes:
                     if node.type == 'GROUP':
-                        if "Mcblend Sky" in node.node_tree.name:
+                        if "MiBlend Sky" in node.node_tree.name:
                             if blender_version("4.x.x"):
                                 for socket in node.inputs:
                                     try:
@@ -289,7 +291,7 @@ def create_env(self=None):
                     bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
                 
                 for group in bpy.data.node_groups:
-                    if "Mcblend" in group.name:
+                    if "MiBlend" in group.name:
                         bpy.data.node_groups.remove(group)
                 try:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -305,7 +307,7 @@ def create_env(self=None):
             # Recreate Clouds
             if self.create_clouds == 'Recreate Clouds':
                 for obj in scene.objects:
-                    if obj.get("Mcblend ID") == "Clouds":
+                    if obj.get("MiBlend ID") == "Clouds":
                         bpy.data.objects.remove(obj, do_unlink=True)
 
                 if clouds_node_tree_name in bpy.data.node_groups:
@@ -326,7 +328,7 @@ def create_env(self=None):
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
-                bpy.context.object["Mcblend ID"] = "Clouds"
+                bpy.context.object["MiBlend ID"] = "Clouds"
             
             clouds_exists = False
             
@@ -340,7 +342,7 @@ def create_env(self=None):
                 else:
                     Absolute_Solver("007", "Clouds Material")
 
-                if any(obj.get("Mcblend ID") == "Clouds" for obj in scene.objects):
+                if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
                     clouds_exists =True
 
                 if clouds_node_tree_name in bpy.data.node_groups:
@@ -353,7 +355,7 @@ def create_env(self=None):
                 else:
                     Absolute_Solver("007", clouds_node_tree_name)
 
-                    bpy.context.object["Mcblend ID"] = "Clouds"
+                    bpy.context.object["MiBlend ID"] = "Clouds"
         else:
             bpy.ops.special.recreate_env('INVOKE_DEFAULT')
 
@@ -373,7 +375,7 @@ def create_env(self=None):
                 Absolute_Solver("004", "Nodes", traceback.format_exc())
 
         for obj in scene.objects:
-            if obj.get("Mcblend ID") == "Clouds":
+            if obj.get("MiBlend ID") == "Clouds":
                 clouds_exists = True
 
         # Create Clouds
@@ -399,7 +401,7 @@ def create_env(self=None):
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
-            bpy.context.object["Mcblend ID"] = "Clouds"
+            bpy.context.object["MiBlend ID"] = "Clouds"
 
 @ Perf_Time
 def fix_materials():
@@ -675,7 +677,7 @@ def setproceduralpbr():
 
                             # Settings Set
                             if MaterialIn(Emissive_Materials.keys(), material, "=="):
-                                for material_part in material.name.lower().replace("-", ".").split("."):
+                                for material_part in format_material_name(material.name):
                                     for material_name, material_properties in Emissive_Materials.items():
                                         if material_name == material_part:
                                             for property_name, property_value in material_properties.items():

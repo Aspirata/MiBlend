@@ -13,7 +13,7 @@ optimization_folder = os.path.join(main_directory, "Optimization")
 assets_directory = os.path.join(main_directory, "Assets")
 
 clouds_node_tree_name = "Clouds Generator 2"
-world_material_name = "Mcblend World"
+world_material_name = "MiBlend World"
 BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
@@ -241,28 +241,3 @@ Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern"
 Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
 #
-
-Replace_Materials_Array = {
-    
-    "bricks": "Upgraded Bricks",
-
-    "diamond_ore": "Upgraded Diamond Ore",
-
-    "glow_lichen": "Upgraded Glow Lichen",
-
-    "gold_block": "Upgraded Gold Block",
-
-    "iron_block": "Upgraded Iron Block",
-
-    "lantern": "Upgraded Lantern",
-
-    "obsidian": "Upgraded Obsidian",
-
-    "sand": "Upgraded Sand",
-
-    "sculk": "Upgraded Sculk",
-
-    "soul_lantern": "Upgraded Soul Lantern",
-
-    "stone": "Upgraded Stone",
-}

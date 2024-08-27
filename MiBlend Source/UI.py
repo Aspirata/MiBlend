@@ -1,4 +1,4 @@
-from .MCB_API import *
+from .MIB_API import *
 from .Data import *
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
@@ -8,7 +8,7 @@ class WorldAndMaterialsPanel(Panel):
     bl_idname = "world.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Mcblend'
+    bl_category = 'MiBlend'
 
     def draw(self, context):
         layout = self.layout
@@ -177,18 +177,18 @@ class WorldAndMaterialsPanel(Panel):
         geonodes_modifier = None 
 
         try:
-            if world is not None and (any(node.name == "Mcblend Sky" for node in bpy.data.node_groups)):
+            if world is not None and (any(node.name == "MiBlend Sky" for node in bpy.data.node_groups)):
                 if world_material_name in bpy.data.worlds:
                     sky_exists = True
                     world_material = scene.world.node_tree
                     for node in world_material.nodes:
                         if node.type == 'GROUP':
-                            if "Mcblend Sky" in node.node_tree.name:
+                            if "MiBlend Sky" in node.node_tree.name:
                                 node_group = node
                                 break
 
             for obj in scene.objects:
-                if obj.get("Mcblend ID") == "Clouds":
+                if obj.get("MiBlend ID") == "Clouds":
                     clouds_exists = True
                     clouds_obj = obj
                     geonodes_modifier = obj.modifiers.get("Clouds Generator")
@@ -347,7 +347,7 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
                     if scene.env_properties.ambient_colors_settings:
                         for node in bpy.data.node_groups:
-                            if ("Ambient Color" if not node_group.inputs["End"].default_value else "Mcblend End") in node.name:
+                            if ("Ambient Color" if not node_group.inputs["End"].default_value else "MiBlend End") in node.name:
                                 for Node in node.nodes:
                                     if Node.type == "VALTORGB":
                                         row = tbox.row()
@@ -423,7 +423,7 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.label(text="Materials", icon="MATERIAL_DATA")
 
-        if os.path.isfile(os.path.join(materials_folder, "Replaced Materials.blend")):
+        if bpy.context.scene.get("mib_options", {}).get("is_replaced_materials", False):
             row = box.row()
             row.scale_y = Big_Button_Scale
             row.operator("materials.replace_materials", text="Replace Materials")
@@ -626,7 +626,7 @@ class OptimizationPanel(Panel):
     bl_idname = "optimization.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Mcblend'
+    bl_category = 'MiBlend'
 
     def draw(self, context):
         layout = self.layout
@@ -691,7 +691,7 @@ class UtilsPanel(Panel):
     bl_idname = "utils.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Mcblend'
+    bl_category = 'MiBlend'
 
     def draw(self, context):
         layout = self.layout
@@ -744,7 +744,7 @@ class AssetPanel(Panel):
     bl_idname = "assets.panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Mcblend'
+    bl_category = 'MiBlend'
 
     def draw(self, context):
         layout = self.layout
