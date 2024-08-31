@@ -14,8 +14,8 @@ bl_info = {
     "author": "Aspirata",
     "version": (0, 6, 0),
     "blender": (3, 6, 0),
-    "doc_url": "https://github.com/Aspirata/Mcblend/wiki",
-    "tracker_url": "https://github.com/Aspirata/Mcblend/issues",
+    "doc_url": "https://github.com/Aspirata/MiBlend/wiki",
+    "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
 }
@@ -55,7 +55,7 @@ def load_post_handler(dummy):
 
 classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties,                                    # Properties
-    UtilsProperties, AssetTagItem, AssetsProperties,                                                                                                               
+    UtilsProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,                                                                                                              
     WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
@@ -75,6 +75,7 @@ def register():
     bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
     bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
+    bpy.types.Scene.script_asset_properties = bpy.props.PointerProperty(type=ScriptAssetProperties)
 
     bpy.app.handlers.load_post.append(load_post_handler)
 
@@ -87,6 +88,7 @@ def unregister():
     del bpy.types.Scene.optimizationproperties
     del bpy.types.Scene.utilsproperties
     del bpy.types.Scene.assetsproperties
+    del bpy.types.Scene.script_asset_properties
 
     for cls in classes:
         bpy.utils.unregister_class(cls)

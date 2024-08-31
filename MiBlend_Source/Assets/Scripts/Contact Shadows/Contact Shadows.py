@@ -9,7 +9,7 @@ items = bpy.context.scene.assetsproperties.asset_items
 
 current_asset = items[current_index]
 
-json_file_path = current_asset.get("File_path", "") + ".json"
+json_file_path = current_asset.get("File_path", "").replace(".py", ".json")
 
 with open(json_file_path, 'r') as json_file:
     asset_data = json.load(json_file)

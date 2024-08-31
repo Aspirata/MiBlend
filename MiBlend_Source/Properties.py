@@ -770,4 +770,8 @@ class AssetsProperties(PropertyGroup):
         default=True
         )
     
-    
+
+
+
+class ScriptAssetProperties(PropertyGroup):
+    pass # goto Assets.py 131 line

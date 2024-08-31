@@ -629,62 +629,65 @@ class OptimizationPanel(Panel):
     bl_category = 'MiBlend'
 
     def draw(self, context):
-        layout = self.layout
+        
+        if Preferences.dev_tools and Preferences.experimental_features:
 
-        if Preferences.transparent_ui:
-            self.bl_options = {'HIDE_HEADER'}
-        else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            layout = self.layout
 
-        box = layout.box()
-        row = box.row()
-        row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-        row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
-        # Camera Culling Settings
-        if bpy.context.scene.optimizationproperties.camera_culling_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
-            row = sbox.row()
-            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-            if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
-                # Raycast Camera Culling Settings
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Culling Mode:")
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
-                    
-                if bpy.context.scene.optimizationproperties.merge_by_distance:
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
-
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-
-                if bpy.context.scene.optimizationproperties.backface_culling:
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
-
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "scale")
+            if Preferences.transparent_ui:
+                self.bl_options = {'HIDE_HEADER'}
             else:
-                # Vector Camera Culling Settings
-                tbox = sbox.box()
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-                row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
+                self.bl_options = {'DEFAULT_CLOSED'}
 
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("optimization.optimization", text="Optimize")
+            box = layout.box()
+            row = box.row()
+            row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
+            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
+            # Camera Culling Settings
+            if bpy.context.scene.optimizationproperties.camera_culling_settings:
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
+                row = sbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
+                if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
+                    # Raycast Camera Culling Settings
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Culling Mode:")
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
+                        
+                    if bpy.context.scene.optimizationproperties.merge_by_distance:
+                        row = tbox.row()
+                        row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
+
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+
+                    if bpy.context.scene.optimizationproperties.backface_culling:
+                        row = tbox.row()
+                        row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "scale")
+                else:
+                    # Vector Camera Culling Settings
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
+
+            row = box.row()
+            row.scale_y = Big_Button_Scale
+            row.operator("optimization.optimization", text="Optimize")
 
 class UtilsPanel(Panel):
     bl_label = "Utils"
@@ -776,17 +779,18 @@ class AssetPanel(Panel):
             current_asset = items[current_index]
 
             if current_asset.get("has_properties", False):
-                properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key.lower()}
+                script_asset_props = bpy.context.scene.script_asset_properties
 
                 sbox = box.box()
                 row = sbox.row()
                 row.label(text="Properties:")
-                for key, value in properties.items():
-                    row = sbox.row()
-                    if isinstance(value, (bool, int, float, str)):
-                        row.prop(current_asset, f'["{key}_property"]', text=key)
-                    else:
-                        row.label(text=f"{key}: {value}")
+                for prop_name in current_asset.keys():
+                    if '_property' in prop_name:
+                        if hasattr(script_asset_props, prop_name):
+                            row = sbox.row()
+                            row.prop(script_asset_props, prop_name, text=prop_name.replace('_property', ''))
+                        else:
+                            dprint(f"Property {prop_name} not found in ScriptAssetProperties")
                 
                 row = sbox.row()
                 row.operator("assets.save_properties")
@@ -797,7 +801,7 @@ class AssetPanel(Panel):
 
         if assets_props.filters:
             sbox = box.box()
-            primary_tags = {"Rig", "Script", "Shader Node", "Model"}
+            primary_tags = {"Rig", "Script", "Shader Node", "Compositor Node", "Model", "Material"}
             secondary_tags = {"Vanilla", "Realistic", "Node"}
 
             row = sbox.row()

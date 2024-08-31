@@ -1,11 +1,15 @@
 {
-    "Format_version": "a007",
+    "Format_version": "test",
     "Blender_version": "< 4.2.0",
     "Asset_name": "Contact Shadows",
     "File_path": "Scripts\\Contact Shadows\\Contact Shadows",
-    "Mode_property": 1,
-    "Distance_property": 0.2,
-    "Bias_property": 0.03,
-    "Thickness_property": 0.01,
+    "Mode_property": {
+        "Property_type": "EnumProperty",
+        "items": [
+            ["All Light Sources", "All Light Sources", ""],
+            ["Only Selected Light Sources", "Only Selected Light Sources", ""]
+        ],
+        "default": "All Light Sources"
+    },
     "Tags": ["Script"]
 }
