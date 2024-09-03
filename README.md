@@ -12,7 +12,7 @@ To Install this brach as addon you need to you can go to https://github.com/Aspi
 
 ## Plan for v0.6.0 - https://github.com/users/Aspirata/projects/3
 
-### If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on my server https://discord.gg/ZQHwp6wwXp
+### If you want to be a contributor (Help me in rigging, coding or making materials) you can contact me at the discord (aspirata) or on the [Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
 
 ## Contributors:
 
