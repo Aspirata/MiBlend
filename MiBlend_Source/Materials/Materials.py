@@ -231,6 +231,9 @@ def fix_world():
 
                                 if "redstone" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 3
+                        
+                        if WProperties.separate_by_material:
+                            SeparateMeshBy("MATERIAL", selected_object)
                 else:
                     Absolute_Solver("m002", slot)
         else:

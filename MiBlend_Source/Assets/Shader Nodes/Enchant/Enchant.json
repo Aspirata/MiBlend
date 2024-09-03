@@ -1,0 +1,11 @@
+{
+    "Format_version": "a008",
+    "Asset_name": "Enchantment",
+    "Author": "Aspirata",
+    "File_path": "Shader Nodes\\Enchant\\Enchant",
+    "Node_name": "Enchantment",
+    "Divider_property": 70,
+    "Camera Strength_property": 1,
+    "Non-Camera Strength_property": 1,
+    "Tags": ["Shader Node", "Node"]
+}

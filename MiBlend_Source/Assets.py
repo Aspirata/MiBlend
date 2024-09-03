@@ -17,6 +17,9 @@ def append_asset(asset_data):
         elif asset_type == "Shader Node":
             append_snode(asset_data)
         
+        elif asset_type == "Material":
+            append_material(asset_data)
+        
     except:
         Absolute_Solver(tech_things=traceback.format_exc(), data=asset_name, error_name="Bad Asset Import", description=f"Can't Import {asset_name} Asset")
 
@@ -131,6 +134,23 @@ def append_gnode(asset_data):
                 Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
                 Node.node_tree = bpy.data.node_groups[Node_name]
 
+def append_material(asset_data):
+    Append_mode = asset_data.get("Append_mode", "Active Only")
+    Blend_file = asset_data.get("File_path", "")
+    Material_name = asset_data.get("Material_name", "")
+
+    if Material_name not in bpy.data.materials:
+        try:
+            with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                data_to.materials = Material_name
+        except:
+            Absolute_Solver('004', Blend_file, traceback.format_exc())
+    
+    if Append_mode == "Active Only":
+        active_obj = bpy.context.active_object
+        if active_obj:
+            active_obj.data.materials[0] = bpy.data.materials.get(Material_name)
+
 def update_assets():
     items = bpy.context.scene.assetsproperties.asset_items
     items.clear()
@@ -140,8 +160,6 @@ def update_assets():
     
     temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", {})
     directories_to_scan.extend(temp_assets_paths.values())
-
-    all_properties = {}
 
     for directory in directories_to_scan:
         for root, dirs, files in os.walk(directory):
@@ -190,54 +208,12 @@ def update_assets():
                         asset_info["Type"] = asset_tags[0]
                         asset_info["File_path"] = asset_file_path
 
-                        properties = {key: value for key, value in asset_info.items() if 'property' in key.lower()}
-                        if properties:
+                        if any('property' in key.lower() for key in asset_info):
                             asset_info["has_properties"] = True
-
-                            for prop, options in properties.items():
-                                if prop not in all_properties:
-                                    all_properties[prop] = options
 
                         assets_list.append(asset_info)
                     except:
                         Absolute_Solver("u008", asset_data.get("Asset_name"), traceback.format_exc())
-
-    for prop, options in all_properties.items():
-        prop_type = options.get("Property_type")
-        prop_enum_items = [tuple(item) for item in options.get("items", [])]
-        prop_name = prop
-        prop_description = options.get("description", "")
-        prop_default = options.get("default")
-        prop_min = options.get("min", -1000000)
-        prop_max = options.get("max", 1000000)
-        prop_pointer_type = options.get("type")
-        prop_poll = options.get("poll")
-
-        if not hasattr(ScriptAssetProperties, prop_name):
-            if prop_type == "EnumProperty":
-                setattr(ScriptAssetProperties, prop_name, EnumProperty(items=prop_enum_items, name=prop_name.replace("_property", ""), default=prop_default))
-
-            elif prop_type == "PointerProperty":
-                setattr(ScriptAssetProperties, prop_name, PointerProperty(name=prop_name.replace("_property", ""), type=prop_pointer_type, poll=prop_poll))
-
-            elif prop_type == "IntProperty":
-                setattr(ScriptAssetProperties, prop_name, IntProperty(name=prop_name.replace("_property", ""), default=prop_default, min=prop_min, max=prop_max))
-
-            elif prop_type == "StringProperty":
-                setattr(ScriptAssetProperties, prop_name, StringProperty(name=prop_name.replace("_property", ""), default=prop_default))
-
-            elif prop_type == "FloatProperty":
-                setattr(ScriptAssetProperties, prop_name, FloatProperty(name=prop_name.replace("_property", ""), default=prop_default, min=prop_min, max=prop_max))
-
-            elif prop_type == "BoolProperty":
-                setattr(ScriptAssetProperties, prop_name, BoolProperty(name=prop_name.replace("_property", ""), description=prop_description, default=prop_default))
-
-    try:
-        bpy.utils.unregister_class(ScriptAssetProperties)
-    except RuntimeError:
-        pass
-
-    bpy.utils.register_class(ScriptAssetProperties)
     
     for asset in sorted(assets_list, key=lambda x: x["Asset_name"]):
         item = items.add()

@@ -1,0 +1,9 @@
+{
+    "Format_version": "dev",
+    "Asset_name": "Zipi Rig",
+    "Author": "zipi.zip",
+    "Blender_version": ">= 4.0.0",
+    "File_path": "Rigs\\Zipi Rig\\Zipi_rig",
+    "Collection_name": "Rig",
+    "Tags": ["Rig", "Realistic"]
+}

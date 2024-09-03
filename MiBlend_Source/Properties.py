@@ -4,6 +4,22 @@ from bpy.types import PropertyGroup
 
 class WorldProperties(PropertyGroup):
 
+    separate_by_material: BoolProperty(
+        name="Separate By Material",
+        default=False,
+        description=""
+    )
+
+    lazy_biome_fix: BoolProperty(
+        name="Lazy Biome Color Fix",
+        default=True,
+    )
+
+    advanced_settings: BoolProperty(
+        name="Advanced Settings",
+        default=False,
+    )
+
     backface_culling: BoolProperty(
         name="Backface Culling",
         default=True,
@@ -14,11 +30,6 @@ class WorldProperties(PropertyGroup):
         name="Delete Useless Textures",
         default=True,
         description=""
-    )
-
-    lazy_biome_fix: BoolProperty(
-        name="Lazy Biome Color Fix",
-        default=True,
     )
 
     def alpha_blend_fix(): # Fix for Eevee Next

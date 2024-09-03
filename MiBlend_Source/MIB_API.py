@@ -37,6 +37,29 @@ def MaterialIn(Array, material, mode="in"):
 
     return False
 
+def SeparateMeshBy(mode, obj, materal = None):
+    obj = bpy.context.active_object
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='DESELECT')
+
+    if mode == "SELECTED" and materal:
+        for i, material in enumerate(obj.data.materials):
+            bpy.ops.object.material_slot_select()
+            bpy.ops.mesh.separate(type=mode)
+            
+            if i > 0:
+                new_obj = bpy.data.objects.get(obj.name + f".{i:03}")
+            else:
+                new_obj = bpy.data.objects.get(obj.name)
+                
+            new_obj.name = f"{material.name} | {obj.name}"
+
+    elif mode == "MATERIAL":
+        bpy.ops.mesh.separate(type=mode)
+            
+    bpy.ops.object.mode_set(mode='OBJECT')
+
 def EmissionMode(PBSDF, material):
         from .Data import Emissive_Materials
         
