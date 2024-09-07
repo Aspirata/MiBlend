@@ -63,6 +63,11 @@ class MiBlendPreferences(AddonPreferences):
         default=False
     )
 
+    uas_debug_mode: BoolProperty(
+        name="UAS v2 Debug Mode",
+        default=False
+    )
+
     experimental_features: BoolProperty(
         name="Experimental Features",
         default=False
@@ -133,6 +138,9 @@ class MiBlendPreferences(AddonPreferences):
             
             row = box.row()
             row.prop(self, "debug_tools", toggle=True)
+
+            row = box.row()
+            row.prop(self, "uas_debug_mode", toggle=True)
 
             row = box.row()
             row.prop(self, "experimental_features", toggle=True)

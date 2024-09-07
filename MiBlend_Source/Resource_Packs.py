@@ -25,7 +25,7 @@ def update_default_pack():
     def version_formatter(version_name):
         version_parts = re.split(r'[ -]', version_name)
         for part in version_parts:
-            if not any(char.isalpha() for char in part):
+            if not any(char.isalpha() for char in part) and re.match(r'^\d+\.\d{1,2}\.\d{1,2}$', part):
                 return part
         return None
 
@@ -91,7 +91,6 @@ def apply_resources():
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.resource_properties
 
-
     def fast_find_image(textures_paths, texture_name):
         for texture_path in filter(None, textures_paths):
             dir_path = os.path.dirname(texture_path)
@@ -122,13 +121,17 @@ def apply_resources():
     
 
     def find_image(image_name, root_folder):
+        Excluded_folder = ["colormap"]
+
         if root_folder.endswith(('.zip', '.jar')):
             try:
                 return zip_unpacker(root_folder, image_name)
             except zipfile.BadZipFile:
                 print("Bad Zip File")
         else:
-            for dirpath, _, files in os.walk(root_folder):
+            for dirpath, dirnames, files in os.walk(root_folder):
+                dirnames[:] = [d for d in dirnames if d not in Excluded_folder]
+
                 for file in files:
                     if file == image_name:
                         return os.path.join(dirpath, file)
@@ -168,11 +171,9 @@ def apply_resources():
             Users = find_texture_users(bpy.data.images[image_texture])
             if not r_props.ignore_dublicates:
                 for texture in bpy.data.images:
-                    if image_texture in texture.name:
-                        parts = texture.name.split(".")
-                        if len(parts) > 1 and parts[-1].isdigit() and texture.name.replace("." + str(parts[-1]), "") == image_texture:
-                            Users.extend(find_texture_users(blender_texture := bpy.data.images.get(texture)))
-                            bpy.data.images.remove(blender_texture)
+                    if image_texture in texture.name and isdublicate(texture.name, image_texture):
+                        Users.extend(find_texture_users(blender_texture := bpy.data.images.get(texture)))
+                        bpy.data.images.remove(blender_texture)
 
             bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
         

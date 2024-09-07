@@ -1,5 +1,4 @@
 from .MIB_API import *
-from .Data import *
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
 
@@ -36,9 +35,6 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="World", icon="WORLD_DATA")
-
-        row = box.row()
-        row.prop(WProperties, "separate_by_material")
 
         row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
@@ -876,7 +872,7 @@ class Assets_List_UL_(bpy.types.UIList):
             matches_tags = (tags_mode == "and" and selected_tags.issubset(item_tags)) or \
                            (tags_mode == "or" and selected_tags.intersection(item_tags))
 
-            if ("All" in selected_tags or matches_tags) and \
+            if ("All" in selected_tags or matches_tags) and self.filter_name.lower() in item.get('Asset_name').lower() and \
                (blender_version(item.get('Blender_version', "x.x.x")) or not filter_by_version):
                 flt_flags.append(self.bitflag_filter_item)
             else:

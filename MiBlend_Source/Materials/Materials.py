@@ -3,6 +3,41 @@ from ..Data import *
 from ..Resource_Packs import *
 from ..Utils.Absolute_Solver import Absolute_Solver
 
+@ Perf_Time
+def replace_materials():
+    original_materials_list = {}
+    with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+        for material_name in data_from.materials:
+            split_name = material_name.split(" | ")
+        
+            if len(split_name) > 1 and "Dev" not in split_name:
+                original_materials_list[split_name[0]] = split_name[1]
+
+    if len(original_materials_list) > 0:
+        for selected_object in bpy.context.selected_objects:
+            if selected_object.material_slots:
+                for i, material in enumerate(selected_object.data.materials):
+                    if material is not None:
+                        for material_part in format_material_name(material.name):
+                            if upgraded_material := original_materials_list.get(material_part, None):
+                                if upgraded_material not in bpy.data.materials:
+                                    try:
+                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+                                            data_to.materials = [f"{material_part} | {upgraded_material}"]
+                                    except:
+                                        Absolute_Solver('004', "Replaced Materials", traceback.format_exc())
+                                        
+                                appended_material = bpy.data.materials.get(f"{material_part} | {upgraded_material}")
+                                appended_material.name = upgraded_material
+                                selected_object.data.materials[i] = appended_material
+                                break
+                    else:
+                        Absolute_Solver("m002", i)
+            else:
+                Absolute_Solver("m003", selected_object)
+
+# Fix World
+
 # Scan the material for image texture node duplicates > if nothing is connected to the vector input then delete and restore connections else don't touch
 def DeleteUselessTextures(material):
     texture_nodes = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE"]
@@ -42,41 +77,6 @@ def DeleteUselessTextures(material):
                         material.node_tree.links.new(node_to_keep.outputs[output_number], link.to_socket)
                 
                 material.node_tree.nodes.remove(node)
-
-@ Perf_Time
-def replace_materials():
-    original_materials_list = {}
-    with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
-        for material_name in data_from.materials:
-            split_name = material_name.split(" | ")
-        
-            if len(split_name) > 1 and "Dev" not in split_name:
-                original_materials_list[split_name[0]] = split_name[1]
-
-    if len(original_materials_list) > 0:
-        for selected_object in bpy.context.selected_objects:
-            if selected_object.material_slots:
-                for i, material in enumerate(selected_object.data.materials):
-                    if material is not None:
-                        for material_part in format_material_name(material.name):
-                            if upgraded_material := original_materials_list.get(material_part, None):
-                                if upgraded_material not in bpy.data.materials:
-                                    try:
-                                        with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
-                                            data_to.materials = [f"{material_part} | {upgraded_material}"]
-                                    except:
-                                        Absolute_Solver('004', "Replaced Materials", traceback.format_exc())
-                                        
-                                appended_material = bpy.data.materials.get(f"{material_part} | {upgraded_material}")
-                                appended_material.name = upgraded_material
-                                selected_object.data.materials[i] = appended_material
-                                break
-                    else:
-                        Absolute_Solver("m002", i)
-            else:
-                Absolute_Solver("m003", selected_object)
-
-# Fix World
 
 def get_linked_nodes(node, input_name):
     linked_nodes = []
@@ -132,6 +132,7 @@ def fix_world():
                     
                     material.shadow_method = 'HASHED'
 
+                    # Delete Useless Textres
                     if WProperties.delete_useless_textures:
                         DeleteUselessTextures(material)
 
@@ -203,6 +204,7 @@ def fix_world():
 
                                 material.use_backface_culling = False
                         
+                        # Lazy Biome Color Fix
                         if WProperties.lazy_biome_fix:
                             texture_parts = format_texture_name(image_texture_node.image.name.replace(".png", ""))
 
@@ -231,9 +233,6 @@ def fix_world():
 
                                 if "redstone" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 3
-                        
-                        if WProperties.separate_by_material:
-                            SeparateMeshBy("MATERIAL", selected_object)
                 else:
                     Absolute_Solver("m002", slot)
         else:

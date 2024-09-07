@@ -3,62 +3,85 @@ from MiBlend_Source.Utils.Absolute_Solver import Absolute_Solver
 import time
 
 def PBSDF_compability(Input: str) -> str:
-    if Input == "Subsurface Weight" and blender_version("< 4.0.0"):
-        return "Subsurface"
-    
-    if Input == "Subsurface Radius" and blender_version("< 4.0.0"):
-        return "Subsurface Color"
-    
-    if Input == "Specular IOR Level" and blender_version("< 4.0.0"):
-        return "Specular"
-    
-    if Input == "Transmission Weight" and blender_version("< 4.0.0"):
-        return "Transmission"
+    if blender_version("3.x.x"):
+        return {
+            "Subsurface Weight": "Subsurface",
+            "Subsurface Radius": "Subsurface Color",
 
-    if Input == "Coat Weight" and blender_version("< 4.0.0"):
-        return "Coat"
-    
-    if Input == "Sheen Weight" and blender_version("< 4.0.0"):
-        return "Sheen"
-    
-    if Input == "Emission Color" and blender_version("< 4.0.0"):
-        return "Emission"
+            "Specular IOR Level": "Specular",
+
+            "Transmission Weight": "Transmission",
+
+            "Coat Weight": "Coat",
+            "Sheen Weight": "Sheen",
+
+            "Emission Color": "Emission",
+        }.get(Input, Input)
     return Input
 
 def MaterialIn(Array, material, mode="in"):
-    for material_part in material.name.lower().replace("-", ".").split("."):
+    for material_part in format_material_name(material.name):
         for keyword in Array:
             if mode == "==":
-                if keyword == material_part:
-                    return True
+                return keyword == material_part
             else:
-                if keyword in material_part:
-                    return True
-
+                return keyword in material_part
     return False
 
-def SeparateMeshBy(mode, obj, materal = None):
-    obj = bpy.context.active_object
+def format_texture_name(texture_name):
+    return texture_name.lower().replace("-", "_").split("_")
 
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.select_all(action='DESELECT')
+def format_material_name(material_name):
+    return material_name.lower().replace("-", "_").split(".")
 
-    if mode == "SELECTED" and materal:
+def dprint(message):
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
+        print(message)
+
+def isdublicate(text, original_text=None):
+    parts = text.split(".")
+    return len(parts) > 1 and parts[-1].isdigit() and (text.replace("." + str(parts[-1]), "") == original_text if original_text != None else True)
+
+def SeparateMeshByMaterial(obj, materal = None):
+    obj_name = obj.name
+
+    if len(obj.material_slots) <= 1 or not obj.material_slots:
+        return
+
+    if materal:
+        return NotImplemented
+    
         for i, material in enumerate(obj.data.materials):
             bpy.ops.object.material_slot_select()
             bpy.ops.mesh.separate(type=mode)
             
             if i > 0:
-                new_obj = bpy.data.objects.get(obj.name + f".{i:03}")
+                new_obj = bpy.data.objects.get(obj_name + f".{i:03}")
             else:
-                new_obj = bpy.data.objects.get(obj.name)
+                new_obj = bpy.data.objects.get(obj_name)
                 
-            new_obj.name = f"{material.name} | {obj.name}"
+            new_obj.name = f"{material.name} | {obj_name}"
 
-    elif mode == "MATERIAL":
-        bpy.ops.mesh.separate(type=mode)
-            
-    bpy.ops.object.mode_set(mode='OBJECT')
+    else:
+        # Making new collection
+        new_collection = bpy.data.collections.new(obj_name.split("__")[0])
+        obj.users_collection[-1].children.link(new_collection)
+
+        for col in obj.users_collection:
+            col.objects.unlink(obj)
+        
+        new_collection.objects.link(obj)
+        #
+
+        bpy.ops.mesh.separate(type="MATERIAL")
+        
+        # Changing object names to material names
+        for new_obj in new_collection.objects:
+            if new_obj in bpy.context.selected_objects and obj_name in new_obj.name:
+                new_obj.name = new_obj.material_slots[0]
+                
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.view_layer.update()
 
 def EmissionMode(PBSDF, material):
         from .Data import Emissive_Materials
@@ -73,16 +96,6 @@ def EmissionMode(PBSDF, material):
         
         if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
             return 3
-
-def format_texture_name(texture_name):
-    return texture_name.lower().replace("-", "_").split("_")
-
-def format_material_name(material_name):
-    return material_name.lower().replace("-", "_").split(".")
-
-def dprint(message):
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
-        print(message)
 
 def Full_Perf_Time(func): # Not Implemented
     total_time = 0
@@ -169,7 +182,7 @@ def GetConnectedSocketTo(input, tag: str, material=None):
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
-def blender_version(blender_version: str, debug=None) -> bool:
+def blender_version(blender_version: str) -> bool:
     
     try:
         version_parts = blender_version.lower().split(".")
@@ -190,8 +203,7 @@ def blender_version(blender_version: str, debug=None) -> bool:
         else:
             patch_c = True
 
-        if debug is not None:
-            print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
+        # print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
         
         return major_c and minor_c and patch_c
     
@@ -201,8 +213,7 @@ def blender_version(blender_version: str, debug=None) -> bool:
         major, minor, patch = version_parts[1].lower().split(".")
         version = (int(major), int(minor), int(patch))
         
-        if debug is not None:
-            print(f"{bpy.app.version} {operator} {version}")
+        # print(f"{bpy.app.version} {operator} {version}")
 
         if operator == '<':
             return bpy.app.version < version

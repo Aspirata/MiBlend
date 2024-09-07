@@ -4,12 +4,6 @@ from bpy.types import PropertyGroup
 
 class WorldProperties(PropertyGroup):
 
-    separate_by_material: BoolProperty(
-        name="Separate By Material",
-        default=False,
-        description=""
-    )
-
     lazy_biome_fix: BoolProperty(
         name="Lazy Biome Color Fix",
         default=True,

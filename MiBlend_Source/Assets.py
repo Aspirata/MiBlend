@@ -9,7 +9,7 @@ def append_asset(asset_data):
 
     try:
         if asset_type == "Rig" or asset_type == "Model":
-            append_collection(asset_name, asset_collection)
+            append_collection(asset_name, asset_collection, asset_path)
 
         elif asset_type == "Script":
             run_python_script(asset_name, asset_path)
@@ -23,7 +23,7 @@ def append_asset(asset_data):
     except:
         Absolute_Solver(tech_things=traceback.format_exc(), data=asset_name, error_name="Bad Asset Import", description=f"Can't Import {asset_name} Asset")
 
-def append_collection(asset_name, asset_collection):
+def append_collection(asset_name, asset_collection, asset_path):
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
         data_to.collections = [asset_collection]
 
@@ -183,7 +183,7 @@ def update_assets():
                         else:
                             asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".py")
 
-                        if format_version != "test":
+                        if format_version != "test" or (bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.uas_debug_mode):
                             if not asset_name:
                                 dprint("Asset_name is not defined")
                                 continue
