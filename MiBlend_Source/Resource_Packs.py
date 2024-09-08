@@ -25,7 +25,7 @@ def update_default_pack():
     def version_formatter(version_name):
         version_parts = re.split(r'[ -]', version_name)
         for part in version_parts:
-            if not any(char.isalpha() for char in part) and re.match(r'^\d+\.\d{1,2}\.\d{1,2}$', part):
+            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
                 return part
         return None
 
