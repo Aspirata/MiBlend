@@ -4,7 +4,7 @@ from .Utils.Absolute_Solver import Absolute_Solver
 import sys, re
 from distutils.version import LooseVersion
 
-def get_resource_packs():
+def get_resource_packs() -> list:
     return bpy.context.scene["resource_packs"]
 
 def set_resource_packs(resource_packs):
@@ -22,14 +22,14 @@ def update_default_pack():
     resource_packs = bpy.context.scene["resource_packs"]
     Preferences = bpy.context.preferences.addons[__package__].preferences
 
-    def version_formatter(version_name):
+    def version_formatter(version_name: str) -> str:
         version_parts = re.split(r'[ -]', version_name)
         for part in version_parts:
             if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
                 return part
         return None
 
-    def find_mc():
+    def find_mc() -> tuple[str, str]:
         versions = {}
         for launcher, path in Launchers.items():
             folders = os.path.join(os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA'), path)
@@ -91,7 +91,7 @@ def apply_resources():
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.resource_properties
 
-    def fast_find_image(textures_paths, texture_name):
+    def fast_find_image(textures_paths: list, texture_name: str) -> Optional[str]:
         for texture_path in filter(None, textures_paths):
             dir_path = os.path.dirname(texture_path)
             predicted_texture = os.path.join(dir_path, texture_name)
@@ -99,7 +99,38 @@ def apply_resources():
                 return predicted_texture
         return None
     
-    def zip_unpacker(root_folder, image_name, file=None):
+    def find_image(image_name: str, root_folder: str) -> Optional[str]:
+        Excluded_folder = ["colormap"]
+
+        if root_folder.endswith(('.zip', '.jar')):
+            try:
+                return zip_unpacker(root_folder, image_name)
+            except zipfile.BadZipFile:
+                print("Bad Zip File")
+        else:
+            for dirpath, dirnames, files in os.walk(root_folder):
+                dirnames[:] = [d for d in dirnames if d not in Excluded_folder]
+
+                # Add MiBlend ID check
+                # if MiBlend ID == "blocks" then search in blocks folder
+                # if MiBlend ID == "items" then search in items folder
+                # etc
+
+                for file in files:
+                    if file == image_name:
+                        return os.path.join(dirpath, file)
+                    
+                    if "grass" in image_name and (file == f"short_{image_name}" or file == image_name.replace("short_", "")):
+                        return os.path.join(dirpath, file)
+
+                    if file.endswith(('.zip', '.jar')):
+                        try:
+                            return zip_unpacker(os.path.join(dirpath, file), image_name, file)
+                        except zipfile.BadZipFile:
+                            print("Bad Zip File")
+        return None
+    
+    def zip_unpacker(root_folder: str, image_name: str, file=None) -> Optional[str]:
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
 
@@ -119,34 +150,7 @@ def apply_resources():
                     return extracted_file_path
         return None
     
-
-    def find_image(image_name, root_folder):
-        Excluded_folder = ["colormap"]
-
-        if root_folder.endswith(('.zip', '.jar')):
-            try:
-                return zip_unpacker(root_folder, image_name)
-            except zipfile.BadZipFile:
-                print("Bad Zip File")
-        else:
-            for dirpath, dirnames, files in os.walk(root_folder):
-                dirnames[:] = [d for d in dirnames if d not in Excluded_folder]
-
-                for file in files:
-                    if file == image_name:
-                        return os.path.join(dirpath, file)
-                    
-                    if "grass" in image_name and (file == f"short_{image_name}" or file == image_name.replace("short_", "")):
-                        return os.path.join(dirpath, file)
-
-                    if file.endswith(('.zip', '.jar')):
-                        try:
-                            return zip_unpacker(os.path.join(dirpath, file), image_name, file)
-                        except zipfile.BadZipFile:
-                            print("Bad Zip File")
-        return None
-
-    def find_texture_users(texture):
+    def find_texture_users(texture) -> list:
         Texture_users = []
         for obj in bpy.data.objects:
             if obj.type == 'MESH':
@@ -162,7 +166,6 @@ def apply_resources():
                     Texture_users.append(node)
         
         return Texture_users
-
 
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
         Users = None

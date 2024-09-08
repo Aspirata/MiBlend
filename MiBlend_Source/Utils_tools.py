@@ -1,5 +1,3 @@
-import bpy
-import os
 from .MIB_API import *
 
 def VertexRiggingTool():

@@ -23,10 +23,6 @@ To Install this brach as addon you need to you can go to https://github.com/Aspi
 Links:
 - https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg
 
-### jabady - Active Testing And Bug Reporting
-
-### humusus. - Help with Allay Rig
-
 ### HeyItsAnjello - Procedural Normals Node
 
 Links:
@@ -41,3 +37,9 @@ Links:
 
 Links:
 - https://modrinth.com/resourcepack/embrace-pixels
+
+## Special Thanks:
+
+### jabady - Active Testing And Bug Reporting
+
+### humusus. - Help with Allay Rig
