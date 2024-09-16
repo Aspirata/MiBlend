@@ -92,9 +92,8 @@ class WorldAndMaterialsPanel(Panel):
             
                 row = sbox.row()
                 row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
-
-                row = sbox.row()
                 row.operator("resource_pack.add", icon='ADD')
+
             except:
                 row = sbox.row()
                 row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
@@ -151,6 +150,16 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.enabled = scene.resource_properties.use_additional_textures
                 row.prop(scene.resource_properties, "use_e")
+                row.prop(scene.resource_properties, "e_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.e_settings else "TRIA_LEFT"), icon_only=True)
+                if scene.resource_properties.e_settings:
+                    fbox = tbox.box()
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_e
+                    row.prop(scene.resource_properties, "use_color")
+
+                    row = fbox.row()
+                    row.enabled = scene.resource_properties.use_e
+                    row.prop(scene.resource_properties, "use_strength")
             
             row = sbox.row()
             row.prop(scene.resource_properties, "animate_textures")

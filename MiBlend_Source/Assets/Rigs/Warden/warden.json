@@ -1,9 +1,9 @@
 {
     "Format_version": "a008",
-    "Blender_version": "4.x.x",
-    "Author": "zipi.zip",
+    "Blender_version": ">= 4.0.0",
+    "Author": "zipi.zip, Aspirata",
     "Asset_name": "Warden",
     "File_path": "Rigs\\Warden\\Warden",
     "Collection_name": "Warden",
-    "Tags": ["Rig", "Vanilla"]
+    "Tags": ["Rig", "Vanilla", "Simple"]
 }

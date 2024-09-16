@@ -7,10 +7,12 @@ if addon_dir not in sys.path:
 
 from MCB_API import SeparateMeshBy
 
-mode = "auto", "fast", "accurately"
+separate_fire = False
+turn_off_on_render = True
 
 for selected_object in bpy.context.selected_objects:
-    if 
-        if (geonodes_modifier := selected_object.modifiers.get("Fire Particles")) == None: 
-            geonodes_modifier = selected_object.modifiers.new('Fire Particles', type='NODES')
-            geonodes_modifier.node_group = bpy.data.node_groups.get("Fire Particles")
+    # Materials Scan Algorithm
+    if (geonodes_modifier := selected_object.modifiers.get("Fire Particles")) == None: 
+        geonodes_modifier = selected_object.modifiers.new('Fire Particles', type='NODES')
+        geonodes_modifier.node_group = bpy.data.node_groups.get("Fire Particles")
+    

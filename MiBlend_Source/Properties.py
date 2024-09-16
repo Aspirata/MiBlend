@@ -58,7 +58,7 @@ class ResourcePackProperties(PropertyGroup):
     )
 
     use_additional_textures: BoolProperty(
-        name="Use Additional Textures",
+        name="Use PBR Textures",            # 16.09.2024 This was renamed, but i'm too lazy to change the name in the code LoL
         default=True,
     )
 
@@ -114,6 +114,21 @@ class ResourcePackProperties(PropertyGroup):
 
     use_e: BoolProperty(
         name="Use Emission Textures",
+        default=True,
+    )
+
+    e_settings: BoolProperty(
+        name="Emission Settings",
+        default=False,
+    )
+
+    use_color: BoolProperty(
+        name="Use Color",
+        default=True,
+    )
+
+    use_strength: BoolProperty(
+        name="Use Strength",
         default=True,
     )
 

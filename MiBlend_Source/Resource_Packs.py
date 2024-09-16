@@ -391,6 +391,9 @@ def apply_resources():
         STexture_Animator = None
         Current_node_tree = None
 
+        if not r_props.roughness and not r_props.metallic and not r_props.specular and not r_props.sss:
+            return False
+
         if specular_texture_node is None:
             specular_image_name = image_texture.replace(".png", "_s.png")
         else:
@@ -495,6 +498,9 @@ def apply_resources():
         ITexture_Animator = None
         Current_node_tree = None
 
+        if not r_props.connect_color and not r_props.connect_strength:
+            return False
+        
         if emission_texture_node is None:
             emission_image_name = image_texture.replace(".png", "_e.png")
         else:
@@ -536,8 +542,15 @@ def apply_resources():
 
             update_texture(new_emission_image_path, emission_image_name, emission_texture_node)
 
-            material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
-            material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
+            if r_props.use_color:
+                material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
+            else:
+                RemoveLinksFrom(emission_texture_node.outputs["Color"])
+            
+            if r_props.use_strength:
+                material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
+            else:
+                RemoveLinksFrom(emission_texture_node.outputs["Alpha"])
 
             animate_texture(emission_texture_node, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
             return True

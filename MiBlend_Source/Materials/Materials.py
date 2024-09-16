@@ -125,7 +125,7 @@ def fix_world():
                     scene = bpy.context.scene
                     WProperties = scene.world_properties
 
-                    if MaterialIn(Alpha_Blend_Materials, material) and WProperties.use_alpha_blend:
+                    if WProperties.use_alpha_blend:
                         material.blend_method = 'BLEND'
                     else:
                         material.blend_method = 'HASHED'
