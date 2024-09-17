@@ -1,0 +1,10 @@
+{
+    "Format_version": "a009",
+    "Asset_name": "Pixels Divider",
+    "Asset_version": "2.1",
+    "Author": "Aspirata",
+    "File_path": "Shader Nodes\\Pixels Divider\\Pixels Divider",
+    "Node_name": "Pixels Divider V2.1",
+    "Append_mode": "Active Only",
+    "Tags": ["Shader Node", "Node"]
+}

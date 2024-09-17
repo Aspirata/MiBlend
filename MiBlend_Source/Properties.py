@@ -8,6 +8,11 @@ class WorldProperties(PropertyGroup):
         name="Lazy Biome Color Fix",
         default=True,
     )
+    
+    animated_uv_fix: BoolProperty(
+        name="Animated UV Fix",
+        default=True,
+    )
 
     advanced_settings: BoolProperty(
         name="Advanced Settings",
@@ -145,11 +150,6 @@ class ResourcePackProperties(PropertyGroup):
     interpolate: BoolProperty(
         name="Interpolate",
         default=True,
-    )
-
-    only_fix_uv: BoolProperty(
-        name="Only Fix UV",
-        default=False,
     )
 
 

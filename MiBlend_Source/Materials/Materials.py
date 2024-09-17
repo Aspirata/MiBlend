@@ -122,6 +122,7 @@ def fix_world():
                     PBSDF = None
                     image_texture_node = None
                     lbcf_node = None
+                    auvf_node = None
                     scene = bpy.context.scene
                     WProperties = scene.world_properties
 
@@ -148,8 +149,14 @@ def fix_world():
                                     image_texture_node = n
                         
                         if node.type == "GROUP":
-                            if "Lazy Biome Color Fix" == node.node_tree.name:
+                            if "Backface Culling" in node.node_tree.name:
+                                bfc_node = node
+                            
+                            elif "Lazy Biome Color Fix" == node.node_tree.name:
                                 lbcf_node = node
+                            
+                            elif "Animated UV Fix" in node.node_tree.name:
+                                auvf_node = node
                                 
                     if image_texture_node and PBSDF:
                         if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) is None:
@@ -170,12 +177,6 @@ def fix_world():
 
                                 material.use_backface_culling = True
                                 
-                                for node in material.node_tree.nodes:
-                                    if node.type == "GROUP":
-                                        if "Backface Culling" in node.node_tree.name:
-                                            bfc_node = node
-                                            break
-                                
                                 if bfc_node is None:
                                     if "Backface Culling" not in bpy.data.node_groups:
                                         try:
@@ -192,17 +193,10 @@ def fix_world():
                                     material.node_tree.links.new(GetConnectedSocketTo("Alpha", PBSDF), bfc_node.inputs[0])
                                         
                                 material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
-                        else:
-                            if MaterialIn(Backface_Culling_Materials, material):
-                                bfc_node = None
-
-                                for node in material.node_tree.nodes:
-                                    if node.type == "GROUP":
-                                        if "Backface Culling" in node.node_tree.name:                                                                                              
-                                            material.node_tree.links.new(GetConnectedSocketTo(0, node), PBSDF.inputs["Alpha"])
-                                            material.node_tree.nodes.remove(node)
-
-                                material.use_backface_culling = False
+                        elif bfc_node is not None:
+                            material.node_tree.links.new(GetConnectedSocketTo(0, bfc_node), PBSDF.inputs["Alpha"])
+                            material.node_tree.nodes.remove(bfc_node)
+                            material.use_backface_culling = False
                         
                         # Lazy Biome Color Fix
                         if WProperties.lazy_biome_fix:
@@ -217,7 +211,7 @@ def fix_world():
                                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                                 data_to.node_groups = ["Lazy Biome Color Fix"]
                                         except:
-                                            Absolute_Solver("004", "Materials", traceback.format_exc())
+                                            Absolute_Solver("004", "Nodes", traceback.format_exc())
                                     
                                     lbcf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                                     lbcf_node.node_tree = bpy.data.node_groups["Lazy Biome Color Fix"]
@@ -233,6 +227,31 @@ def fix_world():
 
                                 if "redstone" in texture_parts:
                                     lbcf_node.inputs["Mode"].default_value = 3
+
+                        elif lbcf_node is not None:
+                            material.node_tree.links.new(GetConnectedSocketTo(0, lbcf_node), PBSDF.inputs["Base Color"])
+                            material.node_tree.nodes.remove(lbcf_node)
+
+                        # Animated UV Fix
+                        if WProperties.animated_uv_fix and int(image_texture_node.image.size[1] / image_texture_node.image.size[0]) > 1:
+                            if auvf_node is None:
+                                if "Animated UV Fix" not in bpy.data.node_groups:
+                                    try:
+                                        with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                                            data_to.node_groups = ["Animated UV Fix"]
+                                    except:
+                                        Absolute_Solver("004", "Nodes", traceback.format_exc())
+
+                                auvf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                                auvf_node.node_tree = bpy.data.node_groups["Animated UV Fix"]
+                                auvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
+
+                            auvf_node.inputs["Frames"].default_value = int(image_texture_node.image.size[1] / image_texture_node.image.size[0])
+                            material.node_tree.links.new(auvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])
+
+                        elif auvf_node is not None:
+                            material.node_tree.nodes.remove(auvf_node)
+
                 else:
                     Absolute_Solver("m002", slot)
         else:

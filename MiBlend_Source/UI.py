@@ -37,6 +37,9 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="World", icon="WORLD_DATA")
 
         row = box.row()
+        row.prop(WProperties, "animated_uv_fix")
+
+        row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
         row = box.row()
@@ -172,10 +175,6 @@ class WorldAndMaterialsPanel(Panel):
                 row.enabled = scene.resource_properties.animate_textures
                 row.prop(scene.resource_properties, "interpolate")
 
-                row = tbox.row()
-                row.enabled = scene.resource_properties.animate_textures
-                row.prop(scene.resource_properties, "only_fix_uv")
-
         if Preferences.dev_tools and Preferences.debug_tools:
             row = box.row()
             remove_attr = row.operator("special.remove_attribute", text="Remove Resource Packs List")
@@ -216,86 +215,6 @@ class WorldAndMaterialsPanel(Panel):
             box = layout.box()
             row = box.row()
             row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
-
-            row = box.row()
-            row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
-
-            # Clouds Settings
-
-            if clouds_exists:
-                row.prop(scene.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
-
-                if scene.env_properties.clouds_settings:
-                    sbox = box.box()
-                    tbox = sbox.box()
-
-                    row = tbox.row()
-                    row.label(text="Main Settings:", icon="PROPERTIES")
-
-                    row = tbox.row()                
-                    row.prop(clouds_obj, "location", index=2, text="Height")
-
-                    row = tbox.row()
-                    row.prop(clouds_obj, "visible_shadow", text="Clouds Shadow", toggle=True)
-
-                    tbox = sbox.box()
-
-                    row = tbox.row()
-                    row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
-                    row.prop(scene.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.env_properties.geonodes_settings:
-                        if blender_version("4.x.x"):
-
-                            fbox = tbox.box()
-                            row = fbox.row()
-                            row.label(text="Layers Settings:", icon="AXIS_TOP")
-                            row.prop(scene.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.layers_settings:
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
-
-                                row = fbox.row()
-                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
-                        
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
-
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
-
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
-
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
-
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
-                    
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Material Settings:", icon="MATERIAL")
-                    row.prop(scene.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.env_properties.material_settings:
-
-                        row = tbox.row()
-                        row.prop(base_color, "default_value", text="Color")
-                        
-                        row = tbox.row()
-                        row.prop(map_range_node, "default_value", text="Fade Distance")
-
-                        row = tbox.row()
-                        row.prop(shadow_node, "default_value", text="Shadow intensity")
 
             row = box.row() 
             row.prop(scene.env_properties, "create_sky", text="Create Sky")
@@ -405,6 +324,86 @@ class WorldAndMaterialsPanel(Panel):
 
                         row = tbox.row()
                         row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
+            
+            row = box.row()
+            row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
+
+            # Clouds Settings
+
+            if clouds_exists:
+                row.prop(scene.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
+
+                if scene.env_properties.clouds_settings:
+                    sbox = box.box()
+                    tbox = sbox.box()
+
+                    row = tbox.row()
+                    row.label(text="Main Settings:", icon="PROPERTIES")
+
+                    row = tbox.row()                
+                    row.prop(clouds_obj, "location", index=2, text="Height")
+
+                    row = tbox.row()
+                    row.prop(clouds_obj, "visible_shadow", text="Clouds Shadow", toggle=True)
+
+                    tbox = sbox.box()
+
+                    row = tbox.row()
+                    row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
+                    row.prop(scene.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
+
+                    if scene.env_properties.geonodes_settings:
+                        if blender_version("4.x.x"):
+
+                            fbox = tbox.box()
+                            row = fbox.row()
+                            row.label(text="Layers Settings:", icon="AXIS_TOP")
+                            row.prop(scene.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.env_properties.layers_settings:
+
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+
+                                row = fbox.row()
+                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                        
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
+
+                        row = tbox.row()
+                        row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
+                    
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Material Settings:", icon="MATERIAL")
+                    row.prop(scene.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
+
+                    if scene.env_properties.material_settings:
+
+                        row = tbox.row()
+                        row.prop(base_color, "default_value", text="Color")
+                        
+                        row = tbox.row()
+                        row.prop(map_range_node, "default_value", text="Fade Distance")
+
+                        row = tbox.row()
+                        row.prop(shadow_node, "default_value", text="Shadow intensity")
 
         except:
             box = layout.box()
