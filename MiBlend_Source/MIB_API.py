@@ -29,6 +29,19 @@ def MaterialIn(Array, material, mode="in"):
                 return keyword in material_part
     return False
 
+def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
+
+    if ("block" in obj_name or "block" in mat_name) or bpy.data.objects[obj_name].get("MiBlend ID", None) != "item":
+        dprint(f"{obj_name}; {mat_name} is a block")
+        return "block"
+    
+    elif ("item" in obj_name or "item" in mat_name) or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item":
+        dprint(f"{obj_name}; {mat_name} is an item")
+        return "item"
+
+    dprint(f"{obj_name}; {mat_name} is unknown")
+    return "unknown"
+
 def format_texture_name(texture_name):
     return texture_name.lower().replace("-", "_").split("_")
 

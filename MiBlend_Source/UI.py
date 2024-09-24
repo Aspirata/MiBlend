@@ -110,6 +110,9 @@ class WorldAndMaterialsPanel(Panel):
             row.prop(scene.resource_properties, "ignore_dublicates")
 
             row = sbox.row()
+            row.prop(scene.resource_properties, "compatibility_mode")
+
+            row = sbox.row()
             row.prop(scene.resource_properties, "use_i")
 
             row = sbox.row()
@@ -281,7 +284,7 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
                     if scene.env_properties.ambient_colors_settings:
                         for node in bpy.data.node_groups:
-                            if ("Ambient Color" if not node_group.inputs["End"].default_value else "MiBlend End") in node.name:
+                            if "MiBlend End" in node.name or "Ambient Color" in node.name:
                                 for Node in node.nodes:
                                     if Node.type == "VALTORGB":
                                         row = tbox.row()
@@ -291,24 +294,24 @@ class WorldAndMaterialsPanel(Panel):
                     
                     tbox = sbox.box()
                     row = tbox.row()
-                    row.label(text=("Sun & Moon Rotation:" if not node_group.inputs["End"].default_value else "Star Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                    row.label(text=( "Star Rotation:" if node_group.inputs["End"].default_value else "Sun & Moon Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
                     row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.env_properties.rotation_settings:
-                        if not node_group.inputs["End"].default_value:
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
-                            row = tbox.row()
-                            row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
-                        else:
+                        if node_group.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
                             row = tbox.row()
                             row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
+                        else:
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
+                            row = tbox.row()
+                            row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
 
                     tbox = sbox.box()
                     row = tbox.row()
