@@ -106,7 +106,7 @@ def apply_resources():
 
         if root_folder.endswith(('.zip', '.jar')):
             try:
-                return zip_unpacker(root_folder, image_name)
+                return zip_unpacker(root_folder, image_name, obj_type)
             except zipfile.BadZipFile:
                 print("Bad Zip File")
         else:
@@ -133,39 +133,37 @@ def apply_resources():
 
                         if file.endswith(('.zip', '.jar')):
                             try:
-                                return zip_unpacker(os.path.join(dirpath, file), image_name, file)
+                                return zip_unpacker(os.path.join(dirpath, file), image_name, obj_type, file)
                             except zipfile.BadZipFile:
                                 print("Bad Zip File")
         return None
     
-    def zip_unpacker(root_folder: str, image_name: str, file=None) -> Optional[str]:
+    def zip_unpacker(root_folder: str, image_name: str, obj_type: str , file=None) -> Optional[str]:
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
-
+            infolist = zip_ref.infolist()
+            
             if obj_type == "unknown":
-                dprint(f"Warning! {image_name} is {obj_type}")
+                dprint(f"Warning ! {image_name} is {obj_type}")
 
+            elif not r_props.compatibility_mode:
+                filtered_infolist = [item for item in infolist if f"textures/{obj_type}" in item.filename]
+                infolist = filtered_infolist
 
-            #textures_folder_exists = any("textures/" in zip_info.filename for zip_info in zip_ref.infolist())
+            if r_props.animate_textures:
+                for zip_info in infolist:
+                    if not zip_info.filename.endswith(".mcmeta"):
+                        continue
 
-            #if not r_props.compatibility_mode and textures_folder_exists:
-                # Fix That 24.09.24
-                #extract_path = os.path.join(extract_path, obj_type)
-                #dprint(extract_path)
+                    texture = os.path.basename(zip_info.filename).replace(".mcmeta", "")
+                    extracted_file_path = os.path.join(extract_path, zip_info.filename)
 
-            for zip_info in zip_ref.infolist():
-                if not zip_info.filename.endswith(".mcmeta"):
-                    continue
+                    if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)) \
+                        and not os.path.isfile(extracted_file_path):
 
-                texture = os.path.basename(zip_info.filename).replace(".mcmeta", "")
-                extracted_file_path = os.path.join(extract_path, zip_info.filename)
+                        zip_ref.extract(zip_info, extract_path)
 
-                if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)) \
-                    and not os.path.isfile(extracted_file_path):
-
-                    zip_ref.extract(zip_info, extract_path)
-
-            for zip_info in zip_ref.infolist():
+            for zip_info in infolist:
                 if not zip_info.filename.endswith(".png"):
                     continue
 
