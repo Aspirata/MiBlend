@@ -240,7 +240,10 @@ def apply_resources():
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         Texture_Animator = None
         auvf_node = None
-        image_texture = bpy.data.images.get(os.path.basename(new_image_texture_path))
+        if new_image_texture_path != "":
+            image_texture = bpy.data.images.get(os.path.basename(new_image_texture_path))
+        else:
+            image_texture = texture_node.image
 
         for node in material.node_tree.nodes:
             if node.type == "GROUP":
@@ -255,13 +258,18 @@ def apply_resources():
                 return
             
             animation_file = new_image_texture_path + ".mcmeta"
+
             if not os.path.isfile(animation_file) and image_path is not None:
                 animation_file = image_path + ".mcmeta"
 
-            with open(animation_file, 'r') as file:
-                data = json.load(file).get('animation', {})
-                frametime = data.get('frametime', 20)
-                interpolate = data.get('interpolate', False)
+            frametime = 20
+            interpolate = False
+
+            if os.path.isfile(animation_file):
+                with open(animation_file, 'r') as file:
+                    data = json.load(file).get('animation', {})
+                    frametime = data.get('frametime')
+                    interpolate = data.get('interpolate')
             
             if auvf_node:
                  material.node_tree.nodes.remove(auvf_node)
@@ -655,6 +663,7 @@ def apply_resources():
                     for pack, pack_info in resource_packs.items():
                         path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
                         if not enabled or "Texture" not in Type:
+                            animate_texture(image_texture_node, "", ITexture_Animator, Current_node_tree)
                             continue
                         
                         new_image_path = find_image(image_texture, path, obj_type)
