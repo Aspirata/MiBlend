@@ -311,7 +311,7 @@ def apply_resources():
                 
                 ITexture_Animator.inputs["Frames"].default_value = int(image_texture.size[1] / image_texture.size[0])
                 ITexture_Animator.inputs["Frametime"].default_value = frametime
-                ITexture_Animator.inputs["Interpolate"].default_value = interpolate
+                ITexture_Animator.inputs["Interpolate"].default_value = True
 
             else:
                 if ITexture_Animator is not None:
@@ -344,7 +344,7 @@ def apply_resources():
             
                 Texture_Animator.inputs["Frames"].default_value = int(image_texture.size[1] / image_texture.size[0])
                 Texture_Animator.inputs["Frametime"].default_value = frametime
-                Texture_Animator.inputs["Interpolate"].default_value = interpolate
+                Texture_Animator.inputs["Interpolate"].default_value = False
         else:
             if ITexture_Animator is not None:
                 texture_node = material.node_tree.nodes.new(type='ShaderNodeTexImage')
