@@ -259,7 +259,7 @@ def apply_resources():
             
             animation_file = new_image_texture_path + ".mcmeta"
 
-            if not os.path.isfile(animation_file) and image_path is not None:
+            if os.path.isfile(animation_file) and image_path is not None:
                 animation_file = image_path + ".mcmeta"
 
             frametime = 20
@@ -363,65 +363,50 @@ def apply_resources():
             if Texture_Animator is not None:
                 material.node_tree.nodes.remove(Texture_Animator)
 
-    def normal_texture_change(path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
+    def normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
         NTexture_Animator = None
         Current_node_tree = None
 
+        if new_normal_image_path is None:
+            return False
+        
         if normal_texture_node is None:
-            normal_image_name = image_texture.replace(".png", "_n.png")
-        else:
-            normal_image_name = normal_texture_node.image.name
-
-        predicted_texture_path = fast_find_image([new_image_path], normal_image_name)
-        if predicted_texture_path is None:
-            new_normal_image_path = find_image(normal_image_name, path)
-        else:
-            if r_props.use_i:
-                new_normal_image_path = predicted_texture_path
-            else:
-                new_normal_image_path = find_image(normal_image_name, path)
-            
-
-        if new_normal_image_path is not None:
-            if normal_texture_node is None:
-                normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
-                for node in material.node_tree.nodes:
-                    if node.type == "GROUP":
-                        if "Animated;" in node.node_tree.name:
-                            if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
-                                NTexture_Animator = node
-                            elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
-                                STexture_Animator = node
-                            elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
-                                ETexture_Animator = node
-                            else:
-                                ITexture_Animator = node
-                                image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
-                            Current_node_tree = node.node_tree
-                try:
-                    normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
-                except:
-                    normal_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 562)
-
-                normal_texture_node.interpolation = "Closest"
-            
-            update_texture(new_normal_image_path, normal_image_name, normal_texture_node)
-            
+            normal_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+            for node in material.node_tree.nodes:
+                if node.type == "GROUP":
+                    if "Animated;" in node.node_tree.name:
+                        if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
+                            NTexture_Animator = node
+                        elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
+                            STexture_Animator = node
+                        elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
+                            ETexture_Animator = node
+                        else:
+                            ITexture_Animator = node
+                        Current_node_tree = node.node_tree
             try:
-                normal_texture_node.image.colorspace_settings.name = "Non-Color"
+                normal_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 562)
             except:
-                Absolute_Solver("u006", "Non-Color")
+                normal_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 562)
 
-            if normal_map_node is None:
-                normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
-                normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
-                material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
-                material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
-            
-            animate_texture(normal_texture_node, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
-            return new_normal_image_path
-        return False
-    
+            normal_texture_node.interpolation = "Closest"
+        
+        update_texture(new_normal_image_path, normal_image_name, normal_texture_node)
+        
+        try:
+            normal_texture_node.image.colorspace_settings.name = "Non-Color"
+        except:
+            Absolute_Solver("u006", "Non-Color")
+
+        if normal_map_node is None:
+            normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
+            normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
+            material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
+            material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
+        
+        animate_texture(normal_texture_node, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
+        return True
+        
     def specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
         STexture_Animator = None
         Current_node_tree = None
@@ -528,54 +513,51 @@ def apply_resources():
         
         return False
         
-    def emission_texture_change(emission_texture_node, PBSDF, image_texture_node, image_texture, image_path):
+    def emission_texture_change(new_emission_image_path, emission_texture_node, PBSDF, image_texture_node, image_path):
         ETexture_Animator = None
         ITexture_Animator = None
         Current_node_tree = None
 
-        if not r_props.connect_color and not r_props.connect_strength:
+        if not (r_props.use_color or r_props.use_strength) or new_emission_image_path is None:
             return False
+        
+        if emission_texture_node is None:
+            emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
 
-        if new_emission_image_path is not None:
-            if emission_texture_node is None:
-                emission_texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+        for node in material.node_tree.nodes:
+            if node.type == "GROUP":
+                if "Animated;" in node.node_tree.name:
+                    if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
+                        NTexture_Animator = node
+                    elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
+                        STexture_Animator = node
+                    elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
+                        ETexture_Animator = node
+                    else:
+                        ITexture_Animator = node
+                    Current_node_tree = node.node_tree
 
-            for node in material.node_tree.nodes:
-                if node.type == "GROUP":
-                    if "Animated;" in node.node_tree.name:
-                        if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
-                            NTexture_Animator = node
-                        elif re.search(r'_s$', node.node_tree.name.replace(".png", "")):
-                            STexture_Animator = node
-                        elif re.search(r'_e$', node.node_tree.name.replace(".png", "")):
-                            ETexture_Animator = node
-                        else:
-                            ITexture_Animator = node
-                            image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
-                        Current_node_tree = node.node_tree
+            try:
+                emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 850)
+            except:
+                emission_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 850)
 
-                try:
-                    emission_texture_node.location = (image_texture_node.location.x, image_texture_node.location.y - 850)
-                except:
-                    emission_texture_node.location = (ITexture_Animator.location.x, ITexture_Animator.location.y - 850)
+            emission_texture_node.interpolation = "Closest"
 
-                emission_texture_node.interpolation = "Closest"
+        update_texture(new_emission_image_path, emission_image_name, emission_texture_node)
 
-            update_texture(new_emission_image_path, emission_image_name, emission_texture_node)
+        if r_props.use_color:
+            material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
+        else:
+            RemoveLinksFrom(emission_texture_node.outputs["Color"])
+        
+        if r_props.use_strength:
+            material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
+        else:
+            RemoveLinksFrom(emission_texture_node.outputs["Alpha"])
 
-            if r_props.use_color:
-                material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
-            else:
-                RemoveLinksFrom(emission_texture_node.outputs["Color"])
-            
-            if r_props.use_strength:
-                material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
-            else:
-                RemoveLinksFrom(emission_texture_node.outputs["Alpha"])
-
-            animate_texture(emission_texture_node, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
-            return True
-        return False
+        animate_texture(emission_texture_node, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
+        return True
 
     for selected_object in bpy.context.selected_objects:
         if not selected_object.material_slots:
@@ -657,13 +639,17 @@ def apply_resources():
                         relevant_node.location.x = PBSDF.location.x - 500
                 except:
                     pass
-                
+
                 # Image Texture Update
-                if r_props.use_i and "MWO" not in image_texture:
+                if "MWO" in image_texture:
+                    continue
+
+                if not r_props.use_i:
+                    animate_texture(image_texture_node, "", ITexture_Animator, Current_node_tree)
+                else:
                     for pack, pack_info in resource_packs.items():
                         path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
                         if not enabled or "Texture" not in Type:
-                            animate_texture(image_texture_node, "", ITexture_Animator, Current_node_tree)
                             continue
                         
                         new_image_path = find_image(image_texture, path, obj_type)
@@ -677,15 +663,29 @@ def apply_resources():
                             break
 
                 # Normal Texture Update
-                if r_props.use_n and r_props.use_additional_textures and "MWO" not in image_texture:
+                if r_props.use_n and r_props.use_additional_textures:
                     for pack, pack_info in resource_packs.items():
                         path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
                         if not enabled or "PBR" not in Type:
                             continue
+                            
+                        if normal_texture_node is None:
+                            normal_image_name = image_texture.replace(".png", "_n.png")
+                        else:
+                            normal_image_name = normal_texture_node.image.name
 
-                        if new_normal_image_path := normal_texture_change(path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
+                        new_normal_image_path = fast_find_image([new_image_path], normal_image_name)
+
+                        if new_normal_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+                            new_normal_image_path = find_image(normal_image_name, path, obj_type)
+                        elif r_props.use_i == False:
+                            new_normal_image_path = find_image(normal_image_name, path, obj_type)
+
+                        if normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
                             break
                 else:
+                    animate_texture(normal_texture_node, "", NTexture_Animator, Current_node_tree)
+
                     if NTexture_Animator is not None:
                         material.node_tree.nodes.remove(NTexture_Animator)
                         NTexture_Animator = None
@@ -699,16 +699,18 @@ def apply_resources():
                         normal_map_node = None
 
                 # Specular Texture Update
-                if r_props.use_s and r_props.use_additional_textures and "MWO" not in image_texture:
+                if r_props.use_s and r_props.use_additional_textures:
                     for pack, pack_info in resource_packs.items():
                         path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
                         if not enabled or "PBR" not in Type:
                             continue
 
-                        if new_specular_image_path := specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
+                        if specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
                             break
                 
                 else:
+                    animate_texture(specular_texture_node, "", STexture_Animator, Current_node_tree)
+
                     if STexture_Animator is not None:
                         material.node_tree.nodes.remove(STexture_Animator)
                         STexture_Animator = None
@@ -722,7 +724,7 @@ def apply_resources():
                         LabPBR_s = None
                 
                 # Emission Texture Update
-                if r_props.use_e and r_props.use_additional_textures and "MWO" not in image_texture:
+                if r_props.use_e and r_props.use_additional_textures:
                     for pack, pack_info in resource_packs.items():
                         path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
                         if not enabled or "PBR" not in Type:
@@ -740,10 +742,12 @@ def apply_resources():
                         elif r_props.use_i == False or r_props.use_n == False or r_props.use_s == False:
                             new_emission_image_path = find_image(emission_image_name, path, obj_type)
 
-                        if emission_texture_change(new_emission_image_path, emission_texture_node, PBSDF, image_texture_node, image_texture, image_path):
+                        if emission_texture_change(new_emission_image_path, emission_texture_node, PBSDF, image_texture_node, image_path):
                             break
 
                 else:
+                    animate_texture(emission_texture_node, "", ETexture_Animator, Current_node_tree)
+
                     if ETexture_Animator is not None:
                         material.node_tree.nodes.remove(ETexture_Animator)
                         ETexture_Animator = None
