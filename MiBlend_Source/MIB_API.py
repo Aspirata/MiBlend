@@ -2,6 +2,7 @@ from MiBlend_Source.Data import *
 from MiBlend_Source.Utils.Absolute_Solver import Absolute_Solver
 from typing import Optional
 import time
+import sys
 
 def PBSDF_compability(Input: str) -> str:
     if blender_version("3.x.x"):
@@ -19,6 +20,12 @@ def PBSDF_compability(Input: str) -> str:
             "Emission Color": "Emission",
         }.get(Input, Input)
     return Input
+
+def convert_to_linux(path):
+    if sys.platform.startswith('linux'):
+        return path.replace("\\", "/")
+
+    return path
 
 def MaterialIn(Array, material, mode="in"):
     for material_part in format_material_name(material.name):

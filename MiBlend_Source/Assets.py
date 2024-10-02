@@ -179,9 +179,9 @@ def update_assets():
                         asset_tags = asset_data.get("Tags", [])
 
                         if asset_tags[0] != "Script":
-                            asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".blend")
+                            asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".blend")
                         else:
-                            asset_file_path = os.path.join(root, os.path.basename(asset_data.get("File_path", "")) + ".py")
+                            asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".py")
 
                         if format_version != "test" or (bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.uas_debug_mode):
                             if not asset_name:
