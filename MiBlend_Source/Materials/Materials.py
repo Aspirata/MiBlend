@@ -535,6 +535,7 @@ def setproceduralpbr():
             pspecular_node = None
             PNormals = None
             ITexture_Animator = None
+            auvf_node = None
             Texture_Animator = None
             image_difference_X = 1
             image_difference_Y = 1

@@ -13,10 +13,19 @@ def set_resource_packs(resource_packs):
     dprint(f"Resource Packs: {bpy.context.scene['resource_packs']}")
 
 Launchers = {
-    "Mojang": ".minecraft\\versions",
-    "New_Modrinth": "ModrinthApp\\meta\\versions",
-    "Old_Modrinth": "com.modrinth.theseus\\meta\\versions",
-    "TL Legacy": ".tlauncher\\legacy\\Minecraft\\game\\versions",
+    "Windows":{
+        "Mojang": ".minecraft\\versions",
+        "New_Modrinth": "ModrinthApp\\meta\\versions",
+        "Old_Modrinth": "com.modrinth.theseus\\meta\\versions",
+        "TL Legacy": ".tlauncher\\legacy\\Minecraft\\game\\versions",
+    },
+
+    "Linux": {
+        "Mojang": "Unknown",
+        "New_Modrinth": ".local/share/ModrinthApp/meta/versions",
+        "Old_Modrinth": "Unknown",
+        "TL Legacy": "Unknown",
+    }
 }
 
 def update_default_pack():
@@ -32,12 +41,16 @@ def update_default_pack():
 
     def find_mc() -> tuple[str, str]:
         versions = {}
+        current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
         os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
 
-        for launcher, path in Launchers.items():
+        for launcher, path in Launchers.get(current_os).items():
+            if path == "Unknown":
+                continue
             folders = os.path.join(os_env, path)
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
+                    instance_path = None
                     if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
                         versions[version] = (folder, os.path.join(os_env, path))
                         dprint(f"{instance_path} valid")
@@ -48,6 +61,7 @@ def update_default_pack():
             folders = Preferences.mc_instances_path
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
+                    instance_path = None
                     if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
                         versions[version] = (folder, Preferences.mc_instances_path)
                         dprint(f"{instance_path} valid")
