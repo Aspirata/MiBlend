@@ -254,6 +254,9 @@ def apply_resources():
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         Texture_Animator = None
         auvf_node = None
+        if new_image_texture_path == "" and texture_node is None:
+            return
+        
         if new_image_texture_path != "":
             image_texture = bpy.data.images.get(os.path.basename(new_image_texture_path))
         else:
