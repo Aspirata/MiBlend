@@ -33,8 +33,19 @@ def append_collection(asset_name, asset_collection, asset_path):
     
 def run_python_script(name, path):
     try:
+        script_dir = os.path.dirname(path)
+        
+        if script_dir not in sys.path:
+            sys.path.append(script_dir)
+        
+        properties = {}
+
+        for index, asset in enumerate(bpy.context.scene.assetsproperties.asset_items):
+            if asset.get("Asset_name", "") == name:
+                properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
+
         with open(path, 'r') as file:
-            exec(file.read())
+            exec(file.read(), {}, properties)
     except:
         Absolute_Solver("009", name, traceback.print_exc())
 
@@ -208,7 +219,7 @@ def update_assets():
                         asset_info["Type"] = asset_tags[0]
                         asset_info["File_path"] = asset_file_path
 
-                        if any('property' in key.lower() for key in asset_info):
+                        if any('property' in key for key in asset_info):
                             asset_info["has_properties"] = True
 
                         assets_list.append(asset_info)

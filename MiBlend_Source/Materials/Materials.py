@@ -129,6 +129,7 @@ def fix_world():
             PBSDF = None
             image_texture_node = None
             lbcf_node = None
+            Texture_Animator = None
             auvf_node = None
             scene = bpy.context.scene
             WProperties = scene.world_properties
@@ -236,11 +237,25 @@ def fix_world():
                             
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
-                    if "water" in texture_parts:
+                    # Simple Biomes Support
+                    if "oak" in texture_parts:
+                        biome = "Forest"
+                    elif "fern" or "spruce" in texture_parts:
+                        biome = "Taiga"
+                    elif "birch" in texture_parts:
+                        biome = "Birch"
+
+                    if "grass" in texture_parts:
                         lbcf_node.inputs["Mode"].default_value = 2
 
-                    if "redstone" in texture_parts:
+                    elif "water" in texture_parts:
                         lbcf_node.inputs["Mode"].default_value = 3
+
+                    elif "redstone" in texture_parts:
+                        lbcf_node.inputs["Mode"].default_value = 4
+                    
+                    lbcf_node.inputs["Grass Color"].default_value = convert_hex_to_rgba(Grass_Color.get(biome))
+                    lbcf_node.inputs["Foliage Color"].default_value = convert_hex_to_rgba(Foliage_Color.get(biome))
 
             elif lbcf_node is not None:
                 material.node_tree.links.new(GetConnectedSocketTo(0, lbcf_node), PBSDF.inputs["Base Color"])

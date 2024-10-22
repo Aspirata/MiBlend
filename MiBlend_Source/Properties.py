@@ -781,6 +781,11 @@ class AssetsProperties(PropertyGroup):
 
     tags: bpy.props.CollectionProperty(type=AssetTagItem)
     
+    properties_toggle: BoolProperty(
+        name="Properties Toggle",
+        description="",
+        default=True
+        )
     
     tags_mode: EnumProperty(
         items=[("and", "And", ""), ("or", "Or", "")],

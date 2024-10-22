@@ -38,6 +38,13 @@ Links:
 Links:
 - https://modrinth.com/resourcepack/embrace-pixels
 
+### Faizek - Story Mode Character Rig
+
+Links:
+- https://x.com/fluffy_aizek
+- https://t.me/fluffyaizekmedia
+- https://vk.com/fluffy_aizek
+
 ## Special Thanks:
 
 ### jabady - Active Testing And Bug Reporting

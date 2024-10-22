@@ -21,10 +21,20 @@ def PBSDF_compability(Input: str) -> str:
         }.get(Input, Input)
     return Input
 
+def convert_hex_to_rgba(hex_code, alpha=1.0):
+    hex_code = hex_code.replace("#", "")
+    r = int(hex_code[0:2], 16) / 255.0
+    g = int(hex_code[2:4], 16) / 255.0
+    b = int(hex_code[4:6], 16) / 255.0
+    a = alpha
+    return (r, g, b, a)
+
+def clamp(min, value, max):
+    return max(min(value, 100.0), 0.0)
+
 def convert_to_linux(path):
     if sys.platform.startswith('linux'):
         return path.replace("\\", "/")
-
     return path
 
 def MaterialIn(Array, material, mode="in"):

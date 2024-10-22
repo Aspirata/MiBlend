@@ -1,0 +1,10 @@
+{
+    "Format_version": "a008",
+    "Author": "Aspirata",
+    "Asset_name": "Beveler",
+    "File_path": "Scripts\\Beveler\\Beveler",
+    "Use Node_property": false,
+    "Amount_property": 0.01,
+    "Segments_property": 4,
+    "Tags": ["Script"]
+}

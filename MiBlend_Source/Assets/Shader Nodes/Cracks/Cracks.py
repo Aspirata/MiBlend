@@ -1,8 +1,4 @@
-import sys
-
-addon_dir = os.path.dirname(os.path.abspath(__file__))
-if addon_dir not in sys.path:
-    sys.path.append(addon_dir)
+import bpy
 
 from MCB_API import GetConnectedSocketTo
 
@@ -29,5 +25,8 @@ if active_obj and active_obj.active_material:
 
         if GetConnectedSocketTo("Base Color", PBSDF).node != co_node:
             current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), co_node.inputs["Color"])
-                
-        current_material.node_tree.links.new(co_node.outputs[0], PBSDF.inputs["Base Color"])
+            current_material.node_tree.links.new(co_node.outputs["Color"], PBSDF.inputs["Base Color"])
+
+        if GetConnectedSocketTo("Alpha", PBSDF).node != co_node:
+            current_material.node_tree.links.new(GetConnectedSocketTo("Alpha", PBSDF), co_node.inputs["Alpha"])
+            current_material.node_tree.links.new(co_node.outputs["Alpha"], PBSDF.inputs["Alpha"])

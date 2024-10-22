@@ -1,10 +1,5 @@
 import bpy
-
-addon_dir = os.path.dirname(os.path.abspath(__file__))
-if addon_dir not in sys.path:
-    sys.path.append(addon_dir)
-
-from MCB_API import GetConnectedSocketTo
+from MIB_API import GetConnectedSocketTo
 
 for selected_object in bpy.context.selected_objects:
     slot = 0
@@ -54,7 +49,3 @@ for selected_object in bpy.context.selected_objects:
                         material.node_tree.nodes.remove(DBSDF)
 
                     material.node_tree.links.new(PBSDF.outputs[0], Output.inputs[0])
-            #else:
-                #Absolute_Solver("m002", slot)
-    #else:
-        #Absolute_Solver("m003", selected_object)

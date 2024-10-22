@@ -95,6 +95,16 @@ Render_Settings = {
     }
 }
 
+Grass_Color = {
+    "Forest": "#79C05A",
+    "Taiga": "#8AB689",
+}
+
+Foliage_Color = {
+    "Forest": "#59AE30",
+    "Taiga": "#6DA36B",
+}
+
 Emissive_Materials = {
 
     "Default": {

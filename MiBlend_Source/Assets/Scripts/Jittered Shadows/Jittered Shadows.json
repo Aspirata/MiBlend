@@ -4,8 +4,8 @@
     "Asset_name": "Jittered Shadows",
     "Author": "Aspirata",
     "File_path": "Scripts\\Jittered Shadows\\Jittered Shadows",
-    "Mode_property": 1,
-    "Overblur_property": 20.0,
+    "Only Selected Objects_property": false,
     "World Jitter_property": true,
+    "Overblur_property": 20.0,
     "Tags": ["Script"]
 }

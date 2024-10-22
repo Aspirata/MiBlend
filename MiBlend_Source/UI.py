@@ -796,20 +796,23 @@ class AssetPanel(Panel):
             current_asset = items[current_index]
 
             if current_asset.get("has_properties", False):
-                properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key.lower()}
+                properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key}
 
                 sbox = box.box()
                 row = sbox.row()
                 row.label(text="Properties:")
-                for key, value in properties.items():
-                    row = sbox.row()
-                    if isinstance(value, (bool, int, float, str)):
-                        row.prop(current_asset, f'["{key}_property"]', text=key)
-                    else:
-                        row.label(text=f"{key}: {value}")
-                
-                row = sbox.row()
-                row.operator("assets.save_properties")
+                row.prop(assets_props, "properties_toggle", icon=("TRIA_DOWN" if assets_props.properties_toggle else "TRIA_LEFT"), icon_only=True)
+                if assets_props.properties_toggle:
+                    for key, value in properties.items():
+                        row = sbox.row()
+                        if isinstance(value, (bool, int, float, str)):
+                            row.prop(current_asset, f'["{key}_property"]', text=key)
+                        else:
+                            row.label(text=f"{key}: {value}")
+                    
+                    if Preferences.dev_tools and Preferences.experimental_features:
+                        row = sbox.row()
+                        row.operator("assets.save_properties")
         
         # Filters
         row = box.row()
@@ -818,7 +821,7 @@ class AssetPanel(Panel):
         if assets_props.filters:
             sbox = box.box()
             primary_tags = {"Rig", "Script", "Shader Node", "Geo Node", "Compositor Node", "Model", "Material"}
-            secondary_tags = {"Vanilla", "Realistic", "Node", "Particles"}
+            secondary_tags = {"Simple", "Realistic", "Node", "Particles"}
 
             row = sbox.row()
             row.label(text="Tags:")

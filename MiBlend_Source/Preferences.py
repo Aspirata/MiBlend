@@ -1,3 +1,4 @@
+import sys
 from bpy.types import AddonPreferences
 from .MIB_API import blender_version
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
@@ -145,8 +146,9 @@ class MiBlendPreferences(AddonPreferences):
             row = box.row()
             row.prop(self, "experimental_features", toggle=True)
 
-            row = box.row()
-            row.prop(self, "open_console_on_start", toggle=True)
+            if not sys.platform.startswith('linux'):
+                row = box.row()
+                row.prop(self, "open_console_on_start", toggle=True)
 
             row = box.row()
             row.prop(self, "dev_packs_path")
