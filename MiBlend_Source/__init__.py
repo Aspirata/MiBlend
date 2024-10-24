@@ -60,7 +60,7 @@ classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,        
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
     SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator, SavePropertiesOperator,
-    ManualAssetsUpdateOperator,
+    ResetPropertiesOperator, ManualAssetsUpdateOperator,
 ]
 
 def register():

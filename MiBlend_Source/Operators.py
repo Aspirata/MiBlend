@@ -385,6 +385,43 @@ class AssingVertexGroupOperator(Operator):
         VertexRiggingTool()
         return {'FINISHED'}
 
+class ResetPropertiesOperator(Operator):
+    bl_idname = "assets.reset_properties"
+    bl_label = "Reset Properties"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        current_index = bpy.context.scene.assetsproperties.asset_index
+        items = bpy.context.scene.assetsproperties.asset_items
+
+        if current_index < 0 or current_index >= len(items):
+            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
+            return {'CANCELLED'}
+        
+        current_asset = items[current_index]
+
+        properties = {key: value for key, value in current_asset.items() if '_property' in key}
+
+        blend_file_path = current_asset.get("File_path", "")
+        json_file_path = blend_file_path.replace(".blend", ".json")
+
+        if not os.path.isfile(json_file_path):
+            self.report({'ERROR'}, f"File not found: {json_file_path}")
+            return {'CANCELLED'}
+
+        try:
+            with open(json_file_path, 'r') as json_file:
+                asset_data = json.load(json_file)
+
+            for key, value in properties.items():
+                if key in asset_data:
+                    current_asset[key] = asset_data.get(key, value)
+            return {'FINISHED'}
+        
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to reset properties: {str(e)}")
+            return {'CANCELLED'}
+
 class SavePropertiesOperator(Operator):
     bl_idname = "assets.save_properties"
     bl_label = "Save Properties"
@@ -403,24 +440,20 @@ class SavePropertiesOperator(Operator):
         properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
 
         blend_file_path = current_asset.get("File_path", "")
-        json_file_path = os.path.join(assets_directory, os.path.splitext(blend_file_path)[0] + ".json")
+        json_file_path = blend_file_path.replace(".blend", ".json")
 
         if not os.path.isfile(json_file_path):
             self.report({'ERROR'}, f"File not found: {json_file_path}")
             return {'CANCELLED'}
 
         try:
-            # Загружаем текущие данные из JSON
             with open(json_file_path, 'r') as json_file:
                 asset_data = json.load(json_file)
 
-            # Обновляем только соответствующие переменные
             for key, value in properties.items():
-                json_key = key + '_property'
-                if json_key in asset_data:
-                    asset_data[json_key] = value
+                if key in asset_data:
+                    asset_data[key] = value
 
-            # Сохраняем обновленный JSON обратно в файл
             with open(json_file_path, 'w') as json_file:
                 json.dump(asset_data, json_file, indent=4)
             

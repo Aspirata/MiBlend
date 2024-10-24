@@ -33,19 +33,14 @@ def append_collection(asset_name, asset_collection, asset_path):
     
 def run_python_script(name, path):
     try:
-        script_dir = os.path.dirname(path)
-        
-        if script_dir not in sys.path:
-            sys.path.append(script_dir)
-        
         properties = {}
-
-        for index, asset in enumerate(bpy.context.scene.assetsproperties.asset_items):
+        for asset in bpy.context.scene.assetsproperties.asset_items:
             if asset.get("Asset_name", "") == name:
                 properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
 
         with open(path, 'r') as file:
-            exec(file.read(), {}, properties)
+            context = {**globals(), 'properties': properties}
+            exec(file.read(), context)
     except:
         Absolute_Solver("009", name, traceback.print_exc())
 
@@ -55,6 +50,13 @@ def append_snode(asset_data):
     Blend_file = asset_data.get("File_path", "")
     Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
+    if Node_name not in bpy.data.node_groups:
+        try:
+            with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                data_to.node_groups = [Node_name]
+        except:
+            Absolute_Solver("009", Node_name, traceback.format_exc())
+
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
         dprint(f"{Node_name} Script Found")
@@ -62,40 +64,38 @@ def append_snode(asset_data):
     elif Append_mode == "Every Selected":
         dprint(f"{Node_name} Script Not Found, using default algorithm")
         for selected_object in bpy.context.selected_objects:
-            slot = 0
+            Node = None
             if selected_object.material_slots:
-                for material in selected_object.data.materials:
-                    slot += 1
+                for index, material in enumerate(selected_object.data.materials):
                     if material is not None and material.use_nodes:
-                        if Node_name not in bpy.data.node_groups:
-                            try:
-                                with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
-                                    data_to.node_groups = [Node_name]
-                            except:
-                                Absolute_Solver("009", Node_name, traceback.format_exc())
+                        for node in material.node_tree.nodes:
+                            if node.type == 'GROUP':
+                                if Node_name in node.node_tree.name:
+                                    Node = node
 
-                        Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                        Node.node_tree = bpy.data.node_groups[Node_name]
+                        if Node == None:
+                            Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                            Node.node_tree = bpy.data.node_groups[Node_name]
                     else:
-                        Absolute_Solver("m002", slot)
+                        Absolute_Solver("m002", index)
             else:
                 Absolute_Solver("m003", selected_object)
 
     elif Append_mode == "Active Only":
         dprint(f"{Node_name} Script Not Found, using default algorithm")
         active_obj = bpy.context.active_object
+        Node = None
         if active_obj and active_obj.active_material:
             current_material = active_obj.active_material
-            if current_material.use_nodes:
-                if Node_name not in bpy.data.node_groups:
-                    try:
-                        with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
-                            data_to.node_groups = [Node_name]
-                    except:
-                        Absolute_Solver("009", Node_name, traceback.format_exc())
+            if current_material is not None and current_material.use_nodes:
+                for node in current_material.node_tree.nodes:
+                    if node.type == 'GROUP':
+                        if Node_name in node.node_tree.name:
+                            Node = node
 
-                Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
-                Node.node_tree = bpy.data.node_groups[Node_name]
+                if Node == None:
+                    Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
+                    Node.node_tree = bpy.data.node_groups[Node_name]
 
 def append_gnode(asset_data):
     Node_name = asset_data.get("Node_name", "")

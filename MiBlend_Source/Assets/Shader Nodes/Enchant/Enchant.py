@@ -1,17 +1,9 @@
-import sys
-
-addon_dir = os.path.dirname(os.path.abspath(__file__))
-if addon_dir not in sys.path:
-    sys.path.append(addon_dir)
-
-from MCB_API import GetConnectedSocketTo, PBSDF_compability
-
 current_index = bpy.context.scene.assetsproperties.asset_index
 items = bpy.context.scene.assetsproperties.asset_items
 
 current_asset = items[current_index]
 
-json_file_path = current_asset.get("File_path", "") + ".json"
+json_file_path = current_asset.get("File_path", "").replace(".blend", ".json")
 
 with open(json_file_path, 'r') as json_file:
     asset_data = json.load(json_file)
@@ -34,6 +26,13 @@ if active_obj and active_obj.active_material:
                     PBSDF = node
 
             if node_group == None:
+                if "Enchantment" not in bpy.data.node_groups:
+                    json_file_path = current_asset.get("File_path", "").replace(".blend", ".json")
+                    try:
+                        with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                            data_to.node_groups = ["Lazy Biome Color Fix"]
+                    except:
+                        Absolute_Solver("004", "Nodes", traceback.format_exc())
                 node_group = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
                 node_group.node_tree = bpy.data.node_groups["Enchantment"]
                 node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)

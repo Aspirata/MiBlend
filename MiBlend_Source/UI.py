@@ -809,10 +809,10 @@ class AssetPanel(Panel):
                             row.prop(current_asset, f'["{key}_property"]', text=key)
                         else:
                             row.label(text=f"{key}: {value}")
-                    
-                    if Preferences.dev_tools and Preferences.experimental_features:
-                        row = sbox.row()
-                        row.operator("assets.save_properties")
+
+                    row = sbox.row()
+                    row.operator("assets.reset_properties")
+                    row.operator("assets.save_properties")
         
         # Filters
         row = box.row()

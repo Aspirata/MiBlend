@@ -1,5 +1,4 @@
 import bpy
-from MIB_API import GetConnectedSocketTo
 
 for selected_object in bpy.context.selected_objects:
     slot = 0

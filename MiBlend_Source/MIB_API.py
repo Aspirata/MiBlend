@@ -23,9 +23,9 @@ def PBSDF_compability(Input: str) -> str:
 
 def convert_hex_to_rgba(hex_code, alpha=1.0):
     hex_code = hex_code.replace("#", "")
-    r = int(hex_code[0:2], 16) / 255.0
-    g = int(hex_code[2:4], 16) / 255.0
-    b = int(hex_code[4:6], 16) / 255.0
+    r = int(hex_code[:2], base=16) / 255
+    g = int(hex_code[2:4], base=16) / 255
+    b = int(hex_code[4:6], base=16) / 255
     a = alpha
     return (r, g, b, a)
 
