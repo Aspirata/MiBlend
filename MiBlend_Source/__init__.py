@@ -44,6 +44,11 @@ def InitOnStart():
     else:
         mib_options["is_replaced_materials"] = False
 
+    mib_options["components_vesion"] = {
+        "MiBlend": "Beehive",
+        "UAS": "v2.1",
+    }
+
     update_assets()
 
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and not sys.platform.startswith('linux'):

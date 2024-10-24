@@ -39,8 +39,7 @@ def run_python_script(name, path):
                 properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
 
         with open(path, 'r') as file:
-            context = {**globals(), 'properties': properties}
-            exec(file.read(), context)
+            exec(file.read(), globals(), {'properties': properties})
     except:
         Absolute_Solver("009", name, traceback.print_exc())
 
@@ -189,10 +188,10 @@ def update_assets():
                         asset_author = asset_data.get("Author")
                         asset_tags = asset_data.get("Tags", [])
 
-                        if asset_tags[0] != "Script":
-                            asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".blend")
-                        else:
+                        if asset_tags[0] == "Script":
                             asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".py")
+                        else:
+                            asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".blend")
 
                         if format_version != "test" or (bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.uas_debug_mode):
                             if not asset_name:

@@ -29,8 +29,8 @@ def convert_hex_to_rgba(hex_code, alpha=1.0):
     a = alpha
     return (r, g, b, a)
 
-def clamp(min, value, max):
-    return max(min(value, 100.0), 0.0)
+def clamp(min_value, value, max_value):
+    return max(min_value, min(value, max_value))
 
 def convert_to_linux(path):
     if sys.platform.startswith('linux'):

@@ -402,8 +402,8 @@ class ResetPropertiesOperator(Operator):
 
         properties = {key: value for key, value in current_asset.items() if '_property' in key}
 
-        blend_file_path = current_asset.get("File_path", "")
-        json_file_path = blend_file_path.replace(".blend", ".json")
+        file_path = current_asset.get("File_path", "")
+        json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
 
         if not os.path.isfile(json_file_path):
             self.report({'ERROR'}, f"File not found: {json_file_path}")
@@ -439,8 +439,8 @@ class SavePropertiesOperator(Operator):
 
         properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
 
-        blend_file_path = current_asset.get("File_path", "")
-        json_file_path = blend_file_path.replace(".blend", ".json")
+        file_path = current_asset.get("File_path", "")
+        json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
 
         if not os.path.isfile(json_file_path):
             self.report({'ERROR'}, f"File not found: {json_file_path}")
