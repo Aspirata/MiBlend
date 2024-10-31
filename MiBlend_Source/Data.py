@@ -13,6 +13,7 @@ optimization_folder = os.path.join(main_directory, "Optimization")
 assets_directory = os.path.join(main_directory, "Assets")
 
 clouds_node_tree_name = "Clouds Generator 2"
+fog_node_tree_name = "Fog"
 world_material_name = "MiBlend World"
 BATGroup = "Better Animate Texture"
 
@@ -96,13 +97,13 @@ Render_Settings = {
 }
 
 Grass_Color = {
-    "Forest": "#79C05A",
-    "Taiga": "#8AB689",
+    "Birch": (0.242279, 0.396756, 0.16203),
+    "Taiga": (0.25415, 0.467784, 0.250158),
 }
 
 Foliage_Color = {
-    "Forest": "#59AE30",
-    "Taiga": "#6DA36B",
+    "Taiga": (0.152925, 0.366253, 0.147027),
+    "Swamp": (0.144128, 0.16203, 0.040915)
 }
 
 Emissive_Materials = {

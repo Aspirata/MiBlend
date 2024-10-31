@@ -214,7 +214,7 @@ def fix_world():
             
             # Lazy Biome Color Fix
             if WProperties.lazy_biome_fix:
-                texture_parts = format_texture_name(image_texture_node.image.name.replace(".png", ""))
+                texture_parts = format_texture_name(image_texture_node.image.name)
 
                 # Lazy Biome Color Fix Exclusions
                 if any(part in texture_parts for part in ("grass", "water", "leaves", "lily", "vine", "fern")) and all(part not in texture_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or \
@@ -234,7 +234,7 @@ def fix_world():
 
                     if GetConnectedSocketTo("Base Color", PBSDF).node != lbcf_node:
                         material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), lbcf_node.inputs["Texture"])
-                            
+
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
                     # Simple Biomes Support
@@ -254,8 +254,9 @@ def fix_world():
                     elif "redstone" in texture_parts:
                         lbcf_node.inputs["Mode"].default_value = 4
                     
-                    lbcf_node.inputs["Grass Color"].default_value = convert_hex_to_rgba(Grass_Color.get(biome))
-                    lbcf_node.inputs["Foliage Color"].default_value = convert_hex_to_rgba(Foliage_Color.get(biome))
+                    lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
+                    lbcf_node.inputs["Foliage Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
+
 
             elif lbcf_node is not None:
                 material.node_tree.links.new(GetConnectedSocketTo(0, lbcf_node), PBSDF.inputs["Base Color"])
@@ -284,133 +285,140 @@ def fix_world():
             elif auvf_node is not None:
                 material.node_tree.nodes.remove(auvf_node)
 
-@ Perf_Time
-def create_env(self=None):
-
-    def clouds_file_comp():
-        if blender_version("4.x.x"):
-            return "4.0"
-        else:
-            return "3.6"
+@Perf_Time
+def recreate_env(self):
         
     scene = bpy.context.scene
     world = scene.world
-    clouds_exists = False
-    sky_exists = False
 
-    if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
-        clouds_exists = True
+    # Sky
+    if self.reset_settings:
+        world_material = bpy.context.scene.world.node_tree
+        group = bpy.data.node_groups["MiBlend Sky"]
 
-    if world is not None and "MiBlend Sky" in bpy.data.node_groups:
-        if world_material_name in bpy.data.worlds:
-            sky_exists = True
-    
-    if clouds_exists or sky_exists:
+        for node in world_material.nodes:
+            if node.type == 'GROUP':
+                if "MiBlend Sky" in node.node_tree.name:
+                    if blender_version("4.x.x"):
+                        for socket in node.inputs:
+                            try:
+                                vec_counter = 0
+                                for vec in socket.default_value:
+                                    vec_counter += 1
+                                    vec = group.interface.items_tree[socket.name].default_value[vec_counter]
+                            except:
+                                socket.default_value = group.interface.items_tree[socket.name].default_value
+                    else:
+                        try:
+                            vec_counter = 0
+                            for vec in socket.default_value:
+                                vec_counter += 1
+                                vec = group.inputs[socket.name].default_value[vec_counter]
+                        except:
+                                socket.default_value = group.inputs[socket.name].default_value
 
-        # Recreate Sky
-        if self is not None:
-            if self.reset_settings:
-                world_material = bpy.context.scene.world.node_tree
-                group = bpy.data.node_groups["MiBlend Sky"]
+    if self.create_sky == 'Recreate Sky':
+        if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) is not None:
+            bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
+        
+        for group in bpy.data.node_groups:
+            if "MiBlend" in group.name:
+                bpy.data.node_groups.remove(group)
 
-                for node in world_material.nodes:
-                    if node.type == 'GROUP':
-                        if "MiBlend Sky" in node.node_tree.name:
-                            if blender_version("4.x.x"):
-                                for socket in node.inputs:
-                                    try:
-                                        vec_counter = 0
-                                        for vec in socket.default_value:
-                                            vec_counter += 1
-                                            vec = group.interface.items_tree[socket.name].default_value[vec_counter]
-                                    except:
-                                        socket.default_value = group.interface.items_tree[socket.name].default_value
-                            else:
-                                try:
-                                    vec_counter = 0
-                                    for vec in socket.default_value:
-                                        vec_counter += 1
-                                        vec = group.inputs[socket.name].default_value[vec_counter]
-                                except:
-                                        socket.default_value = group.inputs[socket.name].default_value
+        create_env("Sky")
 
-            if self.create_sky == 'Recreate Sky':
-                if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) is not None:
-                    bpy.data.worlds.remove(bpy.data.worlds.get(world_material_name), do_unlink=True)
-                
-                for group in bpy.data.node_groups:
-                    if "MiBlend" in group.name:
-                        bpy.data.node_groups.remove(group)
-                try:
-                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                        data_to.worlds = [world_material_name]
-                    appended_world_material = bpy.data.worlds.get(world_material_name)
-                    bpy.context.scene.world = appended_world_material
-                except:
-                    Absolute_Solver('004', "Nodes", traceback.format_exc())
+    elif self.create_sky == 'Create Sky' and world_material_name in bpy.data.worlds:
+        bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
 
-            elif self.create_sky == 'Create Sky' and world_material_name in bpy.data.worlds:
-                bpy.context.scene.world = bpy.data.worlds.get(world_material_name)
+    # Fog
+    if self.create_fog == 'Recreate Fog':
+        for obj in scene.objects:
+            if obj.get("MiBlend ID") == "Fog":
+                bpy.data.objects.remove(obj, do_unlink=True)
 
-            # Recreate Clouds
-            if self.create_clouds == 'Recreate Clouds':
-                for obj in scene.objects:
-                    if obj.get("MiBlend ID") == "Clouds":
-                        bpy.data.objects.remove(obj, do_unlink=True)
+        if fog_node_tree_name in bpy.data.node_groups:
+            bpy.data.node_groups.remove(bpy.data.node_groups.get(fog_node_tree_name))
 
-                if clouds_node_tree_name in bpy.data.node_groups:
-                    bpy.data.node_groups.remove(bpy.data.node_groups.get(clouds_node_tree_name))
+        if "Fog" in bpy.data.materials:
+            bpy.data.materials.remove(bpy.data.materials.get("Fog"))
 
-                if "Clouds" in bpy.data.materials:
-                    bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
-                try:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                        data_to.materials = ["Clouds"]
-                except:
-                    Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
+        create_env("Fog")
 
+    elif self.create_fog == 'Create Fog':
+        
+        if "Fog" in bpy.data.materials:
+            bpy.data.materials["Fog"]
+
+        if fog_node_tree_name in bpy.data.node_groups:
+            if not any(obj.get("MiBlend ID") == "Fog" for obj in scene.objects):
                 bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
                 bpy.context.object.name = "Clouds"
                 bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
                 geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
                 geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
-                bpy.context.object["MiBlend ID"] = "Clouds"
-            
-            clouds_exists = False
-            
-            if self.create_clouds == 'Create Clouds':
+            bpy.context.object["MiBlend ID"] = "Clouds"
 
-                if clouds_node_tree_name in bpy.data.node_groups:
-                    bpy.data.node_groups[clouds_node_tree_name]
-                
-                if "Clouds" in bpy.data.materials:
-                    bpy.data.materials["Clouds"]
-                else:
-                    Absolute_Solver("007", "Clouds Material")
+    # Clouds
+    if self.create_clouds == 'Recreate Clouds':
+        for obj in scene.objects:
+            if obj.get("MiBlend ID") == "Clouds":
+                bpy.data.objects.remove(obj, do_unlink=True)
 
-                if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
-                    clouds_exists =True
+        if clouds_node_tree_name in bpy.data.node_groups:
+            bpy.data.node_groups.remove(bpy.data.node_groups.get(clouds_node_tree_name))
 
-                if clouds_node_tree_name in bpy.data.node_groups:
-                    if not clouds_exists:
-                        bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
-                        bpy.context.object.name = "Clouds"
-                        bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
-                        geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
-                        geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
-                else:
-                    Absolute_Solver("007", clouds_node_tree_name)
+        if "Clouds" in bpy.data.materials:
+            bpy.data.materials.remove(bpy.data.materials.get("Clouds"))
+        
+        create_env("Clouds")
+    
+    elif self.create_clouds == 'Create Clouds':
+        
+        if "Clouds" in bpy.data.materials:
+            bpy.data.materials["Clouds"]
 
-                    bpy.context.object["MiBlend ID"] = "Clouds"
+        if clouds_node_tree_name in bpy.data.node_groups:
+            if not any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
+                bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
+                bpy.context.object.name = "Clouds"
+                bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
+                geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+                geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
+
+            bpy.context.object["MiBlend ID"] = "Clouds"
+
+@ Perf_Time
+def create_env(mode=None):
+
+    def clouds_file_comp():
+        if blender_version("4.x.x"):
+            return "4.0"
         else:
-            bpy.ops.special.recreate_env('INVOKE_DEFAULT')
+            return "3.6"
+    
+    scene = bpy.context.scene
+    world = scene.world
+    sky_exists = False
+    fog_exists = False
+    clouds_exists = False
+
+    if any(obj.get("MiBlend ID") == "Clouds" for obj in scene.objects):
+        clouds_exists = True
+    
+    if any(obj.get("MiBlend ID") == "Fog" for obj in scene.objects):
+        fog_exists = True
+
+    if world is not None and "MiBlend Sky" in bpy.data.node_groups:
+        if world_material_name in bpy.data.worlds:
+            sky_exists = True
+    
+    if (clouds_exists or sky_exists or fog_exists) and mode == None:
+        bpy.ops.special.recreate_env('INVOKE_DEFAULT')
 
     else:
-        
         # Create Sky
-        if scene.env_properties.create_sky:
+        if (scene.env_properties.create_sky and mode == None) or mode == "Sky":
             try:
                 if world_material_name not in bpy.data.worlds:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -422,12 +430,37 @@ def create_env(self=None):
             except:
                 Absolute_Solver("004", "Nodes", traceback.format_exc())
 
-        for obj in scene.objects:
-            if obj.get("MiBlend ID") == "Clouds":
-                clouds_exists = True
+        # Create Fog
+        if (scene.env_properties.create_fog and mode == None) or mode == "Fog":
+            try:
+                if fog_node_tree_name not in bpy.data.node_groups:
+                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                        data_to.node_groups = [fog_node_tree_name]
+                else:
+                    bpy.data.node_groups[fog_node_tree_name]
+            except:
+                Absolute_Solver("004", "Nodes", traceback.format_exc())
+            
+            bpy.ops.mesh.primitive_cube_add(size=2000, enter_editmode=False, align='WORLD', location=(0, 0, 0))
+            fog_cube = bpy.context.active_object
+
+            fog_cube.name = "Fog"
+
+            fog_material = bpy.data.materials.new(name="Fog")
+            fog_material.use_nodes = True
+            fog_cube.data.materials.append(fog_material)
+
+            fog_node = fog_material.node_tree.nodes.new(type='ShaderNodeGroup')
+            fog_node.node_tree = bpy.data.node_groups["Fog"]
+            output_node = fog_material.node_tree.nodes.get("Material Output")
+            fog_material.node_tree.nodes.remove(GetConnectedSocketTo("Surface", output_node).node)
+            fog_node.location = (output_node.location.x - 200, output_node.location.y)
+            fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
+            
+            bpy.context.object["MiBlend ID"] = "Fog"
 
         # Create Clouds
-        if scene.env_properties.create_clouds and not clouds_exists:
+        if (scene.env_properties.create_clouds and mode == None) or mode == "Clouds":
             try:
                 if clouds_node_tree_name not in bpy.data.node_groups:
                     with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):

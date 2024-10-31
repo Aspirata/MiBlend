@@ -59,26 +59,33 @@ def load_post_handler(dummy):
     InitOnStart()
 
 classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
-    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, OptimizationProperties,                                    # Properties
-    UtilsProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,                                                                                                              
-    WorldAndMaterialsPanel, OptimizationPanel, UtilsPanel, AssetPanel, Assets_List_UL_,                                                                           # Panels
+    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,                                                                            # Properties
+    PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,                                                                                                              
+    WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,                                                                                                          # Panels
     RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
     SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator,
 ]
 
+deprecated_classes = [OptimizationPanel, UtilsPanel, OptimizationProperties, UtilsProperties]
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    
+    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
+        for cls in deprecated_classes:
+            bpy.utils.register_class(cls)
+        
+        bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
+        bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
 
     bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=WorldProperties)
     bpy.types.Scene.resource_properties = bpy.props.PointerProperty(type=ResourcePackProperties)
     bpy.types.Scene.materials_properties = bpy.props.PointerProperty(type=MaterialsProperties)
     bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
     bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
-    bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
-    bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
     bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
     bpy.types.Scene.script_asset_properties = bpy.props.PointerProperty(type=ScriptAssetProperties)
 

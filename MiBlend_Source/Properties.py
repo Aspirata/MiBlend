@@ -526,27 +526,13 @@ class PPBRProperties(PropertyGroup):
 
 class CreateEnvProperties(PropertyGroup):
 
-    sky_settings: BoolProperty(
-        default=False,
-        description=""
-    )
-
-    clouds_settings: BoolProperty(
-        default=False,
-        description=""
-    )
-
-    geonodes_settings: BoolProperty(
+    create_sky: BoolProperty(
+        name="Create Sky",
         default=True,
         description=""
     )
 
-    material_settings: BoolProperty(
-        default=False,
-        description=""
-    )
-
-    layers_settings: BoolProperty(
+    sky_settings: BoolProperty(
         default=False,
         description=""
     )
@@ -582,9 +568,34 @@ class CreateEnvProperties(PropertyGroup):
         description=""
     )
 
-    create_sky: BoolProperty(
-        name="Create Sky",
+    clouds_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
+    geonodes_settings: BoolProperty(
         default=True,
+        description=""
+    )
+
+    material_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
+    layers_settings: BoolProperty(
+        default=False,
+        description=""
+    )
+
+    create_fog: BoolProperty(
+        name="Create Fog",
+        default=True,
+        description=""
+    )
+
+    fog_settings: BoolProperty(
+        default=False,
         description=""
     )
 

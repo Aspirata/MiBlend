@@ -26,6 +26,14 @@ class RecreateEnvironment(Operator):
         name="create_sky",
         default='None'
     )
+
+    create_fog: EnumProperty(
+        items=[('None', 'None', ''),
+            ('Create Fog', 'Create Fog', 'l'), 
+            ('Recreate Fog', 'Recreate Fog', '')],
+        name="create_fog",
+        default='None'
+    )
     
     create_clouds: EnumProperty(
         items=[('None', 'None', ''),
@@ -37,7 +45,7 @@ class RecreateEnvironment(Operator):
 
     def execute(self, context):
 
-        Materials.create_env(self)
+        Materials.recreate_env(self)
 
         return {'FINISHED'}
         
@@ -66,6 +74,8 @@ class RecreateEnvironment(Operator):
                         row = box.row()
 
         row.prop(self, "create_sky", text='create_sky', expand=True)
+        row = box.row()
+        row.prop(self, "create_fog", text='create_fog', expand=True)
         row = box.row()
         row.prop(self, "create_clouds", text='create_clouds', expand=True)
 
@@ -463,6 +473,48 @@ class SavePropertiesOperator(Operator):
         except Exception as e:
             self.report({'ERROR'}, f"Failed to save properties: {str(e)}")
             return {'CANCELLED'}
+    
+class RemoveAsset(Operator):
+    bl_idname = "assets.add_asset"
+    bl_label = "Add Asset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        current_index = bpy.context.scene.assetsproperties.asset_index
+        items = bpy.context.scene.assetsproperties.asset_items
+
+        if current_index < 0 or current_index >= len(items):
+            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
+            return {'CANCELLED'}
+        
+        current_asset = items[current_index]
+
+        properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
+
+        file_path = current_asset.get("File_path", "")
+        json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
+
+        if not os.path.isfile(json_file_path):
+            self.report({'ERROR'}, f"File not found: {json_file_path}")
+            return {'CANCELLED'}
+
+        try:
+            with open(json_file_path, 'r') as json_file:
+                asset_data = json.load(json_file)
+
+            for key, value in properties.items():
+                if key in asset_data:
+                    asset_data[key] = value
+
+            with open(json_file_path, 'w') as json_file:
+                json.dump(asset_data, json_file, indent=4)
+            
+            self.report({'INFO'}, f"Properties saved to {json_file_path}")
+            return {'FINISHED'}
+        
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to save properties: {str(e)}")
+            return {'CANCELLED'}
 
 class AddAsset(Operator):
     bl_idname = "assets.add_asset"
@@ -479,7 +531,7 @@ class AddAsset(Operator):
         if path.endswith('.json'):
             asset_type = 'Scene Only'
             json_file_path = path
-        else:
+        elif path.endswith('.zip'):
             extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
 
             if os.path.exists(extract_path):
@@ -493,6 +545,8 @@ class AddAsset(Operator):
             else:
                 dprint("The provided path is neither a directory nor a ZIP file.")
                 return {'CANCELLED'}
+        else:
+            dprint(f"Unknown File {os.path.basename(path)}")
             
         if asset_type == "Presistent":
             for root, dirs, files in os.walk(extract_path):
@@ -508,32 +562,32 @@ class AddAsset(Operator):
                 asset_data = json.load(f)
 
             file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
-            if file_path_in_json:
-                if asset_type == 'Scene Only':
-                    mib_options = bpy.context.scene["mib_options"]
+            
+            if asset_type == 'Scene Only':
+                mib_options = bpy.context.scene["mib_options"]
 
-                    if "temp_assets_paths" not in mib_options:
-                        mib_options["temp_assets_paths"] = {}
+                if "temp_assets_paths" not in mib_options:
+                    mib_options["temp_assets_paths"] = {}
 
-                    temp_assets_path = mib_options["temp_assets_paths"]
+                temp_assets_path = mib_options["temp_assets_paths"]
 
-                    temp_assets_path[asset_data.get("Asset_name", "")] = os.path.dirname(json_file_path)
-                    dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
-                    dprint(temp_assets_path.get(asset_data.get("Asset_name", "")))
-                else:
-                    destination_path = os.path.join(assets_directory, file_path_in_json)
-                    os.makedirs(destination_path, exist_ok=True)
+                temp_assets_path[asset_data.get("Asset_name", "")] = os.path.dirname(json_file_path)
+                dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
+                dprint(temp_assets_path.get(asset_data.get("Asset_name", "")))
+            elif file_path_in_json:
+                destination_path = os.path.join(assets_directory, file_path_in_json)
+                os.makedirs(destination_path, exist_ok=True)
 
-                    for item in os.listdir(extract_path):
-                        src_path = os.path.join(extract_path, item)
-                        dst_path = os.path.join(destination_path, item)
+                for item in os.listdir(extract_path):
+                    src_path = os.path.join(extract_path, item)
+                    dst_path = os.path.join(destination_path, item)
 
-                        if os.path.isdir(src_path):
-                            shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
-                        else:
-                            shutil.copy2(src_path, dst_path)
+                    if os.path.isdir(src_path):
+                        shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(src_path, dst_path)
 
-                    dprint(f"Persistent asset files successfully copied to {destination_path}")
+                dprint(f"Persistent asset files successfully copied to {destination_path}")
             else:
                 dprint("File_path not specified in the JSON file")
         else:

@@ -23,7 +23,7 @@ To Install this brach as addon you need to you can go to https://github.com/Aspi
 Links:
 - https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg
 
-### HeyItsAnjello - Procedural Normals Node
+### HeyItsAnjello - Procedural Normals Node, Fog
 
 Links:
 - https://twitter.com/HeyItsAnjello

@@ -16,6 +16,11 @@ class MiBlendPreferences(AddonPreferences):
         default=True
     )
 
+    enable_deprecated_features: BoolProperty(
+        name="Enable Deprecated Features (Requires Restart)",
+        default=False
+    )
+
     as_mode: EnumProperty(
         items=[('None', 'None', 'No Errors will be Displayed'),
             ('Smart', 'Smart', 'Only Critical Errors will be Displayed (For Smart People)'),
@@ -121,6 +126,9 @@ class MiBlendPreferences(AddonPreferences):
         box = layout.box()
         row = box.row()
         row.label(text="Other:")                                                       # Other
+
+        row = box.row()
+        row.prop(self, "enable_deprecated_features")
 
         row = box.row()
         row.prop(self, "mc_instances_path")

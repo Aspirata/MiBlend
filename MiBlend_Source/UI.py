@@ -21,9 +21,6 @@ class WorldAndMaterialsPanel(Panel):
         Preferences = bpy.context.preferences.addons[__package__].preferences
 
         world = scene.world
-        
-        clouds_exists = False
-        sky_exists = False
 
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -189,8 +186,16 @@ class WorldAndMaterialsPanel(Panel):
 
         # Sky
 
-        node_group = None
+        sky_exists = False
+        fog_exists = False
+        clouds_exists = False
+
+        sky_node = None
+        fog_node = None
+
+        fog_obj = None
         clouds_obj = None
+
         geonodes_modifier = None 
 
         try:
@@ -201,7 +206,7 @@ class WorldAndMaterialsPanel(Panel):
                     for node in world_material.nodes:
                         if node.type == 'GROUP':
                             if "MiBlend Sky" in node.node_tree.name:
-                                node_group = node
+                                sky_node = node
                                 break
 
             for obj in scene.objects:
@@ -213,7 +218,15 @@ class WorldAndMaterialsPanel(Panel):
                     map_range_node = material_tree.nodes.get("Map Range").inputs[2]
                     shadow_node = material_tree.nodes.get("Math").inputs[1]
                     base_color = material_tree.nodes.get("Principled BSDF").inputs[0]
-                    break
+                    
+                elif obj.get("MiBlend ID") == "Fog":
+                    fog_exists = True
+                    fog_obj = obj
+                    for node in fog_obj.material_slots[0].material.node_tree.nodes:
+                        if node.type == 'GROUP':
+                            if "Fog" in node.node_tree.name:
+                                fog_node = node
+                                break
 
             box = layout.box()
             row = box.row()
@@ -224,7 +237,7 @@ class WorldAndMaterialsPanel(Panel):
 
             # Sky Settings
 
-            if node_group is not None:
+            if sky_node is not None:
                 row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
                 if scene.env_properties.sky_settings:
                     sbox = box.box()
@@ -233,7 +246,7 @@ class WorldAndMaterialsPanel(Panel):
                     row = tbox.row()
                     row.label(text="Main Settings:", icon="PROPERTIES")
                     row = tbox.row()
-                    row.prop(node_group.inputs["Time"], "default_value", text="Time")
+                    row.prop(sky_node.inputs["Time"], "default_value", text="Time")
 
                     if scene.render.engine == "BLENDER_EEVEE_NEXT":
                         row = tbox.row()
@@ -244,20 +257,20 @@ class WorldAndMaterialsPanel(Panel):
                     row.label(text="Strength:", icon="LIGHT_SUN")
                     row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
                     if scene.env_properties.strength_settings:
-                        if not node_group.inputs["End"].default_value:
+                        if not sky_node.inputs["End"].default_value:
                             row = tbox.row()
-                            row.prop(node_group.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                            row.prop(sky_node.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Sun Strength"], "default_value", text="Sun Strength")
+                            row.prop(sky_node.inputs["Sun Strength"], "default_value", text="Sun Strength")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Stars Strength"], "default_value", text="Stars Strength")
+                            row.prop(sky_node.inputs["Stars Strength"], "default_value", text="Stars Strength")
                         else:
                             row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Strength"], "default_value", text="Stars Strength")
+                            row.prop(sky_node.inputs["End Stars Strength"], "default_value", text="Stars Strength")
                         row = tbox.row()
-                        row.prop(node_group.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
+                        row.prop(sky_node.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
                         row = tbox.row()
-                        row.prop(node_group.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
+                        row.prop(sky_node.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
                                                 
                     tbox = sbox.box()
                     row = tbox.row()
@@ -265,18 +278,18 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.env_properties.colors_settings:
-                        if not node_group.inputs["End"].default_value:
+                        if not sky_node.inputs["End"].default_value:
                             row = tbox.row()
-                            row.prop(node_group.inputs["Moon Color"], "default_value", text="Moon Color")
+                            row.prop(sky_node.inputs["Moon Color"], "default_value", text="Moon Color")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Sun Color"], "default_value", text="Sun Color")
+                            row.prop(sky_node.inputs["Sun Color"], "default_value", text="Sun Color")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
+                            row.prop(sky_node.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Stars Color"], "default_value", text="Stars Color")
+                            row.prop(sky_node.inputs["Stars Color"], "default_value", text="Stars Color")
                         else:
                             row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Color"], "default_value", text="Stars Color")
+                            row.prop(sky_node.inputs["End Stars Color"], "default_value", text="Stars Color")
                     
                     tbox = sbox.box()
                     row = tbox.row()
@@ -294,24 +307,24 @@ class WorldAndMaterialsPanel(Panel):
                     
                     tbox = sbox.box()
                     row = tbox.row()
-                    row.label(text=( "Star Rotation:" if node_group.inputs["End"].default_value else "Sun & Moon Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
+                    row.label(text=( "Star Rotation:" if sky_node.inputs["End"].default_value else "Sun & Moon Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
                     row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.env_properties.rotation_settings:
-                        if node_group.inputs["End"].default_value:
+                        if sky_node.inputs["End"].default_value:
                             row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=0, text="X")
+                            row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
+                            row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
                             row = tbox.row()
-                            row.prop(node_group.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
+                            row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
                         else:
                             row = tbox.row()
-                            row.prop(node_group.inputs["Rotation"], "default_value", index=0, text="X")
+                            row.prop(sky_node.inputs["Rotation"], "default_value", index=0, text="X")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Rotation"], "default_value", index=1, text="Y")
+                            row.prop(sky_node.inputs["Rotation"], "default_value", index=1, text="Y")
                             row = tbox.row()
-                            row.prop(node_group.inputs["Rotation"], "default_value", index=2, text="Z")
+                            row.prop(sky_node.inputs["Rotation"], "default_value", index=2, text="Z")
 
                     tbox = sbox.box()
                     row = tbox.row()
@@ -320,14 +333,44 @@ class WorldAndMaterialsPanel(Panel):
 
                     if scene.env_properties.other_settings:
                         row = tbox.row()
-                        row.prop(node_group.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
+                        row.prop(sky_node.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
                         
                         row = tbox.row()
-                        row.prop(node_group.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
+                        row.prop(sky_node.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
 
                         row = tbox.row()
-                        row.prop(node_group.inputs["End"], "default_value", text="End", toggle=True)
+                        row.prop(sky_node.inputs["End"], "default_value", text="End", toggle=True)
             
+            row = box.row()
+            row.prop(scene.env_properties, "create_fog", text="Create Fog")
+
+            # Fog Settings
+
+            if fog_exists:
+                row.prop(scene.env_properties, "fog_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.fog_settings else "TRIA_LEFT"), icon_only=True)
+
+                if scene.env_properties.fog_settings:
+                    sbox = box.box()
+                    tbox = sbox.box()
+
+                    row = tbox.row()
+                    row.label(text="Main Settings:", icon="PROPERTIES")
+
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Fog Color"], "default_value", text="Fog Color")
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Height"], "default_value", text="Height")
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Density"], "default_value", text="Density")
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Max Distance"], "default_value", text="Max Distance")
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Min Distance"], "default_value", text="Min Distance")
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Anisotropy"], "default_value", text="Anisotropy")
+                    row = tbox.row()
+                    row.prop(fog_node.inputs["Emission"], "default_value", text="Emission")
+
             row = box.row()
             row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
 
@@ -646,65 +689,63 @@ class OptimizationPanel(Panel):
     bl_category = 'MiBlend'
 
     def draw(self, context):
-        
-        if Preferences.dev_tools and Preferences.experimental_features:
 
-            layout = self.layout
+        layout = self.layout
 
-            if Preferences.transparent_ui:
-                self.bl_options = {'HIDE_HEADER'}
+        if Preferences.transparent_ui:
+            self.bl_options = {'HIDE_HEADER'}
+        else:
+            self.bl_options = {'DEFAULT_CLOSED'}
+
+        box = layout.box()
+        row = box.row()
+        row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
+        row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
+        # Camera Culling Settings
+        if bpy.context.scene.optimizationproperties.camera_culling_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
+            row = sbox.row()
+            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
+            if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
+                # Raycast Camera Culling Settings
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Culling Mode:")
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
+                    
+                if bpy.context.scene.optimizationproperties.merge_by_distance:
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
+
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+
+                if bpy.context.scene.optimizationproperties.backface_culling:
+                    row = tbox.row()
+                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "scale")
             else:
-                self.bl_options = {'DEFAULT_CLOSED'}
+                # Vector Camera Culling Settings
+                tbox = sbox.box()
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                row = tbox.row()
+                row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
 
-            box = layout.box()
-            row = box.row()
-            row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
-            # Camera Culling Settings
-            if bpy.context.scene.optimizationproperties.camera_culling_settings:
-                sbox = box.box()
-                row = sbox.row()
-                row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
-                row = sbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-                if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
-                    # Raycast Camera Culling Settings
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Culling Mode:")
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
-                        
-                    if bpy.context.scene.optimizationproperties.merge_by_distance:
-                        row = tbox.row()
-                        row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
-
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-
-                    if bpy.context.scene.optimizationproperties.backface_culling:
-                        row = tbox.row()
-                        row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
-
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "scale")
-                else:
-                    # Vector Camera Culling Settings
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
-
-            row = box.row()
-            row.scale_y = Big_Button_Scale
-            row.operator("optimization.optimization", text="Optimize")
+        row = box.row()
+        row.scale_y = Big_Button_Scale
+        row.operator("optimization.optimization", text="Optimize")
 
 class UtilsPanel(Panel):
     bl_label = "Utils"

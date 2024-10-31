@@ -21,14 +21,6 @@ def PBSDF_compability(Input: str) -> str:
         }.get(Input, Input)
     return Input
 
-def convert_hex_to_rgba(hex_code, alpha=1.0):
-    hex_code = hex_code.replace("#", "")
-    r = int(hex_code[:2], base=16) / 255
-    g = int(hex_code[2:4], base=16) / 255
-    b = int(hex_code[4:6], base=16) / 255
-    a = alpha
-    return (r, g, b, a)
-
 def clamp(min_value, value, max_value):
     return max(min_value, min(value, max_value))
 
@@ -60,9 +52,17 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     return "unknown"
 
 def format_texture_name(texture_name):
-    return texture_name.lower().replace("-", "_").split("_")
+    parts = texture_name.split(".")
+    if len(parts) > 1 and parts[-1].isdigit():
+        texture_name.replace(parts[-1], "")
+
+    return texture_name.replace(".png", "").lower().replace("-", "_").split("_")
 
 def format_material_name(material_name):
+    parts = material_name.split(".")
+    if len(parts) > 1 and parts[-1].isdigit():
+        material_name.replace(parts[-1], "")
+    
     return material_name.lower().replace("-", "_").split(".")
 
 def dprint(message):
