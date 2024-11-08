@@ -1,9 +1,10 @@
 from .MIB_API import *
 
-def VertexRiggingTool():
+def VertexRiggingTool(vertex_group_name=None):
     selected_objects = bpy.context.selected_objects
     
-    vertex_group_name = bpy.context.scene.utilsproperties.vertex_group_name
+    if vertex_group_name is None:
+        vertex_group_name = bpy.context.scene.utilsproperties.vertex_group_name
     
     for obj in selected_objects:
         if obj.type == "MESH":
