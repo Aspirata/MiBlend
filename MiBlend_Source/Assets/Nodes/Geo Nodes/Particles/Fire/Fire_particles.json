@@ -2,7 +2,7 @@
     "Format_version": "dev",
     "Asset_name": "Fire Particles",
     "Author": "Anonim4k, Aspirata",
-    "File_path": "Geo Nodes\\Particles\\Fire\\Fire_particles",
+    "File_path": "Nodes\\Geo Nodes\\Particles\\Fire\\Fire_particles",
     "Node_name": "Fire Particles",
     "Tags": ["Geo Node", "Particles", "Node"]
 }
