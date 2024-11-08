@@ -238,12 +238,14 @@ def fix_world():
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
                     # Simple Biomes Support
-                    if "oak" in texture_parts:
-                        biome = "Forest"
-                    elif "fern" or "spruce" in texture_parts:
+                    
+                    if "fern" or "spruce" in texture_parts:
                         biome = "Taiga"
-                    elif "birch" in texture_parts:
+
+                    if "birch" in texture_parts:
                         biome = "Birch"
+                    else:
+                        biome = "Forest"
 
                     if "grass" in texture_parts:
                         lbcf_node.inputs["Mode"].default_value = 2
@@ -456,6 +458,8 @@ def create_env(mode=None):
             fog_material.node_tree.nodes.remove(GetConnectedSocketTo("Surface", output_node).node)
             fog_node.location = (output_node.location.x - 200, output_node.location.y)
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
+
+            bpy.context.scene.eevee.volumetric_end = fog_node.inputs["Max Distance"].default_value
             
             bpy.context.object["MiBlend ID"] = "Fog"
 
