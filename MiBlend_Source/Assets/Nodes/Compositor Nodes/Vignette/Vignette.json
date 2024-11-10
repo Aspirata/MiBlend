@@ -3,7 +3,7 @@
     "Asset_name": "Vignette",
     "Asset_version": "4.1",
     "Author": "Aspirata",
-    "File_path": "Nodes\\Compositing Nodes\\Vignette\\Vignette",
+    "File_path": "Nodes\\Compositor Nodes\\Vignette\\Vignette",
     "Node_name": "Vignette V4.1",
-    "Tags": ["Compositing Node", "Node"]
+    "Tags": ["Compositor Node", "Node"]
 }

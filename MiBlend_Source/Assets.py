@@ -14,6 +14,12 @@ def append_asset(asset_data):
         elif asset_type == "Script":
             run_python_script(asset_name, asset_path)
         
+        elif asset_type == "Compositor Node":
+            append_cnode(asset_data)
+
+        elif asset_type == "Geo Node":
+            append_gnode(asset_data)
+        
         elif asset_type == "Shader Node":
             append_snode(asset_data)
         
@@ -95,6 +101,36 @@ def append_snode(asset_data):
                 if Node == None:
                     Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
                     Node.node_tree = bpy.data.node_groups[Node_name]
+
+def append_cnode(asset_data):
+    Node_name = asset_data.get("Node_name", "")
+    Blend_file = asset_data.get("File_path", "")
+    Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
+
+    if Node_name not in bpy.data.node_groups:
+        try:
+            with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                data_to.node_groups = [Node_name]
+        except:
+            Absolute_Solver("009", Node_name, traceback.format_exc())
+
+    if os.path.isfile(Script_path):
+        run_python_script(asset_data.get("Asset_name"), Script_path)
+        dprint(f"{Node_name} Script Found")
+
+    else:
+        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        bpy.context.scene.use_nodes = True
+        tree = bpy.context.scene.node_tree
+        Node = None
+        for node in tree:
+            if node.type == 'GROUP':
+                if Node_name in node.node_tree.name:
+                    Node = node
+
+        if Node == None:
+            Node = tree.nodes.new('CompositorNodeGroup')
+            Node.node_tree = bpy.data.node_groups[Node_name]
 
 def append_gnode(asset_data):
     Node_name = asset_data.get("Node_name", "")

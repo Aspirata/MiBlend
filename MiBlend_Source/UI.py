@@ -862,7 +862,7 @@ class AssetPanel(Panel):
         if assets_props.filters:
             sbox = box.box()
             primary_tags = {"Rig", "Script", "Shader Node", "Geo Node", "Compositor Node", "Model", "Material"}
-            secondary_tags = {"Simple", "Realistic", "Node", "Particles"}
+            secondary_tags = {"Simple", "Realistic", "Story Mode", "Node", "Particles"}
 
             row = sbox.row()
             row.label(text="Tags:")
@@ -907,7 +907,7 @@ class Assets_List_UL_(bpy.types.UIList):
             "Rig": "ARMATURE_DATA",
             "Material": "MATERIAL_DATA",
             "Script": "FILE_SCRIPT",
-            "Compositor Node": "MATERIAL_DATA",
+            "Compositor Node": "NODE_SEL",
             "Shader Node": "NODE",
             "Geo Nodes": "GEOMETRY_NODES",
             "Model": "OBJECT_DATA",
