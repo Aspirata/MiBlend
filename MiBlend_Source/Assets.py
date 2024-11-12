@@ -72,8 +72,12 @@ def append_snode(asset_data):
             Node = None
             if selected_object.material_slots:
                 for index, material in enumerate(selected_object.data.materials):
+                    avg_x = []
+                    avg_y = []
                     if material is not None and material.use_nodes:
                         for node in material.node_tree.nodes:
+                            avg_x.append(node.location.x)
+                            avg_y.append(node.location.y)
                             if node.type == 'GROUP':
                                 if Node_name in node.node_tree.name:
                                     Node = node
@@ -81,6 +85,7 @@ def append_snode(asset_data):
                         if Node == None:
                             Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                             Node.node_tree = bpy.data.node_groups[Node_name]
+                            Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
                     else:
                         Absolute_Solver("m002", index)
             else:
@@ -88,12 +93,16 @@ def append_snode(asset_data):
 
     elif Append_mode == "Active Only":
         dprint(f"{Node_name} Script Not Found, using default algorithm")
+        avg_x = []
+        avg_y = []
         active_obj = bpy.context.active_object
         Node = None
         if active_obj and active_obj.active_material:
             current_material = active_obj.active_material
             if current_material is not None and current_material.use_nodes:
                 for node in current_material.node_tree.nodes:
+                    avg_x.append(node.location.x)
+                    avg_y.append(node.location.y)
                     if node.type == 'GROUP':
                         if Node_name in node.node_tree.name:
                             Node = node
@@ -101,6 +110,7 @@ def append_snode(asset_data):
                 if Node == None:
                     Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
                     Node.node_tree = bpy.data.node_groups[Node_name]
+                    Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
 
 def append_cnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
@@ -120,10 +130,14 @@ def append_cnode(asset_data):
 
     else:
         dprint(f"{Node_name} Script Not Found, using default algorithm")
+        avg_x = []
+        avg_y = []
         bpy.context.scene.use_nodes = True
         tree = bpy.context.scene.node_tree
         Node = None
-        for node in tree:
+        for node in tree.nodes:
+            avg_x.append(node.location.x)
+            avg_y.append(node.location.y)
             if node.type == 'GROUP':
                 if Node_name in node.node_tree.name:
                     Node = node
@@ -131,12 +145,20 @@ def append_cnode(asset_data):
         if Node == None:
             Node = tree.nodes.new('CompositorNodeGroup')
             Node.node_tree = bpy.data.node_groups[Node_name]
+            Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
 
 def append_gnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
     Append_mode = asset_data.get("Append_mode", "Active Only")
     Blend_file = asset_data.get("File_path", "")
     Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
+
+    if Node_name not in bpy.data.node_groups:
+        try:
+            with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
+                data_to.node_groups = [Node_name]
+        except:
+            Absolute_Solver("009", Node_name, traceback.format_exc())
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -145,45 +167,38 @@ def append_gnode(asset_data):
     elif Append_mode == "Every Selected":
         dprint(f"{Node_name} Script Not Found, using default algorithm")
         for selected_object in bpy.context.selected_objects:
-            slot = 0
-            if selected_object.material_slots:
-                for material in selected_object.data.materials:
-                    slot += 1
-                    if material is not None and material.use_nodes:
-                        if Node_name not in bpy.data.node_groups:
-                            try:
-                                with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
-                                    data_to.node_groups = [Node_name]
-                            except:
-                                Absolute_Solver("009", Node_name, traceback.format_exc())
-
-                        Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                        Node.node_tree = bpy.data.node_groups[Node_name]
-                    else:
-                        Absolute_Solver("m002", slot)
-            else:
-                Absolute_Solver("m003", selected_object)
+            geonodes_modifier = None
+            if selected_object.type == "MESH":
+                for modifier in selected_object.modifiers:
+                    if modifier.type == "NODES":
+                        if modifier.node_group == Node_name:
+                            geonodes_modifier = modifier
+                            break
+            
+                if geonodes_modifier is None:
+                    geonodes_modifier = selected_object.modifiers.new(Node_name, type='NODES')
+                    geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
 
     elif Append_mode == "Active Only":
         dprint(f"{Node_name} Script Not Found, using default algorithm")
         active_obj = bpy.context.active_object
-        if active_obj and active_obj.active_material:
-            current_material = active_obj.active_material
-            if current_material.use_nodes:
-                if Node_name not in bpy.data.node_groups:
-                    try:
-                        with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
-                            data_to.node_groups = [Node_name]
-                    except:
-                        Absolute_Solver("009", Node_name, traceback.format_exc())
-
-                Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
-                Node.node_tree = bpy.data.node_groups[Node_name]
+        geonodes_modifier = None
+        if active_obj and active_obj.type == "MESH":
+            for modifier in selected_object.modifiers:
+                if modifier.type == "NODES":
+                    if modifier.node_group == Node_name:
+                        geonodes_modifier = modifier
+                        break
+        
+        if geonodes_modifier is None:
+            geonodes_modifier = active_obj.modifiers.new(Node_name, type='NODES')
+            geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
 
 def append_material(asset_data):
     Append_mode = asset_data.get("Append_mode", "Active Only")
     Blend_file = asset_data.get("File_path", "")
     Material_name = asset_data.get("Material_name", "")
+    Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
     if Material_name not in bpy.data.materials:
         try:
@@ -192,9 +207,14 @@ def append_material(asset_data):
         except:
             Absolute_Solver('004', Blend_file, traceback.format_exc())
     
-    if Append_mode == "Active Only":
+    if os.path.isfile(Script_path):
+        run_python_script(asset_data.get("Asset_name"), Script_path)
+        dprint(f"{Material_name} Script Found")
+
+    elif Append_mode == "Active Only":
+        dprint(f"{Material_name} Script Not Found, using default algorithm")
         active_obj = bpy.context.active_object
-        if active_obj:
+        if active_obj and active_obj.material_slots:
             active_obj.data.materials[0] = bpy.data.materials.get(Material_name)
 
 def update_assets():

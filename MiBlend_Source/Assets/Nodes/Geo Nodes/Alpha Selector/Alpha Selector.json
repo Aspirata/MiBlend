@@ -1,0 +1,9 @@
+{
+    "Format_version": "a009",
+    "Asset_name": "Alpha Selector",
+    "Author": "Anonim4k, Aspirata",
+    "File_path": "Nodes\\Geo Nodes\\Alpha Selector\\Alpha Selector",
+    "Node_name": "Alpha Selector",
+    "Append_mode": "Every Selected",
+    "Tags": ["Geo Node", "Node"]
+}

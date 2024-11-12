@@ -75,7 +75,7 @@ def Absolute_Solver(error_code: str="None", data: str ="None", tech_things:str =
             except KeyError:
                 return None
         
-        if error_code is not None:
+        if error_code is not "None":
             error_name = Absolute_Solver_Errors[error_code].get("Error Name")
         
             description = Absolute_Solver_Errors[error_code].get('Description', None)
@@ -121,9 +121,12 @@ class AbsoluteSolverPanel(bpy.types.Operator):
             row = sbox.row()
             row.label(text="Tech Things:")
 
-            split_tech_things = re.split(r'  |: ', self.Tech_Things)
-            for part in split_tech_things:
-                sbox.label(text=part)
+            if len(self.Tech_Things.split()) < 50:
+                split_tech_things = re.split(r'  |: ', self.Tech_Things)
+                for part in split_tech_things:
+                    sbox.label(text=part)
+            else:
+                sbox.label(text="Tech Things Cannot Be Displayed Here, Please Open the Console")
 
             print(f"\033[33mAbsolute Solver Error Report: \033[31m\n{self.Tech_Things}\033[0m")
             sbox = box.box()
