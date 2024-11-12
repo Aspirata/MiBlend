@@ -49,4 +49,4 @@ Links:
 
 ### jabady - Active Testing And Bug Reporting
 
-### humusus. - Help with Allay Rig
+### humusus. - Helping with Allay Rig
