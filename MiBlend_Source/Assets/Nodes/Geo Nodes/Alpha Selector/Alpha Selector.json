@@ -4,6 +4,10 @@
     "Author": "Anonim4k, Aspirata",
     "File_path": "Nodes\\Geo Nodes\\Alpha Selector\\Alpha Selector",
     "Node_name": "Alpha Selector",
+    "Extrude_property": true,
+    "Auto Detect Subdivision_property": false,
+    "Extrude Offset_property": -0.15,
+    "Subdivision_property": 3,
     "Append_mode": "Every Selected",
     "Tags": ["Geo Node", "Node"]
 }

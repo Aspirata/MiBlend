@@ -139,7 +139,10 @@ def fix_world():
             else:
                 material.blend_method = 'HASHED'
             
-            material.shadow_method = 'HASHED'
+            try:
+                material.shadow_method = 'HASHED'
+            except:
+                pass
 
             # Delete Useless Textres
             if WProperties.delete_useless_textures:
@@ -443,10 +446,11 @@ def create_env(mode=None):
             except:
                 Absolute_Solver("004", "Nodes", traceback.format_exc())
             
-            bpy.ops.mesh.primitive_cube_add(size=2000, enter_editmode=False, align='WORLD', location=(0, 0, 0))
+            bpy.ops.mesh.primitive_cube_add(size=1, enter_editmode=False, align='WORLD', location=(0, 0, 50))
             fog_cube = bpy.context.active_object
 
             fog_cube.name = "Fog"
+            fog_cube.scale = (500, 500, 75)
 
             fog_material = bpy.data.materials.new(name="Fog")
             fog_material.use_nodes = True
@@ -504,7 +508,6 @@ def fix_materials():
             PBSDF = None
 
             material.blend_method = 'HASHED'
-            material.shadow_method = 'HASHED'
 
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":

@@ -359,7 +359,7 @@ class WorldAndMaterialsPanel(Panel):
                     row = tbox.row()
                     row.prop(fog_node.inputs["Fog Color"], "default_value", text="Fog Color")
                     row = tbox.row()
-                    row.prop(fog_node.inputs["Height"], "default_value", text="Height")
+                    row.prop(fog_obj, "location", index=2, text="Height") 
                     row = tbox.row()
                     row.prop(fog_node.inputs["Density"], "default_value", text="Density")
                     row = tbox.row()

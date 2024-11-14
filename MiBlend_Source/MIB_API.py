@@ -73,6 +73,45 @@ def isdublicate(text, original_text=None):
     parts = text.split(".")
     return len(parts) > 1 and parts[-1].isdigit() and (text.replace("." + str(parts[-1]), "") == original_text if original_text != None else True)
 
+def detect_texture_node(node):
+
+    def get_all_linked_nodes(node):
+        linked_nodes = []
+        for input_name, input_socket in node.inputs.items():
+            if input_socket.is_linked:
+                for link in input_socket.links:
+                    linked_nodes.append(link.from_node)
+                    linked_nodes.extend(get_all_linked_nodes(link.from_node))
+        return linked_nodes
+
+    def get_linked_nodes(node, input_name):
+        linked_nodes = []
+        if input_name in node.inputs and node.inputs[input_name].is_linked:
+            for link in node.inputs[input_name].links:
+                linked_nodes.append(link.from_node)
+                linked_nodes.extend(get_all_linked_nodes(link.from_node))
+        return linked_nodes
+
+    def traverse_nodes(node, input_name, visited=None):
+        if visited is None:
+            visited = set()
+        
+        if node in visited:
+            return visited
+        
+        visited.add(node)
+        
+        linked_nodes = get_linked_nodes(node, input_name)
+        for linked_node in linked_nodes:
+            traverse_nodes(linked_node, input_name, visited)
+        
+        return visited
+    
+    connected_nodes = traverse_nodes(node, "Base Color")
+    for n in connected_nodes:
+        if n.type == "TEX_IMAGE" and n.image:
+            return n
+
 def SeparateMeshByMaterial(obj, materal = None):
     obj_name = obj.name
 

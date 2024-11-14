@@ -47,7 +47,7 @@ def run_python_script(name, path):
         with open(path, 'r') as file:
             exec(file.read(), globals(), {'properties': properties})
     except:
-        Absolute_Solver("009", name, traceback.print_exc())
+        Absolute_Solver("009", name, traceback.format_exc())
 
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
