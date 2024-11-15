@@ -125,14 +125,16 @@ def apply_resources():
                 print("Bad Zip File")
         else:
             for dirpath, dirnames, files in os.walk(root_folder):
-                if obj_type == "unknown":
-                    dprint(f"Warning ! {image_name} is {obj_type}")
 
-                elif not r_props.compatibility_mode and 'textures' in os.path.basename(dirpath) == "textures":
-                    dirpath = os.path.join(dirpath, obj_type)
-
-                else:
+                if "textures" not in dirpath:
                     continue
+
+                if obj_type == "unknown":
+                    dprint(f"{image_name} is {obj_type}")
+                    dprint(f"Switching to hybrid mode...")
+                    dirpath = os.path.join(dirpath, obj_type)
+                else:
+                    dprint(f"{image_name} is {obj_type} using texture filter...")
 
                 if not os.path.exists(dirpath):
                     continue
@@ -158,11 +160,14 @@ def apply_resources():
             infolist = zip_ref.infolist()
             
             if obj_type == "unknown":
-                dprint(f"Warning ! {image_name} is {obj_type}")
-
-            elif not r_props.compatibility_mode:
+                dprint(f"{image_name} is {obj_type}")
+                dprint(f"Switching to hybrid mode...")
+                filtered_infolist = [item for item in infolist if f"textures" in item.filename]
+            else:
+                dprint(f"{image_name} is {obj_type} using texture filter...")
                 filtered_infolist = [item for item in infolist if f"textures/{obj_type}" in item.filename]
-                infolist = filtered_infolist
+
+            infolist = filtered_infolist
 
             if r_props.animate_textures:
                 for zip_info in infolist:
@@ -182,6 +187,7 @@ def apply_resources():
                     continue
 
                 texture = os.path.basename(zip_info.filename)
+                dprint(f"{texture} ; {image_name}")
                 extracted_file_path = os.path.join(extract_path, zip_info.filename)
 
                 if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)):
@@ -285,8 +291,8 @@ def apply_resources():
             if os.path.isfile(animation_file):
                 with open(animation_file, 'r') as file:
                     data = json.load(file).get('animation', {})
-                    frametime = data.get('frametime')
-                    interpolate = data.get('interpolate')
+                    frametime = data.get('frametime', 20)
+                    interpolate = data.get('interpolate', False)
             
             if auvf_node:
                  material.node_tree.nodes.remove(auvf_node)

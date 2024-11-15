@@ -40,14 +40,18 @@ def MaterialIn(Array, material, mode="in"):
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
 
-    if ("block" in obj_name or "block" in mat_name) or bpy.data.objects[obj_name].get("MiBlend ID", None) != "item":
-        dprint(f"{obj_name}; {mat_name} is a block")
-        return "block"
-    
-    elif ("item" in obj_name or "item" in mat_name) or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item":
+    if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item":
         dprint(f"{obj_name}; {mat_name} is an item")
         return "item"
-
+    
+    elif "block" in obj_name or "block" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "block":
+            dprint(f"{obj_name}; {mat_name} is a block")
+            return "block"
+    
+    elif "entity" in obj_name or "entity" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "entity":
+        dprint(f"{obj_name}; {mat_name} is a entity")
+        return "entity"
+    
     dprint(f"{obj_name}; {mat_name} is unknown")
     return "unknown"
 

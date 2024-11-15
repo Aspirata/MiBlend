@@ -244,6 +244,12 @@ def fix_world():
                     
                     if "fern" or "spruce" in texture_parts:
                         biome = "Taiga"
+                    elif "dark" in texture_parts:
+                        biome = "Dark Forest"
+                    elif "mangrove" in texture_parts:
+                        biome = "Mangrove"
+                    elif "jungle" in texture_parts:
+                        biome = "Jungle"
 
                     if "birch" in texture_parts:
                         biome = "Birch"

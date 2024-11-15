@@ -62,11 +62,6 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
-    compatibility_mode: BoolProperty(
-        name="Compatibility Mode",
-        default=False,
-    )
-
     use_additional_textures: BoolProperty(
         name="Use PBR Textures",            # 16.09.2024 This was renamed, but i'm too lazy to change the name in the code LoL
         default=True,

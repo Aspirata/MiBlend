@@ -107,9 +107,6 @@ class WorldAndMaterialsPanel(Panel):
             row.prop(scene.resource_properties, "ignore_dublicates")
 
             row = sbox.row()
-            row.prop(scene.resource_properties, "compatibility_mode")
-
-            row = sbox.row()
             row.prop(scene.resource_properties, "use_i")
 
             row = sbox.row()
