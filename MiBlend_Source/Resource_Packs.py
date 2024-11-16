@@ -129,12 +129,20 @@ def apply_resources():
                 if "textures" not in dirpath:
                     continue
 
-                if obj_type == "unknown":
-                    dprint(f"{image_name} is {obj_type}")
-                    dprint(f"Switching to hybrid mode...")
+                if obj_type != "unknown":
+                    #dprint(f"{image_name} is {obj_type} using texture filter...")
                     dirpath = os.path.join(dirpath, obj_type)
-                else:
-                    dprint(f"{image_name} is {obj_type} using texture filter...")
+                #else:
+                    #dprint(f"{image_name} is {obj_type}")
+                    #dprint(f"Switching to hybrid mode...")
+
+                fast_image = os.path.join(dirpath, image_name)
+
+                if os.path.isfile(fast_image):
+                    #dprint(f"{fast_image} is found")
+                    return fast_image
+                #else:
+                    #dprint(f"{fast_image} isn't found, searching for the {image_name}...")
 
                 if not os.path.exists(dirpath):
                     continue
@@ -157,38 +165,48 @@ def apply_resources():
     def zip_unpacker(root_folder: str, image_name: str, obj_type: str , file=None) -> Optional[str]:
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
-            infolist = zip_ref.infolist()
+            namelist = zip_ref.namelist()
             
             if obj_type == "unknown":
-                dprint(f"{image_name} is {obj_type}")
-                dprint(f"Switching to hybrid mode...")
-                filtered_infolist = [item for item in infolist if f"textures" in item.filename]
+                #dprint(f"{image_name} is {obj_type}")
+                #dprint(f"Switching to hybrid mode...")
+                filtered_namelist = [item for item in namelist if f"textures" in item]
             else:
-                dprint(f"{image_name} is {obj_type} using texture filter...")
-                filtered_infolist = [item for item in infolist if f"textures/{obj_type}" in item.filename]
+                #dprint(f"{image_name} is {obj_type} using texture filter...")
+                filtered_namelist = [item for item in namelist if f"textures/{obj_type}" in item]
 
-            infolist = filtered_infolist
+            namelist = filtered_namelist
+
+            fast_image = namelist[0].replace(os.path.basename(namelist[0]), image_name)
+            extracted_file_path = os.path.join(extract_path, fast_image)
+            
+            if fast_image in namelist:
+                #dprint(f"{fast_image} is found")
+                if not os.path.isfile(os.path.join(extract_path, fast_image)):
+                    zip_ref.extract(fast_image, extract_path)
+                return extracted_file_path
+            #else:
+                #dprint(f"{fast_image} isn't found, searching for the {image_name}...")
 
             if r_props.animate_textures:
-                for zip_info in infolist:
-                    if not zip_info.filename.endswith(".mcmeta"):
+                for zip_info in namelist:
+                    if not zip_info.endswith(".mcmeta"):
                         continue
 
-                    texture = os.path.basename(zip_info.filename).replace(".mcmeta", "")
-                    extracted_file_path = os.path.join(extract_path, zip_info.filename)
+                    texture = os.path.basename(zip_info).replace(".mcmeta", "")
+                    extracted_file_path = os.path.join(extract_path, zip_info)
 
                     if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)) \
                         and not os.path.isfile(extracted_file_path):
 
                         zip_ref.extract(zip_info, extract_path)
 
-            for zip_info in infolist:
-                if not zip_info.filename.endswith(".png"):
+            for zip_info in namelist:
+                if not zip_info.endswith(".png"):
                     continue
 
-                texture = os.path.basename(zip_info.filename)
-                dprint(f"{texture} ; {image_name}")
-                extracted_file_path = os.path.join(extract_path, zip_info.filename)
+                texture = os.path.basename(zip_info)
+                extracted_file_path = os.path.join(extract_path, zip_info)
 
                 if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)):
 
@@ -586,9 +604,6 @@ def apply_resources():
         if not selected_object.material_slots:
             Absolute_Solver("m003", selected_object)
             continue
-        
-        obj_type = None
-        obj_type = detect_obj_type(selected_object.name)
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -613,6 +628,9 @@ def apply_resources():
             new_image_path = None
             new_normal_image_path = None
             new_specular_image_path = None
+
+            obj_type = None
+            obj_type = detect_obj_type(selected_object.name, material.name)
 
             for node in material.node_tree.nodes:
 
@@ -691,7 +709,7 @@ def apply_resources():
                         path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
                         if not enabled or "PBR" not in Type:
                             continue
-                            
+
                         if normal_texture_node is None:
                             normal_image_name = image_texture.replace(".png", "_n.png")
                         else:

@@ -129,6 +129,7 @@ def fix_world():
             PBSDF = None
             image_texture_node = None
             lbcf_node = None
+            bfc_node = None
             Texture_Animator = None
             auvf_node = None
             scene = bpy.context.scene
@@ -241,7 +242,6 @@ def fix_world():
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
                     # Simple Biomes Support
-                    
                     if "fern" or "spruce" in texture_parts:
                         biome = "Taiga"
                     elif "dark" in texture_parts:

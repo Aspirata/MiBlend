@@ -24,6 +24,12 @@ def PBSDF_compability(Input: str) -> str:
 def clamp(min_value, value, max_value):
     return max(min_value, min(value, max_value))
 
+def safe_check(condition):
+    try:
+        return condition
+    except:
+        return False
+
 def convert_to_linux(path):
     if sys.platform.startswith('linux'):
         return path.replace("\\", "/")
@@ -41,15 +47,15 @@ def MaterialIn(Array, material, mode="in"):
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
 
     if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item":
-        dprint(f"{obj_name}; {mat_name} is an item")
+        #dprint(f"{obj_name}; {mat_name} is an item")
         return "item"
     
     elif "block" in obj_name or "block" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "block":
-            dprint(f"{obj_name}; {mat_name} is a block")
+            #dprint(f"{obj_name}; {mat_name} is a block")
             return "block"
     
     elif "entity" in obj_name or "entity" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "entity":
-        dprint(f"{obj_name}; {mat_name} is a entity")
+        #dprint(f"{obj_name}; {mat_name} is a entity")
         return "entity"
     
     dprint(f"{obj_name}; {mat_name} is unknown")
