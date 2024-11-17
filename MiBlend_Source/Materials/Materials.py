@@ -242,7 +242,7 @@ def fix_world():
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
                     # Simple Biomes Support
-                    if "fern" or "spruce" in texture_parts:
+                    if "fern" in texture_parts or "spruce" in texture_parts:
                         biome = "Taiga"
                     elif "dark" in texture_parts:
                         biome = "Dark Forest"
@@ -250,8 +250,9 @@ def fix_world():
                         biome = "Mangrove"
                     elif "jungle" in texture_parts:
                         biome = "Jungle"
-
-                    if "birch" in texture_parts:
+                    elif "acacia" in texture_parts:
+                        biome = "Savanna"
+                    elif "birch" in texture_parts:
                         biome = "Birch"
                     else:
                         biome = "Forest"
@@ -266,7 +267,7 @@ def fix_world():
                         lbcf_node.inputs["Mode"].default_value = 4
                     
                     lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
-                    lbcf_node.inputs["Foliage Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
+                    lbcf_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lbcf_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
 
 
             elif lbcf_node is not None:
@@ -274,6 +275,9 @@ def fix_world():
                 material.node_tree.nodes.remove(lbcf_node)
 
             # Animated UV Fix
+            if image_texture_node.image.size[0] == 0:
+                continue
+            
             if WProperties.animated_uv_fix and int(image_texture_node.image.size[1] / image_texture_node.image.size[0]) > 1:
                 if Texture_Animator is not None:
                     material.node_tree.nodes.remove(Texture_Animator)
@@ -456,6 +460,7 @@ def create_env(mode=None):
             fog_cube = bpy.context.active_object
 
             fog_cube.name = "Fog"
+            #fog_cube.display_type = "BOUNDS"
             fog_cube.scale = (500, 500, 75)
 
             fog_material = bpy.data.materials.new(name="Fog")

@@ -46,7 +46,7 @@ def MaterialIn(Array, material, mode="in"):
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
 
-    if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item":
+    if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item": # Add check in the pack_info.json
         #dprint(f"{obj_name}; {mat_name} is an item")
         return "item"
     
