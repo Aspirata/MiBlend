@@ -188,6 +188,7 @@ def fix_world():
                     PBSDF.inputs["Emission Strength"].default_value = 1
 
             # Backface Culling
+            alpha_connection = GetConnectedSocketTo("Alpha", PBSDF)
             if WProperties.backface_culling:
                 if MaterialIn(Backface_Culling_Materials, material):
                     bfc_node = None
@@ -206,8 +207,9 @@ def fix_world():
                         bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
                         bfc_node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
 
-                    if GetConnectedSocketTo("Alpha", PBSDF).node != bfc_node:
-                        material.node_tree.links.new(GetConnectedSocketTo("Alpha", PBSDF), bfc_node.inputs[0])
+                    if alpha_connection:
+                        if alpha_connection.node != bfc_node:
+                            material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
                             
                     material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
                     
@@ -217,6 +219,7 @@ def fix_world():
                 material.use_backface_culling = False
             
             # Lazy Biome Color Fix
+            base_color_connection = GetConnectedSocketTo("Alpha", PBSDF)
             if WProperties.lazy_biome_fix:
                 texture_parts = format_texture_name(image_texture_node.image.name)
 
@@ -236,8 +239,9 @@ def fix_world():
                         lbcf_node.node_tree = bpy.data.node_groups["Lazy Biome Color Fix"]
                         lbcf_node.location = (PBSDF.location.x - 170, PBSDF.location.y)
 
-                    if GetConnectedSocketTo("Base Color", PBSDF).node != lbcf_node:
-                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), lbcf_node.inputs["Texture"])
+                    if base_color_connection:
+                        if base_color_connection.node != lbcf_node:
+                            material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
 
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
@@ -275,6 +279,7 @@ def fix_world():
                 material.node_tree.nodes.remove(lbcf_node)
 
             # Animated UV Fix
+            vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
             if image_texture_node.image.size[0] == 0:
                 continue
             
@@ -293,6 +298,10 @@ def fix_world():
                     auvf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                     auvf_node.node_tree = bpy.data.node_groups["Animated UV Fix"]
                     auvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
+
+                if vector_connection:
+                    if vector_connection.node != auvf_node:
+                        material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
 
                 auvf_node.inputs["Frames"].default_value = int(image_texture_node.image.size[1] / image_texture_node.image.size[0])
                 material.node_tree.links.new(auvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])

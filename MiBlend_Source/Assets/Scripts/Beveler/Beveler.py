@@ -25,8 +25,8 @@ for selected_object in bpy.context.selected_objects:
                 bevel_node = material.node_tree.nodes.new(type='ShaderNodeBevel')
                 bevel_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
 
-            bevel_node.samples = segments
-            bevel_node.inputs[0].default_value = amount
+            bevel_node.samples = clamp(2, segments, 128)
+            bevel_node.inputs[0].default_value = clamp(0, amount, 1000.0)
 
             try:
                 if GetConnectedSocketTo("Normal", PBSDF).node != bevel_node:

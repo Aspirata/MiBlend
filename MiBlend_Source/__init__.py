@@ -13,6 +13,7 @@ bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
     "version": (0, 6, 0),
+    "warning": "This is Milestone 1",
     "blender": (3, 6, 0),
     "doc_url": "https://github.com/Aspirata/MiBlend/wiki",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",

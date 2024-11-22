@@ -1,16 +1,41 @@
 import bpy
+import os
 
 for selected_object in bpy.context.selected_objects:
     geonodes_modifier = None
     image_texture_node = None
-    for node in selected_object.data.materials[0].node_tree.nodes:
+    texture = None
+    euvf_exists = False
+    material = selected_object.data.materials[0]
+    for node in material.node_tree.nodes:
         if node.type == "BSDF_PRINCIPLED":
-            texture = detect_texture_node(node).image
+            image_texture_node = detect_texture_node(node)
+            texture = image_texture_node.image
+        
+        if node.type == "GROUP":
+            if "Extrude UV Fixer" in node.node_tree.name:
+                euvf_exists = True
+    
+    if euvf_exists == False:
+        vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
+        if "Extrude UV Fixer" not in bpy.data.node_groups:
+            with bpy.data.libraries.load(os.path.join(assets_directory, "Nodes", "Shader Nodes", "Extrude UV Fixer", "Extrude UV Fixer.blend"), link=False) as (data_from, data_to):
+                data_to.node_groups = ["Extrude UV Fixer"]
+
+        euvf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+        euvf_node.node_tree = bpy.data.node_groups["Extrude UV Fixer"]
+        euvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
+
+        if vector_connection:
+            if vector_connection.node != euvf_node:
+                material.node_tree.links.new(vector_connection, euvf_node.inputs["Vector"])
+
+        material.node_tree.links.new(euvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])
 
     if selected_object.type == "MESH" and texture is not None:
         for modifier in selected_object.modifiers:
             if modifier.type == "NODES":
-                if modifier.node_group == "Alpha Selector":
+                if modifier.node_group.name == "Alpha Selector":
                     geonodes_modifier = modifier
                     break
     

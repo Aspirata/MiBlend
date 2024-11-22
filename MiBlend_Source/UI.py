@@ -906,7 +906,7 @@ class Assets_List_UL_(bpy.types.UIList):
             "Script": "FILE_SCRIPT",
             "Compositor Node": "NODE_SEL",
             "Shader Node": "NODE",
-            "Geo Nodes": "GEOMETRY_NODES",
+            "Geo Node": "GEOMETRY_NODES",
             "Model": "OBJECT_DATA",
         }.get(asset_type, "QUESTION")
 
