@@ -15,16 +15,17 @@ for selected_object in bpy.context.selected_objects:
         if node.type == "GROUP":
             if "Extrude UV Fixer" in node.node_tree.name:
                 euvf_exists = True
-    
-    if euvf_exists == False:
-        vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
-        if "Extrude UV Fixer" not in bpy.data.node_groups:
-            with bpy.data.libraries.load(os.path.join(assets_directory, "Nodes", "Shader Nodes", "Extrude UV Fixer", "Extrude UV Fixer.blend"), link=False) as (data_from, data_to):
-                data_to.node_groups = ["Extrude UV Fixer"]
+                
+    if image_texture_node != None:
+        if euvf_exists == False:
+            vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
+            if "Extrude UV Fixer" not in bpy.data.node_groups:
+                with bpy.data.libraries.load(os.path.join(assets_directory, "Nodes", "Shader Nodes", "Extrude UV Fixer", "Extrude UV Fixer.blend"), link=False) as (data_from, data_to):
+                    data_to.node_groups = ["Extrude UV Fixer"]
 
-        euvf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-        euvf_node.node_tree = bpy.data.node_groups["Extrude UV Fixer"]
-        euvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
+            euvf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
+            euvf_node.node_tree = bpy.data.node_groups["Extrude UV Fixer"]
+            euvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
 
         if vector_connection:
             if vector_connection.node != euvf_node:
