@@ -15,10 +15,12 @@ for selected_object in bpy.context.selected_objects:
         if node.type == "GROUP":
             if "Extrude UV Fixer" in node.node_tree.name:
                 euvf_exists = True
+                euvf_node = node
                 
     if image_texture_node != None:
+        vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
+
         if euvf_exists == False:
-            vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
             if "Extrude UV Fixer" not in bpy.data.node_groups:
                 with bpy.data.libraries.load(os.path.join(assets_directory, "Nodes", "Shader Nodes", "Extrude UV Fixer", "Extrude UV Fixer.blend"), link=False) as (data_from, data_to):
                     data_to.node_groups = ["Extrude UV Fixer"]
@@ -44,8 +46,9 @@ for selected_object in bpy.context.selected_objects:
             geonodes_modifier = selected_object.modifiers.new("Alpha Selector", type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get("Alpha Selector")
 
-        geonodes_modifier["Input_4"] = texture
         geonodes_modifier["Socket_4"] = properties.get("Extrude")
         geonodes_modifier["Input_2"] = properties.get("Extrude Offset")
         geonodes_modifier["Socket_15"] = properties.get("Auto Detect Subdivision")
         geonodes_modifier["Input_5"] = properties.get("Subdivision")
+        geonodes_modifier["Input_4"] = texture
+        geonodes_modifier["Socket_10"] = selected_object.data.uv_layers.active.name
