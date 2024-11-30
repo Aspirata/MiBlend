@@ -1,9 +1,9 @@
 {
     "Format_version": "10",
     "Asset_name": "Vignette",
-    "Asset_version": "4.1",
+    "Asset_version": "5.0",
     "Author": "Aspirata",
     "File_path": "Nodes\\Compositor Nodes\\Vignette\\Vignette",
-    "Node_name": "Vignette V4.1",
+    "Node_name": "Vignette V5.0",
     "Tags": ["Compositor Node", "Node"]
 }

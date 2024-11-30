@@ -219,7 +219,7 @@ def fix_world():
                 material.use_backface_culling = False
             
             # Lazy Biome Color Fix
-            base_color_connection = GetConnectedSocketTo("Alpha", PBSDF)
+            base_color_connection = GetConnectedSocketTo("Base Color", PBSDF)
             if WProperties.lazy_biome_fix:
                 texture_parts = format_texture_name(image_texture_node.image.name)
 
