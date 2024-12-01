@@ -478,8 +478,8 @@ def create_env(mode=None):
 
             fog_node = fog_material.node_tree.nodes.new(type='ShaderNodeGroup')
             fog_node.node_tree = bpy.data.node_groups["Fog"]
-            output_node = fog_material.node_tree.nodes.get("Material Output")
-            fog_material.node_tree.nodes.remove(GetConnectedSocketTo("Surface", output_node).node)
+            output_node = [node for node in fog_material.node_tree.nodes if node.type == "OUTPUT_MATERIAL"][0]
+            fog_material.node_tree.nodes.remove(GetConnectedSocketTo(0, output_node).node)
             fog_node.location = (output_node.location.x - 200, output_node.location.y)
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
 
