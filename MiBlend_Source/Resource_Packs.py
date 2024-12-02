@@ -404,6 +404,9 @@ def apply_resources():
             if Texture_Animator is not None:
                 material.node_tree.nodes.remove(Texture_Animator)
 
+            if auvf_node is not None and int(image_texture.size[1] / image_texture.size[0]) > 1:
+                material.node_tree.links.new(auvf_node.outputs["Fixed UV"], texture_node.inputs["Vector"])
+
     def normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
         NTexture_Animator = None
         Current_node_tree = None

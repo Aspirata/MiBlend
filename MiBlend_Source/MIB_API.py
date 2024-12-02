@@ -83,44 +83,91 @@ def isdublicate(text, original_text=None):
     parts = text.split(".")
     return len(parts) > 1 and parts[-1].isdigit() and (text.replace("." + str(parts[-1]), "") == original_text if original_text != None else True)
 
-def detect_texture_node(node):
+def detect_texture_node(PBSDF):
 
-    def get_all_linked_nodes(node):
+    def get_all_linked_nodes(PBSDF):
         linked_nodes = []
-        for input_name, input_socket in node.inputs.items():
+        for input_name, input_socket in PBSDF.inputs.items():
             if input_socket.is_linked:
                 for link in input_socket.links:
                     linked_nodes.append(link.from_node)
                     linked_nodes.extend(get_all_linked_nodes(link.from_node))
         return linked_nodes
 
-    def get_linked_nodes(node, input_name):
+    def get_linked_nodes(PBSDF, input_name):
         linked_nodes = []
-        if input_name in node.inputs and node.inputs[input_name].is_linked:
-            for link in node.inputs[input_name].links:
+        if input_name in PBSDF.inputs and PBSDF.inputs[input_name].is_linked:
+            for link in PBSDF.inputs[input_name].links:
                 linked_nodes.append(link.from_node)
                 linked_nodes.extend(get_all_linked_nodes(link.from_node))
         return linked_nodes
 
-    def traverse_nodes(node, input_name, visited=None):
+    def traverse_nodes(PBSDF, input_name, visited=None):
         if visited is None:
             visited = set()
         
-        if node in visited:
+        if PBSDF in visited:
             return visited
         
-        visited.add(node)
+        visited.add(PBSDF)
         
-        linked_nodes = get_linked_nodes(node, input_name)
+        linked_nodes = get_linked_nodes(PBSDF, input_name)
         for linked_node in linked_nodes:
             traverse_nodes(linked_node, input_name, visited)
         
         return visited
     
-    connected_nodes = traverse_nodes(node, "Base Color")
+    connected_nodes = traverse_nodes(PBSDF, "Base Color")
     for n in connected_nodes:
+        if n.type == "GROUP":
+            if "Animated;" in n.node_tree.name:
+                return n
+                
         if n.type == "TEX_IMAGE" and n.image:
             return n
+        
+def detect_image_texture(PBSDF):
+
+    def get_all_linked_nodes(PBSDF):
+        linked_nodes = []
+        for input_name, input_socket in PBSDF.inputs.items():
+            if input_socket.is_linked:
+                for link in input_socket.links:
+                    linked_nodes.append(link.from_node)
+                    linked_nodes.extend(get_all_linked_nodes(link.from_node))
+        return linked_nodes
+
+    def get_linked_nodes(PBSDF, input_name):
+        linked_nodes = []
+        if input_name in PBSDF.inputs and PBSDF.inputs[input_name].is_linked:
+            for link in PBSDF.inputs[input_name].links:
+                linked_nodes.append(link.from_node)
+                linked_nodes.extend(get_all_linked_nodes(link.from_node))
+        return linked_nodes
+
+    def traverse_nodes(PBSDF, input_name, visited=None):
+        if visited is None:
+            visited = set()
+        
+        if PBSDF in visited:
+            return visited
+        
+        visited.add(PBSDF)
+        
+        linked_nodes = get_linked_nodes(PBSDF, input_name)
+        for linked_node in linked_nodes:
+            traverse_nodes(linked_node, input_name, visited)
+        
+        return visited
+    
+    connected_nodes = traverse_nodes(PBSDF, "Base Color")
+    for n in connected_nodes:
+        if n.type == "GROUP":
+            if "Animated;" in n.node_tree.name:
+                return bpy.data.images.get(n.node_tree.name.replace("Animated; ", "") + ".png")
+                
+        if n.type == "TEX_IMAGE" and n.image:
+            return n.image
 
 def SeparateMeshByMaterial(obj, materal = None):
     obj_name = obj.name
@@ -177,30 +224,6 @@ def EmissionMode(PBSDF, material):
         if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
             return 3
 
-def Full_Perf_Time(func): # Not Implemented
-    total_time = 0
-    call_count = 0
-
-    def wrapper(*args, **kwargs):
-        nonlocal total_time, call_count
-        start_time = time.time()
-        func(*args, **kwargs)
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        total_time += elapsed_time
-        call_count += 1
-        
-    def print_final_stats():
-        dprint(f"---------------- \nName: {func.__name__}() \nTotal Time: {total_time:.4f} \nAvg Time: {total_time / call_count} \n ----------------")
-
-    atexit.register(print_final_stats)
-    
-    wrapper.total_time = lambda: total_time
-    wrapper.call_count = lambda: call_count
-    wrapper.average_time = lambda: total_time / call_count if call_count > 0 else 0
-
-    return wrapper
-
 def Perf_Time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -230,15 +253,6 @@ def GetConnectedSocketFrom(output, tag: str, material=None):
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
-def RemoveLinksFrom(sockets):
-    try:
-        for socket in sockets:
-            for link in socket.links:
-                socket.node.id_data.links.remove(link)
-    except:
-        for link in sockets.links:
-            sockets.node.id_data.links.remove(link)
-
 def GetConnectedSocketTo(input, tag: str, material=None):
     try:
         if material is not None:
@@ -262,6 +276,15 @@ def GetConnectedSocketTo(input, tag: str, material=None):
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
+def RemoveLinksFrom(sockets):
+    try:
+        for socket in sockets:
+            for link in socket.links:
+                socket.node.id_data.links.remove(link)
+    except:
+        for link in sockets.links:
+            sockets.node.id_data.links.remove(link)
+
 def blender_version(blender_version: str) -> bool:
     
     try:
@@ -282,8 +305,6 @@ def blender_version(blender_version: str) -> bool:
             patch_c = bpy.app.version[2] == int(patch)
         else:
             patch_c = True
-
-        # print(f"------\nmajor = {major} \nmajor_c = {major_c} \nminor = {minor} \nminor_c = {minor_c} \npatch = {patch} \npatch_c = {patch_c}\n------")
         
         return major_c and minor_c and patch_c
     
@@ -292,8 +313,6 @@ def blender_version(blender_version: str) -> bool:
         operator = version_parts[0]
         major, minor, patch = version_parts[1].lower().split(".")
         version = (int(major), int(minor), int(patch))
-        
-        # print(f"{bpy.app.version} {operator} {version}")
 
         if operator == '<':
             return bpy.app.version < version
