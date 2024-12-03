@@ -42,7 +42,7 @@ def InitOnStart():
     mib_options["is_replaced_materials"] = len(original_materials_list) > 0
 
     mib_options["components_vesion"] = {
-        "MiBlend": "Beehive",
+        "MiBlend": "Honeycomb",
         "UAS": "v2.1",
     }
 
