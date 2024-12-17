@@ -522,7 +522,7 @@ class PPBRProperties(PropertyGroup):
 class CreateEnvProperties(PropertyGroup):
 
     create_sky: BoolProperty(
-        name="Create Sky",
+        name="Sky",
         default=True,
         description=""
     )
@@ -558,7 +558,7 @@ class CreateEnvProperties(PropertyGroup):
     )
 
     create_clouds: BoolProperty(
-        name="Create Clouds",
+        name="Clouds",
         default=True,
         description=""
     )
@@ -584,7 +584,7 @@ class CreateEnvProperties(PropertyGroup):
     )
 
     create_fog: BoolProperty(
-        name="Create Fog",
+        name="Fog",
         default=True,
         description=""
     )

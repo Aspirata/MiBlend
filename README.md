@@ -45,6 +45,8 @@ Links:
 
 ## Special Thanks:
 
+### Roni Raihan (TRPHB Animation) - Remove Double Faces Script
+
 ### jabady - Active Testing And Bug Reporting
 
 ### humusus. - Helping with Allay Rig
