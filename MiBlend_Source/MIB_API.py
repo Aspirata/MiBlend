@@ -61,19 +61,19 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     dprint(f"{obj_name}; {mat_name} is unknown")
     return "unknown"
 
-def format_texture_name(texture_name):
+def format_texture_name(texture_name, split=True):
     parts = texture_name.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         texture_name.replace(parts[-1], "")
 
-    return texture_name.replace(".png", "").lower().replace("-", "_").split("_")
+    return texture_name.replace(".png", "").lower().replace("-", "_").split("_") if split else texture_name.replace(".png", "").lower().replace("-", "_")
 
-def format_material_name(material_name):
+def format_material_name(material_name, split=True):
     parts = material_name.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         material_name.replace(parts[-1], "")
     
-    return material_name.lower().replace("-", "_").split(".")
+    return material_name.lower().replace("-", "_").split("_") if split else material_name.lower().replace("-", "_")
 
 def dprint(message):
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
@@ -169,59 +169,24 @@ def detect_image_texture(PBSDF):
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
 
-def SeparateMeshByMaterial(obj, materal = None):
-    obj_name = obj.name
-
-    if len(obj.material_slots) <= 1 or not obj.material_slots:
-        return
-
-    if materal:
-        return NotImplemented
-    
-        for i, material in enumerate(obj.data.materials):
-            bpy.ops.object.material_slot_select()
-            bpy.ops.mesh.separate(type=mode)
-            
-            if i > 0:
-                new_obj = bpy.data.objects.get(obj_name + f".{i:03}")
-            else:
-                new_obj = bpy.data.objects.get(obj_name)
-                
-            new_obj.name = f"{material.name} | {obj_name}"
-
-    else:
-        # Making new collection
-        new_collection = bpy.data.collections.new(obj_name.split("__")[0])
-        obj.users_collection[-1].children.link(new_collection)
-
-        for col in obj.users_collection:
-            col.objects.unlink(obj)
-        
-        new_collection.objects.link(obj)
-        #
-
-        bpy.ops.mesh.separate(type="MATERIAL")
-        
-        # Changing object names to material names
-        for new_obj in new_collection.objects:
-            if new_obj in bpy.context.selected_objects and obj_name in new_obj.name:
-                new_obj.name = new_obj.material_slots[0]
-                
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.view_layer.update()
-
-def EmissionMode(PBSDF, material):
+def EmissionMode(PBSDF, texture_name):
         from .Data import Emissive_Materials
+
+        def TextureIn(Array, texture):
+            for texture_name in Array:
+                if texture_name == format_texture_name(texture, split=False):
+                    return True
+            return False
         
         Preferences = bpy.context.preferences.addons[__package__].preferences
                 
-        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or MaterialIn(Emissive_Materials.keys(), material, "==")):
+        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or TextureIn(Emissive_Materials.keys(), texture_name)):
             return 1
 
         if Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
             return 2
         
-        if Preferences.emissiondetection == 'Manual' and MaterialIn(Emissive_Materials.keys(), material, "=="):
+        if Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name):
             return 3
 
 def Perf_Time(func):
