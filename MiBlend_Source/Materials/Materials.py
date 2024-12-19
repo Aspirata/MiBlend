@@ -761,11 +761,10 @@ def setproceduralpbr():
 
 
             # Make Better Emission and Animate Textures
-            if (PProperties.make_better_emission or PProperties.animate_textures) and EmissionMode(PBSDF, material):
+            if (PProperties.make_better_emission or PProperties.animate_textures) and EmissionMode(PBSDF, image.name):
                 node_group = None
 
                 # The Main Thing
-
                 for node in material.node_tree.nodes:
                     if node.type == "GROUP":
                         if BATGroup in node.node_tree.name:
