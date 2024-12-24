@@ -135,15 +135,10 @@ def fix_world():
             scene = bpy.context.scene
             WProperties = scene.world_properties
 
-            if WProperties.use_alpha_blend:
-                material.blend_method = 'BLEND'
-            else:
-                material.blend_method = 'HASHED'
+            material.blend_method = 'HASHED'
             
-            try:
+            if blender_version("< 4.3.0"):
                 material.shadow_method = 'HASHED'
-            except:
-                pass
 
             # Delete Useless Textres
             if WProperties.delete_useless_textures:

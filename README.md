@@ -40,7 +40,7 @@ Links:
 
 Links:
 - https://x.com/fluffy_aizek
-- https://t.me/fluffyaizekmedia
+- https://t.me/flufyaizekmedia
 - https://vk.com/fluffy_aizek
 
 ## Special Thanks:

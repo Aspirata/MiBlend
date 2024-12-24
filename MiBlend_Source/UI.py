@@ -51,9 +51,6 @@ class WorldAndMaterialsPanel(Panel):
             row = sbox.row()
             row.prop(WProperties, "delete_useless_textures")
 
-            row = sbox.row()
-            row.prop(WProperties, "use_alpha_blend")
-
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("world.fix_world", text="Fix World")
