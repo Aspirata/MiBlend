@@ -43,7 +43,7 @@ def InitOnStart():
 
     mib_options["components_vesion"] = {
         "MiBlend": "Honeycomb",
-        "UAS": "v2.1",
+        "UAS": "v2.1.1",
     }
 
     update_assets()

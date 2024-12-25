@@ -44,9 +44,16 @@ def run_python_script(name, path):
             if asset.get("Asset_name", "") == name:
                 properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
 
+        context = {key: value for key, value in globals().items() if callable(value)}
+
+        context["properties"] = properties
+
         with open(path, 'r') as file:
-            exec(file.read(), globals(), {'properties': properties})
-    except:
+            script = file.read()
+
+        exec(script, context)
+
+    except Exception as e:
         Absolute_Solver("009", name, traceback.format_exc())
 
 def append_snode(asset_data):

@@ -24,12 +24,6 @@ def PBSDF_compability(Input: str) -> str:
 def clamp(min_value, value, max_value):
     return max(min_value, min(value, max_value))
 
-def safe_check(condition):
-    try:
-        return condition
-    except:
-        return False
-
 def convert_to_linux(path):
     if sys.platform.startswith('linux'):
         return path.replace("\\", "/")
@@ -75,13 +69,34 @@ def format_material_name(material_name, split=True):
     
     return material_name.lower().replace("-", "_").split("_") if split else material_name.lower().replace("-", "_")
 
-def dprint(message):
+def dprint(*messages, separate=False):
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
-        print(message)
+        if separate:
+            for message in messages:
+                print(message)
+        else:
+            print(*messages)
 
 def isdublicate(text, original_text=None):
     parts = text.split(".")
     return len(parts) > 1 and parts[-1].isdigit() and (text.replace("." + str(parts[-1]), "") == original_text if original_text != None else True)
+
+def isgray(name, is_material=False, mode="all"):
+    name_parts = format_texture_name(name) if not is_material else format_material_name(name)
+    if mode == "all":
+        if any(part in name_parts for part in ("grass", "water", "leaves", "lily", "vine", "fern")) and all(part not in name_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or \
+            ("redstone" in name_parts and "dust" in name_parts) or ("pink" in name_parts and "stem" in name_parts):
+            return True
+    elif mode == "vegetation":
+        if any(part in name_parts for part in ("grass", "leaves", "lily", "vine", "fern")) and all(part not in name_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")):
+            return True
+    elif mode == "redstone":
+        if "redstone" in name_parts and "dust" in name_parts:
+            return True
+    elif mode == "water":
+        if "water" in name_parts:
+            return True
+    return False
 
 def detect_texture_node(PBSDF):
 
@@ -168,6 +183,69 @@ def detect_image_texture(PBSDF):
                 
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
+
+def SeparateMeshByMaterial(obj, material = None):
+    obj_name = obj.name
+
+    if bpy.context.object.mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+
+    bpy.ops.object.select_all(action='DESELECT')
+
+    if len(obj.material_slots) <= 1 or not obj.material_slots:
+        return
+
+    if material:
+        if bpy.data.collections.get(obj_name.split('__')[0].replace("Main | ", "")) is None:
+            new_collection = bpy.data.collections.new(obj_name.split("__")[0].replace("Main | ", ""))
+            obj.users_collection[-1].children.link(new_collection)
+
+            for col in obj.users_collection:
+                col.objects.unlink(obj)
+
+            new_collection.objects.link(obj)
+
+        for i, mat in enumerate(obj.data.materials):
+            if mat == material:
+                bpy.context.object.active_material_index = i
+                break
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.object.material_slot_select()
+        bpy.ops.mesh.separate(type="SELECTED")
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.context.view_layer.objects.active = obj
+        if not obj.name.startswith("Main | "):
+            obj.name = f"Main | {obj_name}"
+        bpy.ops.object.material_slot_remove_unused()
+        new_obj = bpy.context.selected_objects[-1]
+        bpy.context.view_layer.objects.active = new_obj
+        bpy.ops.object.material_slot_remove_unused()
+        new_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
+    else:
+        new_collection = bpy.data.collections.new(obj_name.split("__")[0].replace("Main | ", ""))
+        obj.users_collection[-1].children.link(new_collection)
+
+        for col in obj.users_collection:
+            col.objects.unlink(obj)
+
+        new_collection.objects.link(obj)
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.separate(type="MATERIAL")
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        for new_obj in new_collection.objects:
+            if new_obj in bpy.context.selected_objects and obj_name in new_obj.name:
+                new_obj.name = f"{new_obj.material_slots[0].material.name} | {obj_name.replace('Main | ', '')}"
+
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.view_layer.update()
+
+    return new_obj
 
 def EmissionMode(PBSDF, texture_name):
         from .Data import Emissive_Materials
