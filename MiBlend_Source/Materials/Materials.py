@@ -200,9 +200,8 @@ def fix_world():
                         bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
                         bfc_node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
 
-                    if alpha_connection:
-                        if alpha_connection.node != bfc_node:
-                            material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
+                    if alpha_connection and alpha_connection.node != bfc_node:
+                        material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
                             
                     material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
                     
@@ -218,7 +217,6 @@ def fix_world():
 
                 # Lazy Biome Color Fix Exclusions
                 if isgray(image.name):
-
                     if lbcf_node is None:
                         if "Lazy Biome Color Fix" not in bpy.data.node_groups:
                             try:
@@ -231,9 +229,8 @@ def fix_world():
                         lbcf_node.node_tree = bpy.data.node_groups["Lazy Biome Color Fix"]
                         lbcf_node.location = (PBSDF.location.x - 170, PBSDF.location.y)
 
-                    if base_color_connection:
-                        if base_color_connection.node != lbcf_node:
-                            material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
+                    if base_color_connection and base_color_connection.node != lbcf_node:
+                        material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
 
                     material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
@@ -295,9 +292,8 @@ def fix_world():
                     auvf_node.node_tree = bpy.data.node_groups["Animated UV Fix"]
                     auvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
 
-                if vector_connection:
-                    if vector_connection.node != auvf_node:
-                        material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
+                if vector_connection and vector_connection.node != auvf_node:
+                    material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
 
                 auvf_node.inputs["Frames"].default_value = int(image.size[1] / image.size[0])
                 material.node_tree.links.new(auvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])
@@ -317,10 +313,9 @@ def recreate_env(self):
         group = bpy.data.node_groups["MiBlend Sky"]
 
         for node in world_material.nodes:
-            if node.type == 'GROUP':
-                if "MiBlend Sky" in node.node_tree.name:
-                    if blender_version("4.x.x"):
-                        for socket in node.inputs:
+            if node.type == 'GROUP' and "MiBlend Sky" in node.node_tree.name:
+                if blender_version("4.x.x"):
+                    for socket in node.inputs:
                             try:
                                 vec_counter = 0
                                 for vec in socket.default_value:
@@ -656,9 +651,8 @@ def setproceduralpbr():
                             material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
 
                         bump_node.inputs[0].default_value = PProperties.bump_strength
-                    else:
-                        if bump_node:
-                            material.node_tree.nodes.remove(bump_node)
+                    elif bump_node:
+                        material.node_tree.nodes.remove(bump_node)
                         
                         if PNormals is None:
                             if f"PNormals; {material.name}" in bpy.data.node_groups:
@@ -717,7 +711,7 @@ def setproceduralpbr():
                 PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
 
             # Use SSS                            
-            if PProperties.use_sss :
+            if PProperties.use_sss:
                 if MaterialIn(SSS_Materials, material) or PProperties.sss_skip:
                     PBSDF.subsurface_method = PProperties.sss_type
 
@@ -811,10 +805,9 @@ def setproceduralpbr():
             if not PProperties.make_better_emission and not PProperties.animate_textures:
                 node_group = None
                 for node in material.node_tree.nodes:
-                    if node.type == "GROUP":
-                        if BATGroup in node.node_tree.name:
-                            node_group = node
-                            break
+                    if node.type == "GROUP" and BATGroup in node.node_tree.name:
+                        node_group = node
+                        break
                 
                 if node_group is not None:
                     if (mult_socket := GetConnectedSocketTo("Multiply", node_group)) is not None:
