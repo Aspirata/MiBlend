@@ -3,6 +3,7 @@
     "Asset_name": "Wind",
     "Author": "Anonim4k, Aspirata",
     "File_path": "Nodes\\Geo Nodes\\Wind\\Wind",
+    "Blender_version": ">= 4.1.0",
     "Node_name": "Wind",
     "Auto Detect_property": true,
     "Materials_property": "grass leaves lily vine fern tulip daisy dandelion poppy orchid torchflower cornflower allium bluet azalea cherry",
