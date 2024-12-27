@@ -241,7 +241,7 @@ def apply_resources():
             Users = find_texture_users(bpy.data.images[image_texture])
             if not r_props.ignore_dublicates:
                 for texture in bpy.data.images:
-                    if image_texture in texture.name and isdublicate(texture.name, image_texture):
+                    if image_texture in texture.name and isduplicate(texture.name, image_texture):
                         Users.extend(find_texture_users(blender_texture := bpy.data.images.get(texture)))
                         bpy.data.images.remove(blender_texture)
 

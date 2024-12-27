@@ -169,12 +169,12 @@ def fix_world():
             if not image_texture_node or not PBSDF:
                 continue
 
-            if GetConnectedSocketTo("Alpha", "BSDF_PRINCIPLED", material) is None:
+            if GetConnectedSocketTo("Alpha", PBSDF) is None:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
             
             # Emission
             if EmissionMode(PBSDF, image.name):
-                if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
+                if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
                     material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
 
                 if (EmissionMode(PBSDF, image.name) == 1 or EmissionMode(PBSDF, image.name) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
@@ -789,14 +789,12 @@ def setproceduralpbr():
                     node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                 
                 # Color Connection if Nothing Connected
-                if GetConnectedSocketTo(PBSDF_compability("Emission Color"), "BSDF_PRINCIPLED", material) is None:
+                if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
                     material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
                 
-                try:
-                    if (emit_socket := GetConnectedSocketTo("Emission Strength", "BSDF_PRINCIPLED", material).node) != node_group:
-                        material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
-                except:
-                    pass
+                emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
+                if emit_socket and emit_socket.node != node_group:
+                    material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
 
                 node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
                 material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
@@ -810,7 +808,8 @@ def setproceduralpbr():
                         break
                 
                 if node_group is not None:
-                    if (mult_socket := GetConnectedSocketTo("Multiply", node_group)) is not None:
+                    mult_socket = GetConnectedSocketTo("Multiply", node_group)
+                    if mult_socket:
                         material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                     material.node_tree.nodes.remove(node_group)
 

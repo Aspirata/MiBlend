@@ -25,7 +25,7 @@ class WorldAndMaterialsPanel(Panel):
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            self.bl_options = set()
 
         # World
 
@@ -689,7 +689,7 @@ class OptimizationPanel(Panel):
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            self.bl_options = set()
 
         box = layout.box()
         row = box.row()
@@ -754,7 +754,7 @@ class UtilsPanel(Panel):
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            self.bl_options = set()
 
 
         box = layout.box()

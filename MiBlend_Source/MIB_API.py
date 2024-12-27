@@ -45,8 +45,8 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
         return "item"
     
     elif "block" in obj_name or "block" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "block":
-            #dprint(f"{obj_name}; {mat_name} is a block")
-            return "block"
+        #dprint(f"{obj_name}; {mat_name} is a block")
+        return "block"
     
     elif "entity" in obj_name or "entity" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "entity":
         #dprint(f"{obj_name}; {mat_name} is a entity")
@@ -77,9 +77,26 @@ def dprint(*messages, separate=False):
         else:
             print(*messages)
 
-def isdublicate(text, original_text=None):
+def isduplicate(text, original_text=None):
     parts = text.split(".")
-    return len(parts) > 1 and parts[-1].isdigit() and (text.replace("." + str(parts[-1]), "") == original_text if original_text != None else True)
+    if len(parts) > 1 and parts[-1].isdigit():
+        base_text = text.replace(f".{parts[-1]}", "")
+        if original_text:
+            return base_text == original_text
+        else:
+            return True
+    return False
+
+def detect_duplicate_index(text, original_text=None):
+    parts = text.split(".")
+    if len(parts) > 1 and parts[-1].isdigit():
+        base_text = text.replace(f".{parts[-1]}", "")
+        if original_text:
+            if base_text == original_text:
+                return base_text
+        else:
+            return base_text
+    return text
 
 def isgray(name, is_material=False, mode="all"):
     name_parts = format_texture_name(name) if not is_material else format_material_name(name)
@@ -261,10 +278,10 @@ def EmissionMode(PBSDF, texture_name):
         if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or TextureIn(Emissive_Materials.keys(), texture_name)):
             return 1
 
-        if Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
+        elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
             return 2
         
-        if Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name):
+        elif Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name):
             return 3
 
 def Perf_Time(func):
@@ -277,45 +294,31 @@ def Perf_Time(func):
             dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
     return wrapper
 
-def GetConnectedSocketFrom(output, tag: str, material=None):
+def GetConnectedSocketFrom(output: str, node):
     try:
-        to_sockets = []
-        if material is not None:
-            for node in material.node_tree.nodes:
-                if node.type == tag:
-                    output_socket = node.outputs[output]
-                    for link in output_socket.links:
-                        to_sockets.append(link.to_socket)
-            return to_sockets
+        output_socket = node.outputs.get(output)
+
+        if not output_socket:
+            return None
         
-        else:
-            output_socket = tag.outputs[output]
-            for link in output_socket.links:
-                to_sockets.append(link.to_socket)
-            return to_sockets
+        if not output_socket.is_linked:
+            return None
+        
+        return [link.to_socket for link in output_socket.links]
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
-def GetConnectedSocketTo(input, tag: str, material=None):
+def GetConnectedSocketTo(input: str, node):
     try:
-        if material is not None:
-            for node in material.node_tree.nodes:
-                if node.type == tag:
-                    input_socket = node.inputs[input]
-                    for link in input_socket.links:
-                        from_node = link.from_node
-                        for output in from_node.outputs:
-                            for link in output.links:
-                                if link.to_socket.name == input_socket.name:
-                                    return link.from_socket
-        else:
-            input_socket = tag.inputs[input]
-            for link in input_socket.links:
-                from_node = link.from_node
-                for output in from_node.outputs:
-                    for link in output.links:
-                        if link.to_socket.name == input_socket.name:
-                            return link.from_socket
+        input_socket = node.inputs.get(input)
+        if not input_socket:
+            return None
+        
+        if not input_socket.is_linked:
+            return None
+        
+        link = input_socket.links[0]
+        return link.from_socket
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
@@ -329,43 +332,26 @@ def RemoveLinksFrom(sockets):
             sockets.node.id_data.links.remove(link)
 
 def blender_version(blender_version: str) -> bool:
-    
     try:
-        version_parts = blender_version.lower().split(".")
-        major, minor, patch = version_parts
-
-        if major != "x":
-            major_c = bpy.app.version[0] == int(major)
-        else:
-            major_c = True
-            
-        if minor != "x":
-            minor_c = bpy.app.version[1] == int(minor)
-        else:
-            minor_c = True
-            
-        if patch != "x":
-            patch_c = bpy.app.version[2] == int(patch)
-        else:
-            patch_c = True
-        
-        return major_c and minor_c and patch_c
-    
-    except:
         version_parts = blender_version.split(" ")
-        operator = version_parts[0]
-        major, minor, patch = version_parts[1].lower().split(".")
-        version = (int(major), int(minor), int(patch))
-
-        if operator == '<':
-            return bpy.app.version < version
-        elif operator == '<=':
-            return bpy.app.version <= version
-        elif operator == '>':
-            return bpy.app.version > version
-        elif operator == '>=':
-            return bpy.app.version >= version
-        elif operator == '==':
-            return bpy.app.version == version
+        if len(blender_version.split()) != 1:
+            
+            operator = version_parts[0]
+            major, minor, patch = version_parts[1].lower().split(".")
+            version = (int(major), int(minor), int(patch))
+            return {
+                '<': bpy.app.version < version,
+                '<=': bpy.app.version <= version,
+                '>': bpy.app.version > version,
+                '>=': bpy.app.version >= version,
+                '==': bpy.app.version == version,
+            }.get(operator, False)
         else:
-            return False
+            version_parts = blender_version.lower().split(".")
+            major, minor, patch = version_parts
+            major_c = bpy.app.version[0] == int(major) if major != "x" else True
+            minor_c = bpy.app.version[1] == int(minor) if minor != "x" else True
+            patch_c = bpy.app.version[2] == int(patch) if patch != "x" else True
+            return major_c and minor_c and patch_c
+    except ValueError:
+        return False
