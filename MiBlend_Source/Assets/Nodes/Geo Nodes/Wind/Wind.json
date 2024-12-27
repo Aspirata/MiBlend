@@ -7,6 +7,7 @@
     "Node_name": "Wind",
     "Auto Detect_property": true,
     "Materials_property": "grass leaves lily vine fern tulip daisy dandelion poppy orchid torchflower cornflower allium bluet azalea cherry",
+    "Optimize Mode_property": true,
     "Speed_property": 5,
     "Append_mode": "Every Selected",
     "Tags": ["Geo Node", "Node"]

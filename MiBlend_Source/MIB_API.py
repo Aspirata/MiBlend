@@ -56,18 +56,16 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     return "unknown"
 
 def format_texture_name(texture_name, split=True):
-    parts = texture_name.split(".")
-    if len(parts) > 1 and parts[-1].isdigit():
-        texture_name.replace(parts[-1], "")
-
-    return texture_name.replace(".png", "").lower().replace("-", "_").split("_") if split else texture_name.replace(".png", "").lower().replace("-", "_")
+    if split:
+        return detect_duplicate_index(texture_name).replace(".png", "").lower().replace("-", "_").split("_")
+    else:
+        return detect_duplicate_index(texture_name).replace(".png", "").lower().replace("-", "_")
 
 def format_material_name(material_name, split=True):
-    parts = material_name.split(".")
-    if len(parts) > 1 and parts[-1].isdigit():
-        material_name.replace(parts[-1], "")
-    
-    return material_name.lower().replace("-", "_").split("_") if split else material_name.lower().replace("-", "_")
+    if split:
+        return detect_duplicate_index(material_name).lower().replace("-", "_").split("_")
+    else:
+        return detect_duplicate_index(material_name).lower().replace("-", "_")
 
 def dprint(*messages, separate=False):
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
@@ -234,10 +232,10 @@ def SeparateMeshByMaterial(obj, material = None):
         bpy.ops.object.material_slot_select()
         bpy.ops.mesh.separate(type="SELECTED")
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.context.view_layer.objects.active = obj
+        bpy.context.view_layer.objects.active = bpy.context.view_layer.objects.get(obj_name)
         if not obj.name.startswith("Main | "):
             obj.name = f"Main | {obj_name}"
-        bpy.ops.object.material_slot_remove_unused()
+        bpy.ops.object.material_slot_remove()
         new_obj = bpy.context.selected_objects[-1]
         bpy.context.view_layer.objects.active = new_obj
         bpy.ops.object.material_slot_remove_unused()
