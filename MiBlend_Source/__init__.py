@@ -43,8 +43,11 @@ def InitOnStart():
 
     mib_options["components_vesion"] = {
         "MiBlend": "Honeycomb",
-        "UAS": "v2.1.1",
+        "UAS": "v2.1.2",
     }
+
+    if "temp_assets_paths" not in mib_options:
+        mib_options["temp_assets_paths"] = []
 
     update_assets()
 

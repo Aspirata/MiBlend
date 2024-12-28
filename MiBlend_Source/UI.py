@@ -227,7 +227,7 @@ class WorldAndMaterialsPanel(Panel):
             row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
 
             row = box.row() 
-            row.prop(scene.env_properties, "create_sky", text="Create Sky")
+            row.prop(scene.env_properties, "create_sky")
 
             # Sky Settings
 
@@ -336,7 +336,7 @@ class WorldAndMaterialsPanel(Panel):
                         row.prop(sky_node.inputs["End"], "default_value", text="End", toggle=True)
             
             row = box.row()
-            row.prop(scene.env_properties, "create_fog", text="Create Fog")
+            row.prop(scene.env_properties, "create_fog")
 
             # Fog Settings
 
@@ -366,7 +366,7 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(fog_node.inputs["Emission"], "default_value", text="Emission")
 
             row = box.row()
-            row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
+            row.prop(scene.env_properties, "create_clouds")
 
             # Clouds Settings
 

@@ -231,8 +231,13 @@ def update_assets():
 
     directories_to_scan = [assets_directory]
     
-    temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", {})
-    directories_to_scan.extend(temp_assets_paths.values())
+    temp_assets_paths = bpy.context.scene.get("mib_options").get("temp_assets_paths")
+    temp_assets_path_list = list(temp_assets_paths)
+
+    if len(temp_assets_path_list) > 0:
+        directories_to_scan.extend(temp_assets_path_list)
+
+    dprint(f"Scanning {directories_to_scan}")
 
     for directory in directories_to_scan:
         for root, dirs, files in os.walk(directory):

@@ -6,5 +6,6 @@ where python > NUL 2>&1 || (
     exit
 )
 
-python -c "import sys; sys.exit(0 if 'psutil' in sys.modules else 1)" || pip install psutil
+pip install bpy-addon-build
+pip install psutil
 python build_universal.py

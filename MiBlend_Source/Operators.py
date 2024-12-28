@@ -564,16 +564,14 @@ class AddAsset(Operator):
             file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
             
             if asset_type == 'Scene Only':
-                mib_options = bpy.context.scene["mib_options"]
-
-                if "temp_assets_paths" not in mib_options:
-                    mib_options["temp_assets_paths"] = {}
-
-                temp_assets_path = mib_options["temp_assets_paths"]
-
-                temp_assets_path[asset_data.get("Asset_name", "")] = os.path.dirname(json_file_path)
+                temp_assets_path = bpy.context.scene.get("mib_options").get("temp_assets_paths")
+    
+                temp_assets_path_list = list(temp_assets_path)
+                temp_assets_path_list.append(os.path.dirname(json_file_path))
+                
+                bpy.context.scene["mib_options"]["temp_assets_paths"] = temp_assets_path_list
                 dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
-                dprint(temp_assets_path.get(asset_data.get("Asset_name", "")))
+
             elif file_path_in_json:
                 destination_path = os.path.join(assets_directory, file_path_in_json)
                 os.makedirs(destination_path, exist_ok=True)
