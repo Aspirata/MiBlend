@@ -40,10 +40,12 @@ Links:
 
 Links:
 - https://x.com/fluffy_aizek
-- https://t.me/fluffyaizekmedia
+- https://t.me/flufyaizekmedia
 - https://vk.com/fluffy_aizek
 
 ## Special Thanks:
+
+### Roni Raihan (TRPHB Animation) - Remove Double Faces Script
 
 ### jabady - Active Testing And Bug Reporting
 

@@ -25,7 +25,7 @@ class WorldAndMaterialsPanel(Panel):
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            self.bl_options = set()
 
         # World
 
@@ -50,9 +50,6 @@ class WorldAndMaterialsPanel(Panel):
 
             row = sbox.row()
             row.prop(WProperties, "delete_useless_textures")
-
-            row = sbox.row()
-            row.prop(WProperties, "use_alpha_blend")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -230,7 +227,7 @@ class WorldAndMaterialsPanel(Panel):
             row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
 
             row = box.row() 
-            row.prop(scene.env_properties, "create_sky", text="Create Sky")
+            row.prop(scene.env_properties, "create_sky")
 
             # Sky Settings
 
@@ -339,7 +336,7 @@ class WorldAndMaterialsPanel(Panel):
                         row.prop(sky_node.inputs["End"], "default_value", text="End", toggle=True)
             
             row = box.row()
-            row.prop(scene.env_properties, "create_fog", text="Create Fog")
+            row.prop(scene.env_properties, "create_fog")
 
             # Fog Settings
 
@@ -369,7 +366,7 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(fog_node.inputs["Emission"], "default_value", text="Emission")
 
             row = box.row()
-            row.prop(scene.env_properties, "create_clouds", text="Create Clouds")
+            row.prop(scene.env_properties, "create_clouds")
 
             # Clouds Settings
 
@@ -692,7 +689,7 @@ class OptimizationPanel(Panel):
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            self.bl_options = set()
 
         box = layout.box()
         row = box.row()
@@ -757,7 +754,7 @@ class UtilsPanel(Panel):
         if Preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
-            self.bl_options = {'DEFAULT_CLOSED'}
+            self.bl_options = set()
 
 
         box = layout.box()

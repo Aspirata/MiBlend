@@ -3,7 +3,7 @@ mode = properties.get("Only Selected Objects", False)
 overblur = clamp(0.0, properties.get("Overblur", 20.0), 100.0)
 world_jitter = properties.get("World Jitter", False)
 
-if mode == False:
+if mode:
     for obj in bpy.context.selected_objects:
         try:
             obj.data.use_shadow_jitter = True

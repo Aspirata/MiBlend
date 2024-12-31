@@ -145,6 +145,18 @@ Emissive_Materials = {
         "Divider": 80,
     },
 
+    "soul_lantern": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        11: 1,
+        12: 1.5,
+        "Adder": 0.1,
+        "Divider": 80,
+    },
+
     "glow_lichen": {
         "From Min": 0.18,
         "From Max": 0.6,
