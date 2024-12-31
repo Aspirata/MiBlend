@@ -24,11 +24,6 @@ def PBSDF_compability(Input: str) -> str:
 def clamp(min_value, value, max_value):
     return max(min_value, min(value, max_value))
 
-def convert_to_linux(path):
-    if sys.platform.startswith('linux'):
-        return path.replace("\\", "/")
-    return path
-
 def MaterialIn(Array, material, mode="in"):
     for material_part in format_material_name(material.name):
         for keyword in Array:
