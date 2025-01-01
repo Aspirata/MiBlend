@@ -1,0 +1,11 @@
+{
+    "Format_version": "dev",
+    "Asset_name": "MiEx World Fix",
+    "Blender_version": ">= 4.2.0",
+    "Author": "BlueEvil",
+    "File_path": "Scripts\\MiEx Script\\MiEx Script",
+    "Properties": {
+        "Preset": {"Default": 1, "1": "Aspirata Cycles", "2": "Aspirata Eevee Next Viewport"}
+    },
+    "Tags": ["Script"]
+}
