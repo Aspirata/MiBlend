@@ -1,5 +1,9 @@
 import bpy
 
+def Translate(untranslated_string):
+    Current_Language = bpy.app.translations.locale
+    return Translations.get(untranslated_string, {}).get(Current_Language, untranslated_string)
+
 Translations = {
     "Use Normals": {
         "ru_RU": "Использовать Нормали:"
@@ -14,15 +18,3 @@ Translations = {
     },
     
 }
-
-Availible_Translations = {
-    "Russian": "ru_RU",
-}
-
-def Translate(untranslated_string):
-    Current_Language = bpy.app.translations.locale
-
-    try:
-        return Translations[untranslated_string][Current_Language]
-    except:
-        return untranslated_string

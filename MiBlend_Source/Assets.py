@@ -44,9 +44,16 @@ def run_python_script(name, path):
             if asset.get("Asset_name", "") == name:
                 properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
 
+        context = {key: value for key, value in globals().items() if callable(value)}
+
+        context["properties"] = properties
+
         with open(path, 'r') as file:
-            exec(file.read(), globals(), {'properties': properties})
-    except:
+            script = file.read()
+
+        exec(script, context)
+
+    except Exception as e:
         Absolute_Solver("009", name, traceback.format_exc())
 
 def append_snode(asset_data):
@@ -224,8 +231,13 @@ def update_assets():
 
     directories_to_scan = [assets_directory]
     
-    temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", {})
-    directories_to_scan.extend(temp_assets_paths.values())
+    temp_assets_paths = bpy.context.scene.get("mib_options").get("temp_assets_paths")
+    temp_assets_path_list = list(temp_assets_paths)
+
+    if len(temp_assets_path_list) > 0:
+        directories_to_scan.extend(temp_assets_path_list)
+
+    dprint(f"Scanning {directories_to_scan}")
 
     for directory in directories_to_scan:
         for root, dirs, files in os.walk(directory):
@@ -245,9 +257,9 @@ def update_assets():
                         asset_tags = asset_data.get("Tags", [])
 
                         if asset_tags[0] == "Script":
-                            asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".py")
+                            asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".py")
                         else:
-                            asset_file_path = os.path.join(root, os.path.basename(convert_to_linux(asset_data.get("File_path", ""))) + ".blend")
+                            asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".blend")
 
                         if format_version != "test" or (bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.uas_debug_mode):
                             if not asset_name:

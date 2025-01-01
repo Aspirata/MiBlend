@@ -12,8 +12,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
-    "version": (0, 6, 0),
-    "warning": "This is Milestone 1",
+    "version": (0, 6, 1),
     "blender": (3, 6, 0),
     "doc_url": "https://github.com/Aspirata/MiBlend/wiki",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
@@ -40,15 +39,15 @@ def InitOnStart():
             if len(split_name) > 1 and "Dev" not in split_name:
                 original_materials_list[split_name[0]] = split_name[1]
 
-    if len(original_materials_list) > 0:
-        mib_options["is_replaced_materials"] = True
-    else:
-        mib_options["is_replaced_materials"] = False
+    mib_options["is_replaced_materials"] = len(original_materials_list) > 0
 
     mib_options["components_vesion"] = {
-        "MiBlend": "Beehive",
-        "UAS": "v2.1",
+        "MiBlend": "Honeycomb",
+        "UAS": "v2.1.2",
     }
+
+    if "temp_assets_paths" not in mib_options:
+        mib_options["temp_assets_paths"] = []
 
     update_assets()
 

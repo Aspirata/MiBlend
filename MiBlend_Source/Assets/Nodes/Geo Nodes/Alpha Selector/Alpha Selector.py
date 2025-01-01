@@ -10,7 +10,8 @@ for selected_object in bpy.context.selected_objects:
     for node in material.node_tree.nodes:
         if node.type == "BSDF_PRINCIPLED":
             image_texture_node = detect_texture_node(node)
-            texture = image_texture_node.image
+            if image_texture_node != None:
+                texture = image_texture_node.image
         
         if node.type == "GROUP":
             if "Extrude UV Fixer" in node.node_tree.name:

@@ -31,17 +31,6 @@ class WorldProperties(PropertyGroup):
         description=""
     )
 
-    def alpha_blend_fix(): # Fix for Eevee Next
-        if blender_version(">= 4.2.0"):
-            return False
-        else:
-            return True
-
-    use_alpha_blend: BoolProperty(
-        name="Use Alpha Blend",
-        default=alpha_blend_fix(),
-    )
-
 
 
 
@@ -522,7 +511,7 @@ class PPBRProperties(PropertyGroup):
 class CreateEnvProperties(PropertyGroup):
 
     create_sky: BoolProperty(
-        name="Create Sky",
+        name="Sky",
         default=True,
         description=""
     )
@@ -558,7 +547,7 @@ class CreateEnvProperties(PropertyGroup):
     )
 
     create_clouds: BoolProperty(
-        name="Create Clouds",
+        name="Clouds",
         default=True,
         description=""
     )
@@ -584,7 +573,7 @@ class CreateEnvProperties(PropertyGroup):
     )
 
     create_fog: BoolProperty(
-        name="Create Fog",
+        name="Fog",
         default=True,
         description=""
     )
