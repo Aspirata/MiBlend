@@ -10,7 +10,8 @@ def get_resource_packs() -> list:
 def set_resource_packs(resource_packs):
     bpy.context.scene["resource_packs"] = resource_packs
 
-    dprint(f"Resource Packs: {bpy.context.scene['resource_packs']}")
+    for pack, pack_info in bpy.context.scene["resource_packs"].items():
+        print(f"{pack}, {pack_info['path']}, {pack_info['type']}")
 
 Launchers = {
     "Windows":{
@@ -89,18 +90,16 @@ def update_default_pack():
         resource_packs_dir = Preferences.dev_packs_path
     else:
         resource_packs_dir = resource_packs_directory
-        
-    default_pack = "Bare Bones 1.21"
-    default_path = os.path.join(resource_packs_dir, default_pack)
-    resource_packs[default_pack] = {"path": (default_path),"type": "Texture", "enabled": False}
 
-    default_pack = "Better Emission"
-    default_path = os.path.join(resource_packs_dir, default_pack)
-    resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": False}
+    special_types_list = {"Bare Bones 1.21": "Texture", "Better Emission": "PBR", "Embrace Pixels PBR": "PBR"}
 
-    default_pack = "Embrace Pixels PBR"
-    default_path = os.path.join(resource_packs_dir, default_pack)
-    resource_packs[default_pack] = {"path": (default_path), "type": "PBR", "enabled": False}
+    if not os.path.exists(resource_packs_dir):
+        return
+    
+    for pack in os.listdir(resource_packs_dir):
+        default_pack = pack
+        default_path = os.path.join(resource_packs_dir, default_pack)
+        resource_packs[default_pack] = {"path": (default_path), "type": special_types_list.get(default_pack, "Texture & PBR"), "enabled": False}
 
 @ Perf_Time
 def apply_resources():

@@ -355,7 +355,7 @@ class OpenConsoleOperator(Operator):
         try:
             bpy.ops.wm.console_toggle()
         except RuntimeError:
-            pass
+            return {'CANCELLED'}
         return {'FINISHED'}
     
 class SetProceduralPBROperator(Operator):

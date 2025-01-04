@@ -4,5 +4,6 @@
     "Asset_name": "Grass Rotation Fix",
     "File_path": "Scripts\\Grass Rotation Fix\\Grass Rotation Fix",
     "Direction X/Y_property": false,
+    "Texture Name_property": "grass block top",
     "Tags": ["Script"]
 }
