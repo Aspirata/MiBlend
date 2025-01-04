@@ -1,7 +1,7 @@
 import os
 import shutil
 
-def archive_folder(folder_name, output_archive_name, milestone):
+def archive_folder(folder_name, output_archive_name, milestone_index):
     if not os.path.exists(folder_name):
         print(f"Folder '{folder_name}' not found.")
         return
@@ -22,16 +22,21 @@ def archive_folder(folder_name, output_archive_name, milestone):
         temp_folder_path = os.path.join(temp_dir, os.path.basename(folder_name))
         shutil.copytree(folder_name, temp_folder_path)
 
-        if milestone:
+        if milestone_index:
             init_file_path = os.path.join(temp_folder_path, "__init__.py")
             if os.path.exists(init_file_path):
                 with open(init_file_path, "r+") as init_file:
                     lines = init_file.readlines()
-                    lines.insert(16, f'    "warning": "This is Milestone {milestone}",\n')
+                    if milestone_index.replace("_", "").isdigit():
+                        lines.insert(16, f'    "warning": "This is Milestone {milestone_index}",\n')
+                        lines.insert(46, f'        "Milestone": "{milestone_index}",\n')
+                    elif isinstance(milestone_index, str):
+                        lines.insert(45, f'        "Index": "{milestone_index.capitalize()}",\n')
                     init_file.seek(0)
                     init_file.writelines(lines)
             else:
                 print(f"File '__init__.py' not found in folder '{folder_name}'.")
+
 
         shutil.make_archive(output_archive_name, 'zip', temp_dir)
         print(f"Folder '{folder_name}' successfully archived to '{output_archive_name}.zip'.")
@@ -49,6 +54,6 @@ if __name__ == "__main__":
     folder_path = os.path.join(current_dir, source_folder)
     output_archive_path = os.path.join(current_dir, archive_name)
 
-    milestone = input("Milestone? \n")
+    milestone_index = input("Milestone or Index ? \n")
 
-    archive_folder(folder_path, output_archive_path, milestone)
+    archive_folder(folder_path, output_archive_path, milestone_index)
