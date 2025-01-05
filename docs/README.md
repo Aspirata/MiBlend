@@ -1,4 +1,4 @@
-# [Ru](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README_ru.md) | [En](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README_en.md)
+# [Readme Ru](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README_ru.md)
 
 # MiBlend
 A useful tool for creating minecraft content in blender
