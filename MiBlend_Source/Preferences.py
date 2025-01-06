@@ -100,9 +100,9 @@ class MiBlendPreferences(AddonPreferences):
         box = layout.box()
         row = box.row()
         row.label(text="Info:")                                                        # Info
-        row = box.row()
         for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
-            row.label(f"{component_name}: {component}")
+            row = box.row()
+            row.label(text=f"{component_name}: {component}")
 
         box = layout.box()
         row = box.row()

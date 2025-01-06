@@ -144,7 +144,7 @@ class ResourcePackProperties(PropertyGroup):
 
 
 
-class MaterialsProperties(PropertyGroup):
+class MaterialsProperties(PropertyGroup): # Why it's here ? LoL 05.01.25
     pass
 
 
