@@ -8,4 +8,4 @@ where python > NUL 2>&1 || (
 
 pip install bpy-addon-build
 pip install psutil
-python build_universal.py
+python "scripts/build_universal.py"

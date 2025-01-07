@@ -4,6 +4,7 @@ from mathutils import Vector, Matrix
 from math import atan2, radians, degrees
 
 direction = properties.get("Direction X/Y")
+texture_name = properties.get("Texture Name").split()
 
 for selected_object in bpy.context.selected_objects:
     if selected_object and selected_object.type == 'MESH':
@@ -23,11 +24,12 @@ for selected_object in bpy.context.selected_objects:
             for node in material.node_tree.nodes:
                 if node.type == "BSDF_PRINCIPLED":
                     image_texture_node = detect_texture_node(node)
+                    break
 
             if image_texture_node:
                 global texture_parts
                 texture_parts = format_texture_name(image_texture_node.image.name)
-                if all(part in texture_parts for part in ("grass", "block", "top")):
+                if all(part in texture_parts for part in texture_name):
                     processed_faces = 0
                     threshold = 0.001
                     

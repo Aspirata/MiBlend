@@ -1,3 +1,4 @@
+import bpy
 import sys
 from bpy.types import AddonPreferences
 from .MIB_API import blender_version
@@ -96,6 +97,13 @@ class MiBlendPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        box = layout.box()
+        row = box.row()
+        row.label(text="Info:")                                                        # Info
+        for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
+            row = box.row()
+            row.label(text=f"{component_name}: {component}")
+
         box = layout.box()
         row = box.row()
         row.label(text="UI:")                                                          # UI

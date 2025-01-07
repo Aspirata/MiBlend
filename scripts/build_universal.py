@@ -33,6 +33,7 @@ def run_bab_in_script_directory(script_dir):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
+        
         stdout, stderr = process.communicate()
         if process.returncode == 0:
             print("Команда 'bab' выполнена успешно.")
@@ -47,7 +48,7 @@ def run_bab_in_script_directory(script_dir):
     return "Failed"
 
 def main():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     print(f"Директория скрипта: {script_dir}")
     
     kill_result = find_and_kill_blender()

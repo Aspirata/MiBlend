@@ -44,6 +44,7 @@ def InitOnStart():
     mib_options["components_vesion"] = {
         "MiBlend": "Honeycomb",
         "UAS": "v2.1.2",
+        "Absolute Solver": "v1.1",
     }
 
     if "temp_assets_paths" not in mib_options:
@@ -58,7 +59,8 @@ def InitOnStart():
 def load_post_handler(dummy):
     InitOnStart()
 
-classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                          # Special Panels
+classes = [
+    MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                                 # Special Panels
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,                                                                            # Properties
     PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,                                                                                                              
     WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,                                                                                                          # Panels
