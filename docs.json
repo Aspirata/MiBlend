@@ -1,21 +1,43 @@
 {
-  "name": "My Docs",
-  "description": "My documentation site",
-  "sidebar": [
-  {
-    "group": "Getting Started",
-    "pages": [
+  "name": "MiBlend Wiki",
+  "description": "Well, That's MiBlend Wiki",
+  "sidebar": {
+    "en": [
       {
-        "title": "Getting to know docs.page",
-        "href": "/",
-        "icon": "rocket"
-      },
+        "group": "Getting Started",
+        "pages": [
+          {
+            "title": "Getting to know docs.page",
+            "href": "/",
+            "icon": "rocket"
+          },
+
+          {
+            "title": "Next Steps",
+            "href": "/next-steps",
+            "icon": "arrow-right"
+          }
+        ]
+      }
+    ],
+
+    "ru": [
       {
-        "title": "Next Steps",
-        "href": "/next-steps",
-        "icon": "arrow-right"
+        "group": "Начало",
+        "pages": [
+          {
+            "title": "Getting to know docs.page",
+            "href": "/",
+            "icon": "rocket"
+          },
+
+          {
+            "title": "Next Steps",
+            "href": "/next-steps",
+            "icon": "arrow-right"
+          }
+        ]
       }
     ]
   }
-]
 }
