@@ -30,7 +30,7 @@ Launchers = {
 }
 
 def update_default_pack():
-    resource_packs = bpy.context.scene["resource_packs"]
+    resource_packs = dict(bpy.context.scene["resource_packs"])
     Preferences = bpy.context.preferences.addons[__package__].preferences
 
     def version_formatter(version_name: str) -> str:
@@ -76,30 +76,43 @@ def update_default_pack():
         
         return None, None
 
-    MC = find_mc()
-    if MC != (None, None):
-        version, path = MC
+    #Delete current default packs
+    packs_to_remove = []
+    for pack, pack_info in resource_packs.items():
+        if pack_info.get("is_default", False):
+            packs_to_remove.append(pack)
+    
+    for pack in packs_to_remove:
+        del resource_packs[pack]
+        
+    # Minecraft Pack
+    version, path = find_mc()
+    if version != None and path != None:
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True}
+        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True, "is_default": True}
         dprint(resource_packs[default_pack]["path"])
     else:
         print("MC instance not found")
 
+    # Adding Other Packs to the Scene
     if Preferences.dev_tools and Preferences.dev_packs_path and Preferences.enable_custom_packs_path:
         resource_packs_dir = Preferences.dev_packs_path
     else:
         resource_packs_dir = resource_packs_directory
 
-    special_types_list = {"Bare Bones 1.21": "Texture", "Better Emission": "PBR", "Embrace Pixels PBR": "PBR"}
+    special_types_list = {"Bare Bones 1.21.4": "Texture"}
 
     if not os.path.exists(resource_packs_dir):
         return
-    
+
     for pack in os.listdir(resource_packs_dir):
         default_pack = pack
         default_path = os.path.join(resource_packs_dir, default_pack)
-        resource_packs[default_pack] = {"path": (default_path), "type": special_types_list.get(default_pack, "Texture & PBR"), "enabled": False}
+        default_type = "PBR" if "PBR" in default_pack else special_types_list.get(default_pack, "Texture & PBR")
+        resource_packs[default_pack] = {"path": default_path, "type": default_type, "enabled": False, "is_default": True}
+    
+    set_resource_packs(resource_packs)
 
 @ Perf_Time
 def apply_resources():
@@ -148,6 +161,9 @@ def apply_resources():
 
                 for dirpath, dirnames, files in os.walk(dirpath):
                     for file in files:
+                        if "colormap" in dirnames:
+                            continue
+
                         if file == image_name:
                             return os.path.join(dirpath, file)
                         
@@ -169,10 +185,10 @@ def apply_resources():
             if obj_type == "unknown":
                 #dprint(f"{image_name} is {obj_type}")
                 #dprint(f"Switching to hybrid mode...")
-                filtered_namelist = [item for item in namelist if f"textures" in item]
+                filtered_namelist = [item for item in namelist if f"textures" in item and "colormap" not in item]
             else:
                 #dprint(f"{image_name} is {obj_type} using texture filter...")
-                filtered_namelist = [item for item in namelist if f"textures/{obj_type}" in item]
+                filtered_namelist = [item for item in namelist if f"textures/{obj_type}" in item and "colormap" not in item]
 
             namelist = filtered_namelist
 
@@ -218,21 +234,17 @@ def apply_resources():
     
     def find_texture_users(texture) -> list:
         Texture_users = []
-        for obj in bpy.data.objects:
-            if obj.type == 'MESH':
-                for material in selected_object.data.materials:
-                    if material and material.use_nodes:
-                        for node in material.node_tree.nodes:
-                            if node.type == 'TEX_IMAGE' and node.image == texture:
-                                Texture_users.append(node)
-        
+        for material in bpy.data.materials:
+            if material and material.use_nodes:
+                Texture_users.extend([node for node in material.node_tree.nodes if node.type == 'TEX_IMAGE' and node.image == texture])
+    
         for group in bpy.data.node_groups:
             for node in group.nodes:
                 if node.type == 'TEX_IMAGE' and node.image == texture:
                     Texture_users.append(node)
-        
-        return Texture_users
-
+    
+        return list(set(Texture_users))
+    
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
         Users = None
 
@@ -272,7 +284,6 @@ def apply_resources():
             else:
                 for user in Users:
                     user.image = user_texture
-
 
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         Texture_Animator = None

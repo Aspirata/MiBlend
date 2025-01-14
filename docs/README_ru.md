@@ -16,7 +16,7 @@ https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 
 ## Контрибуторы:
 
-### .anonim4ik - Векторный Сamera Culling 
+### .anonim4ik - Векторный Сamera Culling, ГеоНода Alpha Selector, ГеоНода Wind
 
 ### zipi.zip - Риги
 Ссылки:  
@@ -34,7 +34,7 @@ https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 Ссылки:  
 - https://modrinth.com/resourcepack/embrace-pixels  
 
-### Faizek - Риг Персонажа Story Mode  
+### Faizek - Риг Персонажа Story Mode, Риг Creaking
 Ссылки:  
 - https://x.com/fluffy_aizek  
 - https://t.me/flufyaizekmedia  

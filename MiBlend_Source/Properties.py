@@ -14,6 +14,11 @@ class WorldProperties(PropertyGroup):
         default=True,
     )
 
+    remove_doubles: BoolProperty(
+        name="Remove Double Faces",
+        default=False,
+    )
+
     advanced_settings: BoolProperty(
         name="Advanced Settings",
         default=False,

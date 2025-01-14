@@ -37,14 +37,13 @@ class MiBlendPreferences(AddonPreferences):
 
     def emissiondetectionfix():
         if blender_version("3.6.x"):
-            default='Manual'
+            return 'Manual'
         else:
-            default='Automatic & Manual'
-        return default
+            return 'Automatic & Manual'
 
     emissiondetection: EnumProperty(
         items=[('Automatic', 'Automatic', ''), 
-            ('Automatic & Manual', 'Both', ''),
+            ('Automatic & Manual', 'Combined', ''),
             ('Manual', 'Manual', '')],
         name="emissiondetection",
         default=emissiondetectionfix()

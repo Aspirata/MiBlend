@@ -116,10 +116,23 @@ def traverse_nodes(node, input_name, visited=None):
 
 @ Perf_Time
 def fix_world():
+    Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+    WProperties = bpy.context.scene.world_properties
+
     for selected_object in bpy.context.selected_objects:
+
         if not selected_object.material_slots:
             Absolute_Solver("m003", selected_object)
             continue
+
+        if Preferences.dev_tools and Preferences.experimental_features and WProperties.remove_doubles:
+            bpy.ops.object.editmode_toggle()
+            
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.edge_split(type='VERT')
+            bpy.ops.mesh.remove_doubles()
+
+            bpy.ops.object.editmode_toggle()
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -182,88 +195,64 @@ def fix_world():
 
             # Backface Culling
             alpha_connection = GetConnectedSocketTo("Alpha", PBSDF)
-            if WProperties.backface_culling:
-                if MaterialIn(Backface_Culling_Materials, material):
-                    bfc_node = None
+            if WProperties.backface_culling and MaterialIn(Backface_Culling_Materials, material)[0]:
+                material.use_backface_culling = True
 
-                    material.use_backface_culling = True
-                    
-                    if bfc_node is None:
-                        if "Backface Culling" not in bpy.data.node_groups:
-                            try:
-                                with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                                    data_to.node_groups = ["Backface Culling"]
-                            except:
-                                Absolute_Solver("004", "Materials", traceback.format_exc())
+                if bfc_node is None:
+                    bfc_node = create_node_group(material.node_tree.nodes, "Backface Culling", (PBSDF.location.x - 170, PBSDF.location.y - 110))
+
+                if alpha_connection and alpha_connection.node != bfc_node:
+                    material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
                         
-                        bfc_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                        bfc_node.node_tree = bpy.data.node_groups["Backface Culling"]
-                        bfc_node.location = (PBSDF.location.x - 170, PBSDF.location.y - 110)
-
-                    if alpha_connection and alpha_connection.node != bfc_node:
-                        material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
-                            
-                    material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
+                material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
                     
-            elif bfc_node is not None:
+            elif bfc_node:
+                material.use_backface_culling = False
                 material.node_tree.links.new(GetConnectedSocketTo(0, bfc_node), PBSDF.inputs["Alpha"])
                 material.node_tree.nodes.remove(bfc_node)
-                material.use_backface_culling = False
             
             # Lazy Biome Color Fix
             base_color_connection = GetConnectedSocketTo("Base Color", PBSDF)
-            if WProperties.lazy_biome_fix:
+            if WProperties.lazy_biome_fix and isgray(image.name):
                 texture_parts = format_texture_name(image.name)
 
-                # Lazy Biome Color Fix Exclusions
-                if isgray(image.name):
-                    if lbcf_node is None:
-                        if "Lazy Biome Color Fix" not in bpy.data.node_groups:
-                            try:
-                                with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                                    data_to.node_groups = ["Lazy Biome Color Fix"]
-                            except:
-                                Absolute_Solver("004", "Nodes", traceback.format_exc())
-                        
-                        lbcf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                        lbcf_node.node_tree = bpy.data.node_groups["Lazy Biome Color Fix"]
-                        lbcf_node.location = (PBSDF.location.x - 170, PBSDF.location.y)
+                if lbcf_node is None:
+                    lbcf_node = create_node_group(material.node_tree.nodes, "Lazy Biome Color Fix", (PBSDF.location.x - 170, PBSDF.location.y - 20))
 
-                    if base_color_connection and base_color_connection.node != lbcf_node:
-                        material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
+                if base_color_connection and base_color_connection.node != lbcf_node:
+                    material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
 
-                    material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
+                material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
 
-                    # Simple Biomes Support
-                    if "fern" in texture_parts or "spruce" in texture_parts:
-                        biome = "Taiga"
-                    elif "dark" in texture_parts:
-                        biome = "Dark Forest"
-                    elif "mangrove" in texture_parts:
-                        biome = "Mangrove"
-                    elif "jungle" in texture_parts:
-                        biome = "Jungle"
-                    elif "acacia" in texture_parts:
-                        biome = "Savanna"
-                    elif "birch" in texture_parts:
-                        biome = "Birch"
-                    else:
-                        biome = "Forest"
+                # Simple Biomes Support
+                if "fern" in texture_parts or "spruce" in texture_parts:
+                    biome = "Taiga"
+                elif "dark" in texture_parts:
+                    biome = "Dark Forest"
+                elif "mangrove" in texture_parts:
+                    biome = "Mangrove"
+                elif "jungle" in texture_parts:
+                    biome = "Jungle"
+                elif "acacia" in texture_parts:
+                    biome = "Savanna"
+                elif "birch" in texture_parts:
+                    biome = "Birch"
+                else:
+                    biome = "Forest"
 
-                    if "grass" in texture_parts:
-                        lbcf_node.inputs["Mode"].default_value = 2
+                if "grass" in texture_parts:
+                    lbcf_node.inputs["Mode"].default_value = 2
 
-                    elif "water" in texture_parts:
-                        lbcf_node.inputs["Mode"].default_value = 3
+                elif "water" in texture_parts:
+                    lbcf_node.inputs["Mode"].default_value = 3
 
-                    elif "redstone" in texture_parts:
-                        lbcf_node.inputs["Mode"].default_value = 4
-                    
-                    lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
-                    lbcf_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lbcf_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
+                elif "redstone" in texture_parts:
+                    lbcf_node.inputs["Mode"].default_value = 4
+                
+                lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
+                lbcf_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lbcf_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
 
-
-            elif lbcf_node is not None:
+            elif lbcf_node:
                 material.node_tree.links.new(GetConnectedSocketTo(0, lbcf_node), PBSDF.inputs["Base Color"])
                 material.node_tree.nodes.remove(lbcf_node)
 
@@ -281,16 +270,7 @@ def fix_world():
                     material.node_tree.nodes.remove(Texture_Animator)
 
                 if auvf_node is None:
-                    if "Animated UV Fix" not in bpy.data.node_groups:
-                        try:
-                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                                data_to.node_groups = ["Animated UV Fix"]
-                        except:
-                            Absolute_Solver("004", "Nodes", traceback.format_exc())
-
-                    auvf_node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                    auvf_node.node_tree = bpy.data.node_groups["Animated UV Fix"]
-                    auvf_node.location = (image_texture_node.location.x - 200, image_texture_node.location.y - 220)
+                    auvf_node = create_node_group(material.node_tree.nodes, "Animated UV Fix", (image_texture_node.location.x - 200, image_texture_node.location.y - 220))
 
                 if vector_connection and vector_connection.node != auvf_node:
                     material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
@@ -298,7 +278,7 @@ def fix_world():
                 auvf_node.inputs["Frames"].default_value = int(image.size[1] / image.size[0])
                 material.node_tree.links.new(auvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])
 
-            elif auvf_node is not None:
+            elif auvf_node:
                 material.node_tree.nodes.remove(auvf_node)
 
 @Perf_Time
@@ -447,14 +427,6 @@ def create_env(mode=None):
 
         # Create Fog
         if (scene.env_properties.create_fog and mode == None) or mode == "Fog":
-            try:
-                if fog_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                        data_to.node_groups = [fog_node_tree_name]
-                else:
-                    bpy.data.node_groups[fog_node_tree_name]
-            except:
-                Absolute_Solver("004", "Nodes", traceback.format_exc())
             
             bpy.ops.mesh.primitive_cube_add(size=1, enter_editmode=False, align='WORLD', location=(0, 0, 50))
             fog_cube = bpy.context.active_object
@@ -467,11 +439,9 @@ def create_env(mode=None):
             fog_material.use_nodes = True
             fog_cube.data.materials.append(fog_material)
 
-            fog_node = fog_material.node_tree.nodes.new(type='ShaderNodeGroup')
-            fog_node.node_tree = bpy.data.node_groups["Fog"]
             output_node = [node for node in fog_material.node_tree.nodes if node.type == "OUTPUT_MATERIAL"][0]
             fog_material.node_tree.nodes.remove(GetConnectedSocketTo(0, output_node).node)
-            fog_node.location = (output_node.location.x - 200, output_node.location.y)
+            fog_node = create_node_group(fog_material.node_tree.nodes, fog_node_tree_name, (output_node.location.x - 200, output_node.location.y))
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
 
             bpy.context.scene.eevee.volumetric_end = fog_node.inputs["Max Distance"].default_value
@@ -632,7 +602,7 @@ def setproceduralpbr():
                 continue
 
             # Use Normals
-            if image is not None:
+            if image:
                 if image_texture_node.type == "GROUP":
                     vector_connection = image_texture_node.outputs["Current Frame"]
                 else:
@@ -655,23 +625,19 @@ def setproceduralpbr():
                         material.node_tree.nodes.remove(bump_node)
                         
                         if PNormals is None:
-                            if f"PNormals; {material.name}" in bpy.data.node_groups:
-                                Current_node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
+                            PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                            group_name = f"PNormals; {material.name}"
 
-                                PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                                PNormals.node_tree = Current_node_tree
-                                PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
-                            
+                            if group_name in bpy.data.node_groups:
+                                Current_node_tree = bpy.data.node_groups[group_name]
                             else:
                                 with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                     data_to.node_groups = ["PNormals"]
+                                bpy.data.node_groups["PNormals"].name = group_name
+                                Current_node_tree = bpy.data.node_groups[group_name]
 
-                                PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
-
-                                bpy.data.node_groups[f"PNormals"].name = f"PNormals; {material.name}"
-                                PNormals.node_tree = bpy.data.node_groups[f"PNormals; {material.name}"]
-                                Current_node_tree = PNormals.node_tree
-                                PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
+                            PNormals.node_tree = Current_node_tree
+                            PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
 
                         for node in Current_node_tree.nodes:
                             if node.type == "TEX_IMAGE":
@@ -712,7 +678,7 @@ def setproceduralpbr():
 
             # Use SSS                            
             if PProperties.use_sss:
-                if MaterialIn(SSS_Materials, material) or PProperties.sss_skip:
+                if MaterialIn(SSS_Materials, material)[0] or PProperties.sss_skip:
                     PBSDF.subsurface_method = PProperties.sss_type
 
                     if PProperties.connect_texture:
@@ -731,25 +697,24 @@ def setproceduralpbr():
                 PBSDF.inputs[PBSDF_compability("Subsurface Weight")].default_value = 0
 
             # Use Translucency
-            if MaterialIn(Translucent_Materials, material):
-                if PProperties.use_translucency:
+            if PProperties.use_translucency:
+                    if MaterialIn(Translucent_Materials, material)[0]:
                         PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
-                elif PProperties.revert_translucency:
-                    PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
+            elif PProperties.revert_translucency:
+                PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
 
             # Make Metals                            
-            if PProperties.make_metal and MaterialIn(Metal, material):
+            if PProperties.make_metal and MaterialIn(Metal, material)[0]:
                 PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
                 PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
-
                 
             # Make Reflections                            
-            if PProperties.make_reflections and MaterialIn(Reflective, material):
+            if PProperties.make_reflections and MaterialIn(Reflective, material)[0]:
                 PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
 
             # Make Better Emission and Animate Textures
-            if (PProperties.make_better_emission or PProperties.animate_textures) and EmissionMode(PBSDF, image.name):
+            if (PProperties.make_better_emission or PProperties.animate_textures) and image and EmissionMode(PBSDF, image.name):
                 node_group = None
 
                 # The Main Thing
@@ -759,46 +724,45 @@ def setproceduralpbr():
                             node_group = node
                             break
 
-                # BATGroup Import if BATGroup isn't in File
-                if node_group is None:
-                    if BATGroup not in bpy.data.node_groups:
-                        with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                            data_to.node_groups = [BATGroup]
-
-                    node_group = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                    node_group.node_tree = bpy.data.node_groups[BATGroup]
-
                 # Settings Set
-                if MaterialIn(Emissive_Materials.keys(), material, "=="):
-                    for material_part in format_material_name(material.name):
-                        for material_name, material_properties in Emissive_Materials.items():
-                            if material_name == material_part:
-                                for property_name, property_value in material_properties.items():
-                                    node_group.inputs[property_name].default_value = property_value
+                is_valid, item = MaterialIn(Emissive_Materials.keys(), material)
 
-                                if "Middle Value" in material_properties and 11 in material_properties and 12 in material_properties and "Adder" in material_properties and "Divider" in material_properties:
-                                    node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
-                                
-                                if "From Min" in material_properties and "From Max" in material_properties and "To Min" in material_properties and "To Max" in material_properties:
-                                    node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                if is_valid:
+                    material_properties = Emissive_Materials.get(item, {}).items()
+                    if len(material_properties) >= 1:
+                        if node_group is None:
+                            node_group = create_node_group(material.node_tree.nodes, BATGroup, (PBSDF.location.x - 200, PBSDF.location.y - 250))
+
+                        for property_name, property_value in material_properties:
+                            node_group.inputs[property_name].default_value = property_value
+
+                        if all(e in [property_name for property_name, property_value in material_properties] for e in ["Middle Value", 11, 12, "Adder", "Divider"]):
+                            node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                        
+                        if all(e in [property_name for property_name, property_value in material_properties] for e in ["From Min", "From Max", "To Min", "To Max"]) :
+                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+
                 else:
+                    if node_group is None:
+                        node_group = create_node_group(material.node_tree.nodes, BATGroup, (PBSDF.location.x - 200, PBSDF.location.y - 250))
+
                     for property_name, property_value in Emissive_Materials.get("Default", {}).items():
                         node_group.inputs[property_name].default_value = property_value
 
                     node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
                     node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
                 
-                # Color Connection if Nothing Connected
-                if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
-                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
-                
-                emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
-                if emit_socket and emit_socket.node != node_group:
-                    material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
-
-                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 250)
-                material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
-                material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
+                if node_group:
+                    # Color Connection if Nothing Connected
+                    if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
+                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
+                    
+                    emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
+                    if emit_socket and emit_socket.node != node_group:
+                        material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
+                        
+                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
+                    material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
             if not PProperties.make_better_emission and not PProperties.animate_textures:
                 node_group = None

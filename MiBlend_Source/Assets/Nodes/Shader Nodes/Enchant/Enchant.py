@@ -1,14 +1,4 @@
-current_index = bpy.context.scene.assetsproperties.asset_index
-items = bpy.context.scene.assetsproperties.asset_items
-
-current_asset = items[current_index]
-
-json_file_path = current_asset.get("File_path", "").replace(".blend", ".json")
-
-with open(json_file_path, 'r') as json_file:
-    asset_data = json.load(json_file)
-
-properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key.lower()}
+import bpy
 
 active_obj = bpy.context.active_object
 if active_obj and active_obj.active_material:
@@ -26,16 +16,7 @@ if active_obj and active_obj.active_material:
                     PBSDF = node
 
             if node_group == None:
-                if "Enchantment" not in bpy.data.node_groups:
-                    json_file_path = current_asset.get("File_path", "").replace(".blend", ".json")
-                    try:
-                        with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                            data_to.node_groups = ["Lazy Biome Color Fix"]
-                    except:
-                        Absolute_Solver("004", "Nodes", traceback.format_exc())
-                node_group = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
-                node_group.node_tree = bpy.data.node_groups["Enchantment"]
-                node_group.location = (PBSDF.location.x - 200, PBSDF.location.y - 280)
+                node_group = create_node_group(current_material.node_tree.nodes, "Enchantment", (PBSDF.location.x - 200, PBSDF.location.y - 280))
 
             if socket := GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF):
                 if socket.node != node_group:
@@ -48,6 +29,6 @@ if active_obj and active_obj.active_material:
             current_material.node_tree.links.new(node_group.outputs[0], PBSDF.inputs[PBSDF_compability("Emission Color")])
             current_material.node_tree.links.new(node_group.outputs[1], PBSDF.inputs["Emission Strength"])
             
-            node_group.inputs["Divider"].default_value = properties.get("Divider", asset_data["Divider_property"])
-            node_group.inputs["Camera Strenght"].default_value = properties.get("Camera Strength", asset_data["Camera Strength_property"])
-            node_group.inputs["Non-Camera Strenght"].default_value = properties.get("Non-Camera Strength", asset_data["Non-Camera Strength_property"])
+            node_group.inputs["Divider"].default_value = properties.get("Divider")
+            node_group.inputs["Camera Strenght"].default_value = properties.get("Camera Strength")
+            node_group.inputs["Non-Camera Strenght"].default_value = properties.get("Non-Camera Strength")

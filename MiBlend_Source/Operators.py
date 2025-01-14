@@ -270,13 +270,13 @@ class AddResourcePack(Operator):
         if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
             if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
                 pack_name = os.path.basename(self.filepath)
-                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True, "is_default": False}
             else:
                 pack_name = os.path.basename(os.path.dirname(self.filepath))
-                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
         else:
             pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
+            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
         
         dprint(resource_packs[pack_name]["type"])
         if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
