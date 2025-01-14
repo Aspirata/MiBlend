@@ -417,7 +417,7 @@ Emissive_Materials = {
 
 # Materials Categories
 
-Backface_Culling_Materials = ["glass ; top", "door", "nether portal", "redstone torch"]
+Backface_Culling_Materials = ["glass", "door", "nether portal", "redstone torch"]
 
 SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
 
