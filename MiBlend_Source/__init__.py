@@ -43,7 +43,7 @@ def InitOnStart():
 
     mib_options["components_vesion"] = {
         "MiBlend": "Honeycomb",
-        "UAS": "v2.1.2",
+        "UAS": "v2.1.3",
         "Absolute Solver": "v1.1",
     }
 

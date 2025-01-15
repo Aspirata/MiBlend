@@ -121,7 +121,23 @@ Emissive_Materials = {
         "To Max": 1,
     },
 
-    "sea_lantern": {
+    "campfire fire": {},
+    "soul campfire fire": {},
+
+    "fire": {},
+    "soul fire": {},
+    "nether portal": {},
+    "beacon beam": {},
+    "glow squid": {},
+
+    "campfire log lit": {
+        "From Min": 0.19,
+        "From Max": 0.52,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "sea lantern": {
         "From Min": 0,
         "From Max": 1,
         "To Min": 0,
@@ -133,7 +149,7 @@ Emissive_Materials = {
         "Divider": 80,
     },
 
-    "lantern": {
+    "lantern ; sea": {
         "From Min": 0,
         "From Max": 0.6,
         "To Min": 0,
@@ -145,19 +161,7 @@ Emissive_Materials = {
         "Divider": 80,
     },
 
-    "soul_lantern": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "glow_lichen": {
+    "glow lichen": {
         "From Min": 0.18,
         "From Max": 0.6,
         "To Min": 0,
@@ -181,6 +185,44 @@ Emissive_Materials = {
         "Divider": 50,
     },
 
+    "powered rail on": {
+        "From Min": 0.52,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.2,
+        11: 0.5,
+        12: 2,
+        "Adder": 0.1,
+        "Divider": 50,
+    },
+
+    "redstone wire on": {
+        "From Min": 0.52,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.2,
+        11: 0.5,
+        12: 2,
+        "Adder": 0.1,
+        "Divider": 50,
+    },
+
+    "redstone block": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "redstone_lamp_on": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
     "lava": {
         "From Min": 0,
         "From Max": 0.6,
@@ -188,14 +230,35 @@ Emissive_Materials = {
         "To Max": 1,
     },
 
-    "cave_vines_lit": {
+    "lava flow": {
         "From Min": 0,
         "From Max": 0.6,
         "To Min": 0,
         "To Max": 1,
     },
 
-    "sculk_sensor": {
+    "lava still": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "cave vines lit": {
+        "From Min": 0.2,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 2,
+    },
+
+    "cave vines plant lit": {
+        "From Min": 0.2,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 2,
+    },
+
+    "sculk sensor": {
         "From Min": 0,
         "From Max": 0.6,
         "To Min": 0,
@@ -209,7 +272,35 @@ Emissive_Materials = {
         "To Max": 1,
     },
 
-    "sculk": {
+    "shroomlight": {
+        "From Min": 0,
+        "From Max": 2,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "magma": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "beacon": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "sea pickle": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "sculk ; catalyst": {
         "From Min": 0,
         "From Max": 0.4,
         "To Min": 0,
@@ -221,7 +312,7 @@ Emissive_Materials = {
         "Divider": 50,
     },
 
-    "sculk_vein": {
+    "sculk vein": {
         "From Min": 0,
         "From Max": 0.6,
         "To Min": 0,
@@ -233,7 +324,7 @@ Emissive_Materials = {
         "Divider": 50,
     },
 
-    "end_rod": {
+    "end rod": {
         "From Min": 0.5,
         "From Max": 0.6,
         "To Min": 0,
@@ -245,27 +336,94 @@ Emissive_Materials = {
         "Divider": 80,
     },
 
-    "powered_rail_on": {
-        "Middle Value": 0.2,
-        11: 0.5,
-        12: 2,
-        "Adder": 0.1,
-        "Divider": 50.0,
-    }
+    "respawn anchor": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "candle lit": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "large amethyst bud": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "medium amethyst bud": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "small amethyst bud": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "amethyst cluster": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "jack o lantern": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "blast furnace front on": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "furnace front on": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "crying obsidian": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+
+    "smoker front on": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
 
 }
 
 # Materials Categories
 
-Backface_Culling_Materials = ["glass", "door", "nether_portal"]
+Backface_Culling_Materials = ["glass", "door", "nether portal", "redstone torch"]
 
-Alpha_Blend_Materials = ["water"]
-
-SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
+SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
 
 Translucent_Materials = ["leaves", "glass"]
 
-Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
+Metal = ["iron", "gold", "emerald", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
 Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 

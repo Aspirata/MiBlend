@@ -1,8 +1,9 @@
 from .MIB_API import *
+from .Data import assets_directory
 from .Properties import ScriptAssetProperties
 
 def append_asset(asset_data):
-    asset_name = asset_data.get("Asset_name")
+    asset_name = asset_data.get("Asset_name", "")
     asset_path = asset_data.get("File_path", "")
     asset_type = asset_data.get("Type", "")
     asset_collection = asset_data.get("Collection_name", asset_name)
@@ -44,7 +45,8 @@ def run_python_script(name, path):
             if asset.get("Asset_name", "") == name:
                 properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
 
-        context = {key: value for key, value in globals().items() if callable(value)}
+        context = globals().copy()
+        context["properties"] = properties
 
         context["properties"] = properties
 

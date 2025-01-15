@@ -1,6 +1,6 @@
 from MiBlend_Source.Data import *
 from MiBlend_Source.Utils.Absolute_Solver import Absolute_Solver
-from typing import Optional
+from typing import Optional, Union
 import time
 import sys
 
@@ -25,13 +25,89 @@ def clamp(min_value, value, max_value):
     return max(min_value, min(value, max_value))
 
 def MaterialIn(Array, material, mode="in"):
-    for material_part in format_material_name(material.name):
-        for keyword in Array:
-            if mode == "==":
-                return keyword == material_part
-            else:
-                return keyword in material_part
+    material_name = format_material_name(material.name)
+    for item in Array:
+        if ";" in item:
+            anti_keywords = item.split(" ; ")[1].split()
+            if any(anti_keyword in material_name for anti_keyword in anti_keywords):
+                continue
+            item = item.split(" ; ")[0]
+        
+        if " " in item:
+            for keyword in item.split():
+                dprint(keyword, material_name, keyword in material_name)
+            if all(keyword in material_name for keyword in item.split()):
+                return (True, item)
+        elif mode == "==":
+            for material_part in material_name:
+                dprint(item, material_part, item == material_part)
+
+            if any(item == material_part for material_part in material_name):
+                return (True, item)
+        else:
+            for material_part in material_name:
+                dprint(item, material_part, item in material_part)
+
+            if any(item in material_part for material_part in material_name):
+                return (True, item)
+
+    return (False, None)
+
+def TextureIn(Array, texture, mode="=="):
+    texture_name = format_texture_name(texture)
+    for item in Array:
+        if ";" in item:
+            anti_keywords = item.split(" ; ")[1].split()
+            if any(anti_keyword in texture_name for anti_keyword in anti_keywords):
+                continue
+            item = item.split(" ; ")[0]
+        
+        if " " in item:
+            if all(keyword in texture_name for keyword in item.split()):
+                return (True, item)
+        elif mode == "==":
+            if any(item == texture_part for texture_part in texture_name):
+                return (True, item)
+        else:
+            if any(item in texture_part for texture_part in texture_name):
+                return (True, item)
+
     return False
+def EmissionMode(PBSDF, texture_name):
+        from .Data import Emissive_Materials
+
+        Preferences = bpy.context.preferences.addons[__package__].preferences
+                
+        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or TextureIn(Emissive_Materials.keys(), texture_name)):
+            return 1
+
+        elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
+            return 2
+        
+        elif Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name):
+            return 3
+
+def create_node_group(place, node_tree_name : str, location : tuple = (0, 0), file : str = nodes_file, name : str ="", exists_check : bool = False):
+    if exists_check:
+        for node in place:
+            if node.type == "GROUP" and node.node_tree.name == node_tree_name:
+                return node
+        
+    if node_tree_name not in bpy.data.node_groups:
+        try:
+            with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
+                data_to.node_groups = [node_tree_name]
+        except:
+            Absolute_Solver("004", "Nodes", traceback.format_exc())
+
+    group_node = place.new(type='ShaderNodeGroup')
+    if name != "":
+        group_node.name = name
+    
+    group_node.node_tree = bpy.data.node_groups[node_tree_name]
+    group_node.location = location
+
+    return group_node
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
 
@@ -257,26 +333,6 @@ def SeparateMeshByMaterial(obj, material = None):
 
     return new_obj
 
-def EmissionMode(PBSDF, texture_name):
-        from .Data import Emissive_Materials
-
-        def TextureIn(Array, texture):
-            for texture_name in Array:
-                if texture_name == format_texture_name(texture, split=False):
-                    return True
-            return False
-        
-        Preferences = bpy.context.preferences.addons[__package__].preferences
-                
-        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or TextureIn(Emissive_Materials.keys(), texture_name)):
-            return 1
-
-        elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
-            return 2
-        
-        elif Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name):
-            return 3
-
 def Perf_Time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -301,19 +357,23 @@ def GetConnectedSocketFrom(output: str, node):
     except:
         Absolute_Solver("005", __name__, traceback.format_exc())
 
-def GetConnectedSocketTo(input: str, node):
-    try:
-        input_socket = node.inputs.get(input)
-        if not input_socket:
+def GetConnectedSocketTo(input: Union[str, int], node):
+    if isinstance(input, int):
+        if input >= len(node.inputs):
             return None
-        
-        if not input_socket.is_linked:
-            return None
-        
-        link = input_socket.links[0]
-        return link.from_socket
-    except:
-        Absolute_Solver("005", __name__, traceback.format_exc())
+        else:
+            input_socket = node.inputs[input]
+    else:
+        input_socket = node.inputs.get(input, None)
+    
+    if not input_socket:
+        return None
+    
+    if not input_socket.is_linked:
+        return None
+    
+    link = input_socket.links[0]
+    return link.from_socket
 
 def RemoveLinksFrom(sockets):
     try:
