@@ -3,6 +3,7 @@ from MiBlend_Source.Utils.Absolute_Solver import Absolute_Solver
 from typing import Optional, Union
 import time
 import sys
+import re
 
 def PBSDF_compability(Input: str) -> str:
     if blender_version("3.x.x"):
@@ -23,6 +24,13 @@ def PBSDF_compability(Input: str) -> str:
 
 def clamp(min_value, value, max_value):
     return max(min_value, min(value, max_value))
+
+def mc_version_formatter(version_name: str) -> str:
+        version_parts = re.split(r'[ -]', version_name)
+        for part in version_parts:
+            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
+                return part
+        return None
 
 def MaterialIn(Array, material, mode="in"):
     material_name = format_material_name(material.name)
@@ -52,6 +60,27 @@ def MaterialIn(Array, material, mode="in"):
                 return (True, item)
 
     return (False, None)
+
+def get_resource_path():
+    Preferences = bpy.context.preferences.addons[__package__].preferences
+    if Preferences.dev_tools and os.path.exists(Preferences.dev_packs_path) and Preferences.enable_custom_packs_path:
+        resource_packs_directory = Preferences.dev_packs_path
+    else:
+        resource_packs_directory = os.path.join(main_directory, "Resource Packs")
+    
+    return resource_packs_directory
+
+def get_pack_info_properties(pack :str =None) -> dict:
+    resource_packs_directory = get_resource_path()
+    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+        data = json.load(file)
+        
+        if pack is None:
+            return data.keys()
+        
+        pack_list = data.get(pack, {})
+        pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
+    return pack_info
 
 def TextureIn(Array, texture, mode="=="):
     texture_name = format_texture_name(texture)

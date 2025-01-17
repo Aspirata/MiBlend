@@ -1,7 +1,9 @@
 from .MIB_API import *
 from .Data import *
 from .Utils.Absolute_Solver import Absolute_Solver
-import sys, re
+import shutil, sys, re, http.client
+from urllib.request import urlretrieve
+from urllib.parse import urlparse
 from distutils.version import LooseVersion
 
 def get_resource_packs() -> list:
@@ -29,19 +31,73 @@ Launchers = {
     }
 }
 
-def update_default_pack():
-    resource_packs = dict(bpy.context.scene["resource_packs"])
-    Preferences = bpy.context.preferences.addons[__package__].preferences
+def update_pack(pack):
+    resource_packs_directory = get_resource_path()
+    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+        data = json.load(file)
+        pack_info = (data.get(pack, {}).get("mc_version", None), data.get(pack, {}).get("pack_version", None))
+        link = data.get(pack, {}).get("link", None)
 
-    def version_formatter(version_name: str) -> str:
-        version_parts = re.split(r'[ -]', version_name)
-        for part in version_parts:
-            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
-                return part
+    if link is None:
         return None
 
-    def find_mc() -> tuple[str, str]:
+    if "modrinth" in link:
+        connection = http.client.HTTPSConnection("api.modrinth.com")
+        api_path = f"/v2/project/{pack.lower().replace(' ', '-')}/version"
+
+        try:
+            connection.request("GET", api_path)
+            response = connection.getresponse()
+            
+            if response.status != 200:
+                print(f"Error {response.status}")
+                return None
+            
+            data = response.read().decode("utf-8")
+            versions = json.loads(data)
+            
+            if not versions:
+                return None
+            
+            latest_version = max(versions, key=lambda v: v["date_published"])
+            latest_pack_info = (latest_version["game_versions"], latest_version["version_number"], latest_version["files"][0]["url"])
+        
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+        finally:
+            connection.close()
+
+        if not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]):
+            try:
+                dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}")
+                if os.path.exists(os.path.join(resource_packs_directory, pack)):
+                    shutil.rmtree(os.path.join(resource_packs_directory, pack))
+                filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
+                urlretrieve(latest_pack_info[2], filename)
+                
+                with zipfile.ZipFile(filename, 'r') as zip_ref:
+                    zip_ref.extractall(os.path.join(resource_packs_directory, pack))
+                os.remove(filename)
+                
+                dprint("Successfully Downloaded!")
+            except Exception as e:
+                dprint(f"Error: {e}")
+            
+            with open(os.path.join(resource_packs_directory, "packs_info.json"), "r+") as f:
+                data = json.load(f)
+                data[pack] = {
+                    "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
+                    "pack_version": latest_pack_info[1],
+                    "link": link
+                }
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+
+def find_mc() -> tuple[str, str]:
         versions = {}
+        Preferences = bpy.context.preferences.addons[__package__].preferences
         current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
         os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
 
@@ -52,7 +108,7 @@ def update_default_pack():
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
                     instance_path = None
-                    if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
+                    if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
                         versions[version] = (folder, os.path.join(os_env, path))
                         dprint(f"{instance_path} valid")
                     else:
@@ -63,7 +119,7 @@ def update_default_pack():
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
                     instance_path = None
-                    if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
+                    if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
                         versions[version] = (folder, Preferences.mc_instances_path)
                         dprint(f"{instance_path} valid")
                     else:
@@ -76,6 +132,11 @@ def update_default_pack():
         
         return None, None
 
+@Perf_Time
+def update_default_pack():
+    resource_packs = dict(bpy.context.scene["resource_packs"])
+    resource_packs_directory = get_resource_path()
+
     #Delete current default packs
     packs_to_remove = []
     for pack, pack_info in resource_packs.items():
@@ -84,7 +145,7 @@ def update_default_pack():
     
     for pack in packs_to_remove:
         del resource_packs[pack]
-        
+    
     # Minecraft Pack
     version, path = find_mc()
     if version != None and path != None:
@@ -96,20 +157,17 @@ def update_default_pack():
         print("MC instance not found")
 
     # Adding Other Packs to the Scene
-    if Preferences.dev_tools and Preferences.dev_packs_path and Preferences.enable_custom_packs_path:
-        resource_packs_dir = Preferences.dev_packs_path
-    else:
-        resource_packs_dir = resource_packs_directory
-
-    special_types_list = {"Bare Bones 1.21.4": "Texture"}
-
-    if not os.path.exists(resource_packs_dir):
+    if not os.path.exists(resource_packs_directory):
         return
 
-    for pack in os.listdir(resource_packs_dir):
+    for pack in os.listdir(resource_packs_directory):
+        if not os.path.isdir(os.path.join(resource_packs_directory, pack)) or pack not in get_pack_info_properties():
+            continue        
+        update_pack(pack)
+    
         default_pack = pack
-        default_path = os.path.join(resource_packs_dir, default_pack)
-        default_type = "PBR" if "PBR" in default_pack else special_types_list.get(default_pack, "Texture & PBR")
+        default_path = os.path.join(resource_packs_directory, default_pack)
+        default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
         resource_packs[default_pack] = {"path": default_path, "type": default_type, "enabled": False, "is_default": True}
     
     set_resource_packs(resource_packs)
@@ -178,6 +236,7 @@ def apply_resources():
         return None
     
     def zip_unpacker(root_folder: str, image_name: str, obj_type: str , file=None) -> Optional[str]:
+        resource_packs_directory = get_resource_path()
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
             namelist = zip_ref.namelist()

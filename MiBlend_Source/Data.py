@@ -6,7 +6,6 @@ import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
-resource_packs_directory = os.path.join(main_directory, "Resource Packs")
 materials_folder = os.path.join(main_directory, "Materials")
 nodes_file = os.path.join(materials_folder, "Nodes.blend")
 optimization_folder = os.path.join(main_directory, "Optimization")

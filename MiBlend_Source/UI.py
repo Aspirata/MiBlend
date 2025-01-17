@@ -80,7 +80,10 @@ class WorldAndMaterialsPanel(Panel):
                     toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
                     toggle_op.pack_name = pack
 
-                    row.label(text=pack)
+                    if get_pack_info_properties(pack).get('mc_version') is None:
+                        row.label(text=f"{pack} ({pack_info['type']})")
+                    else:
+                        row.label(text=f"{pack} {get_pack_info_properties(pack).get('mc_version')} ({pack_info['type']})")
                     
                     move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
                     move_up.pack_name = pack
