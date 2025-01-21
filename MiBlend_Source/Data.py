@@ -156,4 +156,14 @@ Emissive_Materials = {
             "To Max": 20,
         },
     },
-}
+},
+
+			"crying obsidian":	{},
+
+			"Furnace front":{},
+
+			"candle lit":{},
+
+			"beacon":{}
+
+			"sea pickle":{}
