@@ -1,12 +1,13 @@
 from ..MIB_API import *
 from ..Data import *
 from ..Resource_Packs import *
-from ..Utils.Absolute_Solver import Absolute_Solver
+from ..Utils.Absolute_Solver import Call_AS
 
 @ Perf_Time
 def replace_materials():
     original_materials_list = {}
-    with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+    replaced_materials_path = os.path.join(materials_folder, "Replaced Materials.blend")
+    with bpy.data.libraries.load(replaced_materials_path, link=False) as (data_from, data_to):
         for material_name in data_from.materials:
             split_name = material_name.split(" | ")
         
@@ -17,27 +18,26 @@ def replace_materials():
         return
     
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+        if not is_mesh(selected_object):
+            Call_AS("w01", selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
-            if material is None:
-                Absolute_Solver("m002", slot)
+            if material is None or not material.use_nodes:
                 continue
 
             for material_part in format_material_name(material.name):
                 if upgraded_material := original_materials_list.get(material_part, None):
                     if upgraded_material not in bpy.data.materials:
                         try:
-                            with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+                            with bpy.data.libraries.load(replaced_materials_path, link=False) as (data_from, data_to):
                                 data_to.materials = [f"{material_part} | {upgraded_material}"]
-                        except:
-                            Absolute_Solver('004', "Replaced Materials", traceback.format_exc())
+                        except Exception as error:
+                            Call_AS("e03", error, replaced_materials_path)
                             
                     appended_material = bpy.data.materials.get(f"{material_part} | {upgraded_material}")
                     appended_material.name = upgraded_material
-                    selected_object.data.materials[i] = appended_material
+                    selected_object.data.materials[slot] = appended_material
                     break
 
 # Fix World
@@ -476,13 +476,12 @@ def create_env(mode=None):
 @ Perf_Time
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+        if not is_mesh(selected_object):
+            Call_AS("w01", data=selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
                 continue
 
             image_texture_node = None
@@ -555,13 +554,12 @@ def setproceduralpbr():
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
         
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+        if not is_mesh(selected_object):
+            Call_AS("w01", data=selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
                 continue
             
             PBSDF = None
@@ -569,6 +567,7 @@ def setproceduralpbr():
             bump_node = None
             proughness_node = None
             pspecular_node = None
+            better_animate_node = None
             PNormals = None
             vector_connection = None
             image_difference_X = 1
@@ -583,19 +582,23 @@ def setproceduralpbr():
                     image_texture_node = detect_texture_node(node)
                     image = detect_image_texture(node)
 
-                if node.type == "BUMP":
+                elif node.type == "BUMP":
                     bump_node = node
 
-                if node.type == "GROUP":
+                elif node.type == "GROUP":
                     if "PNormals" in node.node_tree.name:
                         PNormals = node
                         Current_node_tree = node.node_tree
+
+                    elif "Better Animate Textures" in node.node_tree.name:
+                        better_animate_node = node
+                        break
                 
-                if node.type == "MAP_RANGE":
+                elif node.type == "MAP_RANGE":
                     if "Procedural Roughness Node" in node.name:
                         proughness_node = node
                     
-                    if "Procedural Specular Node" in node.name:
+                    elif "Procedural Specular Node" in node.name:
                         pspecular_node = node
 
             if not PBSDF:
@@ -621,6 +624,7 @@ def setproceduralpbr():
                             material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
 
                         bump_node.inputs[0].default_value = PProperties.bump_strength
+
                     elif bump_node:
                         material.node_tree.nodes.remove(bump_node)
                         
@@ -712,70 +716,57 @@ def setproceduralpbr():
             if PProperties.make_reflections and MaterialIn(Reflective, material)[0]:
                 PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
-
             # Make Better Emission and Animate Textures
-            if (PProperties.make_better_emission or PProperties.animate_textures) and image and EmissionMode(PBSDF, image.name):
-                node_group = None
-
-                # The Main Thing
-                for node in material.node_tree.nodes:
-                    if node.type == "GROUP":
-                        if BATGroup in node.node_tree.name:
-                            node_group = node
-                            break
-
-                # Settings Set
+            if (PProperties.better_emission or PProperties.procedural_animation) and image and EmissionMode(PBSDF, image.name):
                 is_valid, item = MaterialIn(Emissive_Materials.keys(), material)
 
                 if is_valid:
-                    material_properties = Emissive_Materials.get(item, {}).items()
+                    material_properties = Emissive_Materials[item]
                     if len(material_properties) >= 1:
-                        if node_group is None:
-                            node_group = create_node_group(material.node_tree.nodes, BATGroup, (PBSDF.location.x - 200, PBSDF.location.y - 250))
+                        if better_animate_node is None:
+                            better_animate_node = create_node_group(material.node_tree.nodes, "Better Animate Texture", (PBSDF.location.x - 200, PBSDF.location.y - 265))
 
-                        for property_name, property_value in material_properties:
-                            node_group.inputs[property_name].default_value = property_value
+                        if PProperties.randomize and not any(mod for mod in selected_object.modifiers if mod.type == "NODES" and "Random Face Value" in mod.node_group.name):
+                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                                data_to.node_groups = ["Random Face Value"]
 
-                        if all(e in [property_name for property_name, property_value in material_properties] for e in ["Middle Value", 11, 12, "Adder", "Divider"]):
-                            node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
+                            selected_object.modifiers.new("Random Face Value", "NODES")
+                            selected_object.modifiers["Random Face Value"].node_group = bpy.data.node_groups["Random Face Value"]
+
+                        current_section = None
+                        for input_socket in better_animate_node.inputs:
+                            if input_socket.name in material_properties:
+                                current_section = input_socket.name
+                            elif current_section and current_section in material_properties:
+                                if value := material_properties.get(current_section, {}).get(input_socket.name):
+                                    input_socket.default_value = value
+
+                        Better_Emission_Dict = material_properties.get("Better Emission", {})
+                        if PProperties.better_emission and Better_Emission_Dict:
+                            better_animate_node.inputs["Better Emission"].default_value = bool(PProperties.better_emission and material_properties.get("Better Emission", False))
+                            better_animate_node.inputs["Camera Strength"].default_value = PProperties.camera_strength
+                            better_animate_node.inputs["Non-Camera Strength"].default_value = PProperties.non_camera_strength
+
+                        Procedural_Animation_Dict = material_properties.get("Procedural Animation", {})
+                        if PProperties.procedural_animation and material_properties.get("Procedural Animation", False):
+                            better_animate_node.inputs["Procedural Animation"].default_value = bool(PProperties.procedural_animation and material_properties.get("Procedural Animation", False))
+                            better_animate_node.inputs["Randomize"].default_value = PProperties.randomize and Procedural_Animation_Dict.get("Randomize", False)
+
+                        if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
                         
-                        if all(e in [property_name for property_name, property_value in material_properties] for e in ["From Min", "From Max", "To Min", "To Max"]) :
-                            node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
+                        emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
+                        if emit_socket and emit_socket.node != better_animate_node:
+                            material.node_tree.links.new(emit_socket, better_animate_node.inputs["Multiply"])
+                            
+                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), better_animate_node.inputs["Emission Color"])
+                        material.node_tree.links.new(better_animate_node.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-                else:
-                    if node_group is None:
-                        node_group = create_node_group(material.node_tree.nodes, BATGroup, (PBSDF.location.x - 200, PBSDF.location.y - 250))
-
-                    for property_name, property_value in Emissive_Materials.get("Default", {}).items():
-                        node_group.inputs[property_name].default_value = property_value
-
-                    node_group.inputs["Better Emission"].default_value = PProperties.make_better_emission
-                    node_group.inputs["Animate Textures"].default_value = PProperties.animate_textures
-                
-                if node_group:
-                    # Color Connection if Nothing Connected
-                    if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
-                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
-                    
-                    emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
-                    if emit_socket and emit_socket.node != node_group:
-                        material.node_tree.links.new(emit_socket, node_group.inputs["Multiply"])
-                        
-                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), node_group.inputs["Emission Color"])
-                    material.node_tree.links.new(node_group.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
-
-            if not PProperties.make_better_emission and not PProperties.animate_textures:
-                node_group = None
-                for node in material.node_tree.nodes:
-                    if node.type == "GROUP" and BATGroup in node.node_tree.name:
-                        node_group = node
-                        break
-                
-                if node_group is not None:
-                    mult_socket = GetConnectedSocketTo("Multiply", node_group)
-                    if mult_socket:
-                        material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
-                    material.node_tree.nodes.remove(node_group)
+            elif not PProperties.better_emission and not PProperties.animate_textures and better_animate_node:
+                mult_socket = GetConnectedSocketTo("Multiply", better_animate_node)
+                if mult_socket:
+                    material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
+                material.node_tree.nodes.remove(better_animate_node)
 
             if Preferences.dev_tools and Preferences.experimental_features:
                 if PProperties.proughness:

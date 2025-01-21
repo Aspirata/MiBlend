@@ -1,99 +1,63 @@
 from ..Data import *
-import bpy, re, traceback
+import bpy, time
 
-Absolute_Solver_Errors = {
-
-    # Quick Tip
-    # m - Materials Error
-    # u - User's Mistake
-
-    "LoL": {
-        "Error Name": "Zero Settings",
-        "Description": "You disabled all {Data} settings, so it did nothing LoL",
-        "Mode": "Full"
-    },
-
-    "000": {
-        "Error Name": "Absolute Solver Error",
-        "Description": "Absolute Solver Can't Display This Error - {Data}",
-    },
-
-    "001": {
-        "Error Name": "Unknown",
-        "Description": "An Unknown Error",
-    },
-
-    "m002": {
-        "Error Name": "Empty Material Slot",
-        "Description": "Material doesn't exist on slot {Data}",
-        "Mode": "Full"
-    },
-
-    "m003": {
-        "Error Name": "Object has no Materials",
-        "Description": 'Object "{Data.name}" has no materials',
-        "Mode": "Full"
-    },
-
-    "004": {
-        "Error Name": ".blend File Not Found",
-        "Description": "{Data}.blend not found",
-    },
-
-    "u006": {
-        "Error Name": "Color Space Not Found",
-        "Description": "You have custom color manager that doesn't have {Data}",
-    },
-
-    "007": {
-        "Error Name": "Create Thing Doesn't Exist in the File",
-        "Description": "Create feature uses alredy imported asset to your file, so if you see this message then your file doesn't have {Data} and you should probably use recreate feature instead",
-        "Mode": "Full"
-    },
-
-    "u008": {
-        "Error Name": "Bad Asset Addition",
-        "Description": "Cannot add the asset {Data}. Report to the Asset Creator",
-    },
-
-    "009": {
-        "Error Name": "Bad Asset Import",
-        "Description": "Cannot Import {Data}",
-    },
-}
-
-# Calls AS
-# P.S Variables after "tech_things" made for calling AS with an error that isn't in the Absolute_Solver_Errors
-# An example of this special error - Assets.py | 35 line
-
-def Absolute_Solver(error_code: str="None", data: str ="None", tech_things:str ="None", error_name: str = "None", description: str = "None", mode: str = "Smart"):
+def Call_AS(code: str, tech_things: str ="", data: str =""):
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
-    try:
-        def GetASText(error_code, text):
-            try:
-                return Absolute_Solver_Errors[error_code][text]
-            except KeyError:
-                return None
-        
-        if error_code is not "None":
-            error_name = Absolute_Solver_Errors[error_code].get("Error Name")
-        
-            description = Absolute_Solver_Errors[error_code].get('Description', None)
+    
+    # Store calls in a queue
+    if not hasattr(Call_AS, 'call_queue'):
+        Call_AS.call_queue = []
+        Call_AS.last_call_time = 0
+    
+    current_time = time.time()
+    
+    # Add current call to queue
+    Call_AS.call_queue.append((code, data))
+    
+    # Process queue if 5 seconds passed or this is first call
+    if current_time - Call_AS.last_call_time >= 5.0 or len(Call_AS.call_queue) == 1:
+        type = code[0]
+        number = "".join(code[1:])
+            
+        # Process all queued calls
+        for code, d in Call_AS.call_queue:
+            with open(os.path.join(utils_directory, "absolute_solver_list.json"), "r") as file:
+                data = json.load(file)
+                critical_error_name = data.get("errors", {}).get("00", {}).get("name", None)
+                critical_error_description = data.get("errors", {}).get("00", {}).get("description", None)
 
-            mode = Absolute_Solver_Errors[error_code].get("Mode", "Smart")
+                if type == "w":
+                    name = data.get("warnings", {}).get(number, {}).get("name", None)
+                    description = data.get("warnings", {}).get(number, {}).get("description", None)
+                elif type == "e":
+                    if not Preferences.show_warnings:
+                        continue
+                    name = data.get("errors", {}).get(number, {}).get("name", None)
+                    description = data.get("errors", {}).get(number, {}).get("description", None)
+                elif type == "n":
+                    name = data.get("null", {}).get(number, {}).get("name", None)
+                    description = data.get("null", {}).get(number, {}).get("description", None)
 
-        if (mode == Preferences.as_mode or mode == "Smart") and Preferences.as_mode != "None":
-            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = error_code, Error_Name = error_name, Description = description.format(Data=data), Tech_Things = str(tech_things))
-    except:
-        bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Error_Code = "000", Error_Name = GetASText("000", "Error Name"), Description = GetASText("000", 'Description').format(Data=error_name), Tech_Things = str(traceback.format_exc()))
+            if name and description:
+                try:
+                    bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Code = code, Name = name, Description = description.format(Data=d), Tech_Things = tech_things)
+                except Exception as error:
+                    bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Code = "e00", Name = critical_error_name, Description = critical_error_description.format(Data=code), Tech_Things = error)
+            else:
+                print(f"Error: {code} {name} {description}")
+                bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Code = "e00", Name = critical_error_name, Description = critical_error_description.format(Data=code), Tech_Things = f"{code} {name} {description}")
+        
+        # Clear queue and update time
+        Call_AS.call_queue = []
+        Call_AS.last_call_time = current_time
 
 class AbsoluteSolverPanel(bpy.types.Operator):
     bl_label = "Absolute Solver"
     bl_idname = "special.absolute_solver"
     bl_options = {'REGISTER', 'UNDO'}
 
-    Error_Code: bpy.props.StringProperty()
-    Error_Name: bpy.props.StringProperty()
+    Code: bpy.props.StringProperty()
+    Name: bpy.props.StringProperty()
     Description: bpy.props.StringProperty()
     Tech_Things: bpy.props.StringProperty()
 
@@ -102,36 +66,31 @@ class AbsoluteSolverPanel(bpy.types.Operator):
     
     def draw(self, context):
         layout = self.layout
-            
-        box = layout.box()
-        sbox = box.box()
-        if self.Error_Code != "None":
-            row = sbox.row()
-            row.label(text=f"Error Code: {self.Error_Code}")
         
+        box = layout.box()
+
+        sbox = box.box()
         row = sbox.row()
-        row.label(text=f"Error Name: {self.Error_Name}")
+        row.label(text=f"Code: {self.Code}")
+    
+        row = sbox.row()
+        row.label(text=f"Name: {self.Name}")
 
         sbox = box.box()
         row = sbox.row()
         row.label(text=f"Description: {self.Description}")
 
-        if self.Tech_Things != "None":
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Tech Things:")
-
-            if len(self.Tech_Things.split()) < 50:
-                split_tech_things = re.split(r'  |: ', self.Tech_Things)
-                for part in split_tech_things:
-                    sbox.label(text=part)
-            else:
-                sbox.label(text="Tech Things Cannot Be Displayed Here, Please Open the Console")
-
-            print(f"\033[33mAbsolute Solver Error Report: \033[31m\n{self.Tech_Things}\033[0m")
+        if self.Tech_Things != "":
             sbox = box.box()
             row = sbox.row()
             row.operator("special.open_console")
-    
+
+            row = sbox.row()
+            copy_to_clipboard = row.operator("special.copy_to_clipboard", text="Copy Tech Things to Clipboard")
+            copy_to_clipboard.text = self.Tech_Things
+
+            # Print the error to the console
+            print(f"\033[33mAbsolute Solver Report: \033[31m\n{self.Tech_Things}\033[0m")
+
     def execute(self, context):
         return {'FINISHED'}

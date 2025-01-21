@@ -1,0 +1,92 @@
+{
+    "null":
+    {
+        "00":
+        {
+            "Name": "Unknown Error",
+            "Description": "Well, tbh idk why you see that error lol fr"
+        }
+    },
+
+    "warnings": {
+        "-1":
+        {
+            "Name": "Triggered Warning",
+            "Description": "Test Warning"
+        },
+
+        "01": {
+            "Name": "Object Has No Materials",
+            "Description": "{Data} does not have materials because it is an empty, lattice, or armature "
+        }
+    },
+
+    "errors": {
+        "-1":
+        {
+            "Name": "Triggered Error",
+            "Description": "Test Error"
+        },
+
+        "00":
+        {
+            "Name": "Absolute Solver Error",
+            "Description": "Absolute Solver cannot display {Data}"
+        },
+
+        "01": 
+        {
+            "Name": "Legacy Component",
+            "Description": "A legacy component was detected in this scene. Some features may not work correctly."
+        },
+
+        "02":
+        {
+            "Name": "UI Display Error",
+            "Description": "User interface cannot display the requested element"
+        },
+
+        "03":
+        {
+            "Name": "File Not Found",
+            "Description": "The file {Data} could not be found"
+        },
+
+        "04":
+        {
+            "Name": "Dublicate",
+            "Description": "Remove or replace later in dev"
+        },
+
+        "05":
+        {
+            "Name": "Bad Asset Import",
+            "Description": "Can't import {Data}"
+        },
+
+        "06":
+        {
+            "Name": "Bad Asset Addition",
+            "Description": "Can't add {Data}"
+        },
+
+        "07":
+        {
+            "Name": "Texture Not Found",
+            "Description": "Can't Find Texture in {Data} material"
+        },
+
+        "08":
+        {
+            "Name": "Broken Assets List",
+            "Description": "Something went wrong with the assets list (Maybe because of a legacy asset list)"
+        },
+        
+        "09":
+        {
+            "Name": "Bad Pack File Extension",
+            "Description": "Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension"
+        }
+
+    }
+}

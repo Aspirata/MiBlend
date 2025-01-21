@@ -12,22 +12,14 @@ class MiBlendPreferences(AddonPreferences):
         default=False,
     )
 
-    enable_warnings: BoolProperty(
-        name="Enable Warnings",
+    show_warnings: BoolProperty(
+        name="Show Warnings",
         default=True
     )
 
     enable_deprecated_features: BoolProperty(
         name="Enable Deprecated Features (Requires Restart)",
         default=False
-    )
-
-    as_mode: EnumProperty(
-        items=[('None', 'None', 'No Errors will be Displayed'),
-            ('Smart', 'Smart', 'Only Critical Errors will be Displayed (For Smart People)'),
-            ('Full', 'Full', 'All Errors will be Displayed')],
-        name="as_mode",
-        default='Full'
     )
 
     mc_instances_path: StringProperty(
@@ -114,16 +106,11 @@ class MiBlendPreferences(AddonPreferences):
             self.transparent_ui = False
 
         row = box.row()
-        row.prop(self, "enable_warnings")
+        row.prop(self, "show_warnings")
 
         box = layout.box()
         row = box.row()
         row.label(text="Algorithms:")                                                  # Algorithms
-
-        row = box.row()
-        row.label(text="Absolute Solver Mode:")
-        row = box.row()
-        row.prop(self, "as_mode", text='as_mode', expand=True)
 
         row = box.row()
         row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")

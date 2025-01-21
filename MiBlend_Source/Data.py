@@ -10,11 +10,11 @@ materials_folder = os.path.join(main_directory, "Materials")
 nodes_file = os.path.join(materials_folder, "Nodes.blend")
 optimization_folder = os.path.join(main_directory, "Optimization")
 assets_directory = os.path.join(main_directory, "Assets")
+utils_directory = os.path.join(main_directory, "Utils")
 
 clouds_node_tree_name = "Clouds Generator 2"
 fog_node_tree_name = "Fog"
 world_material_name = "MiBlend World"
-BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
 
@@ -111,309 +111,6 @@ Foliage_Color = {
     "Savanna": (0.618196, 0.49695, 0.081344),
 }
 
-Emissive_Materials = {
-
-    "Default": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "campfire fire": {},
-    "soul campfire fire": {},
-
-    "fire": {},
-    "soul fire": {},
-    "nether portal": {},
-    "beacon beam": {},
-    "glow squid": {},
-
-    "campfire log lit": {
-        "From Min": 0.19,
-        "From Max": 0.52,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "sea lantern": {
-        "From Min": 0,
-        "From Max": 1,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "lantern ; sea": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "glow lichen": {
-        "From Min": 0.18,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "torch": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "powered rail on": {
-        "From Min": 0.52,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.2,
-        11: 0.5,
-        12: 2,
-        "Adder": 0.1,
-        "Divider": 50,
-    },
-
-    "redstone wire on": {
-        "From Min": 0.52,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.2,
-        11: 0.5,
-        12: 2,
-        "Adder": 0.1,
-        "Divider": 50,
-    },
-
-    "redstone block": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "redstone_lamp_on": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "lava": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "lava flow": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "lava still": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "cave vines lit": {
-        "From Min": 0.2,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 2,
-    },
-
-    "cave vines plant lit": {
-        "From Min": 0.2,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 2,
-    },
-
-    "sculk sensor": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "glowstone": {
-        "From Min": 0,
-        "From Max": 2,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "shroomlight": {
-        "From Min": 0,
-        "From Max": 2,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "magma": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "beacon": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "sea pickle": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "sculk ; catalyst": {
-        "From Min": 0,
-        "From Max": 0.4,
-        "To Min": 0,
-        "To Max": 20,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "sculk vein": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: -0.5,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "end rod": {
-        "From Min": 0.5,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0.7,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 80,
-    },
-
-    "respawn anchor": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "candle lit": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "large amethyst bud": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "medium amethyst bud": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "small amethyst bud": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "amethyst cluster": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "jack o lantern": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "blast furnace front on": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "furnace front on": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "crying obsidian": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "smoker front on": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-}
-
 # Materials Categories
 
 Backface_Culling_Materials = ["glass", "door", "nether portal", "redstone torch"]
@@ -427,3 +124,36 @@ Metal = ["iron", "gold", "emerald", "copper", "diamond", "netherite", "minecart"
 Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
 #
+
+Emissive_Materials = {
+
+    "campfire log lit": {
+        "Better Emission": {
+            "From Min": 0.19,
+            "From Max": 0.52,
+            "To Min": 0,
+            "To Max": 1
+        },
+    },
+
+    "sea lantern": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 1,
+        },
+
+        "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+        }
+    },
+
+    "sculk ; catalyst": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.4,
+            "To Min": 0,
+            "To Max": 20,
+        },
+    },
+}

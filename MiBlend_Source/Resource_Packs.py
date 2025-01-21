@@ -1,6 +1,6 @@
 from .MIB_API import *
 from .Data import *
-from .Utils.Absolute_Solver import Absolute_Solver
+from .Utils.Absolute_Solver import Call_AS
 import shutil, sys, re, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
@@ -339,7 +339,7 @@ def apply_resources():
                     try:
                         user.image.colorspace_settings.name = colorspace
                     except:
-                        Absolute_Solver("u006", colorspace)
+                        pass
             else:
                 for user in Users:
                     user.image = user_texture
@@ -444,7 +444,7 @@ def apply_resources():
                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                 data_to.node_groups = ["Texture Animator"]
                         except:
-                            Absolute_Solver("004", "Materials", traceback.format_exc())
+                            Call_AS("e03", "Materials.blend", traceback.format_exc())
                 
                     Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
                     Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
@@ -509,7 +509,7 @@ def apply_resources():
         try:
             normal_texture_node.image.colorspace_settings.name = "Non-Color"
         except:
-            Absolute_Solver("u006", "Non-Color")
+            pass
 
         if normal_map_node is None:
             normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
@@ -674,12 +674,11 @@ def apply_resources():
 
     for selected_object in bpy.context.selected_objects:
         if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+            Call_AS("w01", selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
                 continue
 
             PBSDF = None

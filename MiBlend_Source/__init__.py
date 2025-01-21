@@ -12,7 +12,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
-    "version": (0, 6, 1),
+    "version": (0, 7, 0),
     "blender": (3, 6, 0),
     "doc_url": "https://github.com/Aspirata/MiBlend/wiki",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
@@ -42,9 +42,9 @@ def InitOnStart():
     mib_options["is_replaced_materials"] = len(original_materials_list) > 0
 
     mib_options["components_vesion"] = {
-        "MiBlend": "Honeycomb",
+        "MiBlend": "Butterfly",
         "UAS": "v2.1.3",
-        "Absolute Solver": "v1.1",
+        "Absolute Solver": "v2.0",
     }
 
     if "temp_assets_paths" not in mib_options:
