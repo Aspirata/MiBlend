@@ -126,12 +126,6 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 #
 
 Emissive_Materials = {
-    "Default": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
     "campfire fire": {},
     "soul campfire fire": {},
     "fire": {},
