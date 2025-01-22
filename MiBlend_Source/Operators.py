@@ -480,7 +480,7 @@ class SavePropertiesOperator(Operator):
             return {'CANCELLED'}
     
 class RemoveAsset(Operator):
-    bl_idname = "assets.add_asset"
+    bl_idname = "assets.remove_asset"
     bl_label = "Add Asset"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -601,6 +601,16 @@ class AddAsset(Operator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+class CreateAsset(Operator):
+    bl_idname = "assets.create_asset"
+    bl_label = "Create Asset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH", name="File Path", description="Path to the .blend file")
+
+    def execute(self, context):
+        return {'FINISHED'} # Placeholder 22.01.25
 
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"

@@ -173,9 +173,11 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.label(text="Animation Settings:", icon="SEQUENCE")
                 row = tbox.row()
-                row.enabled = scene.resource_properties.animate_textures
                 row.prop(scene.resource_properties, "interpolate")
+                row.enabled = scene.resource_properties.animate_textures
+                row = tbox.row()
                 row.prop(scene.resource_properties, "randomize_speed")
+                row.enabled = scene.resource_properties.animate_textures
 
         if Preferences.dev_tools and Preferences.debug_tools:
             row = box.row()
@@ -844,8 +846,10 @@ class AssetPanel(Panel):
         box.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
         row = box.row()
-        row.operator("assets.add_asset")
-        row.operator("assets.update_assets")
+        row.operator("assets.update_assets", icon="FILE_REFRESH")
+        row = box.row()
+        row.operator("assets.add_asset", icon="ADD")
+        row.operator("assets.create_asset", icon="FILE_NEW")
 
         if prefs.dev_tools and prefs.debug_tools:
             row = box.row()
@@ -918,7 +922,7 @@ class AssetPanel(Panel):
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset", text=import_asset_text(current_index))
+        row.operator("assets.import_asset", text=import_asset_text(current_index), icon="REC")
 
 
 class Assets_List_UL_(bpy.types.UIList):

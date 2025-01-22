@@ -66,7 +66,7 @@ classes = [
     WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
-    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator, SavePropertiesOperator,
+    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator,
 ]
 

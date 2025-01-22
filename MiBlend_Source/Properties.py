@@ -826,7 +826,7 @@ class AssetsProperties(PropertyGroup):
         items=[("and", "And", ""), ("or", "Or", "")],
         description="",
         name="tags_mode",
-        default='and',
+        default='or',
     )
 
     filter_by_version: BoolProperty(
