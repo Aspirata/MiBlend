@@ -175,6 +175,7 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.enabled = scene.resource_properties.animate_textures
                 row.prop(scene.resource_properties, "interpolate")
+                row.prop(scene.resource_properties, "randomize_speed")
 
         if Preferences.dev_tools and Preferences.debug_tools:
             row = box.row()
