@@ -126,7 +126,19 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 #
 
 Emissive_Materials = {
-
+    "Default": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "campfire fire": {},
+    "soul campfire fire": {},
+    "fire": {},
+    "soul fire": {},
+    "nether portal": {},
+    "beacon beam": {},
+    "glow squid": {},
     "campfire log lit": {
         "Better Emission": {
             "From Min": 0.19,
@@ -135,19 +147,127 @@ Emissive_Materials = {
             "To Max": 1
         },
     },
-
     "sea lantern": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 1,
         },
-
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
         }
     },
-
+    "lantern ; sea": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        11: 1,
+        12: 1.5,
+        "Adder": 0.1,
+        "Divider": 80,
+    },
+    "glow lichen": {
+        "From Min": 0.18,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        11: 0,
+        12: 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+    "torch": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        11: 0,
+        12: 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+    "powered rail on": {
+        "From Min": 0.52,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.2,
+        11: 0.5,
+        12: 2,
+        "Adder": 0.1,
+        "Divider": 50,
+    },
+    "redstone wire on": {
+        "From Min": 0.52,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.2,
+        11: 0.5,
+        12: 2,
+        "Adder": 0.1,
+        "Divider": 50,
+    },
+    "redstone block": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "redstone_lamp_on": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "lava": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "cave vines lit": {
+        "From Min": 0.2,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 2,
+    },
+    "cave vines plant lit": {
+        "From Min": 0.2,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 2,
+    },
+    "sculk sensor": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "glowstone": {
+        "From Min": 0,
+        "From Max": 2,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "shroomlight": {
+        "From Min": 0,
+        "From Max": 2,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "magma": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "beacon": {},  # Объединено
+    "sea pickle": {}, # Объединено
     "sculk ; catalyst": {
         "Better Emission": {
             "From Min": 0,
@@ -156,14 +276,76 @@ Emissive_Materials = {
             "To Max": 20,
         },
     },
-},
-
-			"crying obsidian":	{},
-
-			"Furnace front":{},
-
-			"candle lit":{},
-
-			"beacon":{}
-
-			"sea pickle":{}
+    "sculk vein": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        11: -0.5,
+        12: 1,
+        "Adder": 0.2,
+        "Divider": 50,
+    },
+    "end rod": {
+        "From Min": 0.5,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+        "Middle Value": 0.4,
+        11: 0.7,
+        12: 1,
+        "Adder": 0.2,
+        "Divider": 80,
+    },
+    "respawn anchor": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "candle lit": {}, # Объединено
+    "large amethyst bud": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "medium amethyst bud": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "small amethyst bud": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "amethyst cluster": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "jack o lantern": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "furnace front on": { # Переименовано для соответствия
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+    "crying obsidian": {}, # Объединено
+    "smoker front on": {
+        "From Min": 0,
+        "From Max": 0.6,
+        "To Min": 0,
+        "To Max": 1,
+    },
+}
