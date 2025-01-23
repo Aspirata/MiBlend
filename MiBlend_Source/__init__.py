@@ -60,13 +60,13 @@ def load_post_handler(dummy):
     InitOnStart()
 
 classes = [
-    MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                                 # Special Panels
-    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,                                                                            # Properties
-    PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,                                                                                                              
-    WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,                                                                                                          # Panels
-    RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
-    RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
-    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator, SavePropertiesOperator,
+    MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
+    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
+    PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,
+    WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
+    RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
+    RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
+    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator,
 ]
 

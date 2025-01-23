@@ -146,6 +146,11 @@ class ResourcePackProperties(PropertyGroup):
         default=True,
     )
 
+    randomize_speed: BoolProperty(
+        name="Randomize Speed",
+        default=False,
+    )
+
 
 
 
@@ -274,7 +279,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     non_camera_strength: FloatProperty(
-        name="Camera Strength",
+        name="Non-Camera Strength",
         default=1.0,
         description=""
     )

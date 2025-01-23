@@ -1,55 +1,64 @@
 from ..Data import *
 import bpy, time
 
-def Call_AS(code: str, tech_things: str ="", data: str =""):
+def Call_AS(code: str, tech_things: str = "", data: str = ""):
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
     
     # Store calls in a queue
     if not hasattr(Call_AS, 'call_queue'):
         Call_AS.call_queue = []
         Call_AS.last_call_time = 0
+        Call_AS.is_processing = False
     
     current_time = time.time()
     
     # Add current call to queue
     Call_AS.call_queue.append((code, data))
     
-    # Process queue if 5 seconds passed or this is first call
-    if current_time - Call_AS.last_call_time >= 5.0 or len(Call_AS.call_queue) == 1:
+    # Process queue if enough time has passed or this is the first call
+    if (current_time - Call_AS.last_call_time >= 5.0) and not Call_AS.is_processing:
+        Call_AS.is_processing = True
+
         type = code[0]
-        number = "".join(code[1:])
-            
-        # Process all queued calls
-        for code, d in Call_AS.call_queue:
+        number = str(code[1:])
+
+        call_data = []
+        try:
             with open(os.path.join(utils_directory, "absolute_solver_list.json"), "r") as file:
-                data = json.load(file)
-                critical_error_name = data.get("errors", {}).get("00", {}).get("name", None)
-                critical_error_description = data.get("errors", {}).get("00", {}).get("description", None)
+                data_json = json.load(file)
+                critical_error_name = data_json.get("errors", {}).get("00", {}).get("Name", "Critical Error")
+                critical_error_description = data_json.get("errors", {}).get("00", {}).get("Description", "Unknown error occurred: {Data}")
 
-                if type == "w":
-                    name = data.get("warnings", {}).get(number, {}).get("name", None)
-                    description = data.get("warnings", {}).get(number, {}).get("description", None)
-                elif type == "e":
-                    if not Preferences.show_warnings:
-                        continue
-                    name = data.get("errors", {}).get(number, {}).get("name", None)
-                    description = data.get("errors", {}).get(number, {}).get("description", None)
-                elif type == "n":
-                    name = data.get("null", {}).get(number, {}).get("name", None)
-                    description = data.get("null", {}).get(number, {}).get("description", None)
+                for code, d in Call_AS.call_queue:
+                    type = code[0]
+                    number = str(code[1:])
+                    if type == "w":
+                        name = data_json.get("warnings", {}).get(number, {}).get("Name")
+                        description = data_json.get("warnings", {}).get(number, {}).get("Description")
+                    elif type == "e":
+                        if not Preferences.show_warnings:
+                            continue
+                        name = data_json.get("errors", {}).get(number, {}).get("Name")
+                        description = data_json.get("errors", {}).get(number, {}).get("Description")
+                    elif type == "n":
+                        name = data_json.get("null", {}).get(number, {}).get("Name")
+                        description = data_json.get("null", {}).get(number, {}).get("Description")
 
-            if name and description:
-                try:
-                    bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Code = code, Name = name, Description = description.format(Data=d), Tech_Things = tech_things)
-                except Exception as error:
-                    bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Code = "e00", Name = critical_error_name, Description = critical_error_description.format(Data=code), Tech_Things = error)
-            else:
-                print(f"Error: {code} {name} {description}")
-                bpy.ops.special.absolute_solver('INVOKE_DEFAULT', Code = "e00", Name = critical_error_name, Description = critical_error_description.format(Data=code), Tech_Things = f"{code} {name} {description}")
+                    if name and description:
+                        call_data.append({"Code": code, "Name": name, "Description": description.format(Data=d), "Tech_Things": tech_things})
+                    else:
+                        call_data.append({"Code": "e00", "Name": critical_error_name, "Description": critical_error_description.format(Data=code), "Tech_Things": f"Code not found: {code}"})
         
-        # Clear queue and update time
-        Call_AS.call_queue = []
+        except Exception:
+            call_data.append({"Code": "e00", "Name": critical_error_name, "Description": critical_error_description.format(Data=code), "Tech_Things": str(traceback.format_exc())})
+
+        if call_data:
+            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', **call_data[-1])
+
+        # Update time and reset processing state
+        Call_AS.call_queue.clear()
         Call_AS.last_call_time = current_time
+        Call_AS.is_processing = False
 
 class AbsoluteSolverPanel(bpy.types.Operator):
     bl_label = "Absolute Solver"

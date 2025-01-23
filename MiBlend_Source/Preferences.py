@@ -1,7 +1,7 @@
 import bpy
 import sys
 from bpy.types import AddonPreferences
-from .MIB_API import blender_version
+from .MIB_API import blender_version, override_setting
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 
 class MiBlendPreferences(AddonPreferences):
@@ -9,17 +9,17 @@ class MiBlendPreferences(AddonPreferences):
 
     transparent_ui: BoolProperty(
         name="Transparent UI",
-        default=False,
+        default=override_setting("transparent_ui", False),
     )
 
     show_warnings: BoolProperty(
         name="Show Warnings",
-        default=True
+        default=override_setting("show_warnings", True)
     )
 
     enable_deprecated_features: BoolProperty(
         name="Enable Deprecated Features (Requires Restart)",
-        default=False
+        default=override_setting("enable_deprecated_features", False)
     )
 
     mc_instances_path: StringProperty(
@@ -38,52 +38,53 @@ class MiBlendPreferences(AddonPreferences):
             ('Automatic & Manual', 'Combined', ''),
             ('Manual', 'Manual', '')],
         name="emissiondetection",
-        default=emissiondetectionfix()
+        default=override_setting("emissiondetection", emissiondetectionfix())
     )
 
     dev_tools: BoolProperty(
         name="Dev Tools",
-        default=False
+        default=override_setting("dev_tools", False)
     )
 
     dprint: BoolProperty(
         name="dprint",
-        default=True
+        default=override_setting("dprint", True)
     )
 
     perf_time: BoolProperty(
         name="Perf_Time",
-        default=False
+        default=override_setting("perf_time", False)
     )
 
     debug_tools: BoolProperty(
         name="Debug Tools",
-        default=False
+        default=override_setting("debug_tools", False)
     )
 
     uas_debug_mode: BoolProperty(
         name="UAS v2 Debug Mode",
-        default=False
+        default=override_setting("uas_debug_mode", False)
     )
 
     experimental_features: BoolProperty(
         name="Experimental Features",
-        default=False
+        default=override_setting("experimental_features", False)
     )
 
     open_console_on_start: BoolProperty(
         name="Open Console On Start",
-        default=False
+        default=override_setting("open_console_on_start", False)
     )
 
     dev_packs_path: StringProperty(
         name="Dev Resource Packs Folder",
-        subtype="DIR_PATH"
+        subtype="DIR_PATH",
+        default=override_setting("dev_packs_path", "")
     )
 
     enable_custom_packs_path: BoolProperty(
         name="Enable Resource Packs Folder",
-        default=False
+        default=override_setting("enable_custom_packs_path", False)
     )
 
     def draw(self, context):
@@ -91,9 +92,12 @@ class MiBlendPreferences(AddonPreferences):
         box = layout.box()
         row = box.row()
         row.label(text="Info:")                                                        # Info
-        for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
-            row = box.row()
-            row.label(text=f"{component_name}: {component}")
+        try:
+            for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
+                row = box.row()
+                row.label(text=f"{component_name}: {component}")
+        except:
+            pass
 
         box = layout.box()
         row = box.row()

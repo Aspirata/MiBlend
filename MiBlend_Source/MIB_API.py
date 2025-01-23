@@ -69,6 +69,13 @@ def get_resource_path() -> str:
     
     return resource_packs_directory
 
+def override_setting(setting_name: str, default_value: str) -> bool:
+    with open(os.path.join(os.path.dirname(main_directory), "settings_override.json"), "r") as file:
+        data = json.load(file)
+        return data.get(setting_name, default_value)
+    
+    return default_value
+
 def get_pack_info_properties(pack: str =None) -> dict:
     resource_packs_directory = get_resource_path()
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
