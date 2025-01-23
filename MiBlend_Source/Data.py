@@ -126,10 +126,7 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 #
 
 Emissive_Materials = {
-    "campfire fire": {},
-    "soul campfire fire": {},
     "fire": {},
-    "soul fire": {},
     "nether portal": {},
     "beacon beam": {},
     "glow squid": {},
