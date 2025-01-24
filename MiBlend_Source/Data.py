@@ -134,9 +134,7 @@ Emissive_Materials = {
         "Better Emission": {
             "From Min": 0.19,
             "From Max": 0.52,
-            "To Min": 0,
-            "To Max": 1
-        },
+        }
     },
     "sea lantern": {
         "Better Emission": {
@@ -146,197 +144,161 @@ Emissive_Materials = {
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
+            "Period": 100,
         }
     },
     "lantern ; sea": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "glow lichen": {
-        "From Min": 0.18,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
+        "Better Emission": {
+            "From Min": 0.18,
+            "From Max": 0.6,
+        }
     },
     "torch": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "powered rail on": {
-        "From Min": 0.52,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.2,
-        11: 0.5,
-        12: 2,
-        "Adder": 0.1,
-        "Divider": 50,
+        "Better Emission": {
+            "From Min": 0.52,
+            "From Max": 0.6,
+        }
     },
     "redstone wire on": {
-        "From Min": 0.52,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.2,
-        11: 0.5,
-        12: 2,
-        "Adder": 0.1,
-        "Divider": 50,
+        "Better Emission": {
+            "From Min": 0.52,
+            "From Max": 0.6,
+        }
     },
     "redstone block": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "redstone_lamp_on": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "lava": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "cave vines lit": {
-        "From Min": 0.2,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 2,
+        "Better Emission": {
+            "From Min": 0.2,
+            "From Max": 0.6,
+        }
     },
     "cave vines plant lit": {
-        "From Min": 0.2,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 2,
+        "Better Emission": {
+            "From Min": 0.2,
+            "From Max": 0.6,
+        }
     },
     "sculk sensor": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "glowstone": {
-        "From Min": 0,
-        "From Max": 2,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 2,
+        }
     },
     "shroomlight": {
-        "From Min": 0,
-        "From Max": 2,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 2,
+        }
     },
     "magma": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
-    "beacon": {},  # Объединено
-    "sea pickle": {}, # Объединено
+    "beacon": {},
+    "sea pickle": {},
     "sculk ; catalyst": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.4,
-            "To Min": 0,
-            "To Max": 20,
-        },
+        }
     },
     "sculk vein": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: -0.5,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "end rod": {
-        "From Min": 0.5,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0.7,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 80,
+        "Better Emission": {
+            "From Min": 0.5,
+            "From Max": 0.6,
+        }
     },
     "respawn anchor": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
-    "candle lit": {}, # Объединено
+    "candle lit": {},
     "large amethyst bud": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "medium amethyst bud": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "small amethyst bud": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "amethyst cluster": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
     "jack o lantern": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
-    "furnace front on": { # Переименовано для соответствия
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+    "furnace front on": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
-    "crying obsidian": {}, # Объединено
+    "crying obsidian": {},
     "smoker front on": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.6,
+        }
     },
 }
