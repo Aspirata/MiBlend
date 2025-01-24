@@ -128,8 +128,6 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 Emissive_Materials = {
     "fire": {},
     "nether portal": {},
-    "beacon beam": {},
-    "glow squid": {},
     "campfire log lit": {
         "Better Emission": {
             "From Min": 0.19,
@@ -145,12 +143,6 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
-    },
-    "lantern ; sea": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
         }
     },
     "glow lichen": {
@@ -212,6 +204,11 @@ Emissive_Materials = {
             "From Min": 0,
             "From Max": 0.6,
         }
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
+        },
     },
     "glowstone": {
         "Better Emission": {
@@ -223,20 +220,41 @@ Emissive_Materials = {
         "Better Emission": {
             "From Min": 0,
             "From Max": 2,
+        },
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
         }
     },
     "magma": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
+        },
+										"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
         }
     },
-    "beacon": {},
+    "beacon": {
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
+        }
+},
     "sea pickle": {},
     "sculk ; catalyst": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.4,
+        },
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
         }
     },
     "sculk vein": {
@@ -267,13 +285,13 @@ Emissive_Materials = {
     "medium amethyst bud": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 0.4,
         }
     },
     "small amethyst bud": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 0.2,
         }
     },
     "amethyst cluster": {
@@ -292,13 +310,29 @@ Emissive_Materials = {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
+        },
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
         }
     },
-    "crying obsidian": {},
+    "crying obsidian": {
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
+        }
+					},
     "smoker front on": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
+        },
+									"Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
         }
     },
 }
