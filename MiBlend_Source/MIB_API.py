@@ -264,6 +264,22 @@ def detect_texture_node(PBSDF):
         if n.type == "TEX_IMAGE" and n.image:
             return n
         
+def get_nodes_list(material_or_node_group, is_recursive: bool =False):
+    nodes_list = []
+    
+    if hasattr(material_or_node_group, 'use_nodes') and not material_or_node_group.use_nodes:
+        return []
+
+    for node in material_or_node_group.node_tree.nodes:
+        if node.type == 'REROUTE':
+            continue
+        
+        nodes_list.append(node)
+        if node.type == 'GROUP' and node.node_tree and is_recursive:
+            nodes_list.extend(get_nodes_list(node))
+
+    return nodes_list
+        
 def detect_image_texture(PBSDF):
 
     def get_all_linked_nodes(PBSDF):

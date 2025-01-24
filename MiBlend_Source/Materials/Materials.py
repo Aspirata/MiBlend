@@ -281,6 +281,8 @@ def fix_world():
 
             elif auvf_node:
                 material.node_tree.nodes.remove(auvf_node)
+            
+            selected_object["MiBlend ID"] = "World"
 
 @Perf_Time
 def recreate_env(self):
@@ -780,7 +782,7 @@ def setproceduralpbr():
                         material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), better_animate_node.inputs["Emission Color"])
                         material.node_tree.links.new(better_animate_node.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-            elif not PProperties.better_emission and not PProperties.animate_textures and better_animate_node:
+            elif not PProperties.better_emission and not PProperties.procedural_animation and better_animate_node:
                 mult_socket = GetConnectedSocketTo("Multiply", better_animate_node)
                 if mult_socket:
                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])

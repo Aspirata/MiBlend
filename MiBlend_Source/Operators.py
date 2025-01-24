@@ -599,12 +599,9 @@ class CreateAsset(Operator):
     bl_idname = "assets.create_asset"
     bl_label = "Create Asset"
     bl_options = {'REGISTER', 'UNDO'}
-    
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH", name="File Path", description="Path to the .blend or .py file")
 
     def execute(self, context):
-        print(self.filepath)
-        return {'FINISHED'} # Placeholder 22.01.25
+        return {'FINISHED'} # Placeholder
 
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
@@ -614,7 +611,8 @@ class ImportAssetOperator(Operator):
     def execute(self, context):
         current_index = bpy.context.scene.assetsproperties.asset_index
         items = bpy.context.scene.assetsproperties.asset_items
-
+        bpy.ops.object.select_all(action='DESELECT')
+        
         try:
             asset_data = items[current_index]
             File_path = asset_data.get("File_path", "")
@@ -623,12 +621,23 @@ class ImportAssetOperator(Operator):
                 append_asset(asset_data)
             else:
                 dprint(f"{File_path} not a file")
+            
+            for obj in bpy.context.selected_objects:
+                if obj.type == "ARMATURE":
+                    root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
+                    cursor_location = bpy.context.scene.cursor.location # It's a 3D Cursor
+                    if root_bone:
+                        obj.pose.bones[root_bone.name].matrix.translation = cursor_location
+                
+                obj["MiBlend_ID"] = "Asset"
+
             return {'FINISHED'}
+        
         except Exception as error:
             if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
+                Call_AS("e08", traceback.format_exc())
             else:
-                Call_AS("n00", error)
+                Call_AS("n00", traceback.format_exc())
             return {'CANCELLED'}
     
 class ManualAssetsUpdateOperator(Operator):

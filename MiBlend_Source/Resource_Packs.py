@@ -31,7 +31,7 @@ Launchers = {
     }
 }
 
-def update_pack(pack):
+def update_pack(pack: str):
     resource_packs_directory = get_resource_path()
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
         data = json.load(file)
@@ -69,9 +69,9 @@ def update_pack(pack):
         finally:
             connection.close()
 
-        if not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]):
+        if not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(os.path.join(resource_packs_directory, pack)):
             try:
-                dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}")
+                dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}", is_deep=True, zone="rp")
                 if os.path.exists(os.path.join(resource_packs_directory, pack)):
                     shutil.rmtree(os.path.join(resource_packs_directory, pack))
                 filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
@@ -81,7 +81,7 @@ def update_pack(pack):
                     zip_ref.extractall(os.path.join(resource_packs_directory, pack))
                 os.remove(filename)
                 
-                dprint("Successfully Downloaded!")
+                dprint("Successfully Downloaded!", is_deep=True, zone="rp")
             except Exception as e:
                 dprint(f"Error: {e}")
             
@@ -112,9 +112,9 @@ def find_mc() -> tuple[str, str]:
                     instance_path = None
                     if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
                         versions[version] = (folder, os.path.join(os_env, path))
-                        dprint(f"{instance_path} valid")
+                        dprint(f"{instance_path} valid", is_deep=True, zone="rp")
                     else:
-                        dprint(f"{instance_path} invalid")
+                        dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
         if Preferences.mc_instances_path:
             folders = Preferences.mc_instances_path
@@ -123,9 +123,9 @@ def find_mc() -> tuple[str, str]:
                     instance_path = None
                     if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
                         versions[version] = (folder, Preferences.mc_instances_path)
-                        dprint(f"{instance_path} valid")
+                        dprint(f"{instance_path} valid", is_deep=True, zone="rp")
                     else:
-                        dprint(f"{instance_path} invalid")
+                        dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
             
         if versions:
             latest_version = max(versions, key=lambda x: LooseVersion(x))
@@ -162,15 +162,17 @@ def update_default_pack():
     if not os.path.exists(resource_packs_directory):
         return
 
-    for pack in os.listdir(resource_packs_directory):
-        if not os.path.isdir(os.path.join(resource_packs_directory, pack)) or pack not in get_pack_info_properties():
-            continue        
-        update_pack(pack)
-    
-        default_pack = pack
-        default_path = os.path.join(resource_packs_directory, default_pack)
-        default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
-        resource_packs[default_pack] = {"path": default_path, "type": default_type, "enabled": False, "is_default": True}
+    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as f:
+        data = json.load(f)
+        for pack in data:
+            if pack not in os.listdir(resource_packs_directory):
+                resource_packs[pack] = {"path": os.path.join(resource_packs_directory, pack), "type": data[pack]["type"], "enabled": True, "is_default": False}
+            update_pack(pack)
+
+            default_pack = pack
+            default_path = os.path.join(resource_packs_directory, default_pack)
+            default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
+            resource_packs[default_pack] = {"path": default_path, "type": default_type, "enabled": False, "is_default": True}
     
     set_resource_packs(resource_packs)
 
@@ -202,19 +204,19 @@ def apply_resources():
                     continue
 
                 if obj_type != "unknown":
-                    #dprint(f"{image_name} is {obj_type} using texture filter...")
+                    dprint(f"{image_name} is {obj_type} using texture filter...", is_deep=True, zone="rp")
                     dirpath = os.path.join(dirpath, obj_type)
-                #else:
-                    #dprint(f"{image_name} is {obj_type}")
-                    #dprint(f"Switching to hybrid mode...")
+                else:
+                    dprint(f"{image_name} is {obj_type}", is_deep=True, zone="rp")
+                    dprint(f"Switching to hybrid mode...", is_deep=True, zone="rp")
 
                 fast_image = os.path.join(dirpath, image_name)
 
                 if os.path.isfile(fast_image):
-                    #dprint(f"{fast_image} is found")
+                    dprint(f"{fast_image} is found", is_deep=True, zone="rp")
                     return fast_image
-                #else:
-                    #dprint(f"{fast_image} isn't found, searching for the {image_name}...")
+                else:
+                    dprint(f"{fast_image} isn't found, searching for the {image_name}...", is_deep=True, zone="rp")
 
                 if not os.path.exists(dirpath):
                     continue
@@ -234,7 +236,7 @@ def apply_resources():
                             try:
                                 return zip_unpacker(os.path.join(dirpath, file), image_name, obj_type, file)
                             except zipfile.BadZipFile:
-                                print("Bad Zip File")
+                                Call_AS("n00", traceback.format_exc())
         return None
     
     def zip_unpacker(root_folder: str, image_name: str, obj_type: str , file=None) -> Optional[str]:
@@ -707,7 +709,9 @@ def apply_resources():
             obj_type = None
             obj_type = detect_obj_type(selected_object.name, material.name)
 
-            for node in material.node_tree.nodes:
+            nodes_list = get_nodes_list(material, "MiBlend ID" in selected_object)
+
+            for node in nodes_list:
 
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node
