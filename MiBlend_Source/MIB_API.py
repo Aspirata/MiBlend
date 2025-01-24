@@ -1,5 +1,5 @@
-from MiBlend_Source.Data import *
-from MiBlend_Source.Utils.Absolute_Solver import Call_AS
+from .Data import *
+from .Utils.Absolute_Solver import Call_AS
 from typing import Optional, Union
 import time
 import sys
@@ -38,26 +38,35 @@ def mc_version_formatter(version_name: str) -> Optional[str]:
     except Exception as error:
         Call_AS("n00", error)
 
-def MaterialIn(Array: list, material, mode="in") -> Optional[tuple[bool, str]]:
-    material_name = format_material_name(material.name)
+def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> Optional[tuple[bool, str]]:
+    if is_texture:
+        name = format_texture_name(material_or_texture_name)
+    else:
+        name = format_material_name(material_or_texture_name)
+
     for item in Array:
         old_item = item
         if ";" in item:
             anti_keywords = item.split(" ; ")[1].split()
-            if any(anti_keyword in material_name for anti_keyword in anti_keywords):
+            if any(anti_keyword in name for anti_keyword in anti_keywords):
+                dprint(f"Anti-Keyword: {anti_keywords} in {name}", is_deep=True)
                 continue
             item = item.split(" ; ")[0]
         
         if " " in item:
-            if all(keyword in material_name for keyword in item.split()):
+            if all(keyword in name for keyword in item.split()):
+                dprint(f"Keyword: {item} in {name}", is_deep=True)
                 return (True, old_item)
         elif mode == "==":
-            if any(item == material_part for material_part in material_name):
+            if any(item == name_part for name_part in name):
+                dprint(f"Keyword: {item} in {name}", is_deep=True)
                 return (True, old_item)
         else:
-            if any(item in material_part for material_part in material_name):
+            if any(item in name_part for name_part in name):
+                dprint(f"Keyword: {item} in {name}", is_deep=True)
                 return (True, old_item)
 
+    dprint(f"Keyword: None in {name}", is_deep=True)
     return (False, None)
 
 def get_resource_path() -> str:
@@ -70,9 +79,11 @@ def get_resource_path() -> str:
     return resource_packs_directory
 
 def override_setting(setting_name: str, default_value: str) -> bool:
-    with open(os.path.join(os.path.dirname(main_directory), "settings_override.json"), "r") as file:
-        data = json.load(file)
-        return data.get(setting_name, default_value)
+    settings_override_path = os.path.join(os.path.dirname(main_directory), "settings_override.json")
+    if os.path.exists(settings_override_path):
+        with open(settings_override_path, "r") as file:
+            data = json.load(file)
+            return data.get(setting_name, default_value)
     
     return default_value
 
@@ -88,39 +99,17 @@ def get_pack_info_properties(pack: str =None) -> dict:
         pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
     return pack_info
 
-def TextureIn(Array: list, texture, mode: str ="==") -> Optional[tuple[bool, str]]:
-    texture_name = format_texture_name(texture)
-    for item in Array:
-        if ";" in item:
-            anti_keywords = item.split(" ; ")[1].split()
-            if any(anti_keyword in texture_name for anti_keyword in anti_keywords):
-                continue
-            item = item.split(" ; ")[0]
-        
-        if " " in item:
-            if all(keyword in texture_name for keyword in item.split()):
-                return (True, item)
-        elif mode == "==":
-            if any(item == texture_part for texture_part in texture_name):
-                return (True, item)
-        else:
-            if any(item in texture_part for texture_part in texture_name):
-                return (True, item)
-
-    return (False, None)
-
 def EmissionMode(PBSDF, texture_name: str) -> int:
-    from .Data import Emissive_Materials
 
     Preferences = bpy.context.preferences.addons[__package__].preferences
     
-    if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or TextureIn(Emissive_Materials.keys(), texture_name)[0]):
+    if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name)[0]):
         return 1
 
     elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
         return 2
     
-    elif Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name)[0]:
+    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name)[0]:
         return 3
     
     return 0
@@ -220,21 +209,16 @@ def detect_duplicate_index(text: str, original_text: str=None):
             return base_text
     return text
 
-def isgray(name: str, is_material: bool =False, mode: str ="all"):
-    name_parts = format_texture_name(name) if not is_material else format_material_name(name)
+def is_gray(name: str, is_material: bool =False, mode: str ="all"):
+
     if mode == "all":
-        if any(part in name_parts for part in ("grass", "water", "leaves", "lily", "vine", "fern")) and all(part not in name_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or \
-            ("redstone" in name_parts and "dust" in name_parts) or ("pink" in name_parts and "stem" in name_parts):
-            return True
+        return (name_in(gray_blocks.get("vegetation"), name, not is_material) or name_in(gray_blocks.get("redstone"), name, not is_material) or name_in(gray_blocks.get("water"), name, not is_material))[0]
     elif mode == "vegetation":
-        if any(part in name_parts for part in ("grass", "leaves", "lily", "vine", "fern")) and all(part not in name_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")):
-            return True
+        return name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
     elif mode == "redstone":
-        if "redstone" in name_parts and "dust" in name_parts:
-            return True
+        return name_in(gray_blocks.get("redstone"), name, not is_material)[0]
     elif mode == "water":
-        if "water" in name_parts:
-            return True
+        return name_in(gray_blocks.get("water"), name, not is_material)[0]
     return False
 
 def detect_texture_node(PBSDF):

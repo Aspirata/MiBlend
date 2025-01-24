@@ -55,13 +55,6 @@ class RecreateEnvironment(Operator):
     def draw(self, context):
         layout = self.layout
         world = bpy.context.scene.world
-        
-        if bpy.context.preferences.addons[__package__].preferences.enable_warnings:
-            box = layout.box()
-            row = box.row()
-            row.label(text="WARNING !", icon='ERROR')
-            row = box.row()
-            row.label(text="This option should be used with caution")
             
         box = layout.box()
         row = box.row()
@@ -607,9 +600,10 @@ class CreateAsset(Operator):
     bl_label = "Create Asset"
     bl_options = {'REGISTER', 'UNDO'}
     
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH", name="File Path", description="Path to the .blend file")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH", name="File Path", description="Path to the .blend or .py file")
 
     def execute(self, context):
+        print(self.filepath)
         return {'FINISHED'} # Placeholder 22.01.25
 
 class ImportAssetOperator(Operator):

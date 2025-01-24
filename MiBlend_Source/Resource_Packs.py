@@ -37,6 +37,7 @@ def update_pack(pack):
         data = json.load(file)
         pack_info = (data.get(pack, {}).get("mc_version", None), data.get(pack, {}).get("pack_version", None))
         link = data.get(pack, {}).get("link", None)
+        type = data.get(pack, {}).get("type", "Texture & PBR")
 
     if link is None:
         return None
@@ -89,6 +90,7 @@ def update_pack(pack):
                 data[pack] = {
                     "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
                     "pack_version": latest_pack_info[1],
+                    "type": type,
                     "link": link
                 }
                 f.seek(0)
