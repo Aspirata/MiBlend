@@ -160,6 +160,10 @@ def fix_world():
 
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
+                    if "_y" in node.image.name:
+                        node.image.name = node.image.name.replace("_y", "")
+                    elif node.image.name.replace(".png", "").endswith("_a"):
+                        node.node_tree.nodes.remove(node)
                     node.interpolation = "Closest"
 
                 if node.type == "BSDF_PRINCIPLED":
@@ -397,6 +401,7 @@ def create_env(mode=None):
     
     scene = bpy.context.scene
     MIB_env_collection = bpy.data.collections.get("MiBlend Environment", None)
+    clouds_path = os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend")
     world = scene.world
     sky_exists = False
     fog_exists = False
@@ -418,7 +423,7 @@ def create_env(mode=None):
     else:
         # Create Sky
         if (scene.env_properties.create_sky and mode == None) or mode == "Sky":
-            try:
+            if os.path.exists(nodes_file):
                 if world_material_name not in bpy.data.worlds:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
@@ -426,8 +431,8 @@ def create_env(mode=None):
                 else:
                     appended_world_material = bpy.data.worlds[world_material_name]
                 bpy.context.scene.world = appended_world_material
-            except:
-                Absolute_Solver("004", "Nodes", traceback.format_exc())
+            else:
+                Call_AS("e03", traceback.format_exc(), "Nodes.blend")
 
         # Create Fog
         if (scene.env_properties.create_fog and mode == None) or mode == "Fog":
@@ -461,20 +466,20 @@ def create_env(mode=None):
 
         # Create Clouds
         if (scene.env_properties.create_clouds and mode == None) or mode == "Clouds":
-            try:
+            if os.path.exists(clouds_path):
                 if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
                 else:
                     bpy.data.node_groups[clouds_node_tree_name]
         
                 if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
                         data_to.materials = ["Clouds"]
                 else:
                     bpy.data.materials["Clouds"]
-            except:
-                Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
+            else:
+                Call_AS("e03", traceback.format_exc(), f"Clouds Generator {clouds_file_comp()}")
 
 
             if not MIB_env_collection:
@@ -548,13 +553,12 @@ def swap_textures(folder_path):
         return None
     
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+        if not is_mesh(selected_object):
+            Call_AS("w01", selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
                 continue
 
             for node in material.node_tree.nodes:

@@ -47,9 +47,6 @@ def VertexRiggingTool(vertex_group_name=None):
                 for modifier in obj.modifiers:
                     if modifier.type == 'ARMATURE':
                         obj.modifiers.remove(modifier)
-        else:
-            Absolute_Solver("None", obj, error_name="Object Has No Vertext Groups", 
-                description='Object "{Data.name}" has type {Data.type}, this type has no vertex groups')
         
 def SetRenderSettings(current_preset):
     for setting_name, value in Render_Settings[current_preset].items():

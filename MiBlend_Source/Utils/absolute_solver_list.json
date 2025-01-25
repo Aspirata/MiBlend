@@ -18,6 +18,11 @@
         "01": {
             "Name": "Object Has No Materials",
             "Description": "{Data.name} does not have materials because it is an empty, lattice, light source, armature etc."
+        },
+
+        "02": {
+            "Name": "MiBlend hasn't modified that material",
+            "Description": "MiBlend hasn't modified {Data} that may and almost 100% will lead to problems"
         }
     },
 
@@ -49,7 +54,7 @@
         "03":
         {
             "Name": "File Not Found",
-            "Description": "The file {Data} could not be found"
+            "Description": "{Data} file could not be found"
         },
 
         "04":

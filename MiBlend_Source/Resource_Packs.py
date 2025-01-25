@@ -33,57 +33,49 @@ Launchers = {
 
 def update_pack(pack: str):
     resource_packs_directory = get_resource_path()
-    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
-        data = json.load(file)
-        pack_info = (data.get(pack, {}).get("mc_version", None), data.get(pack, {}).get("pack_version", None))
-        link = data.get(pack, {}).get("link", None)
-        type = data.get(pack, {}).get("type", "Texture & PBR")
+    try:
+        with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+            data = json.load(file)
+            pack_data = data.get(pack, {})
+            pack_info = (pack_data.get("mc_version"), pack_data.get("pack_version"))
+            link = pack_data.get("link")
+            type = pack_data.get("type", "Texture & PBR")
 
-    if link is None:
-        return None
+        if not link or "modrinth" not in link:
+            return None
 
-    if "modrinth" in link:
         connection = http.client.HTTPSConnection("api.modrinth.com")
         api_path = f"/v2/project/{pack.lower().replace(' ', '-')}/version"
 
-        try:
-            connection.request("GET", api_path)
-            response = connection.getresponse()
-            
-            if response.status != 200:
-                print(f"Error {response.status}")
-                return None
-            
-            data = response.read().decode("utf-8")
-            versions = json.loads(data)
-            
-            if not versions:
-                return None
-            
-            latest_version = max(versions, key=lambda v: v["date_published"])
-            latest_pack_info = (latest_version["game_versions"], latest_version["version_number"], latest_version["files"][0]["url"])
+        connection.request("GET", api_path)
+        response = connection.getresponse()
         
-        except Exception as e:
-            print(f"Error: {e}")
+        if response.status != 200:
+            dprint(f"Error {response.status}", is_deep=True, zone="rp")
             return None
-        finally:
-            connection.close()
+        
+        versions = json.loads(response.read().decode("utf-8"))
+        
+        if not versions:
+            return None
+        
+        latest_version = max(versions, key=lambda v: v["date_published"])
+        latest_pack_info = (latest_version["game_versions"], latest_version["version_number"], latest_version["files"][0]["url"])
 
-        if not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(os.path.join(resource_packs_directory, pack)):
-            try:
-                dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}", is_deep=True, zone="rp")
-                if os.path.exists(os.path.join(resource_packs_directory, pack)):
-                    shutil.rmtree(os.path.join(resource_packs_directory, pack))
-                filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
-                urlretrieve(latest_pack_info[2], filename)
-                
-                with zipfile.ZipFile(filename, 'r') as zip_ref:
-                    zip_ref.extractall(os.path.join(resource_packs_directory, pack))
-                os.remove(filename)
-                
-                dprint("Successfully Downloaded!", is_deep=True, zone="rp")
-            except Exception as e:
-                dprint(f"Error: {e}")
+        pack_path = os.path.join(resource_packs_directory, pack)
+        needs_update = not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(pack_path)
+
+        if needs_update:
+            dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}", is_deep=True, zone="rp")
+            if os.path.exists(pack_path):
+                shutil.rmtree(pack_path)
+            
+            filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
+            urlretrieve(latest_pack_info[2], filename)
+            
+            with zipfile.ZipFile(filename, 'r') as zip_ref:
+                zip_ref.extractall(pack_path)
+            os.remove(filename)
             
             with open(os.path.join(resource_packs_directory, "packs_info.json"), "r+") as f:
                 data = json.load(f)
@@ -96,7 +88,16 @@ def update_pack(pack: str):
                 f.seek(0)
                 json.dump(data, f, indent=4)
                 f.truncate()
+            
+            dprint("Successfully Downloaded!", is_deep=True, zone="rp")
 
+    except Exception as e:
+        dprint(f"Error: {e}", is_deep=True, zone="rp")
+        return None
+    finally:
+        if 'connection' in locals():
+            connection.close()
+            
 def find_mc() -> tuple[str, str]:
         versions = {}
         Preferences = bpy.context.preferences.addons[__package__].preferences
@@ -191,6 +192,9 @@ def apply_resources():
         return None
     
     def find_image(image_name: str, root_folder: str, obj_type: str = "unknown") -> Optional[str]:
+
+        if r_props.combine_duplicates:
+            image_name = format_duplicate_name(image_name)
 
         if root_folder.endswith(('.zip', '.jar')):
             try:
@@ -297,30 +301,38 @@ def apply_resources():
     
     def find_texture_users(texture) -> list:
         Texture_users = []
+        Textures_to_remove = []
+
         for material in bpy.data.materials:
-            if material and material.use_nodes:
-                Texture_users.extend([node for node in material.node_tree.nodes if node.type == 'TEX_IMAGE' and node.image == texture])
+            if not material or not material.use_nodes:
+                continue
+
+            for node in material.node_tree.nodes:
+
+                if node.type != 'TEX_IMAGE' or not node.image:
+                    continue
+
+                if "MWO" not in node.image.name and format_duplicate_name(node.image.name) == format_duplicate_name(texture):
+                    Texture_users.append(node)
+                    Textures_to_remove.append(node.image)
     
         for group in bpy.data.node_groups:
             for node in group.nodes:
-                if node.type == 'TEX_IMAGE' and node.image == texture:
+                if node.type != 'TEX_IMAGE' or not node.image:
+                    continue
+
+                if "MWO" not in node.image.name and format_duplicate_name(node.image.name) == format_duplicate_name(texture):
                     Texture_users.append(node)
+                    Textures_to_remove.append(node.image)
+        
+        for tex in list(set(Textures_to_remove)):
+            bpy.data.images.remove(tex, do_unlink=True)
     
         return list(set(Texture_users))
     
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
-        Users = None
+        Users = find_texture_users(image_texture)
 
-        if image_texture in bpy.data.images:
-            Users = find_texture_users(bpy.data.images[image_texture])
-            if not r_props.ignore_dublicates:
-                for texture in bpy.data.images:
-                    if image_texture in texture.name and isduplicate(texture.name, image_texture):
-                        Users.extend(find_texture_users(blender_texture := bpy.data.images.get(texture)))
-                        bpy.data.images.remove(blender_texture)
-
-            bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
-        
         new_image_texture = os.path.basename(new_image_path)
         if texture_node is not None:
             if not texture_node.image:
@@ -329,7 +341,7 @@ def apply_resources():
                 else:
                     texture_node.image = bpy.data.images.load(new_image_path)
 
-        if Users is not None:
+        if Users:
 
             if new_image_texture in bpy.data.images:
                 user_texture = bpy.data.images[new_image_texture]
@@ -686,6 +698,10 @@ def apply_resources():
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
                 continue
+            
+            if selected_object.get("MiBlend ID", "") == "":
+                Call_AS("w02", data=material.name)
+                continue
 
             PBSDF = None
             image_texture_node = None
@@ -709,7 +725,7 @@ def apply_resources():
             obj_type = None
             obj_type = detect_obj_type(selected_object.name, material.name)
 
-            nodes_list = get_nodes_list(material, "MiBlend ID" in selected_object)
+            nodes_list = get_nodes_list(material, True)
 
             for node in nodes_list:
 

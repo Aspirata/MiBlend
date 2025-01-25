@@ -108,7 +108,7 @@ class WorldAndMaterialsPanel(Panel):
 
             sbox = box.box()
             row = sbox.row()
-            row.prop(scene.resource_properties, "ignore_dublicates")
+            row.prop(scene.resource_properties, "combine_duplicates")
 
             row = sbox.row()
             row.prop(scene.resource_properties, "use_i")

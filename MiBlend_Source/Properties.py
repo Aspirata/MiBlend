@@ -51,8 +51,8 @@ class ResourcePackProperties(PropertyGroup):
         default=False,
     )
 
-    ignore_dublicates: BoolProperty(
-        name="Ignore Dublicates",
+    combine_duplicates: BoolProperty(
+        name="Combine Duplicates",
         default=True,
     )
 

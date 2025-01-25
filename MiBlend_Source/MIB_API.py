@@ -157,15 +157,15 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
 
 def format_texture_name(texture_name: str, split: bool =True) -> str:
     if split:
-        return detect_duplicate_index(texture_name).replace(".png", "").lower().replace("-", "_").split("_")
+        return format_duplicate_name(texture_name).replace(".png", "").lower().replace("-", "_").split("_")
     else:
-        return detect_duplicate_index(texture_name).replace(".png", "").lower().replace("-", "_")
+        return format_duplicate_name(texture_name).replace(".png", "").lower().replace("-", "_")
 
 def format_material_name(material_name: str, split: bool =True) -> str:
     if split:
-        return detect_duplicate_index(material_name).lower().replace("-", "_").split("_")
+        return format_duplicate_name(material_name).lower().replace("-", "_").split("_")
     else:
-        return detect_duplicate_index(material_name).lower().replace("-", "_")
+        return format_duplicate_name(material_name).lower().replace("-", "_")
 
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:
@@ -200,7 +200,7 @@ def isduplicate(text: str, original_text: str=None) -> bool:
             return True
     return False
 
-def detect_duplicate_index(text: str, original_text: str=None):
+def format_duplicate_name(text: str, original_text: str=None):
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
