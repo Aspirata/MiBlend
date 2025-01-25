@@ -65,6 +65,8 @@ def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="
             if any(item in name_part for name_part in name):
                 dprint(f"Keyword: {item} in {name}", is_deep=True)
                 return (True, old_item)
+            else:
+                dprint(f"Keyword: {item} not in {name}", is_deep=True)
 
     dprint(f"Keyword: None in {name}", is_deep=True)
     return (False, None)
@@ -211,8 +213,10 @@ def detect_duplicate_index(text: str, original_text: str=None):
 
 def is_gray(name: str, is_material: bool =False, mode: str ="all"):
 
+    #dprint(f'{format_material_name(name)} vegetation: {name_in(gray_blocks.get("vegetation"), name, not is_material)} \nrednstone: {name_in(gray_blocks.get("redstone"), name, not is_material)} \nwater: {name_in(gray_blocks.get("water"), name, not is_material)}', is_deep=True, zone="fw")
+    
     if mode == "all":
-        return (name_in(gray_blocks.get("vegetation"), name, not is_material) or name_in(gray_blocks.get("redstone"), name, not is_material) or name_in(gray_blocks.get("water"), name, not is_material))[0]
+        return (name_in(gray_blocks.get("vegetation"), name, not is_material)[0] or name_in(gray_blocks.get("redstone"), name, not is_material)[0] or name_in(gray_blocks.get("water"), name, not is_material)[0])
     elif mode == "vegetation":
         return name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
     elif mode == "redstone":
