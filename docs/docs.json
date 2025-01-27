@@ -1,0 +1,33 @@
+{
+    "name": "My Wiki",
+    "description": "Multilingual documentation example",
+    "sidebar": [
+      {
+        "group": "English",
+        "pages": [
+          {
+            "title": "Welcome",
+            "href": "/en/"
+          },
+          {
+            "title": "Getting Started",
+            "href": "/en/getting-started"
+          }
+        ]
+      },
+      {
+        "group": "Русский",
+        "pages": [
+          {
+            "title": "Добро пожаловать",
+            "href": "/ru/"
+          },
+          {
+            "title": "С чего начать",
+            "href": "/ru/getting-started"
+          }
+        ]
+      }
+    ]
+  }
+  
