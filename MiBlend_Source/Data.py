@@ -6,16 +6,15 @@ import traceback
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
-resource_packs_directory = os.path.join(main_directory, "Resource Packs")
 materials_folder = os.path.join(main_directory, "Materials")
 nodes_file = os.path.join(materials_folder, "Nodes.blend")
 optimization_folder = os.path.join(main_directory, "Optimization")
 assets_directory = os.path.join(main_directory, "Assets")
+utils_directory = os.path.join(main_directory, "Utils")
 
 clouds_node_tree_name = "Clouds Generator 2"
 fog_node_tree_name = "Fog"
 world_material_name = "MiBlend World"
-BATGroup = "Better Animate Texture"
 
 Big_Button_Scale = 1.4
 
@@ -112,161 +111,55 @@ Foliage_Color = {
     "Savanna": (0.618196, 0.49695, 0.081344),
 }
 
-Emissive_Materials = {
-
-    "Default": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "sea_lantern": {
-        "From Min": 0,
-        "From Max": 1,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "lantern": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "soul_lantern": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 1,
-        12: 1.5,
-        "Adder": 0.1,
-        "Divider": 80,
-    },
-
-    "glow_lichen": {
-        "From Min": 0.18,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "torch": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "lava": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "cave_vines_lit": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "sculk_sensor": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "glowstone": {
-        "From Min": 0,
-        "From Max": 2,
-        "To Min": 0,
-        "To Max": 1,
-    },
-
-    "sculk": {
-        "From Min": 0,
-        "From Max": 0.4,
-        "To Min": 0,
-        "To Max": 20,
-        "Middle Value": 0.4,
-        11: 0,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "sculk_vein": {
-        "From Min": 0,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: -0.5,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 50,
-    },
-
-    "end_rod": {
-        "From Min": 0.5,
-        "From Max": 0.6,
-        "To Min": 0,
-        "To Max": 1,
-        "Middle Value": 0.4,
-        11: 0.7,
-        12: 1,
-        "Adder": 0.2,
-        "Divider": 80,
-    },
-
-    "powered_rail_on": {
-        "Middle Value": 0.2,
-        11: 0.5,
-        12: 2,
-        "Adder": 0.1,
-        "Divider": 50.0,
-    }
-
-}
-
 # Materials Categories
 
-Backface_Culling_Materials = ["glass", "door", "nether_portal"]
+Backface_Culling_Materials = ["glass", "door", "nether portal", "redstone torch"]
 
-Alpha_Blend_Materials = ["water"]
-
-SSS_Materials = ["leaves", "grass", "tulip", "oxeye_daisy", "dandelion", "poppy", "blue_orchid", "torchflower", "lily_of_the_valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
+SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
 
 Translucent_Materials = ["leaves", "glass"]
 
-Metal = ["iron", "gold", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
+Metal = ["iron", "gold", "emerald", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
 Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
 #
+
+gray_blocks = {
+    "vegetation" : ["grass ; side snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
+    "redstone" : ["redstone", "dust"],
+    "water" : ["water"]
+}
+
+Emissive_Materials = {
+
+    "campfire log lit": {
+        "Better Emission": {
+            "From Min": 0.19,
+            "From Max": 0.52,
+            "To Min": 0,
+            "To Max": 1
+        },
+    },
+
+    "sea lantern": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 1,
+        },
+
+        "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+        }
+    },
+
+    "sculk ; catalyst": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 0.4,
+            "To Min": 0,
+            "To Max": 20,
+        },
+    },
+}

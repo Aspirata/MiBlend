@@ -5,7 +5,7 @@ from .Optimization import Optimize
 from .Utils_tools import *
 from bpy.types import Operator
 from .Assets import *
-from .Utils.Absolute_Solver import Absolute_Solver
+from .Utils.Absolute_Solver import Call_AS
 import shutil
 
 class RecreateEnvironment(Operator):
@@ -55,13 +55,6 @@ class RecreateEnvironment(Operator):
     def draw(self, context):
         layout = self.layout
         world = bpy.context.scene.world
-        
-        if bpy.context.preferences.addons[__package__].preferences.enable_warnings:
-            box = layout.box()
-            row = box.row()
-            row.label(text="WARNING !", icon='ERROR')
-            row = box.row()
-            row.label(text="This option should be used with caution")
             
         box = layout.box()
         row = box.row()
@@ -131,7 +124,7 @@ class ResourcePackToggleOperator(Operator):
         resource_packs = get_resource_packs()
         if self.pack_name in resource_packs:
             resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
-            dprint(resource_packs[self.pack_name]["type"])
+            dprint(resource_packs[self.pack_name]["type"], is_deep=True, zone="rp")
             set_resource_packs(resource_packs)
         return {'FINISHED'}
 
@@ -230,7 +223,6 @@ class AddResourcePack(Operator):
                         for file in filter(lambda x: x.endswith('.png'), files):
                             if check_suffix(file):
                                 has_pbr = True
-                                dprint(os.path.join(root, file))
                             else:
                                 has_texture = True
 
@@ -240,7 +232,6 @@ class AddResourcePack(Operator):
                             for zip_info in filter(lambda x: x.filename.endswith('.png'), zip_ref.infolist()):
                                 if check_suffix(zip_info.filename):
                                     has_pbr = True
-                                    dprint(zip_info.filename)
                                 else:
                                     has_texture = True
                                         
@@ -252,7 +243,6 @@ class AddResourcePack(Operator):
                         for file in filter(lambda x: x.endswith('.png'), files):
                             if check_suffix(file):
                                 has_pbr = True
-                                dprint(zip_info.filename)
                             else:
                                 has_texture = True
                 
@@ -270,20 +260,20 @@ class AddResourcePack(Operator):
         if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
             if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
                 pack_name = os.path.basename(self.filepath)
-                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True, "is_default": False}
             else:
                 pack_name = os.path.basename(os.path.dirname(self.filepath))
-                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
+                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
         else:
             pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True}
+            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
         
-        dprint(resource_packs[pack_name]["type"])
+        dprint(resource_packs[pack_name]["type"], is_deep=True, zone="rp")
         if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
             set_resource_packs(resource_packs)
             return {'FINISHED'}
         else:
-            Absolute_Solver(error_name="Bad File Extension", description="Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension", mode="Full", data=os.path.splitext(resource_packs[pack_name]["path"])[1])
+            Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
             return {'CANCELLED'}
     
     def invoke(self, context, event):
@@ -357,7 +347,20 @@ class OpenConsoleOperator(Operator):
         except RuntimeError:
             return {'CANCELLED'}
         return {'FINISHED'}
+
+class CopyToClipboardOperator(Operator):
+    bl_idname = "special.copy_to_clipboard"
+    bl_label = "Copy to Clipboard"
+    bl_options = {'REGISTER', 'UNDO'}
     
+    text: StringProperty()
+
+    def execute(self, context):
+        try:
+            bpy.context.window_manager.clipboard = self.text
+        except RuntimeError:
+            return {'CANCELLED'}
+        return {'FINISHED'}
 class SetProceduralPBROperator(Operator):
     bl_idname = "ppbr.setproceduralpbr"
     bl_label = "Set Procedural PBR"
@@ -403,23 +406,15 @@ class ResetPropertiesOperator(Operator):
     def execute(self, context):
         current_index = bpy.context.scene.assetsproperties.asset_index
         items = bpy.context.scene.assetsproperties.asset_items
-
-        if current_index < 0 or current_index >= len(items):
-            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
-            return {'CANCELLED'}
         
-        current_asset = items[current_index]
-
-        properties = {key: value for key, value in current_asset.items() if '_property' in key}
-
-        file_path = current_asset.get("File_path", "")
-        json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
-
-        if not os.path.isfile(json_file_path):
-            self.report({'ERROR'}, f"File not found: {json_file_path}")
-            return {'CANCELLED'}
-
         try:
+            current_asset = items[current_index]
+
+            properties = {key: value for key, value in current_asset.items() if '_property' in key}
+
+            file_path = current_asset.get("File_path", "")
+            json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
+            
             with open(json_file_path, 'r') as json_file:
                 asset_data = json.load(json_file)
 
@@ -428,8 +423,13 @@ class ResetPropertiesOperator(Operator):
                     current_asset[key] = asset_data.get(key, value)
             return {'FINISHED'}
         
-        except Exception as e:
-            self.report({'ERROR'}, f"Failed to reset properties: {str(e)}")
+        except Exception as error:
+            if current_index < 0 or current_index >= len(items):
+                Call_AS("e08", error)
+            elif not os.path.isfile(json_file_path):
+                Call_AS("e03", error, json_file_path)
+            else:
+                Call_AS("n00", error)
             return {'CANCELLED'}
 
 class SavePropertiesOperator(Operator):
@@ -441,22 +441,15 @@ class SavePropertiesOperator(Operator):
         current_index = bpy.context.scene.assetsproperties.asset_index
         items = bpy.context.scene.assetsproperties.asset_items
 
-        if current_index < 0 or current_index >= len(items):
-            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
-            return {'CANCELLED'}
-        
-        current_asset = items[current_index]
-
-        properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
-
-        file_path = current_asset.get("File_path", "")
-        json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
-
-        if not os.path.isfile(json_file_path):
-            self.report({'ERROR'}, f"File not found: {json_file_path}")
-            return {'CANCELLED'}
-
         try:
+        
+            current_asset = items[current_index]
+
+            properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
+
+            file_path = current_asset.get("File_path", "")
+            json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
+        
             with open(json_file_path, 'r') as json_file:
                 asset_data = json.load(json_file)
 
@@ -470,35 +463,33 @@ class SavePropertiesOperator(Operator):
             self.report({'INFO'}, f"Properties saved to {json_file_path}")
             return {'FINISHED'}
         
-        except Exception as e:
-            self.report({'ERROR'}, f"Failed to save properties: {str(e)}")
+        except Exception as error:
+            if current_index < 0 or current_index >= len(items):
+                Call_AS("e08", error)
+            elif not os.path.isfile(json_file_path):
+                Call_AS("e03", error, json_file_path)
+            else:
+                Call_AS("n00", error)
             return {'CANCELLED'}
     
 class RemoveAsset(Operator):
-    bl_idname = "assets.add_asset"
+    bl_idname = "assets.remove_asset"
     bl_label = "Add Asset"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         current_index = bpy.context.scene.assetsproperties.asset_index
         items = bpy.context.scene.assetsproperties.asset_items
-
-        if current_index < 0 or current_index >= len(items):
-            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
-            return {'CANCELLED'}
         
-        current_asset = items[current_index]
-
-        properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
-
-        file_path = current_asset.get("File_path", "")
-        json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
-
-        if not os.path.isfile(json_file_path):
-            self.report({'ERROR'}, f"File not found: {json_file_path}")
-            return {'CANCELLED'}
-
         try:
+            current_asset = items[current_index]
+
+            properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
+
+            file_path = current_asset.get("File_path", "")
+            json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
+
+        
             with open(json_file_path, 'r') as json_file:
                 asset_data = json.load(json_file)
 
@@ -512,8 +503,13 @@ class RemoveAsset(Operator):
             self.report({'INFO'}, f"Properties saved to {json_file_path}")
             return {'FINISHED'}
         
-        except Exception as e:
-            self.report({'ERROR'}, f"Failed to save properties: {str(e)}")
+        except Exception as error:
+            if current_index < 0 or current_index >= len(items):
+                Call_AS("e08", error)
+            elif not os.path.isfile(json_file_path):
+                Call_AS("e03", error, json_file_path)
+            else:
+                Call_AS("n00", error)
             return {'CANCELLED'}
 
 class AddAsset(Operator):
@@ -541,12 +537,12 @@ class AddAsset(Operator):
             if path.endswith('.zip'):
                 with zipfile.ZipFile(path, 'r') as zip_ref:
                     zip_ref.extractall(extract_path)
-                dprint(f"ZIP file extracted to {extract_path}")
+                dprint(f"ZIP file extracted to {extract_path}", is_deep=True, zone="uas")
             else:
-                dprint("The provided path is neither a directory nor a ZIP file.")
+                dprint("The provided path is neither a directory nor a ZIP file.", is_deep=True, zone="uas")
                 return {'CANCELLED'}
         else:
-            dprint(f"Unknown File {os.path.basename(path)}")
+            dprint(f"Unknown File {os.path.basename(path)}", is_deep=True, zone="uas")
             
         if asset_type == "Presistent":
             for root, dirs, files in os.walk(extract_path):
@@ -599,6 +595,14 @@ class AddAsset(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+class CreateAsset(Operator):
+    bl_idname = "assets.create_asset"
+    bl_label = "Create Asset"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return {'FINISHED'} # Placeholder
+
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
     bl_label = "Import Asset"
@@ -607,19 +611,34 @@ class ImportAssetOperator(Operator):
     def execute(self, context):
         current_index = bpy.context.scene.assetsproperties.asset_index
         items = bpy.context.scene.assetsproperties.asset_items
-
-        if current_index < 0 or current_index >= len(items):
-            Absolute_Solver(error_name="Invalid Asset Index", description="Something went wrong with the asset index")
-            return {'CANCELLED'}
-
-        asset_data = items[current_index]
-        File_path = asset_data.get("File_path", "")
+        bpy.ops.object.select_all(action='DESELECT')
         
-        if os.path.isfile(File_path):
-            append_asset(asset_data)
-        else:
-            dprint(f"{File_path} not a file")
-        return {'FINISHED'}
+        try:
+            asset_data = items[current_index]
+            File_path = asset_data.get("File_path", "")
+            
+            if os.path.isfile(File_path):
+                append_asset(asset_data)
+            else:
+                dprint(f"{File_path} not a file")
+            
+            for obj in bpy.context.selected_objects:
+                if obj.type == "ARMATURE":
+                    root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
+                    cursor_location = bpy.context.scene.cursor.location # It's a 3D Cursor
+                    if root_bone:
+                        obj.pose.bones[root_bone.name].matrix.translation = cursor_location
+                
+                obj["MiBlend_ID"] = "Asset"
+
+            return {'FINISHED'}
+        
+        except Exception as error:
+            if current_index < 0 or current_index >= len(items):
+                Call_AS("e08", traceback.format_exc())
+            else:
+                Call_AS("n00", traceback.format_exc())
+            return {'CANCELLED'}
     
 class ManualAssetsUpdateOperator(Operator):
     bl_idname = "assets.update_assets"

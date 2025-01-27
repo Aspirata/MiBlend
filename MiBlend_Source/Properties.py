@@ -14,6 +14,11 @@ class WorldProperties(PropertyGroup):
         default=True,
     )
 
+    remove_doubles: BoolProperty(
+        name="Remove Double Faces",
+        default=False,
+    )
+
     advanced_settings: BoolProperty(
         name="Advanced Settings",
         default=False,
@@ -46,8 +51,8 @@ class ResourcePackProperties(PropertyGroup):
         default=False,
     )
 
-    ignore_dublicates: BoolProperty(
-        name="Ignore Dublicates",
+    combine_duplicates: BoolProperty(
+        name="Combine Duplicates",
         default=True,
     )
 
@@ -139,6 +144,11 @@ class ResourcePackProperties(PropertyGroup):
     interpolate: BoolProperty(
         name="Interpolate",
         default=True,
+    )
+
+    randomize_speed: BoolProperty(
+        name="Randomize Speed",
+        default=False,
     )
 
 
@@ -250,6 +260,48 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    better_emission: BoolProperty(
+        name="Better Emission",
+        default=True,
+        description=""
+    )
+
+    better_emission_settings: BoolProperty(
+        name="Better Emission Settings",
+        default=False,
+        description=""
+    )
+
+    camera_strength: FloatProperty(
+        name="Camera Strength",
+        default=1.0,
+        description=""
+    )
+
+    non_camera_strength: FloatProperty(
+        name="Non-Camera Strength",
+        default=1.0,
+        description=""
+    )
+
+    procedural_animation: BoolProperty(
+        name="Procedural Animation",
+        default=False,
+        description=""
+    )
+
+    procedural_animation_settings: BoolProperty(
+        name="Procedurally Animate Textures Settings",
+        default=False,
+        description=""
+    )
+
+    randomize: BoolProperty(
+        name="Randomize",
+        default=True,
+        description=""
+    )
+
     pspecular: BoolProperty(
         name="Procedural Specular",
         default=True,
@@ -321,18 +373,6 @@ class PPBRProperties(PropertyGroup):
 
     advanced_settings: BoolProperty(
         name="Advanced Settings",
-        default=False,
-        description=""
-    )
-
-    make_better_emission: BoolProperty(
-        name="Make Better Emission",
-        default=True,
-        description=""
-    )
-
-    animate_textures: BoolProperty(
-        name="Procedurally Animate textures",
         default=False,
         description=""
     )

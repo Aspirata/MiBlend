@@ -39,6 +39,10 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
+        if Preferences.dev_tools and Preferences.experimental_features:
+            row = box.row()
+            row.prop(WProperties, "remove_doubles")
+
         row = box.row()
         row.prop(WProperties, "advanced_settings", toggle=True, icon=("TRIA_DOWN" if WProperties.advanced_settings else "TRIA_RIGHT"))
 
@@ -76,7 +80,10 @@ class WorldAndMaterialsPanel(Panel):
                     toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
                     toggle_op.pack_name = pack
 
-                    row.label(text=pack)
+                    if get_pack_info_properties(pack).get('mc_version') is None:
+                        row.label(text=f"{pack} ({pack_info['type']})")
+                    else:
+                        row.label(text=f"{pack} {get_pack_info_properties(pack).get('mc_version')} ({pack_info.get('type', 'Texture & PBR')})")
                     
                     move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
                     move_up.pack_name = pack
@@ -101,7 +108,7 @@ class WorldAndMaterialsPanel(Panel):
 
             sbox = box.box()
             row = sbox.row()
-            row.prop(scene.resource_properties, "ignore_dublicates")
+            row.prop(scene.resource_properties, "combine_duplicates")
 
             row = sbox.row()
             row.prop(scene.resource_properties, "use_i")
@@ -166,8 +173,11 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.label(text="Animation Settings:", icon="SEQUENCE")
                 row = tbox.row()
-                row.enabled = scene.resource_properties.animate_textures
                 row.prop(scene.resource_properties, "interpolate")
+                row.enabled = scene.resource_properties.animate_textures
+                row = tbox.row()
+                row.prop(scene.resource_properties, "randomize_speed")
+                row.enabled = scene.resource_properties.animate_textures
 
         if Preferences.dev_tools and Preferences.debug_tools:
             row = box.row()
@@ -547,6 +557,31 @@ class WorldAndMaterialsPanel(Panel):
             row.prop(scene.ppbr_properties, "revert_normals", slider=True)
             row.enabled = not context.scene.ppbr_properties.use_normals
         
+        row = box.row()
+        row.prop(scene.ppbr_properties, "better_emission")
+        row.prop(scene.ppbr_properties, "better_emission_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.better_emission_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.better_emission_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Better Emission Settings:", icon="MODIFIER")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "camera_strength")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "non_camera_strength")
+
+        row = box.row()
+        row.prop(scene.ppbr_properties, "procedural_animation")
+        row.prop(scene.ppbr_properties, "procedural_animation_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.procedural_animation_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.ppbr_properties.procedural_animation_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Procedural Animation Settings:", icon="MODIFIER")
+
+            row = sbox.row()
+            row.prop(scene.ppbr_properties, "randomize")
+        
         if Preferences.dev_tools and Preferences.experimental_features:
             row = box.row()
             row.prop(scene.ppbr_properties, "pspecular")
@@ -586,11 +621,6 @@ class WorldAndMaterialsPanel(Panel):
         row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
         if scene.ppbr_properties.advanced_settings:
             sbox = box.box()
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "make_better_emission")
-
-            row = sbox.row()
-            row.prop(scene.ppbr_properties, "animate_textures")
 
             row = sbox.row()
             row.prop(context.scene.ppbr_properties, "change_bsdf")
@@ -816,8 +846,10 @@ class AssetPanel(Panel):
         box.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
         row = box.row()
-        row.operator("assets.add_asset")
-        row.operator("assets.update_assets")
+        row.operator("assets.update_assets", icon="FILE_REFRESH")
+        row = box.row()
+        row.operator("assets.add_asset", icon="ADD")
+        row.operator("assets.create_asset", icon="FILE_NEW")
 
         if prefs.dev_tools and prefs.debug_tools:
             row = box.row()
@@ -890,7 +922,7 @@ class AssetPanel(Panel):
 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("assets.import_asset", text=import_asset_text(current_index))
+        row.operator("assets.import_asset", text=import_asset_text(current_index), icon="REC")
 
 
 class Assets_List_UL_(bpy.types.UIList):

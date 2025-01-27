@@ -12,7 +12,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
-    "version": (0, 6, 1),
+    "version": (0, 7, 0),
     "blender": (3, 6, 0),
     "doc_url": "https://github.com/Aspirata/MiBlend/wiki",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
@@ -42,9 +42,9 @@ def InitOnStart():
     mib_options["is_replaced_materials"] = len(original_materials_list) > 0
 
     mib_options["components_vesion"] = {
-        "MiBlend": "Honeycomb",
-        "UAS": "v2.1.2",
-        "Absolute Solver": "v1.1",
+        "MiBlend": "Butterfly",
+        "UAS": "v2.1.3",
+        "Absolute Solver": "v2.0",
     }
 
     if "temp_assets_paths" not in mib_options:
@@ -60,13 +60,13 @@ def load_post_handler(dummy):
     InitOnStart()
 
 classes = [
-    MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,                                                                                                 # Special Panels
-    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,                                                                            # Properties
-    PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,                                                                                                              
-    WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,                                                                                                          # Panels
-    RemoveAttributeOperator, OpenConsoleOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,   # Operators
-    RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,       
-    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, ImportAssetOperator, SavePropertiesOperator,
+    MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
+    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
+    PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,
+    WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
+    RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
+    RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
+    SetProceduralPBROperator, OptimizeOperator, SetRenderSettingsOperator, AssingVertexGroupOperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator,
 ]
 

@@ -1,7 +1,7 @@
 import bpy
 import sys
 from bpy.types import AddonPreferences
-from .MIB_API import blender_version
+from .MIB_API import blender_version, override_setting
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 
 class MiBlendPreferences(AddonPreferences):
@@ -9,25 +9,17 @@ class MiBlendPreferences(AddonPreferences):
 
     transparent_ui: BoolProperty(
         name="Transparent UI",
-        default=False,
+        default=override_setting("transparent_ui", False),
     )
 
-    enable_warnings: BoolProperty(
-        name="Enable Warnings",
-        default=True
+    show_warnings: BoolProperty(
+        name="Show Warnings",
+        default=override_setting("show_warnings", True)
     )
 
     enable_deprecated_features: BoolProperty(
         name="Enable Deprecated Features (Requires Restart)",
-        default=False
-    )
-
-    as_mode: EnumProperty(
-        items=[('None', 'None', 'No Errors will be Displayed'),
-            ('Smart', 'Smart', 'Only Critical Errors will be Displayed (For Smart People)'),
-            ('Full', 'Full', 'All Errors will be Displayed')],
-        name="as_mode",
-        default='Full'
+        default=override_setting("enable_deprecated_features", False)
     )
 
     mc_instances_path: StringProperty(
@@ -37,62 +29,87 @@ class MiBlendPreferences(AddonPreferences):
 
     def emissiondetectionfix():
         if blender_version("3.6.x"):
-            default='Manual'
+            return 'Manual'
         else:
-            default='Automatic & Manual'
-        return default
+            return 'Automatic & Manual'
 
     emissiondetection: EnumProperty(
         items=[('Automatic', 'Automatic', ''), 
-            ('Automatic & Manual', 'Both', ''),
+            ('Automatic & Manual', 'Combined', ''),
             ('Manual', 'Manual', '')],
         name="emissiondetection",
-        default=emissiondetectionfix()
+        default=override_setting("emissiondetection", emissiondetectionfix())
     )
 
     dev_tools: BoolProperty(
         name="Dev Tools",
-        default=False
+        default=override_setting("dev_tools", False)
     )
 
     dprint: BoolProperty(
         name="dprint",
-        default=True
+        default=override_setting("dprint", True)
+    )
+
+    deep_debug: BoolProperty(
+        name="Deep Debug",
+        default=override_setting("deep_debug", False)
+    )
+
+    rp_debug_mode: BoolProperty(
+        name="Resource Packs Debug Mode",
+        default=override_setting("rp_debug_mode", False)
+    )
+
+    fw_debug_mode: BoolProperty(
+        name="Fix World Debug Mode",
+        default=override_setting("fw_debug_mode", False)
+    )
+
+    fm_debug_mode: BoolProperty(
+        name="Fix Materials Debug Mode",
+        default=override_setting("fm_debug_mode", False)
+    )
+
+    ui_debug_mode: BoolProperty(
+        name="UI Debug Mode",
+        default=override_setting("ui_debug_mode", False)
     )
 
     perf_time: BoolProperty(
         name="Perf_Time",
-        default=False
+        default=override_setting("perf_time", False)
     )
 
     debug_tools: BoolProperty(
         name="Debug Tools",
-        default=False
+        default=override_setting("debug_tools", False)
     )
 
     uas_debug_mode: BoolProperty(
         name="UAS v2 Debug Mode",
-        default=False
+        default=override_setting("uas_debug_mode", False)
     )
 
     experimental_features: BoolProperty(
         name="Experimental Features",
-        default=False
+        default=override_setting("experimental_features", False)
     )
 
     open_console_on_start: BoolProperty(
         name="Open Console On Start",
-        default=False
+        default=override_setting("open_console_on_start", False)
     )
 
     dev_packs_path: StringProperty(
         name="Dev Resource Packs Folder",
-        subtype="DIR_PATH"
+        subtype="DIR_PATH",
+        default=override_setting("dev_packs_path", "")
     )
 
     enable_custom_packs_path: BoolProperty(
         name="Enable Resource Packs Folder",
-        default=False
+        default=override_setting("enable_custom_packs_path", False)
     )
 
     def draw(self, context):
@@ -100,9 +117,12 @@ class MiBlendPreferences(AddonPreferences):
         box = layout.box()
         row = box.row()
         row.label(text="Info:")                                                        # Info
-        for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
-            row = box.row()
-            row.label(text=f"{component_name}: {component}")
+        try:
+            for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
+                row = box.row()
+                row.label(text=f"{component_name}: {component}")
+        except:
+            pass
 
         box = layout.box()
         row = box.row()
@@ -115,16 +135,11 @@ class MiBlendPreferences(AddonPreferences):
             self.transparent_ui = False
 
         row = box.row()
-        row.prop(self, "enable_warnings")
+        row.prop(self, "show_warnings")
 
         box = layout.box()
         row = box.row()
         row.label(text="Algorithms:")                                                  # Algorithms
-
-        row = box.row()
-        row.label(text="Absolute Solver Mode:")
-        row = box.row()
-        row.prop(self, "as_mode", text='as_mode', expand=True)
 
         row = box.row()
         row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
@@ -150,14 +165,34 @@ class MiBlendPreferences(AddonPreferences):
             row = box.row()
             row.prop(self, "dprint", toggle=True)
 
-            row = box.row()
-            row.prop(self, "perf_time", toggle=True)
-            
-            row = box.row()
+            sbox = box.box()
+
+            row = sbox.row()
+            row.label(text="Debug:")
+
+            row = sbox.row()
             row.prop(self, "debug_tools", toggle=True)
 
-            row = box.row()
+            row = sbox.row()
+            row.prop(self, "deep_debug", toggle=True)
+
+            row = sbox.row()
             row.prop(self, "uas_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "rp_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "fw_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "fm_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "ui_debug_mode", toggle=True)
+
+            row = box.row()
+            row.prop(self, "perf_time", toggle=True)
 
             row = box.row()
             row.prop(self, "experimental_features", toggle=True)

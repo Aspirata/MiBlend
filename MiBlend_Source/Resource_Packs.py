@@ -1,7 +1,9 @@
 from .MIB_API import *
 from .Data import *
-from .Utils.Absolute_Solver import Absolute_Solver
-import sys, re
+from .Utils.Absolute_Solver import Call_AS
+import shutil, sys, re, http.client
+from urllib.request import urlretrieve
+from urllib.parse import urlparse
 from distutils.version import LooseVersion
 
 def get_resource_packs() -> list:
@@ -29,19 +31,76 @@ Launchers = {
     }
 }
 
-def update_default_pack():
-    resource_packs = bpy.context.scene["resource_packs"]
-    Preferences = bpy.context.preferences.addons[__package__].preferences
+def update_pack(pack: str):
+    resource_packs_directory = get_resource_path()
+    try:
+        with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+            data = json.load(file)
+            pack_data = data.get(pack, {})
+            pack_info = (pack_data.get("mc_version"), pack_data.get("pack_version"))
+            link = pack_data.get("link")
+            type = pack_data.get("type", "Texture & PBR")
 
-    def version_formatter(version_name: str) -> str:
-        version_parts = re.split(r'[ -]', version_name)
-        for part in version_parts:
-            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
-                return part
+        if not link or "modrinth" not in link:
+            return None
+
+        connection = http.client.HTTPSConnection("api.modrinth.com")
+        api_path = f"/v2/project/{pack.lower().replace(' ', '-')}/version"
+
+        connection.request("GET", api_path)
+        response = connection.getresponse()
+        
+        if response.status != 200:
+            dprint(f"Error {response.status}", is_deep=True, zone="rp")
+            return None
+        
+        versions = json.loads(response.read().decode("utf-8"))
+        
+        if not versions:
+            return None
+        
+        latest_version = max(versions, key=lambda v: v["date_published"])
+        latest_pack_info = (latest_version["game_versions"], latest_version["version_number"], latest_version["files"][0]["url"])
+
+        pack_path = os.path.join(resource_packs_directory, pack)
+        needs_update = not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(pack_path)
+
+        if needs_update:
+            dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}", is_deep=True, zone="rp")
+            if os.path.exists(pack_path):
+                shutil.rmtree(pack_path)
+            
+            filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
+            urlretrieve(latest_pack_info[2], filename)
+            
+            with zipfile.ZipFile(filename, 'r') as zip_ref:
+                zip_ref.extractall(pack_path)
+            os.remove(filename)
+            
+            with open(os.path.join(resource_packs_directory, "packs_info.json"), "r+") as f:
+                data = json.load(f)
+                data[pack] = {
+                    "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
+                    "pack_version": latest_pack_info[1],
+                    "type": type,
+                    "link": link
+                }
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+            
+            dprint("Successfully Downloaded!", is_deep=True, zone="rp")
+
+    except Exception as e:
+        dprint(f"Error: {e}", is_deep=True, zone="rp")
         return None
-
-    def find_mc() -> tuple[str, str]:
+    finally:
+        if 'connection' in locals():
+            connection.close()
+            
+def find_mc() -> tuple[str, str]:
         versions = {}
+        Preferences = bpy.context.preferences.addons[__package__].preferences
         current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
         os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
 
@@ -52,22 +111,22 @@ def update_default_pack():
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
                     instance_path = None
-                    if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
+                    if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
                         versions[version] = (folder, os.path.join(os_env, path))
-                        dprint(f"{instance_path} valid")
+                        dprint(f"{instance_path} valid", is_deep=True, zone="rp")
                     else:
-                        dprint(f"{instance_path} invalid")
+                        dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
         if Preferences.mc_instances_path:
             folders = Preferences.mc_instances_path
             if os.path.isdir(folders):
                 for folder in os.listdir(folders):
                     instance_path = None
-                    if (version := version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
+                    if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
                         versions[version] = (folder, Preferences.mc_instances_path)
-                        dprint(f"{instance_path} valid")
+                        dprint(f"{instance_path} valid", is_deep=True, zone="rp")
                     else:
-                        dprint(f"{instance_path} invalid")
+                        dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
             
         if versions:
             latest_version = max(versions, key=lambda x: LooseVersion(x))
@@ -76,30 +135,47 @@ def update_default_pack():
         
         return None, None
 
-    MC = find_mc()
-    if MC != (None, None):
-        version, path = MC
+@Perf_Time
+def update_default_pack():
+    resource_packs = dict(bpy.context.scene["resource_packs"])
+    resource_packs_directory = get_resource_path()
+
+    #Delete current default packs
+    packs_to_remove = []
+    for pack, pack_info in resource_packs.items():
+        if pack_info.get("is_default", False):
+            packs_to_remove.append(pack)
+    
+    for pack in packs_to_remove:
+        del resource_packs[pack]
+    
+    # Minecraft Pack
+    version, path = find_mc()
+    if version != None and path != None:
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True}
+        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True, "is_default": True}
         dprint(resource_packs[default_pack]["path"])
     else:
         print("MC instance not found")
 
-    if Preferences.dev_tools and Preferences.dev_packs_path and Preferences.enable_custom_packs_path:
-        resource_packs_dir = Preferences.dev_packs_path
-    else:
-        resource_packs_dir = resource_packs_directory
-
-    special_types_list = {"Bare Bones 1.21": "Texture", "Better Emission": "PBR", "Embrace Pixels PBR": "PBR"}
-
-    if not os.path.exists(resource_packs_dir):
+    # Adding Other Packs to the Scene
+    if not os.path.exists(resource_packs_directory):
         return
+
+    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as f:
+        data = json.load(f)
+        for pack in data:
+            if pack not in os.listdir(resource_packs_directory):
+                resource_packs[pack] = {"path": os.path.join(resource_packs_directory, pack), "type": data[pack]["type"], "enabled": True, "is_default": False}
+            update_pack(pack)
+
+            default_pack = pack
+            default_path = os.path.join(resource_packs_directory, default_pack)
+            default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
+            resource_packs[default_pack] = {"path": default_path, "type": default_type, "enabled": False, "is_default": True}
     
-    for pack in os.listdir(resource_packs_dir):
-        default_pack = pack
-        default_path = os.path.join(resource_packs_dir, default_pack)
-        resource_packs[default_pack] = {"path": (default_path), "type": special_types_list.get(default_pack, "Texture & PBR"), "enabled": False}
+    set_resource_packs(resource_packs)
 
 @ Perf_Time
 def apply_resources():
@@ -117,6 +193,9 @@ def apply_resources():
     
     def find_image(image_name: str, root_folder: str, obj_type: str = "unknown") -> Optional[str]:
 
+        if r_props.combine_duplicates:
+            image_name = format_duplicate_name(image_name)
+
         if root_folder.endswith(('.zip', '.jar')):
             try:
                 return zip_unpacker(root_folder, image_name, obj_type)
@@ -129,25 +208,28 @@ def apply_resources():
                     continue
 
                 if obj_type != "unknown":
-                    #dprint(f"{image_name} is {obj_type} using texture filter...")
+                    dprint(f"{image_name} is {obj_type} using texture filter...", is_deep=True, zone="rp")
                     dirpath = os.path.join(dirpath, obj_type)
-                #else:
-                    #dprint(f"{image_name} is {obj_type}")
-                    #dprint(f"Switching to hybrid mode...")
+                else:
+                    dprint(f"{image_name} is {obj_type}", is_deep=True, zone="rp")
+                    dprint(f"Switching to hybrid mode...", is_deep=True, zone="rp")
 
                 fast_image = os.path.join(dirpath, image_name)
 
                 if os.path.isfile(fast_image):
-                    #dprint(f"{fast_image} is found")
+                    dprint(f"{fast_image} is found", is_deep=True, zone="rp")
                     return fast_image
-                #else:
-                    #dprint(f"{fast_image} isn't found, searching for the {image_name}...")
+                else:
+                    dprint(f"{fast_image} isn't found, searching for the {image_name}...", is_deep=True, zone="rp")
 
                 if not os.path.exists(dirpath):
                     continue
 
                 for dirpath, dirnames, files in os.walk(dirpath):
                     for file in files:
+                        if "colormap" in dirnames:
+                            continue
+
                         if file == image_name:
                             return os.path.join(dirpath, file)
                         
@@ -158,10 +240,11 @@ def apply_resources():
                             try:
                                 return zip_unpacker(os.path.join(dirpath, file), image_name, obj_type, file)
                             except zipfile.BadZipFile:
-                                print("Bad Zip File")
+                                Call_AS("n00", traceback.format_exc())
         return None
     
     def zip_unpacker(root_folder: str, image_name: str, obj_type: str , file=None) -> Optional[str]:
+        resource_packs_directory = get_resource_path()
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
             namelist = zip_ref.namelist()
@@ -169,10 +252,10 @@ def apply_resources():
             if obj_type == "unknown":
                 #dprint(f"{image_name} is {obj_type}")
                 #dprint(f"Switching to hybrid mode...")
-                filtered_namelist = [item for item in namelist if f"textures" in item]
+                filtered_namelist = [item for item in namelist if f"textures" in item and "colormap" not in item]
             else:
                 #dprint(f"{image_name} is {obj_type} using texture filter...")
-                filtered_namelist = [item for item in namelist if f"textures/{obj_type}" in item]
+                filtered_namelist = [item for item in namelist if f"textures/{obj_type}" in item and "colormap" not in item]
 
             namelist = filtered_namelist
 
@@ -218,34 +301,38 @@ def apply_resources():
     
     def find_texture_users(texture) -> list:
         Texture_users = []
-        for obj in bpy.data.objects:
-            if obj.type == 'MESH':
-                for material in selected_object.data.materials:
-                    if material and material.use_nodes:
-                        for node in material.node_tree.nodes:
-                            if node.type == 'TEX_IMAGE' and node.image == texture:
-                                Texture_users.append(node)
-        
+        Textures_to_remove = []
+
+        for material in bpy.data.materials:
+            if not material or not material.use_nodes:
+                continue
+
+            for node in material.node_tree.nodes:
+
+                if node.type != 'TEX_IMAGE' or not node.image:
+                    continue
+
+                if "MWO" not in node.image.name and format_duplicate_name(node.image.name) == format_duplicate_name(texture):
+                    Texture_users.append(node)
+                    Textures_to_remove.append(node.image)
+    
         for group in bpy.data.node_groups:
             for node in group.nodes:
-                if node.type == 'TEX_IMAGE' and node.image == texture:
+                if node.type != 'TEX_IMAGE' or not node.image:
+                    continue
+
+                if "MWO" not in node.image.name and format_duplicate_name(node.image.name) == format_duplicate_name(texture):
                     Texture_users.append(node)
+                    Textures_to_remove.append(node.image)
         
-        return Texture_users
-
+        for tex in list(set(Textures_to_remove)):
+            bpy.data.images.remove(tex, do_unlink=True)
+    
+        return list(set(Texture_users))
+    
     def update_texture(new_image_path, image_texture, texture_node=None, colorspace=None):
-        Users = None
+        Users = find_texture_users(image_texture)
 
-        if image_texture in bpy.data.images:
-            Users = find_texture_users(bpy.data.images[image_texture])
-            if not r_props.ignore_dublicates:
-                for texture in bpy.data.images:
-                    if image_texture in texture.name and isduplicate(texture.name, image_texture):
-                        Users.extend(find_texture_users(blender_texture := bpy.data.images.get(texture)))
-                        bpy.data.images.remove(blender_texture)
-
-            bpy.data.images.remove(bpy.data.images[image_texture], do_unlink=True)
-        
         new_image_texture = os.path.basename(new_image_path)
         if texture_node is not None:
             if not texture_node.image:
@@ -254,7 +341,7 @@ def apply_resources():
                 else:
                     texture_node.image = bpy.data.images.load(new_image_path)
 
-        if Users is not None:
+        if Users:
 
             if new_image_texture in bpy.data.images:
                 user_texture = bpy.data.images[new_image_texture]
@@ -268,11 +355,10 @@ def apply_resources():
                     try:
                         user.image.colorspace_settings.name = colorspace
                     except:
-                        Absolute_Solver("u006", colorspace)
+                        pass
             else:
                 for user in Users:
                     user.image = user_texture
-
 
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
         Texture_Animator = None
@@ -352,6 +438,7 @@ def apply_resources():
                 ITexture_Animator.inputs["Frames"].default_value = int(image_texture.size[1] / image_texture.size[0])
                 ITexture_Animator.inputs["Frametime"].default_value = frametime
                 ITexture_Animator.inputs["Interpolate"].default_value = True
+                ITexture_Animator.inputs["Randomize Speed"].default_value = r_props.randomize_speed
 
             else:
                 if ITexture_Animator is not None:
@@ -374,7 +461,7 @@ def apply_resources():
                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                                 data_to.node_groups = ["Texture Animator"]
                         except:
-                            Absolute_Solver("004", "Materials", traceback.format_exc())
+                            Call_AS("e03", "Materials.blend", traceback.format_exc())
                 
                     Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
                     Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
@@ -385,6 +472,7 @@ def apply_resources():
                 Texture_Animator.inputs["Frames"].default_value = int(image_texture.size[1] / image_texture.size[0])
                 Texture_Animator.inputs["Frametime"].default_value = frametime
                 Texture_Animator.inputs["Interpolate"].default_value = False
+                Texture_Animator.inputs["Randomize Speed"].default_value = r_props.randomize_speed
         else:
             if ITexture_Animator is not None:
                 texture_node = material.node_tree.nodes.new(type='ShaderNodeTexImage')
@@ -439,7 +527,7 @@ def apply_resources():
         try:
             normal_texture_node.image.colorspace_settings.name = "Non-Color"
         except:
-            Absolute_Solver("u006", "Non-Color")
+            pass
 
         if normal_map_node is None:
             normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
@@ -604,12 +692,15 @@ def apply_resources():
 
     for selected_object in bpy.context.selected_objects:
         if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+            Call_AS("w01", selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
+                continue
+            
+            if selected_object.get("MiBlend ID", "") == "":
+                Call_AS("w02", data=material.name)
                 continue
 
             PBSDF = None
@@ -634,7 +725,9 @@ def apply_resources():
             obj_type = None
             obj_type = detect_obj_type(selected_object.name, material.name)
 
-            for node in material.node_tree.nodes:
+            nodes_list = get_nodes_list(material, True)
+
+            for node in nodes_list:
 
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node

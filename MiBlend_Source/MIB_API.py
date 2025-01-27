@@ -1,8 +1,9 @@
-from MiBlend_Source.Data import *
-from MiBlend_Source.Utils.Absolute_Solver import Absolute_Solver
-from typing import Optional
+from .Data import *
+from .Utils.Absolute_Solver import Call_AS
+from typing import Optional, Union
 import time
 import sys
+import re
 
 def PBSDF_compability(Input: str) -> str:
     if blender_version("3.x.x"):
@@ -21,56 +22,175 @@ def PBSDF_compability(Input: str) -> str:
         }.get(Input, Input)
     return Input
 
-def clamp(min_value, value, max_value):
+def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]):
     return max(min_value, min(value, max_value))
 
-def MaterialIn(Array, material, mode="in"):
-    for material_part in format_material_name(material.name):
-        for keyword in Array:
-            if mode == "==":
-                return keyword == material_part
+def is_mesh(object):
+    return object.type == "MESH"
+
+def mc_version_formatter(version_name: str) -> Optional[str]:
+    try:
+        version_parts = re.split(r'[ -]', version_name)
+        for part in version_parts:
+            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
+                return part
+        return None
+    except Exception as error:
+        Call_AS("n00", error)
+
+def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> Optional[tuple[bool, str]]:
+    if is_texture:
+        name = format_texture_name(material_or_texture_name)
+    else:
+        name = format_material_name(material_or_texture_name)
+
+    for item in Array:
+        old_item = item
+        if ";" in item:
+            anti_keywords = item.split(" ; ")[1].split()
+            if any(anti_keyword in name for anti_keyword in anti_keywords):
+                dprint(f"Anti-Keyword: {anti_keywords} in {name}", is_deep=True)
+                continue
+            item = item.split(" ; ")[0]
+        
+        if " " in item:
+            if all(keyword in name for keyword in item.split()):
+                dprint(f"Keyword: {item} in {name}", is_deep=True)
+                return (True, old_item)
+        elif mode == "==":
+            if any(item == name_part for name_part in name):
+                dprint(f"Keyword: {item} in {name}", is_deep=True)
+                return (True, old_item)
+        else:
+            if any(item in name_part for name_part in name):
+                dprint(f"Keyword: {item} in {name}", is_deep=True)
+                return (True, old_item)
             else:
-                return keyword in material_part
-    return False
+                dprint(f"Keyword: {item} not in {name}", is_deep=True)
+
+    dprint(f"Keyword: None in {name}", is_deep=True)
+    return (False, None)
+
+def get_resource_path() -> str:
+    Preferences = bpy.context.preferences.addons[__package__].preferences
+    if Preferences.dev_tools and os.path.exists(Preferences.dev_packs_path) and Preferences.enable_custom_packs_path:
+        resource_packs_directory = Preferences.dev_packs_path
+    else:
+        resource_packs_directory = os.path.join(main_directory, "Resource Packs")
+    
+    return resource_packs_directory
+
+def override_setting(setting_name: str, default_value: str) -> bool:
+    settings_override_path = os.path.join(os.path.dirname(main_directory), "settings_override.json")
+    if os.path.exists(settings_override_path):
+        with open(settings_override_path, "r") as file:
+            data = json.load(file)
+            return data.get(setting_name, default_value)
+    
+    return default_value
+
+def get_pack_info_properties(pack: str =None) -> dict:
+    resource_packs_directory = get_resource_path()
+    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+        data = json.load(file)
+        
+        if pack is None:
+            return data.keys()
+        
+        pack_list = data.get(pack, {})
+        pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
+    return pack_info
+
+def EmissionMode(PBSDF, texture_name: str) -> int:
+
+    Preferences = bpy.context.preferences.addons[__package__].preferences
+    
+    if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name)[0]):
+        return 1
+
+    elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
+        return 2
+    
+    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name)[0]:
+        return 3
+    
+    return 0
+
+def create_node_group(place, node_tree_name : str, location : tuple = (0, 0), file : str = nodes_file, name : str ="", exists_check : bool = False):
+    if exists_check:
+        for node in place:
+            if node.type == "GROUP" and node.node_tree.name == node_tree_name:
+                return node
+        
+    if node_tree_name not in bpy.data.node_groups:
+        try:
+            with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
+                data_to.node_groups = [node_tree_name]
+        except Exception as error:
+            Call_AS("e03", file, error)
+
+    group_node = place.new(type='ShaderNodeGroup')
+    if name != "":
+        group_node.name = name
+    
+    group_node.node_tree = bpy.data.node_groups[node_tree_name]
+    group_node.location = location
+
+    return group_node
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
 
     if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item": # Add check in the pack_info.json
-        #dprint(f"{obj_name}; {mat_name} is an item")
+        dprint(f"{obj_name}; {mat_name} is an item", is_deep=True, zone="rp")
         return "item"
     
     elif "block" in obj_name or "block" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "block":
-        #dprint(f"{obj_name}; {mat_name} is a block")
+        dprint(f"{obj_name}; {mat_name} is a block", is_deep=True, zone="rp")
         return "block"
     
     elif "entity" in obj_name or "entity" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "entity":
-        #dprint(f"{obj_name}; {mat_name} is a entity")
+        dprint(f"{obj_name}; {mat_name} is a entity", is_deep=True, zone="rp")
         return "entity"
     
-    dprint(f"{obj_name}; {mat_name} is unknown")
+    dprint(f"{obj_name}; {mat_name} is unknown", is_deep=True, zone="rp")
     return "unknown"
 
-def format_texture_name(texture_name, split=True):
+def format_texture_name(texture_name: str, split: bool =True) -> str:
     if split:
-        return detect_duplicate_index(texture_name).replace(".png", "").lower().replace("-", "_").split("_")
+        return format_duplicate_name(texture_name).replace(".png", "").lower().replace("-", "_").split("_")
     else:
-        return detect_duplicate_index(texture_name).replace(".png", "").lower().replace("-", "_")
+        return format_duplicate_name(texture_name).replace(".png", "").lower().replace("-", "_")
 
-def format_material_name(material_name, split=True):
+def format_material_name(material_name: str, split: bool =True) -> str:
     if split:
-        return detect_duplicate_index(material_name).lower().replace("-", "_").split("_")
+        return format_duplicate_name(material_name).lower().replace("-", "_").split("_")
     else:
-        return detect_duplicate_index(material_name).lower().replace("-", "_")
+        return format_duplicate_name(material_name).lower().replace("-", "_")
 
-def dprint(*messages, separate=False):
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.dprint:
+def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
+    try:
+        Preferences = bpy.context.preferences.addons[__package__].preferences
+        zones_dict = {"uas": Preferences.uas_debug_mode, "rp": Preferences.rp_debug_mode, "fw": Preferences.fw_debug_mode, "fm": Preferences.fm_debug_mode, "ui": Preferences.ui_debug_mode}
+        
+        if not Preferences.dev_tools or not Preferences.dprint:
+            return
+        
+        if zone and zones_dict.get(zone, False) == False:
+            return
+            
+        if is_deep and not Preferences.deep_debug:
+            return
+            
         if separate:
             for message in messages:
                 print(message)
         else:
             print(*messages)
+            
+    except Exception as e:
+        print(f"Debug print error: {str(e)}")
 
-def isduplicate(text, original_text=None):
+def isduplicate(text: str, original_text: str=None) -> bool:
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
@@ -80,7 +200,7 @@ def isduplicate(text, original_text=None):
             return True
     return False
 
-def detect_duplicate_index(text, original_text=None):
+def format_duplicate_name(text: str, original_text: str=None):
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
@@ -91,21 +211,18 @@ def detect_duplicate_index(text, original_text=None):
             return base_text
     return text
 
-def isgray(name, is_material=False, mode="all"):
-    name_parts = format_texture_name(name) if not is_material else format_material_name(name)
+def is_gray(name: str, is_material: bool =False, mode: str ="all"):
+
+    #dprint(f'{format_material_name(name)} vegetation: {name_in(gray_blocks.get("vegetation"), name, not is_material)} \nrednstone: {name_in(gray_blocks.get("redstone"), name, not is_material)} \nwater: {name_in(gray_blocks.get("water"), name, not is_material)}', is_deep=True, zone="fw")
+    
     if mode == "all":
-        if any(part in name_parts for part in ("grass", "water", "leaves", "lily", "vine", "fern")) and all(part not in name_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")) or \
-            ("redstone" in name_parts and "dust" in name_parts) or ("pink" in name_parts and "stem" in name_parts):
-            return True
+        return (name_in(gray_blocks.get("vegetation"), name, not is_material)[0] or name_in(gray_blocks.get("redstone"), name, not is_material)[0] or name_in(gray_blocks.get("water"), name, not is_material)[0])
     elif mode == "vegetation":
-        if any(part in name_parts for part in ("grass", "leaves", "lily", "vine", "fern")) and all(part not in name_parts for part in ("cherry", "side", "azalea", "snow", "mushroom")):
-            return True
+        return name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
     elif mode == "redstone":
-        if "redstone" in name_parts and "dust" in name_parts:
-            return True
+        return name_in(gray_blocks.get("redstone"), name, not is_material)[0]
     elif mode == "water":
-        if "water" in name_parts:
-            return True
+        return name_in(gray_blocks.get("water"), name, not is_material)[0]
     return False
 
 def detect_texture_node(PBSDF):
@@ -150,6 +267,22 @@ def detect_texture_node(PBSDF):
                 
         if n.type == "TEX_IMAGE" and n.image:
             return n
+        
+def get_nodes_list(material_or_node_group, is_recursive: bool =False):
+    nodes_list = []
+    
+    if hasattr(material_or_node_group, 'use_nodes') and not material_or_node_group.use_nodes:
+        return []
+
+    for node in material_or_node_group.node_tree.nodes:
+        if node.type == 'REROUTE':
+            continue
+        
+        nodes_list.append(node)
+        if node.type == 'GROUP' and node.node_tree and is_recursive:
+            nodes_list.extend(get_nodes_list(node))
+
+    return nodes_list
         
 def detect_image_texture(PBSDF):
 
@@ -257,26 +390,6 @@ def SeparateMeshByMaterial(obj, material = None):
 
     return new_obj
 
-def EmissionMode(PBSDF, texture_name):
-        from .Data import Emissive_Materials
-
-        def TextureIn(Array, texture):
-            for texture_name in Array:
-                if texture_name == format_texture_name(texture, split=False):
-                    return True
-            return False
-        
-        Preferences = bpy.context.preferences.addons[__package__].preferences
-                
-        if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or TextureIn(Emissive_Materials.keys(), texture_name)):
-            return 1
-
-        elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
-            return 2
-        
-        elif Preferences.emissiondetection == 'Manual' and TextureIn(Emissive_Materials.keys(), texture_name):
-            return 3
-
 def Perf_Time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -298,12 +411,19 @@ def GetConnectedSocketFrom(output: str, node):
             return None
         
         return [link.to_socket for link in output_socket.links]
-    except:
-        Absolute_Solver("005", __name__, traceback.format_exc())
+    except Exception as error:
+        Call_AS("n00", error)
 
-def GetConnectedSocketTo(input: str, node):
+def GetConnectedSocketTo(input: Union[str, int], node):
     try:
-        input_socket = node.inputs.get(input)
+        if isinstance(input, int):
+            if input >= len(node.inputs):
+                return None
+            else:
+                input_socket = node.inputs[input]
+        else:
+            input_socket = node.inputs.get(input, None)
+        
         if not input_socket:
             return None
         
@@ -312,8 +432,8 @@ def GetConnectedSocketTo(input: str, node):
         
         link = input_socket.links[0]
         return link.from_socket
-    except:
-        Absolute_Solver("005", __name__, traceback.format_exc())
+    except Exception as error:
+        Call_AS("n00", error)
 
 def RemoveLinksFrom(sockets):
     try:

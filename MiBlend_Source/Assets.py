@@ -1,8 +1,9 @@
 from .MIB_API import *
+from .Data import assets_directory
 from .Properties import ScriptAssetProperties
 
 def append_asset(asset_data):
-    asset_name = asset_data.get("Asset_name")
+    asset_name = asset_data.get("Asset_name", "")
     asset_path = asset_data.get("File_path", "")
     asset_type = asset_data.get("Type", "")
     asset_collection = asset_data.get("Collection_name", asset_name)
@@ -26,8 +27,8 @@ def append_asset(asset_data):
         elif asset_type == "Material":
             append_material(asset_data)
         
-    except:
-        Absolute_Solver(tech_things=traceback.format_exc(), data=asset_name, error_name="Bad Asset Import", description=f"Can't Import {asset_name} Asset")
+    except Exception as error:
+        Call_AS("e05", error, asset_name)
 
 def append_collection(asset_name, asset_collection, asset_path):
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
@@ -44,7 +45,8 @@ def run_python_script(name, path):
             if asset.get("Asset_name", "") == name:
                 properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
 
-        context = {key: value for key, value in globals().items() if callable(value)}
+        context = globals().copy()
+        context["properties"] = properties
 
         context["properties"] = properties
 
@@ -53,8 +55,8 @@ def run_python_script(name, path):
 
         exec(script, context)
 
-    except Exception as e:
-        Absolute_Solver("009", name, traceback.format_exc())
+    except Exception as error:
+        Call_AS("e06", error, name)
 
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
@@ -66,18 +68,18 @@ def append_snode(asset_data):
         try:
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.node_groups = [Node_name]
-        except:
-            Absolute_Solver("009", Node_name, traceback.format_exc())
+        except Exception as error:
+            Call_AS("e05", error, Node_name)
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Node_name} Script Found")
+        dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
 
     elif Append_mode == "Every Selected":
-        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
             Node = None
-            if selected_object.material_slots:
+            if is_mesh(selected_object):
                 for index, material in enumerate(selected_object.data.materials):
                     avg_x = []
                     avg_y = []
@@ -93,13 +95,11 @@ def append_snode(asset_data):
                             Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
                             Node.node_tree = bpy.data.node_groups[Node_name]
                             Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
-                    else:
-                        Absolute_Solver("m002", index)
             else:
-                Absolute_Solver("m003", selected_object)
+                Call_AS("w01", data=selected_object)
 
     elif Append_mode == "Active Only":
-        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         avg_x = []
         avg_y = []
         active_obj = bpy.context.active_object
@@ -128,15 +128,15 @@ def append_cnode(asset_data):
         try:
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.node_groups = [Node_name]
-        except:
-            Absolute_Solver("009", Node_name, traceback.format_exc())
+        except Exception as error:
+            Call_AS("e05", error, Node_name)
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Node_name} Script Found")
+        dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
 
     else:
-        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         avg_x = []
         avg_y = []
         bpy.context.scene.use_nodes = True
@@ -164,15 +164,15 @@ def append_gnode(asset_data):
         try:
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.node_groups = [Node_name]
-        except:
-            Absolute_Solver("009", Node_name, traceback.format_exc())
+        except Exception as error:
+            Call_AS("e05", error, Node_name)
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Node_name} Script Found")
+        dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
 
     elif Append_mode == "Every Selected":
-        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
             geonodes_modifier = None
             if selected_object.type == "MESH":
@@ -187,7 +187,7 @@ def append_gnode(asset_data):
                     geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
 
     elif Append_mode == "Active Only":
-        dprint(f"{Node_name} Script Not Found, using default algorithm")
+        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
         geonodes_modifier = None
         if active_obj and active_obj.type == "MESH":
@@ -211,15 +211,15 @@ def append_material(asset_data):
         try:
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.materials = Material_name
-        except:
-            Absolute_Solver('004', Blend_file, traceback.format_exc())
+        except Exception as error:
+            Call_AS("e05", error, Material_name)
     
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Material_name} Script Found")
+        dprint(f"{Material_name} Script Found", is_deep=True, zone="uas")
 
     elif Append_mode == "Active Only":
-        dprint(f"{Material_name} Script Not Found, using default algorithm")
+        dprint(f"{Material_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
         if active_obj and active_obj.material_slots:
             active_obj.data.materials[0] = bpy.data.materials.get(Material_name)
@@ -237,7 +237,7 @@ def update_assets():
     if len(temp_assets_path_list) > 0:
         directories_to_scan.extend(temp_assets_path_list)
 
-    dprint(f"Scanning {directories_to_scan}")
+    dprint(f"Scanning {directories_to_scan}", is_deep=True, zone="uas")
 
     for directory in directories_to_scan:
         for root, dirs, files in os.walk(directory):
@@ -261,21 +261,21 @@ def update_assets():
                         else:
                             asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".blend")
 
-                        if format_version != "test" or (bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.uas_debug_mode):
+                        if format_version != "test":
                             if not asset_name:
-                                dprint("Asset_name is not defined")
+                                dprint("Asset_name is not defined", is_deep=True, zone="uas")
                                 continue
                             if not asset_author:
-                                dprint("Author is not defined")
+                                dprint("Author is not defined", is_deep=True, zone="uas")
                                 continue
                             if not asset_file_path:
-                                dprint("File_path is not defined")
+                                dprint("File_path is not defined", is_deep=True, zone="uas")
                                 continue
                             if not os.path.isfile(asset_file_path):
-                                dprint(f"Cannot find the asset file: {asset_file_path}")
+                                dprint(f"Cannot find the asset file: {asset_file_path}", is_deep=True, zone="uas")
                                 continue
                             if not asset_tags:
-                                dprint("Tags are not defined")
+                                dprint("Tags are not defined", is_deep=True, zone="uas")
                                 continue
 
                         asset_info = {}
@@ -290,8 +290,8 @@ def update_assets():
                             asset_info["has_properties"] = True
 
                         assets_list.append(asset_info)
-                    except:
-                        Absolute_Solver("u008", asset_data.get("Asset_name"), traceback.format_exc())
+                    except Exception as error:
+                        Call_AS("e06", error, asset_data.get("Asset_name"))
     
     for asset in sorted(assets_list, key=lambda x: x["Asset_name"]):
         item = items.add()
