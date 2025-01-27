@@ -92,6 +92,5 @@
             "Name": "Bad Pack File Extension",
             "Description": "Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension"
         }
-
     }
 }

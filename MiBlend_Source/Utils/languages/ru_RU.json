@@ -1,0 +1,51 @@
+{
+    "Code": "Код",
+    "Name": "Название",
+    "Description": "Описание",
+    "Copy Tech Things to Clipboard": "Скопировать тех штуки в буфер обмена",
+
+    "Unknown Error": "Неизвестная ошибка",
+    "Well, tbh idk why you see that error lol fr": "Я понятия не имею почему ты видишь эту ошибку LoL",
+
+    "Triggered Warning": "Предупреждение",
+    "Test Warning": "Тестовое предупреждение",
+        
+    "Object Has No Materials": "Объект не имеет материалов",
+    "{Data.name} does not have materials because it is an empty, lattice, light source, armature etc.": "{Data.name} не имеет материалов, так как это пустой объект, решетка, источник света, арматура и т.д.",
+
+    "MiBlend hasn't modified that material": "MiBlend не модифицировал этот материал",
+    "MiBlend hasn't modified {Data} that may and almost 100% will lead to problems": "MiBlend не модифицировал {Data}, что может и почти 100% приведет к проблемам",
+
+    "Triggered Error": "Вызванная Ошибка",
+    "Test Error": "Тестовая ошибка",
+
+    "Absolute Solver Error": "Ошибка абсолютного решателя",
+    "Absolute Solver cannot display {Data}": "Абсолютный решатель не может отобразить {Data}",
+
+    "Legacy Component": "Устаревший компонент",
+    "A legacy component was detected in this scene. Some features may not work correctly.": "В этой сцене обнаружен устаревший компонент. Некоторые функции могут работать некорректно.",
+
+    "UI Display Error": "Ошибка отображения интерфейса",
+    "User interface cannot display the requested element": "Интерфейс не может отобразить запрошенный элемент",
+
+    "File Not Found": "Файл не найден",
+    "{Data} file could not be found": "Файл {Data} не может быть найден",
+
+    "Dublicate": "Дубликат",
+    "Remove or replace later in dev": "Удалить или заменить позже в разработке",
+
+    "Bad Asset Import": "Ошибка импорта ассета",
+    "Can't import {Data}": "Невозможно импортировать {Data}",
+
+    "Bad Asset Addition": "Ошибка добавления ассета",
+    "Can't add {Data}": "Невозможно добавить {Data}",
+
+    "Texture Not Found": "Текстура не найдена",
+    "Can't Find Texture in {Data} material": "Невозможно найти текстуру в материале {Data}",
+
+    "Broken Assets List": "Поврежденный список ресурсов",
+    "Something went wrong with the assets list (Maybe because of a legacy asset list)": "Что-то пошло не так со списком ресурсов (Возможно из-за устаревшего списка ресурсов)",
+
+    "Bad Pack File Extension": "Неверное расширение файла пакета",
+    "Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension": "Пакет ресурсов должен быть папкой или файлом с расширением .jar или .zip, в то время как выбранный файл имеет расширение {Data}"
+}
