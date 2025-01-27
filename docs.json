@@ -1,43 +1,42 @@
 {
   "name": "MiBlend Wiki",
-  "description": "Well, That's MiBlend Wiki",
-  "sidebar": {
-    "en": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          {
-            "title": "Getting to know docs.page",
-            "href": "/",
-            "icon": "rocket"
-          },
+  "description": "Multilingual documentation example",
+  "sidebar": [
+    {
+      "group": "Main",
+      "pages": [
+        {
+          "title": "Welcome",
+          "href": "/"
+        }
+      ]
+    },
+    {
+      "group": "English",
+      "pages": [
+        {
+          "title": "FAQ",
+          "href": "/en/faq"
+        }
+      ]
+    },
+    {
+      "group": "Русский",
+      "pages": [
+        {
+          "title": "Домашняя Страница",
+          "href": "/ru/home"
+        },
+        {
+          "title": "ЧАВО",
+          "href": "/ru/faq"
+        },
 
-          {
-            "title": "Next Steps",
-            "href": "/next-steps",
-            "icon": "arrow-right"
-          }
-        ]
-      }
-    ],
-
-    "ru": [
-      {
-        "group": "Начало",
-        "pages": [
-          {
-            "title": "Getting to know docs.page",
-            "href": "/",
-            "icon": "rocket"
-          },
-
-          {
-            "title": "Next Steps",
-            "href": "/next-steps",
-            "icon": "arrow-right"
-          }
-        ]
-      }
-    ]
-  }
+        {
+          "title": "О MiBlend",
+          "href": "/ru/about"
+        }
+      ]
+    }
+  ]
 }
