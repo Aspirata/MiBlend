@@ -225,7 +225,7 @@ def append_material(asset_data):
             active_obj.data.materials[0] = bpy.data.materials.get(Material_name)
 
 def update_assets():
-    items = bpy.context.scene.assetsproperties.asset_items
+    items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
     items.clear()
     assets_list = []
 
@@ -301,7 +301,7 @@ def update_assets():
     # Tags
     current_states = {tag.name: tag.enabled for tag in bpy.context.scene.assetsproperties.tags}
 
-    tags = bpy.context.scene.assetsproperties.tags
+    tags = bpy.context.scene.miblend_properties.assetsproperties.tags
     tags.clear()
     unique_tags = set()
 

@@ -27,6 +27,12 @@
           "title": "Домашняя Страница",
           "href": "/ru/home"
         },
+
+        {
+          "title": "Последняя версия",
+          "href": "/ru/last-update"
+        },
+
         {
           "title": "ЧАВО",
           "href": "/ru/faq"

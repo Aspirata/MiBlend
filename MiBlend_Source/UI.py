@@ -15,7 +15,7 @@ class WorldAndMaterialsPanel(Panel):
         scene = bpy.context.scene
 
         global WProperties
-        WProperties = scene.world_properties
+        WProperties = scene.miblend_properties.world_properties
 
         global Preferences
         Preferences = bpy.context.preferences.addons[__package__].preferences
@@ -68,8 +68,8 @@ class WorldAndMaterialsPanel(Panel):
         sbox = box.box()
         row = sbox.row()
         row.label(text="Resource Packs List", icon="OUTLINER")
-        row.prop(scene.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
-        if scene.resource_properties.toggle_resource_packs_list:
+        row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
+        if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
             try:
                 resource_packs = get_resource_packs()
 
@@ -83,7 +83,7 @@ class WorldAndMaterialsPanel(Panel):
                     if get_pack_info_properties(pack).get('mc_version') is None:
                         row.label(text=f"{pack} ({pack_info['type']})")
                     else:
-                        row.label(text=f"{pack} {get_pack_info_properties(pack).get('mc_version')} ({pack_info.get('type', 'Texture & PBR')})")
+                        row.label(text=f"{pack} {get_pack_info_properties(pack).get('mc_version') if get_pack_info_properties(pack).get('mc_version') != 'Unknown' else ''} ({pack_info.get('type', 'Texture & PBR')})")
                     
                     move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
                     move_up.pack_name = pack
@@ -814,8 +814,8 @@ class UtilsPanel(Panel):
         row.operator("utils.assingvertexgroup")
 
 def import_asset_text(index):
-    if index <= len(bpy.context.scene.assetsproperties.asset_items) and len(bpy.context.scene.assetsproperties.asset_items) > 0:
-        asset_type = bpy.context.scene.assetsproperties.asset_items[index].get("Type", "")
+    if index <= len(bpy.context.scene.miblend_properties.assets_properties.asset_items) and len(bpy.context.scene.miblend_properties.assets_properties.asset_items) > 0:
+        asset_type = bpy.context.scene.miblend_properties.assetsproperties.asset_items[index].get("Type", "")
 
         if asset_type == "Script":
             return "Run Script"
@@ -834,7 +834,7 @@ class AssetPanel(Panel):
     def draw(self, context):
         layout = self.layout
         prefs = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
-        assets_props = context.scene.assetsproperties
+        assets_props = bpy.context.scene.miblend_properties.assets_properties
         
         if prefs.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -944,9 +944,9 @@ class Assets_List_UL_(bpy.types.UIList):
     
     def filter_items(self, context, data, property):
         flt_flags = []
-        selected_tags = {tag.name for tag in context.scene.assetsproperties.tags if tag.enabled}
-        tags_mode = context.scene.assetsproperties.tags_mode
-        filter_by_version = context.scene.assetsproperties.filter_by_version
+        selected_tags = {tag.name for tag in context.scene.miblend_properties.assets_properties.tags if tag.enabled}
+        tags_mode = context.scene.miblend_properties.assets_properties.tags_mode
+        filter_by_version = context.scene.miblend_properties.assets_properties.filter_by_version
 
         for index, item in enumerate(data.asset_items):
             item_tags = set(item.get('Tags', []))

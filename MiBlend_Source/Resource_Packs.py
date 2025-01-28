@@ -63,7 +63,7 @@ def update_pack(pack: str):
         latest_pack_info = (latest_version["game_versions"], latest_version["version_number"], latest_version["files"][0]["url"])
 
         pack_path = os.path.join(resource_packs_directory, pack)
-        needs_update = not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(pack_path)
+        needs_update = not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(pack_path) or (pack_info[0] == "Unknown" and pack_info[1] == "Unknown")
 
         if needs_update:
             dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}", is_deep=True, zone="rp")

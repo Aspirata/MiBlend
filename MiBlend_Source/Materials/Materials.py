@@ -117,7 +117,7 @@ def traverse_nodes(node, input_name, visited=None):
 @ Perf_Time
 def fix_world():
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
-    WProperties = bpy.context.scene.world_properties
+    WProperties = bpy.context.scene.miblend_properties.world_properties
 
     for selected_object in bpy.context.selected_objects:
 
@@ -160,8 +160,8 @@ def fix_world():
 
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
-                    if "_y" in node.image.name:
-                        node.image.name = node.image.name.replace("_y", "")
+                    if node.image.name.replace(".png", "").endswith("_y"):
+                        node.image.name = node.image.name.replace(".png", "")[-2:].replace("_y", "")
                     elif node.image.name.replace(".png", "").endswith("_a"):
                         node.node_tree.nodes.remove(node)
                     node.interpolation = "Closest"
@@ -649,8 +649,9 @@ def setproceduralpbr():
 
                         bump_node.inputs[0].default_value = PProperties.bump_strength
 
-                    elif bump_node:
-                        material.node_tree.nodes.remove(bump_node)
+                    else:
+                        if bump_node:
+                            material.node_tree.nodes.remove(bump_node)
                         
                         if PNormals is None:
                             PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -666,10 +667,6 @@ def setproceduralpbr():
 
                             PNormals.node_tree = Current_node_tree
                             PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
-
-                        for node in Current_node_tree.nodes:
-                            if node.type == "TEX_IMAGE":
-                                node.image = image
 
                         if image.size[0] > image.size[1]:
                             image_difference_X = image.size[1] / image.size[0]

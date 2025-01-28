@@ -1,6 +1,5 @@
 from ..Data import *
 from ..MIB_API import *
-from ..Utils.Absolute_Solver import Call_AS
 
 def Camera_Culling(obj, OProperties, geonodes_modifier):
 
@@ -62,7 +61,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
     
 def Optimize():
     selected_objects = bpy.context.selected_objects
-    OProperties = bpy.context.scene.optimizationproperties
+    OProperties = bpy.context.scene.miblend_properties.optimizationproperties
     if OProperties.use_camera_culling == True:
         if bpy.context.scene.camera != None:
             script_directory = os.path.dirname(os.path.realpath(__file__))

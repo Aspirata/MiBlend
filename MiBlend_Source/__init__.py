@@ -14,13 +14,13 @@ bl_info = {
     "author": "Aspirata",
     "version": (0, 7, 0),
     "blender": (3, 6, 0),
-    "doc_url": "https://github.com/Aspirata/MiBlend/wiki",
+    "doc_url": "https://docs.page/Aspirata/MiBlend",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
     "location": "View3D > Addons Tab",
     "description": "A useful tool for creating minecraft content in blender",
 }
 
-def InitOnStart():
+def init_on_start():
 
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
@@ -55,10 +55,6 @@ def InitOnStart():
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and not sys.platform.startswith('linux'):
         bpy.ops.wm.console_toggle()
 
-@persistent
-def load_post_handler(dummy):
-    InitOnStart()
-
 classes = [
     MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
@@ -72,6 +68,17 @@ classes = [
 
 deprecated_classes = [OptimizationPanel, UtilsPanel, OptimizationProperties, UtilsProperties]
 
+@persistent
+def on_scene_load(dummy):
+    init_on_start()
+
+def delayed_init():
+    if bpy.context.scene is not None:
+        init_on_start()
+        return None
+    return 0.1
+
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -79,39 +86,34 @@ def register():
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
             bpy.utils.register_class(cls)
-        
-        bpy.types.Scene.optimizationproperties = bpy.props.PointerProperty(type=OptimizationProperties)
-        bpy.types.Scene.utilsproperties = bpy.props.PointerProperty(type=UtilsProperties)
 
-    bpy.types.Scene.world_properties = bpy.props.PointerProperty(type=WorldProperties)
-    bpy.types.Scene.resource_properties = bpy.props.PointerProperty(type=ResourcePackProperties)
-    bpy.types.Scene.materials_properties = bpy.props.PointerProperty(type=MaterialsProperties)
-    bpy.types.Scene.env_properties = bpy.props.PointerProperty(type=CreateEnvProperties)
-    bpy.types.Scene.ppbr_properties = bpy.props.PointerProperty(type=PPBRProperties)
-    bpy.types.Scene.assetsproperties = bpy.props.PointerProperty(type=AssetsProperties)
-    bpy.types.Scene.script_asset_properties = bpy.props.PointerProperty(type=ScriptAssetProperties)
+    class MiBlendProperties(bpy.types.PropertyGroup):
+        world_properties: bpy.props.PointerProperty(type=WorldProperties)
+        resource_properties: bpy.props.PointerProperty(type=ResourcePackProperties)
+        materials_properties: bpy.props.PointerProperty(type=MaterialsProperties)
+        env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
+        ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
+        assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
+        script_asset_properties: bpy.props.PointerProperty(type=ScriptAssetProperties)
 
-    bpy.app.handlers.load_post.append(load_post_handler)
+    bpy.utils.register_class(MiBlendProperties)
+    bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
+    
+    if on_scene_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(on_scene_load)
+
+    bpy.app.timers.register(delayed_init)
 
 def unregister():
-    del bpy.types.Scene.world_properties
-    del bpy.types.Scene.resource_properties
-    del bpy.types.Scene.materials_properties
-    del bpy.types.Scene.env_properties
-    del bpy.types.Scene.ppbr_properties
-    del bpy.types.Scene.optimizationproperties
-    del bpy.types.Scene.utilsproperties
-    del bpy.types.Scene.assetsproperties
-    del bpy.types.Scene.script_asset_properties
-
-    for cls in classes:
+    for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
     
-    bpy.app.handlers.load_post.remove(load_post_handler)
+    if hasattr(bpy.types.Scene, "miblend_properties"):
+        delattr(bpy.types.Scene, "miblend_properties")
+        bpy.utils.unregister_class(MiBlendProperties)
 
+    if on_scene_load in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(on_scene_load)
 
 if __name__ == "__main__":
     register()
-
-# TODO:
-    # - World & Materials - Сделать ветер -- 20.06.24 Добавить как скрипт в UAS

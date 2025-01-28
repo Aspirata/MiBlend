@@ -202,6 +202,8 @@ class AddResourcePack(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    mode: bpy.props.EnumProperty(items=[('temp', 'Temporarily', ''), ('perm', 'Permanently', '')])
+    link: bpy.props.StringProperty()
     Type: bpy.props.EnumProperty(items=[('Automatic', 'Automatic', ''), ('Texture & PBR', 'Texture & PBR', ''), ('Texture', 'Texture', ''), ('PBR', 'PBR', '')])
 
     def execute(self, context):
@@ -254,27 +256,64 @@ class AddResourcePack(Operator):
                     resource_pack_type = 'PBR'
 
             return resource_pack_type
-        
-        resource_packs = get_resource_packs()
 
-        if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
-            if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
-                pack_name = os.path.basename(self.filepath)
-                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True, "is_default": False}
+        filepath = os.path.abspath(self.filepath)
+        if os.path.isdir(filepath) or filepath.endswith(('.zip', '.jar')):
+            if os.path.exists(filepath) and os.path.basename(filepath):
+                pack_name = os.path.basename(filepath)
+                pack_path = filepath
             else:
-                pack_name = os.path.basename(os.path.dirname(self.filepath))
-                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
+                pack_name = os.path.basename(os.path.dirname(filepath))
+                pack_path = os.path.dirname(filepath)
         else:
-            pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
-        
-        dprint(resource_packs[pack_name]["type"], is_deep=True, zone="rp")
-        if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
-            set_resource_packs(resource_packs)
-            return {'FINISHED'}
-        else:
-            Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
-            return {'CANCELLED'}
+            pack_name = os.path.basename(os.path.dirname(filepath))
+            pack_path = os.path.dirname(filepath)
+
+        if self.mode == "temp":
+            resource_packs = get_resource_packs()
+
+            resource_packs[pack_name] = {
+                "path": pack_path,
+                "type": define_type(pack_path, self),
+                "enabled": True,
+                "is_default": False
+            }
+
+            dprint(resource_packs[pack_name]["type"], is_deep=True, zone="rp")
+            if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
+                set_resource_packs(resource_packs)
+            else:
+                Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
+                return {'CANCELLED'}
+            
+        elif self.mode == "perm":
+            resource_pack_directory = get_resource_path()
+            destination = os.path.join(resource_pack_directory, pack_name)
+            
+            if os.path.exists(destination):
+                if os.path.isdir(destination):
+                    shutil.rmtree(destination)
+                else:
+                    os.remove(destination)
+            
+            if os.path.isdir(pack_path):
+                shutil.copytree(pack_path, destination)
+            else:
+                shutil.copy2(pack_path, destination)
+            
+            with open(os.path.join(resource_pack_directory, 'packs_info.json'), 'r+') as f:
+                data = json.load(f)
+                data[pack_name] = {
+                    "mc_version": "Unknown",
+                    "pack_version": "Unknown",
+                    "type": define_type(pack_path, self),
+                    "link": self.link
+                }
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+
+        return {'FINISHED'}
     
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -385,7 +424,7 @@ class SetRenderSettingsOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        current_preset = bpy.context.scene.utilsproperties.current_preset
+        current_preset = bpy.context.scene.miblend_properties.utilsproperties.current_preset
         SetRenderSettings(current_preset)
         return {'FINISHED'}
     
@@ -404,8 +443,8 @@ class ResetPropertiesOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
+        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
+        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
         
         try:
             current_asset = items[current_index]
@@ -438,8 +477,8 @@ class SavePropertiesOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
+        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
+        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
 
         try:
         
@@ -478,8 +517,8 @@ class RemoveAsset(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
+        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
+        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
         
         try:
             current_asset = items[current_index]
@@ -609,8 +648,8 @@ class ImportAssetOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
+        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
+        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
         bpy.ops.object.select_all(action='DESELECT')
         
         try:
