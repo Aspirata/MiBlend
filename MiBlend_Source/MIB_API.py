@@ -28,6 +28,18 @@ def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Uni
 def is_mesh(object):
     return object.type == "MESH"
 
+def get_selected_asset() -> dict:
+    try:
+        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
+        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
+
+        return items[current_index]
+    except Exception as error:
+        if current_index < 0 or current_index >= len(items):
+            Call_AS("e08", traceback.format_exc())
+        else:
+            Call_AS("n00", traceback.format_exc())
+
 def mc_version_formatter(version_name: str) -> Optional[str]:
     try:
         version_parts = re.split(r'[ -]', version_name)

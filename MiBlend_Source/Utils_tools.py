@@ -20,7 +20,7 @@ def VertexRiggingTool(vertex_group_name=None):
             
             vertex_group.add(range(len(obj.data.vertices)), 1.0, 'REPLACE')
 
-            if bpy.context.scene.utilsproperties.lattice:
+            if bpy.context.scene.miblend_properties.utilsproperties.lattice:
                 for modifier in obj.modifiers:
                     if modifier.type == 'LATTICE':
                         lattice_modifier = modifier
@@ -34,7 +34,7 @@ def VertexRiggingTool(vertex_group_name=None):
                     if modifier.type == 'LATTICE':
                         obj.modifiers.remove(modifier)
 
-            if bpy.context.scene.utilsproperties.armature:
+            if bpy.context.scene.miblend_properties.utilsproperties.armature:
                 for modifier in obj.modifiers:
                     if modifier.type == 'ARMATURE':
                         armature_modifier = modifier

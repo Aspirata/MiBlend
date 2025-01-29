@@ -201,9 +201,9 @@ class AddResourcePack(Operator):
     bl_label = "Add Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
     
-    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
-    mode: bpy.props.EnumProperty(items=[('temp', 'Temporarily', ''), ('perm', 'Permanently', '')])
-    link: bpy.props.StringProperty()
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default="*.zip;*/", options={'HIDDEN'})
+    Mode: bpy.props.EnumProperty(items=[('temp', 'Temporarily', ''), ('perm', 'Permanently', '')])
     Type: bpy.props.EnumProperty(items=[('Automatic', 'Automatic', ''), ('Texture & PBR', 'Texture & PBR', ''), ('Texture', 'Texture', ''), ('PBR', 'PBR', '')])
 
     def execute(self, context):
@@ -269,7 +269,7 @@ class AddResourcePack(Operator):
             pack_name = os.path.basename(os.path.dirname(filepath))
             pack_path = os.path.dirname(filepath)
 
-        if self.mode == "temp":
+        if self.Mode == "temp":
             resource_packs = get_resource_packs()
 
             resource_packs[pack_name] = {
@@ -286,7 +286,7 @@ class AddResourcePack(Operator):
                 Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
                 return {'CANCELLED'}
             
-        elif self.mode == "perm":
+        elif self.Mode == "perm":
             resource_pack_directory = get_resource_path()
             destination = os.path.join(resource_pack_directory, pack_name)
             
@@ -307,12 +307,12 @@ class AddResourcePack(Operator):
                     "mc_version": "Unknown",
                     "pack_version": "Unknown",
                     "type": define_type(pack_path, self),
-                    "link": self.link
                 }
                 f.seek(0)
                 json.dump(data, f, indent=4)
                 f.truncate()
 
+        update_assets()
         return {'FINISHED'}
     
     def invoke(self, context, event):
@@ -443,11 +443,8 @@ class ResetPropertiesOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
-        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
-        
         try:
-            current_asset = items[current_index]
+            current_asset = get_selected_asset()
 
             properties = {key: value for key, value in current_asset.items() if '_property' in key}
 
@@ -477,12 +474,8 @@ class SavePropertiesOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
-        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
-
         try:
-        
-            current_asset = items[current_index]
+            current_asset = get_selected_asset()
 
             properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
 
@@ -503,9 +496,7 @@ class SavePropertiesOperator(Operator):
             return {'FINISHED'}
         
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
-            elif not os.path.isfile(json_file_path):
+            if not os.path.isfile(json_file_path):
                 Call_AS("e03", error, json_file_path)
             else:
                 Call_AS("n00", error)
@@ -517,11 +508,8 @@ class RemoveAsset(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
-        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
-        
         try:
-            current_asset = items[current_index]
+            current_asset = get_selected_asset()
 
             properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
 
@@ -543,9 +531,7 @@ class RemoveAsset(Operator):
             return {'FINISHED'}
         
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
-            elif not os.path.isfile(json_file_path):
+            if not os.path.isfile(json_file_path):
                 Call_AS("e03", error, json_file_path)
             else:
                 Call_AS("n00", error)
@@ -648,12 +634,9 @@ class ImportAssetOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
-        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
         bpy.ops.object.select_all(action='DESELECT')
-        
         try:
-            asset_data = items[current_index]
+            asset_data = get_selected_asset()
             File_path = asset_data.get("File_path", "")
             
             if os.path.isfile(File_path):
@@ -673,10 +656,7 @@ class ImportAssetOperator(Operator):
             return {'FINISHED'}
         
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", traceback.format_exc())
-            else:
-                Call_AS("n00", traceback.format_exc())
+            Call_AS("n00", traceback.format_exc())
             return {'CANCELLED'}
     
 class ManualAssetsUpdateOperator(Operator):

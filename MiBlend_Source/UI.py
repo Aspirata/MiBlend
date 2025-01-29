@@ -68,7 +68,7 @@ class WorldAndMaterialsPanel(Panel):
         sbox = box.box()
         row = sbox.row()
         row.label(text="Resource Packs List", icon="OUTLINER")
-        row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
+        row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
             try:
                 resource_packs = get_resource_packs()
@@ -103,81 +103,81 @@ class WorldAndMaterialsPanel(Panel):
                 row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
         
         row = box.row()
-        row.prop(scene.resource_properties, "resource_packs_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.resource_packs_settings else "TRIA_RIGHT"))
-        if scene.resource_properties.resource_packs_settings:
+        row.prop(scene.miblend_properties.resource_properties, "resource_packs_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.resource_packs_settings else "TRIA_RIGHT"))
+        if scene.miblend_properties.resource_properties.resource_packs_settings:
 
             sbox = box.box()
             row = sbox.row()
-            row.prop(scene.resource_properties, "combine_duplicates")
+            row.prop(scene.miblend_properties.resource_properties, "combine_duplicates")
 
             row = sbox.row()
-            row.prop(scene.resource_properties, "use_i")
+            row.prop(scene.miblend_properties.resource_properties, "use_i")
 
             row = sbox.row()
-            row.prop(scene.resource_properties, "use_additional_textures")
-            row.prop(scene.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.resource_properties.textures_settings:
+            row.prop(scene.miblend_properties.resource_properties, "use_additional_textures")
+            row.prop(scene.miblend_properties.resource_properties, "textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.textures_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.resource_properties.textures_settings:
 
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="PBR Textures:", icon="SHADING_RENDERED")
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_additional_textures
-                row.prop(scene.resource_properties, "use_n")
+                row.enabled = scene.miblend_properties.resource_properties.use_additional_textures
+                row.prop(scene.miblend_properties.resource_properties, "use_n")
 
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_additional_textures
-                row.prop(scene.resource_properties, "use_s")
-                row.prop(scene.resource_properties, "s_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.s_settings else "TRIA_LEFT"), icon_only=True)
-                if scene.resource_properties.s_settings:
+                row.enabled = scene.miblend_properties.resource_properties.use_additional_textures
+                row.prop(scene.miblend_properties.resource_properties, "use_s")
+                row.prop(scene.miblend_properties.resource_properties, "s_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.s_settings else "TRIA_LEFT"), icon_only=True)
+                if scene.miblend_properties.resource_properties.s_settings:
                     fbox = tbox.box()
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_s
-                    row.prop(scene.resource_properties, "roughness")
+                    row.enabled = scene.miblend_properties.resource_properties.use_s
+                    row.prop(scene.miblend_properties.resource_properties, "roughness")
 
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_s
-                    row.prop(scene.resource_properties, "metallic")
+                    row.enabled = scene.miblend_properties.resource_properties.use_s
+                    row.prop(scene.miblend_properties.resource_properties, "metallic")
 
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_s
-                    row.prop(scene.resource_properties, "sss")
+                    row.enabled = scene.miblend_properties.resource_properties.use_s
+                    row.prop(scene.miblend_properties.resource_properties, "sss")
 
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_s
-                    row.prop(scene.resource_properties, "specular")
+                    row.enabled = scene.miblend_properties.resource_properties.use_s
+                    row.prop(scene.miblend_properties.resource_properties, "specular")
 
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_s
-                    row.prop(scene.resource_properties, "emission")
+                    row.enabled = scene.miblend_properties.resource_properties.use_s
+                    row.prop(scene.miblend_properties.resource_properties, "emission")
 
                 row = tbox.row()
-                row.enabled = scene.resource_properties.use_additional_textures
-                row.prop(scene.resource_properties, "use_e")
-                row.prop(scene.resource_properties, "e_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.e_settings else "TRIA_LEFT"), icon_only=True)
-                if scene.resource_properties.e_settings:
+                row.enabled = scene.miblend_properties.resource_properties.use_additional_textures
+                row.prop(scene.miblend_properties.resource_properties, "use_e")
+                row.prop(scene.miblend_properties.resource_properties, "e_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.e_settings else "TRIA_LEFT"), icon_only=True)
+                if scene.miblend_properties.resource_properties.e_settings:
                     fbox = tbox.box()
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_e
-                    row.prop(scene.resource_properties, "use_color")
+                    row.enabled = scene.miblend_properties.resource_properties.use_e
+                    row.prop(scene.miblend_properties.resource_properties, "use_color")
 
                     row = fbox.row()
-                    row.enabled = scene.resource_properties.use_e
-                    row.prop(scene.resource_properties, "use_strength")
+                    row.enabled = scene.miblend_properties.resource_properties.use_e
+                    row.prop(scene.miblend_properties.resource_properties, "use_strength")
             
             row = sbox.row()
-            row.prop(scene.resource_properties, "animate_textures")
-            row.prop(scene.resource_properties, "animate_textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.resource_properties.animate_textures_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.resource_properties.animate_textures_settings:
+            row.prop(scene.miblend_properties.resource_properties, "animate_textures")
+            row.prop(scene.miblend_properties.resource_properties, "animate_textures_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.animate_textures_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.resource_properties.animate_textures_settings:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Animation Settings:", icon="SEQUENCE")
                 row = tbox.row()
-                row.prop(scene.resource_properties, "interpolate")
-                row.enabled = scene.resource_properties.animate_textures
+                row.prop(scene.miblend_properties.resource_properties, "interpolate")
+                row.enabled = scene.miblend_properties.resource_properties.animate_textures
                 row = tbox.row()
-                row.prop(scene.resource_properties, "randomize_speed")
-                row.enabled = scene.resource_properties.animate_textures
+                row.prop(scene.miblend_properties.resource_properties, "randomize_speed")
+                row.enabled = scene.miblend_properties.resource_properties.animate_textures
 
         if Preferences.dev_tools and Preferences.debug_tools:
             row = box.row()
@@ -237,13 +237,13 @@ class WorldAndMaterialsPanel(Panel):
             row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
 
             row = box.row() 
-            row.prop(scene.env_properties, "create_sky")
+            row.prop(scene.miblend_properties.env_properties, "create_sky")
 
             # Sky Settings
 
             if sky_node is not None:
-                row.prop(scene.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
-                if scene.env_properties.sky_settings:
+                row.prop(scene.miblend_properties.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
+                if scene.miblend_properties.env_properties.sky_settings:
                     sbox = box.box()
 
                     tbox = sbox.box()
@@ -259,8 +259,8 @@ class WorldAndMaterialsPanel(Panel):
                     tbox = sbox.box()
                     row = tbox.row()
                     row.label(text="Strength:", icon="LIGHT_SUN")
-                    row.prop(scene.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                    if scene.env_properties.strength_settings:
+                    row.prop(scene.miblend_properties.env_properties, "strength_settings", icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
+                    if scene.miblend_properties.env_properties.strength_settings:
                         if not sky_node.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(sky_node.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
@@ -279,9 +279,9 @@ class WorldAndMaterialsPanel(Panel):
                     tbox = sbox.box()
                     row = tbox.row()
                     row.label(text="Colors:", icon="IMAGE")
-                    row.prop(scene.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
+                    row.prop(scene.miblend_properties.env_properties, "colors_settings", icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
 
-                    if scene.env_properties.colors_settings:
+                    if scene.miblend_properties.env_properties.colors_settings:
                         if not sky_node.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(sky_node.inputs["Moon Color"], "default_value", text="Moon Color")
@@ -298,8 +298,8 @@ class WorldAndMaterialsPanel(Panel):
                     tbox = sbox.box()
                     row = tbox.row()
                     row.label(text="Ambient Light Colors:", icon="IMAGE")
-                    row.prop(scene.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                    if scene.env_properties.ambient_colors_settings:
+                    row.prop(scene.miblend_properties.env_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
+                    if scene.miblend_properties.env_properties.ambient_colors_settings:
                         for node in bpy.data.node_groups:
                             if "MiBlend End" in node.name or "Ambient Color" in node.name:
                                 for Node in node.nodes:
@@ -312,9 +312,9 @@ class WorldAndMaterialsPanel(Panel):
                     tbox = sbox.box()
                     row = tbox.row()
                     row.label(text=( "Star Rotation:" if sky_node.inputs["End"].default_value else "Sun & Moon Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                    row.prop(scene.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
+                    row.prop(scene.miblend_properties.env_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
 
-                    if scene.env_properties.rotation_settings:
+                    if scene.miblend_properties.env_properties.rotation_settings:
                         if sky_node.inputs["End"].default_value:
                             row = tbox.row()
                             row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=0, text="X")
@@ -333,9 +333,9 @@ class WorldAndMaterialsPanel(Panel):
                     tbox = sbox.box()
                     row = tbox.row()
                     row.label(text="Other Settings:", icon="COLLAPSEMENU")
-                    row.prop(scene.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
+                    row.prop(scene.miblend_properties.env_properties, "other_settings", icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.other_settings else "TRIA_LEFT"), icon_only=True)
 
-                    if scene.env_properties.other_settings:
+                    if scene.miblend_properties.env_properties.other_settings:
                         row = tbox.row()
                         row.prop(sky_node.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
                         
@@ -346,14 +346,14 @@ class WorldAndMaterialsPanel(Panel):
                         row.prop(sky_node.inputs["End"], "default_value", text="End", toggle=True)
             
             row = box.row()
-            row.prop(scene.env_properties, "create_fog")
+            row.prop(scene.miblend_properties.env_properties, "create_fog")
 
             # Fog Settings
 
             if fog_exists:
-                row.prop(scene.env_properties, "fog_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.fog_settings else "TRIA_LEFT"), icon_only=True)
+                row.prop(scene.miblend_properties.env_properties, "fog_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.fog_settings else "TRIA_LEFT"), icon_only=True)
 
-                if scene.env_properties.fog_settings:
+                if scene.miblend_properties.env_properties.fog_settings:
                     sbox = box.box()
                     tbox = sbox.box()
 
@@ -376,14 +376,14 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(fog_node.inputs["Emission"], "default_value", text="Emission")
 
             row = box.row()
-            row.prop(scene.env_properties, "create_clouds")
+            row.prop(scene.miblend_properties.env_properties, "create_clouds")
 
             # Clouds Settings
 
             if clouds_exists:
-                row.prop(scene.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
+                row.prop(scene.miblend_properties.env_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
 
-                if scene.env_properties.clouds_settings:
+                if scene.miblend_properties.env_properties.clouds_settings:
                     sbox = box.box()
                     tbox = sbox.box()
 
@@ -400,16 +400,16 @@ class WorldAndMaterialsPanel(Panel):
 
                     row = tbox.row()
                     row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
-                    row.prop(scene.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
+                    row.prop(scene.miblend_properties.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
 
-                    if scene.env_properties.geonodes_settings:
+                    if scene.miblend_properties.env_properties.geonodes_settings:
                         if blender_version("4.x.x"):
 
                             fbox = tbox.box()
                             row = fbox.row()
                             row.label(text="Layers Settings:", icon="AXIS_TOP")
-                            row.prop(scene.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.env_properties.layers_settings:
+                            row.prop(scene.miblend_properties.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.miblend_properties.env_properties.layers_settings:
 
                                 row = fbox.row()
                                 row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
@@ -442,9 +442,9 @@ class WorldAndMaterialsPanel(Panel):
                     tbox = sbox.box()
                     row = tbox.row()
                     row.label(text="Material Settings:", icon="MATERIAL")
-                    row.prop(scene.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
+                    row.prop(scene.miblend_properties.env_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.material_settings else "TRIA_LEFT"), icon_only=True)
 
-                    if scene.env_properties.material_settings:
+                    if scene.miblend_properties.env_properties.material_settings:
 
                         row = tbox.row()
                         row.prop(base_color, "default_value", text="Color")
@@ -507,199 +507,199 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
 
         row = box.row()
-        row.prop(scene.ppbr_properties, "use_normals")
-        row.prop(scene.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.normals_settings:
+        row.prop(scene.miblend_properties.ppbr_properties, "use_normals")
+        row.prop(scene.miblend_properties.ppbr_properties, "normals_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.normals_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.miblend_properties.ppbr_properties.normals_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Normals Type:", icon="NORMALS_FACE")
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "normals_selector", expand=True)
+            row.prop(scene.miblend_properties.ppbr_properties, "normals_selector", expand=True)
 
-            if scene.ppbr_properties.normals_selector == "Bump":
+            if scene.miblend_properties.ppbr_properties.normals_selector == "Bump":
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Bump Settings:", icon="MODIFIER")
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "bump_strength", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "bump_strength", slider=True)
             else:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Procedural Normals Settings:", icon="MODIFIER")
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_size", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_size", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_blur", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_blur", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_strength", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_strength", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_exclude", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_exclude", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_min", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_min", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_max", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_max", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_size_x_multiplier", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_size_x_multiplier", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "pnormals_size_y_multiplier", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "pnormals_size_y_multiplier", slider=True)
             
             row = tbox.row()
-            row.prop(scene.ppbr_properties, "revert_normals", slider=True)
-            row.enabled = not context.scene.ppbr_properties.use_normals
+            row.prop(scene.miblend_properties.ppbr_properties, "revert_normals", slider=True)
+            row.enabled = not context.scene.miblend_properties.ppbr_properties.use_normals
         
         row = box.row()
-        row.prop(scene.ppbr_properties, "better_emission")
-        row.prop(scene.ppbr_properties, "better_emission_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.better_emission_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.better_emission_settings:
+        row.prop(scene.miblend_properties.ppbr_properties, "better_emission")
+        row.prop(scene.miblend_properties.ppbr_properties, "better_emission_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.better_emission_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.miblend_properties.ppbr_properties.better_emission_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Better Emission Settings:", icon="MODIFIER")
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "camera_strength")
+            row.prop(scene.miblend_properties.ppbr_properties, "camera_strength")
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "non_camera_strength")
+            row.prop(scene.miblend_properties.ppbr_properties, "non_camera_strength")
 
         row = box.row()
-        row.prop(scene.ppbr_properties, "procedural_animation")
-        row.prop(scene.ppbr_properties, "procedural_animation_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.procedural_animation_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.ppbr_properties.procedural_animation_settings:
+        row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation")
+        row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.procedural_animation_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.miblend_properties.ppbr_properties.procedural_animation_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Procedural Animation Settings:", icon="MODIFIER")
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "randomize")
+            row.prop(scene.miblend_properties.ppbr_properties, "randomize")
         
         if Preferences.dev_tools and Preferences.experimental_features:
             row = box.row()
-            row.prop(scene.ppbr_properties, "pspecular")
-            row.prop(scene.ppbr_properties, "pspecular_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.pspecular_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.ppbr_properties.pspecular_settings:
+            row.prop(scene.miblend_properties.ppbr_properties, "pspecular")
+            row.prop(scene.miblend_properties.ppbr_properties, "pspecular_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.pspecular_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.ppbr_properties.pspecular_settings:
                 sbox = box.box()
                 row = sbox.row()
                 row.label(text="Procedural Specular Settings:", icon="MODIFIER")
 
                 row = sbox.row()
-                row.prop(scene.ppbr_properties, "ps_interpolation")
+                row.prop(scene.miblend_properties.ppbr_properties, "ps_interpolation")
 
                 row = sbox.row()
-                row.prop(scene.ppbr_properties, "ps_dif")
+                row.prop(scene.miblend_properties.ppbr_properties, "ps_dif")
 
                 row = sbox.row()
-                row.prop(scene.ppbr_properties, "ps_revert")
+                row.prop(scene.miblend_properties.ppbr_properties, "ps_revert")
         
             row = box.row()
-            row.prop(scene.ppbr_properties, "proughness")
-            row.prop(scene.ppbr_properties, "proughness_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.proughness_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.ppbr_properties.proughness_settings:
+            row.prop(scene.miblend_properties.ppbr_properties, "proughness")
+            row.prop(scene.miblend_properties.ppbr_properties, "proughness_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.proughness_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.ppbr_properties.proughness_settings:
                 sbox = box.box()
                 row = sbox.row()
                 row.label(text="Procedural Roughness Settings:", icon="MODIFIER")
 
                 row = sbox.row()
-                row.prop(scene.ppbr_properties, "pr_interpolation")
+                row.prop(scene.miblend_properties.ppbr_properties, "pr_interpolation")
 
                 row = sbox.row()
-                row.prop(scene.ppbr_properties, "pr_dif")
+                row.prop(scene.miblend_properties.ppbr_properties, "pr_dif")
 
                 row = sbox.row()
-                row.prop(scene.ppbr_properties, "pr_revert")
+                row.prop(scene.miblend_properties.ppbr_properties, "pr_revert")
 
         row = box.row()
-        row.prop(scene.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
-        if scene.ppbr_properties.advanced_settings:
+        row.prop(scene.miblend_properties.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
+        if scene.miblend_properties.ppbr_properties.advanced_settings:
             sbox = box.box()
 
             row = sbox.row()
-            row.prop(context.scene.ppbr_properties, "change_bsdf")
-            row.prop(scene.ppbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
-            if  scene.ppbr_properties.change_bsdf_settings:
+            row.prop(context.scene.miblend_properties.ppbr_properties, "change_bsdf")
+            row.prop(scene.miblend_properties.ppbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
+            if  scene.miblend_properties.ppbr_properties.change_bsdf_settings:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Global PBSDF Settings:", icon="MODIFIER")
                 row = tbox.row()
                 # Добавить все штуки из PBSDF
-                row.prop(scene.ppbr_properties, "specular", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "specular", slider=True)
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "roughness", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "roughness", slider=True)
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "use_sss")
-            row.prop(scene.ppbr_properties, "sss_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.sss_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.ppbr_properties.sss_settings:
+            row.prop(scene.miblend_properties.ppbr_properties, "use_sss")
+            row.prop(scene.miblend_properties.ppbr_properties, "sss_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.sss_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.ppbr_properties.sss_settings:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="SSS Settings:", icon="MODIFIER")
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "sss_type", text="")
+                row.prop(scene.miblend_properties.ppbr_properties, "sss_type", text="")
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "sss_skip")
+                row.prop(scene.miblend_properties.ppbr_properties, "sss_skip")
                 row = tbox.row()
                 if blender_version("4.x.x"):
-                    row.prop(scene.ppbr_properties, "connect_texture")
+                    row.prop(scene.miblend_properties.ppbr_properties, "connect_texture")
                 else:
-                    row.prop(scene.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
+                    row.prop(scene.miblend_properties.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
 
                 if blender_version("4.x.x"):
                     row = tbox.row()
-                    row.prop(scene.ppbr_properties, "sss_weight", slider=True)
+                    row.prop(scene.miblend_properties.ppbr_properties, "sss_weight", slider=True)
                     row = tbox.row()
-                    row.prop(scene.ppbr_properties, "sss_scale", slider=True)
+                    row.prop(scene.miblend_properties.ppbr_properties, "sss_scale", slider=True)
                 else:
                     row = tbox.row()
-                    row.prop(scene.ppbr_properties, "sss_weight", text="Subsurface", slider=True)
+                    row.prop(scene.miblend_properties.ppbr_properties, "sss_weight", text="Subsurface", slider=True)
                 
                 row = tbox.row()
-                row.prop(context.scene.ppbr_properties, "revert_sss")
-                row.enabled = not context.scene.ppbr_properties.use_sss
+                row.prop(context.scene.miblend_properties.ppbr_properties, "revert_sss")
+                row.enabled = not context.scene.miblend_properties.ppbr_properties.use_sss
             
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "use_translucency")
-            row.prop(scene.ppbr_properties, "translucency_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.translucency_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.ppbr_properties.translucency_settings:
+            row.prop(scene.miblend_properties.ppbr_properties, "use_translucency")
+            row.prop(scene.miblend_properties.ppbr_properties, "translucency_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.translucency_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.ppbr_properties.translucency_settings:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Translucent Materials Settings:", icon="MODIFIER")
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "translucency", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "translucency", slider=True)
 
                 row = tbox.row()
-                row.prop(context.scene.ppbr_properties, "revert_translucency")
-                row.enabled = not context.scene.ppbr_properties.use_translucency
+                row.prop(context.scene.miblend_properties.ppbr_properties, "revert_translucency")
+                row.enabled = not context.scene.miblend_properties.ppbr_properties.use_translucency
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "make_metal")
-            row.prop(scene.ppbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.ppbr_properties.metal_settings:
+            row.prop(scene.miblend_properties.ppbr_properties, "make_metal")
+            row.prop(scene.miblend_properties.ppbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.ppbr_properties.metal_settings:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Metallic Materials Settings:", icon="MODIFIER")
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "metal_metallic", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "metal_metallic", slider=True)
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "metal_roughness", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "metal_roughness", slider=True)
 
             row = sbox.row()
-            row.prop(scene.ppbr_properties, "make_reflections")
-            row.prop(scene.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.ppbr_properties.reflections_settings:
+            row.prop(scene.miblend_properties.ppbr_properties, "make_reflections")
+            row.prop(scene.miblend_properties.ppbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
+            if scene.miblend_properties.ppbr_properties.reflections_settings:
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Reflective Materials Settings:", icon="MODIFIER")
                 row = tbox.row()
-                row.prop(scene.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
+                row.prop(scene.miblend_properties.ppbr_properties, "reflections_roughness", text="Roughness", slider=True)
                 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -723,49 +723,49 @@ class OptimizationPanel(Panel):
 
         box = layout.box()
         row = box.row()
-        row.prop(bpy.context.scene.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-        row.prop(bpy.context.scene.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
+        row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
+        row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
         # Camera Culling Settings
-        if bpy.context.scene.optimizationproperties.camera_culling_settings:
+        if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
             row = sbox.row()
-            row.prop(bpy.context.scene.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-            if bpy.context.scene.optimizationproperties.camera_culling_type == 'Raycast':
+            row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
+            if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_type == 'Raycast':
                 # Raycast Camera Culling Settings
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Culling Mode:")
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "predict_fov", text="Predict FOV")
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "predict_fov", text="Predict FOV")
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "merge_by_distance", text="Merge By Distance")
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "merge_by_distance", text="Merge By Distance")
                     
-                if bpy.context.scene.optimizationproperties.merge_by_distance:
+                if bpy.context.scene.miblend_properties.optimizationproperties.merge_by_distance:
                     row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "merge_distance", text="Merge Distance")
+                    row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "merge_distance", text="Merge Distance")
 
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "backface_culling", text="Backface Culling")
 
-                if bpy.context.scene.optimizationproperties.backface_culling:
+                if bpy.context.scene.miblend_properties.optimizationproperties.backface_culling:
                     row = tbox.row()
-                    row.prop(bpy.context.scene.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+                    row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
 
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "scale")
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "scale")
             else:
                 # Vector Camera Culling Settings
                 tbox = sbox.box()
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "backface_culling", text="Backface Culling")
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "backface_culling", text="Backface Culling")
                 row = tbox.row()
-                row.prop(bpy.context.scene.optimizationproperties, "threshold", slider=True)
+                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "threshold", slider=True)
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -792,7 +792,7 @@ class UtilsPanel(Panel):
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
 
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "current_preset", text="Current Preset")
+        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "current_preset", text="Current Preset")
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("utils.setrendersettings")
@@ -801,13 +801,13 @@ class UtilsPanel(Panel):
         row = box.row()
         row.label(text="Rigging", icon="ARMATURE_DATA")
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "armature")
+        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "armature")
 
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "lattice")
+        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "lattice")
 
         row = box.row()
-        row.prop(bpy.context.scene.utilsproperties, "vertex_group_name")
+        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "vertex_group_name")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -815,7 +815,7 @@ class UtilsPanel(Panel):
 
 def import_asset_text(index):
     if index <= len(bpy.context.scene.miblend_properties.assets_properties.asset_items) and len(bpy.context.scene.miblend_properties.assets_properties.asset_items) > 0:
-        asset_type = bpy.context.scene.miblend_properties.assetsproperties.asset_items[index].get("Type", "")
+        asset_type = bpy.context.scene.miblend_properties.assets_properties.asset_items[index].get("Type", "")
 
         if asset_type == "Script":
             return "Run Script"
