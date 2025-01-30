@@ -134,6 +134,24 @@ gray_blocks = {
 Emissive_Materials = {
     "fire": {},
     "nether portal": {},
+    "firefly":{
+									"Better Emission":{
+														"From Min": 0.1,
+														"From Max": 0.6,
+									}
+					},
+    "brewing":{
+									"Better Emission":{
+														"From Min": 0.6,
+														"From Max": 1,
+									}
+					},
+    "froglight":{
+									"Better Emission":{
+														"From Min": 0.3,
+														"From Max": 0.6,
+									}
+					},
     "campfire log lit": {
         "Better Emission": {
             "From Min": 0.19,
@@ -220,7 +238,9 @@ Emissive_Materials = {
         "Better Emission": {
             "From Min": 0,
             "From Max": 2,
-        }
+        },
+						R: 1,
+						G: 1,
     },
     "shroomlight": {
         "Better Emission": {
