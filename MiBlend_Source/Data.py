@@ -239,8 +239,6 @@ Emissive_Materials = {
             "From Min": 0,
             "From Max": 2,
         },
-						R: 1,
-						G: 1,
     },
     "shroomlight": {
         "Better Emission": {
