@@ -1,4 +1,4 @@
-import bpy
+шimport bpy
 import os
 import json
 import zipfile
@@ -138,25 +138,25 @@ Emissive_Materials = {
 									"Better Emission":{
 														"From Min": 0.1,
 														"From Max": 0.6,
-									}
+									},
 					},
     "brewing":{
 									"Better Emission":{
 														"From Min": 0.6,
 														"From Max": 1,
-									}
+									},
 					},
     "froglight":{
 									"Better Emission":{
 														"From Min": 0.3,
 														"From Max": 0.6,
-									}
+									},
 					},
     "campfire log lit": {
         "Better Emission": {
             "From Min": 0.19,
             "From Max": 0.52,
-        }
+        },
     },
     "sea lantern": {
         "Better Emission": {
@@ -167,67 +167,67 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
     },
     "glow lichen": {
         "Better Emission": {
             "From Min": 0.18,
             "From Max": 0.6,
-        }
+        },
     },
     "torch": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "powered rail on": {
         "Better Emission": {
             "From Min": 0.52,
             "From Max": 0.6,
-        }
+        },
     },
     "redstone wire on": {
         "Better Emission": {
             "From Min": 0.52,
             "From Max": 0.6,
-        }
+        },
     },
     "redstone block": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "redstone_lamp_on": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "lava": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "cave vines lit": {
         "Better Emission": {
             "From Min": 0.2,
             "From Max": 0.6,
-        }
+        },
     },
     "cave vines plant lit": {
         "Better Emission": {
             "From Min": 0.2,
             "From Max": 0.6,
-        }
+        },
     },
     "sculk sensor": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
 									"Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
@@ -251,7 +251,7 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
     },
     "magma": {
         "Better Emission": {
@@ -262,14 +262,14 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
     },
     "beacon": {
 									"Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
 },
     "sea pickle": {},
     "sculk ; catalyst": {
@@ -281,56 +281,56 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
     },
     "sculk vein": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "end rod": {
         "Better Emission": {
             "From Min": 0.5,
             "From Max": 0.6,
-        }
+        },
     },
     "respawn anchor": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "candle lit": {},
     "large amethyst bud": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "medium amethyst bud": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.4,
-        }
+        },
     },
     "small amethyst bud": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.2,
-        }
+        },
     },
     "amethyst cluster": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "jack o lantern": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
-        }
+        },
     },
     "furnace front on": {
         "Better Emission": {
@@ -341,14 +341,14 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
     },
     "crying obsidian": {
 									"Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
 					},
     "smoker front on": {
         "Better Emission": {
@@ -359,6 +359,6 @@ Emissive_Materials = {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
-        }
+        },
     },
 }
