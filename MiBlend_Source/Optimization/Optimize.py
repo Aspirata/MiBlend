@@ -1,6 +1,5 @@
 from ..Data import *
 from ..MIB_API import *
-from ..Utils.Absolute_Solver import Call_AS
 
 def Camera_Culling(obj, OProperties, geonodes_modifier):
 
@@ -62,7 +61,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
     
 def Optimize():
     selected_objects = bpy.context.selected_objects
-    OProperties = bpy.context.scene.optimizationproperties
+    OProperties = bpy.context.scene.miblend_properties.optimizationproperties
     if OProperties.use_camera_culling == True:
         if bpy.context.scene.camera != None:
             script_directory = os.path.dirname(os.path.realpath(__file__))
@@ -75,7 +74,6 @@ def Optimize():
                         with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.1.blend"), link=False) as (data_from, data_to):
                             data_to.node_groups = ["Universal Camera Culling"]
                     except:
-                        #Absolute_Solver('004', "Universal Camera Culling 4.1", traceback.format_exc())
                         pass
             else:
                 if "Universal Camera Culling" not in bpy.data.node_groups:
@@ -83,7 +81,6 @@ def Optimize():
                         with bpy.data.libraries.load(os.path.join(script_directory, "Universal Camera Culling 4.0.blend"), link=False) as (data_from, data_to):
                             data_to.node_groups = ["Universal Camera Culling"]
                     except:
-                        #Absolute_Solver('004', "Universal Camera Culling 4.0", traceback.format_exc())
                         pass
             
             for obj in selected_objects:
@@ -96,8 +93,6 @@ def Optimize():
                 Camera_Culling(obj, OProperties, geonodes_modifier)
 
                 obj.data.update()
-        #else:
-            #Absolute_Solver("None", error_name="Scene Camera Doesn't Exist", description="There is no camera in the scene")
 
     else:
         for obj in selected_objects:

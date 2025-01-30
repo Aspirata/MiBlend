@@ -51,8 +51,8 @@ class ResourcePackProperties(PropertyGroup):
         default=False,
     )
 
-    ignore_dublicates: BoolProperty(
-        name="Ignore Dublicates",
+    combine_duplicates: BoolProperty(
+        name="Combine Duplicates",
         default=True,
     )
 
@@ -198,7 +198,7 @@ class PPBRProperties(PropertyGroup):
 
     pnormals_size: FloatProperty(
         name="PNormals Size",
-        default=2,
+        default=4.0,
         min=0.0,
         max=16.0,
         description=""

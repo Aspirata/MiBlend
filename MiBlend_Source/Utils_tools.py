@@ -4,7 +4,7 @@ def VertexRiggingTool(vertex_group_name=None):
     selected_objects = bpy.context.selected_objects
     
     if vertex_group_name is None:
-        vertex_group_name = bpy.context.scene.utilsproperties.vertex_group_name
+        vertex_group_name = bpy.context.scene.miblend_properties.utilsproperties.vertex_group_name
     
     for obj in selected_objects:
         if obj.type == "MESH":
@@ -20,7 +20,7 @@ def VertexRiggingTool(vertex_group_name=None):
             
             vertex_group.add(range(len(obj.data.vertices)), 1.0, 'REPLACE')
 
-            if bpy.context.scene.utilsproperties.lattice:
+            if bpy.context.scene.miblend_properties.utilsproperties.lattice:
                 for modifier in obj.modifiers:
                     if modifier.type == 'LATTICE':
                         lattice_modifier = modifier
@@ -28,13 +28,13 @@ def VertexRiggingTool(vertex_group_name=None):
                 if lattice_modifier == None:
                     lattice_modifier =  obj.modifiers.new(type='LATTICE', name="Lattice")
                 
-                lattice_modifier.object = bpy.context.scene.utilsproperties.lattice
+                lattice_modifier.object = bpy.context.scene.miblend_properties.utilsproperties.lattice
             else:
                 for modifier in obj.modifiers:
                     if modifier.type == 'LATTICE':
                         obj.modifiers.remove(modifier)
 
-            if bpy.context.scene.utilsproperties.armature:
+            if bpy.context.scene.miblend_properties.utilsproperties.armature:
                 for modifier in obj.modifiers:
                     if modifier.type == 'ARMATURE':
                         armature_modifier = modifier
@@ -42,14 +42,11 @@ def VertexRiggingTool(vertex_group_name=None):
                 if armature_modifier == None:
                     armature_modifier =  obj.modifiers.new(type='ARMATURE', name="Armature")
 
-                armature_modifier.object = bpy.context.scene.utilsproperties.armature
+                armature_modifier.object = bpy.context.scene.miblend_properties.utilsproperties.armature
             else:
                 for modifier in obj.modifiers:
                     if modifier.type == 'ARMATURE':
                         obj.modifiers.remove(modifier)
-        else:
-            Absolute_Solver("None", obj, error_name="Object Has No Vertext Groups", 
-                description='Object "{Data.name}" has type {Data.type}, this type has no vertex groups')
         
 def SetRenderSettings(current_preset):
     for setting_name, value in Render_Settings[current_preset].items():

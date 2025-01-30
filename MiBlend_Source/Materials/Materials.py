@@ -117,12 +117,12 @@ def traverse_nodes(node, input_name, visited=None):
 @ Perf_Time
 def fix_world():
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
-    WProperties = bpy.context.scene.world_properties
+    WProperties = bpy.context.scene.miblend_properties.world_properties
 
     for selected_object in bpy.context.selected_objects:
 
-        if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+        if not is_mesh(selected_object):
+            Call_AS("w01", data=selected_object)
             continue
 
         if Preferences.dev_tools and Preferences.experimental_features and WProperties.remove_doubles:
@@ -136,8 +136,9 @@ def fix_world():
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
                 continue
+
+            dprint(f"Material: {material.name}", is_deep=True, zone="fw")
 
             PBSDF = None
             image_texture_node = None
@@ -159,6 +160,10 @@ def fix_world():
 
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
+                    if node.image.name.replace(".png", "").endswith("_y"):
+                        node.image.name = node.image.name.replace(".png", "")[-2:].replace("_y", "")
+                    elif node.image.name.replace(".png", "").endswith("_a"):
+                        node.node_tree.nodes.remove(node)
                     node.interpolation = "Closest"
 
                 if node.type == "BSDF_PRINCIPLED":
@@ -195,7 +200,7 @@ def fix_world():
 
             # Backface Culling
             alpha_connection = GetConnectedSocketTo("Alpha", PBSDF)
-            if WProperties.backface_culling and MaterialIn(Backface_Culling_Materials, material)[0]:
+            if WProperties.backface_culling and name_in(Backface_Culling_Materials, material.name)[0]:
                 material.use_backface_culling = True
 
                 if bfc_node is None:
@@ -213,7 +218,7 @@ def fix_world():
             
             # Lazy Biome Color Fix
             base_color_connection = GetConnectedSocketTo("Base Color", PBSDF)
-            if WProperties.lazy_biome_fix and isgray(image.name):
+            if WProperties.lazy_biome_fix and is_gray(image.name):
                 texture_parts = format_texture_name(image.name)
 
                 if lbcf_node is None:
@@ -280,6 +285,8 @@ def fix_world():
 
             elif auvf_node:
                 material.node_tree.nodes.remove(auvf_node)
+            
+            selected_object["MiBlend ID"] = "World"
 
 @Perf_Time
 def recreate_env(self):
@@ -393,6 +400,8 @@ def create_env(mode=None):
             return "3.6"
     
     scene = bpy.context.scene
+    MIB_env_collection = bpy.data.collections.get("MiBlend Environment", None)
+    clouds_path = os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend")
     world = scene.world
     sky_exists = False
     fog_exists = False
@@ -414,7 +423,7 @@ def create_env(mode=None):
     else:
         # Create Sky
         if (scene.env_properties.create_sky and mode == None) or mode == "Sky":
-            try:
+            if os.path.exists(nodes_file):
                 if world_material_name not in bpy.data.worlds:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
                         data_to.worlds = [world_material_name]
@@ -422,14 +431,21 @@ def create_env(mode=None):
                 else:
                     appended_world_material = bpy.data.worlds[world_material_name]
                 bpy.context.scene.world = appended_world_material
-            except:
-                Absolute_Solver("004", "Nodes", traceback.format_exc())
+            else:
+                Call_AS("e03", traceback.format_exc(), "Nodes.blend")
 
         # Create Fog
         if (scene.env_properties.create_fog and mode == None) or mode == "Fog":
-            
+    
+            if not MIB_env_collection:
+                MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
+                bpy.context.scene.collection.children.link(MIB_env_collection)
+
             bpy.ops.mesh.primitive_cube_add(size=1, enter_editmode=False, align='WORLD', location=(0, 0, 50))
             fog_cube = bpy.context.active_object
+
+            MIB_env_collection.objects.link(fog_cube)
+            bpy.context.scene.collection.objects.unlink(fog_cube)
 
             fog_cube.name = "Fog"
             #fog_cube.display_type = "BOUNDS"
@@ -445,28 +461,37 @@ def create_env(mode=None):
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
 
             bpy.context.scene.eevee.volumetric_end = fog_node.inputs["Max Distance"].default_value
-            
+    
             bpy.context.object["MiBlend ID"] = "Fog"
 
         # Create Clouds
         if (scene.env_properties.create_clouds and mode == None) or mode == "Clouds":
-            try:
+            if os.path.exists(clouds_path):
                 if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
                         data_to.node_groups = [clouds_node_tree_name]
                 else:
                     bpy.data.node_groups[clouds_node_tree_name]
-                
+        
                 if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend"), link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
                         data_to.materials = ["Clouds"]
                 else:
                     bpy.data.materials["Clouds"]
-            except:
-                Absolute_Solver('004', f"Clouds Generator {clouds_file_comp()}", traceback.format_exc())
+            else:
+                Call_AS("e03", traceback.format_exc(), f"Clouds Generator {clouds_file_comp()}")
+
+
+            if not MIB_env_collection:
+                MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
+                bpy.context.scene.collection.children.link(MIB_env_collection)
 
             bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
             bpy.context.object.name = "Clouds"
+
+            MIB_env_collection.objects.link(bpy.context.object)
+            bpy.context.scene.collection.objects.unlink(bpy.context.object)
+
             bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
             geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
@@ -528,13 +553,12 @@ def swap_textures(folder_path):
         return None
     
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots:
-            Absolute_Solver("m003", selected_object)
+        if not is_mesh(selected_object):
+            Call_AS("w01", selected_object)
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
-                Absolute_Solver("m002", slot)
                 continue
 
             for node in material.node_tree.nodes:
@@ -625,8 +649,9 @@ def setproceduralpbr():
 
                         bump_node.inputs[0].default_value = PProperties.bump_strength
 
-                    elif bump_node:
-                        material.node_tree.nodes.remove(bump_node)
+                    else:
+                        if bump_node:
+                            material.node_tree.nodes.remove(bump_node)
                         
                         if PNormals is None:
                             PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -642,10 +667,6 @@ def setproceduralpbr():
 
                             PNormals.node_tree = Current_node_tree
                             PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
-
-                        for node in Current_node_tree.nodes:
-                            if node.type == "TEX_IMAGE":
-                                node.image = image
 
                         if image.size[0] > image.size[1]:
                             image_difference_X = image.size[1] / image.size[0]
@@ -682,7 +703,7 @@ def setproceduralpbr():
 
             # Use SSS                            
             if PProperties.use_sss:
-                if MaterialIn(SSS_Materials, material)[0] or PProperties.sss_skip:
+                if name_in(SSS_Materials, material.name)[0] or PProperties.sss_skip:
                     PBSDF.subsurface_method = PProperties.sss_type
 
                     if PProperties.connect_texture:
@@ -702,23 +723,23 @@ def setproceduralpbr():
 
             # Use Translucency
             if PProperties.use_translucency:
-                    if MaterialIn(Translucent_Materials, material)[0]:
+                    if name_in(Translucent_Materials, material.name)[0]:
                         PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
             elif PProperties.revert_translucency:
                 PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
 
             # Make Metals                            
-            if PProperties.make_metal and MaterialIn(Metal, material)[0]:
+            if PProperties.make_metal and name_in(Metal, material.name)[0]:
                 PBSDF.inputs["Metallic"].default_value = PProperties.metal_metallic
                 PBSDF.inputs["Roughness"].default_value = PProperties.metal_roughness
                 
             # Make Reflections                            
-            if PProperties.make_reflections and MaterialIn(Reflective, material)[0]:
+            if PProperties.make_reflections and name_in(Reflective, material.name)[0]:
                 PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
             # Make Better Emission and Animate Textures
             if (PProperties.better_emission or PProperties.procedural_animation) and image and EmissionMode(PBSDF, image.name):
-                is_valid, item = MaterialIn(Emissive_Materials.keys(), material)
+                is_valid, item = name_in(Emissive_Materials.keys(), material.name)
 
                 if is_valid:
                     material_properties = Emissive_Materials[item]
@@ -762,7 +783,7 @@ def setproceduralpbr():
                         material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), better_animate_node.inputs["Emission Color"])
                         material.node_tree.links.new(better_animate_node.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-            elif not PProperties.better_emission and not PProperties.animate_textures and better_animate_node:
+            elif not PProperties.better_emission and not PProperties.procedural_animation and better_animate_node:
                 mult_socket = GetConnectedSocketTo("Multiply", better_animate_node)
                 if mult_socket:
                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])

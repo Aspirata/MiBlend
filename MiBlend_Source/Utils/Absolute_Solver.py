@@ -1,4 +1,5 @@
 from ..Data import *
+from ..Utils.Translator import translate
 import bpy, time
 
 def Call_AS(code: str, tech_things: str = "", data: str = ""):
@@ -27,7 +28,7 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
             with open(os.path.join(utils_directory, "absolute_solver_list.json"), "r") as file:
                 data_json = json.load(file)
                 critical_error_name = data_json.get("errors", {}).get("00", {}).get("Name", "Critical Error")
-                critical_error_description = data_json.get("errors", {}).get("00", {}).get("Description", "Unknown error occurred: {Data}")
+                critical_error_description = translate(data_json.get("errors", {}).get("00", {}).get("Description", "Unknown error occurred: {Data}"))
 
                 for code, d in Call_AS.call_queue:
                     type = code[0]
@@ -43,6 +44,8 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                     elif type == "n":
                         name = data_json.get("null", {}).get(number, {}).get("Name")
                         description = data_json.get("null", {}).get(number, {}).get("Description")
+
+                    description = translate(description)
 
                     if name and description:
                         call_data.append({"Code": code, "Name": name, "Description": description.format(Data=d), "Tech_Things": tech_things})
@@ -80,14 +83,14 @@ class AbsoluteSolverPanel(bpy.types.Operator):
 
         sbox = box.box()
         row = sbox.row()
-        row.label(text=f"Code: {self.Code}")
+        row.label(text=f"{translate('Code')}: {self.Code}")
     
         row = sbox.row()
-        row.label(text=f"Name: {self.Name}")
+        row.label(text=f"{translate('Name')}: {(translate(self.Name))}")
 
         sbox = box.box()
         row = sbox.row()
-        row.label(text=f"Description: {self.Description}")
+        row.label(text=f"{translate('Description')}: {self.Description}")
 
         if self.Tech_Things != "":
             sbox = box.box()
@@ -95,7 +98,7 @@ class AbsoluteSolverPanel(bpy.types.Operator):
             row.operator("special.open_console")
 
             row = sbox.row()
-            copy_to_clipboard = row.operator("special.copy_to_clipboard", text="Copy Tech Things to Clipboard")
+            copy_to_clipboard = row.operator("special.copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
             copy_to_clipboard.text = self.Tech_Things
 
             # Print the error to the console

@@ -51,6 +51,31 @@ class MiBlendPreferences(AddonPreferences):
         default=override_setting("dprint", True)
     )
 
+    deep_debug: BoolProperty(
+        name="Deep Debug",
+        default=override_setting("deep_debug", False)
+    )
+
+    rp_debug_mode: BoolProperty(
+        name="Resource Packs Debug Mode",
+        default=override_setting("rp_debug_mode", False)
+    )
+
+    fw_debug_mode: BoolProperty(
+        name="Fix World Debug Mode",
+        default=override_setting("fw_debug_mode", False)
+    )
+
+    fm_debug_mode: BoolProperty(
+        name="Fix Materials Debug Mode",
+        default=override_setting("fm_debug_mode", False)
+    )
+
+    ui_debug_mode: BoolProperty(
+        name="UI Debug Mode",
+        default=override_setting("ui_debug_mode", False)
+    )
+
     perf_time: BoolProperty(
         name="Perf_Time",
         default=override_setting("perf_time", False)
@@ -140,14 +165,34 @@ class MiBlendPreferences(AddonPreferences):
             row = box.row()
             row.prop(self, "dprint", toggle=True)
 
-            row = box.row()
-            row.prop(self, "perf_time", toggle=True)
-            
-            row = box.row()
+            sbox = box.box()
+
+            row = sbox.row()
+            row.label(text="Debug:")
+
+            row = sbox.row()
             row.prop(self, "debug_tools", toggle=True)
 
-            row = box.row()
+            row = sbox.row()
+            row.prop(self, "deep_debug", toggle=True)
+
+            row = sbox.row()
             row.prop(self, "uas_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "rp_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "fw_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "fm_debug_mode", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "ui_debug_mode", toggle=True)
+
+            row = box.row()
+            row.prop(self, "perf_time", toggle=True)
 
             row = box.row()
             row.prop(self, "experimental_features", toggle=True)

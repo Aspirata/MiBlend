@@ -1,20 +1,10 @@
-import bpy
+import bpy, json, os
+from ..Data import utils_directory
 
-def Translate(untranslated_string):
+def translate(untranslated_string):
     Current_Language = bpy.app.translations.locale
-    return Translations.get(untranslated_string, {}).get(Current_Language, untranslated_string)
 
-Translations = {
-    "Use Normals": {
-        "ru_RU": "Использовать Нормали:"
-    },
+    with open(os.path.join(utils_directory, "languages", f"{Current_Language}.json"), "r") as file:
+        Translations = json.load(file)
 
-    "Normals Settings": {
-        "ru_RU": "Настройки Нормалей:"
-    },
-
-    "Bump Settings:": {
-        "ru_RU": "Настройки Bump(a):"
-    },
-    
-}
+    return Translations.get(untranslated_string, untranslated_string)

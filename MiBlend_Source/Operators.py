@@ -55,13 +55,6 @@ class RecreateEnvironment(Operator):
     def draw(self, context):
         layout = self.layout
         world = bpy.context.scene.world
-        
-        if bpy.context.preferences.addons[__package__].preferences.enable_warnings:
-            box = layout.box()
-            row = box.row()
-            row.label(text="WARNING !", icon='ERROR')
-            row = box.row()
-            row.label(text="This option should be used with caution")
             
         box = layout.box()
         row = box.row()
@@ -208,7 +201,9 @@ class AddResourcePack(Operator):
     bl_label = "Add Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
     
-    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default="*.zip;*/", options={'HIDDEN'})
+    Mode: bpy.props.EnumProperty(items=[('temp', 'Temporarily', ''), ('perm', 'Permanently', '')])
     Type: bpy.props.EnumProperty(items=[('Automatic', 'Automatic', ''), ('Texture & PBR', 'Texture & PBR', ''), ('Texture', 'Texture', ''), ('PBR', 'PBR', '')])
 
     def execute(self, context):
@@ -261,27 +256,64 @@ class AddResourcePack(Operator):
                     resource_pack_type = 'PBR'
 
             return resource_pack_type
-        
-        resource_packs = get_resource_packs()
 
-        if os.path.isdir(self.filepath) or self.filepath.endswith(('.zip', '.jar')):
-            if os.path.exists(os.path.abspath(self.filepath)) and os.path.basename(self.filepath) != "":
-                pack_name = os.path.basename(self.filepath)
-                resource_packs[pack_name] = {"path": os.path.abspath(self.filepath), "type": define_type(os.path.abspath(self.filepath), self), "enabled": True, "is_default": False}
+        filepath = os.path.abspath(self.filepath)
+        if os.path.isdir(filepath) or filepath.endswith(('.zip', '.jar')):
+            if os.path.exists(filepath) and os.path.basename(filepath):
+                pack_name = os.path.basename(filepath)
+                pack_path = filepath
             else:
-                pack_name = os.path.basename(os.path.dirname(self.filepath))
-                resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
+                pack_name = os.path.basename(os.path.dirname(filepath))
+                pack_path = os.path.dirname(filepath)
         else:
-            pack_name = os.path.basename(os.path.dirname(self.filepath))
-            resource_packs[pack_name] = {"path": os.path.dirname(self.filepath), "type": define_type(os.path.dirname(self.filepath), self), "enabled": True, "is_default": False}
-        
-        dprint(resource_packs[pack_name]["type"], is_deep=True, zone="rp")
-        if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
-            set_resource_packs(resource_packs)
-            return {'FINISHED'}
-        else:
-            Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
-            return {'CANCELLED'}
+            pack_name = os.path.basename(os.path.dirname(filepath))
+            pack_path = os.path.dirname(filepath)
+
+        if self.Mode == "temp":
+            resource_packs = get_resource_packs()
+
+            resource_packs[pack_name] = {
+                "path": pack_path,
+                "type": define_type(pack_path, self),
+                "enabled": True,
+                "is_default": False
+            }
+
+            dprint(resource_packs[pack_name]["type"], is_deep=True, zone="rp")
+            if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
+                set_resource_packs(resource_packs)
+            else:
+                Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
+                return {'CANCELLED'}
+            
+        elif self.Mode == "perm":
+            resource_pack_directory = get_resource_path()
+            destination = os.path.join(resource_pack_directory, pack_name)
+            
+            if os.path.exists(destination):
+                if os.path.isdir(destination):
+                    shutil.rmtree(destination)
+                else:
+                    os.remove(destination)
+            
+            if os.path.isdir(pack_path):
+                shutil.copytree(pack_path, destination)
+            else:
+                shutil.copy2(pack_path, destination)
+            
+            with open(os.path.join(resource_pack_directory, 'packs_info.json'), 'r+') as f:
+                data = json.load(f)
+                data[pack_name] = {
+                    "mc_version": "Unknown",
+                    "pack_version": "Unknown",
+                    "type": define_type(pack_path, self),
+                }
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+
+        update_assets()
+        return {'FINISHED'}
     
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -392,7 +424,7 @@ class SetRenderSettingsOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        current_preset = bpy.context.scene.utilsproperties.current_preset
+        current_preset = bpy.context.scene.miblend_properties.utilsproperties.current_preset
         SetRenderSettings(current_preset)
         return {'FINISHED'}
     
@@ -411,11 +443,8 @@ class ResetPropertiesOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
-        
         try:
-            current_asset = items[current_index]
+            current_asset = get_selected_asset()
 
             properties = {key: value for key, value in current_asset.items() if '_property' in key}
 
@@ -445,12 +474,8 @@ class SavePropertiesOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
-
         try:
-        
-            current_asset = items[current_index]
+            current_asset = get_selected_asset()
 
             properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
 
@@ -471,9 +496,7 @@ class SavePropertiesOperator(Operator):
             return {'FINISHED'}
         
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
-            elif not os.path.isfile(json_file_path):
+            if not os.path.isfile(json_file_path):
                 Call_AS("e03", error, json_file_path)
             else:
                 Call_AS("n00", error)
@@ -485,11 +508,8 @@ class RemoveAsset(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
-        
         try:
-            current_asset = items[current_index]
+            current_asset = get_selected_asset()
 
             properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
 
@@ -511,9 +531,7 @@ class RemoveAsset(Operator):
             return {'FINISHED'}
         
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
-            elif not os.path.isfile(json_file_path):
+            if not os.path.isfile(json_file_path):
                 Call_AS("e03", error, json_file_path)
             else:
                 Call_AS("n00", error)
@@ -606,11 +624,9 @@ class CreateAsset(Operator):
     bl_idname = "assets.create_asset"
     bl_label = "Create Asset"
     bl_options = {'REGISTER', 'UNDO'}
-    
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH", name="File Path", description="Path to the .blend file")
 
     def execute(self, context):
-        return {'FINISHED'} # Placeholder 22.01.25
+        return {'FINISHED'} # Placeholder
 
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
@@ -618,23 +634,29 @@ class ImportAssetOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        current_index = bpy.context.scene.assetsproperties.asset_index
-        items = bpy.context.scene.assetsproperties.asset_items
-
+        bpy.ops.object.select_all(action='DESELECT')
         try:
-            asset_data = items[current_index]
+            asset_data = get_selected_asset()
             File_path = asset_data.get("File_path", "")
             
             if os.path.isfile(File_path):
                 append_asset(asset_data)
             else:
                 dprint(f"{File_path} not a file")
+            
+            for obj in bpy.context.selected_objects:
+                if obj.type == "ARMATURE":
+                    root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
+                    cursor_location = bpy.context.scene.cursor.location # It's a 3D Cursor
+                    if root_bone:
+                        obj.pose.bones[root_bone.name].matrix.translation = cursor_location
+                
+                obj["MiBlend_ID"] = "Asset"
+
             return {'FINISHED'}
+        
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
-            else:
-                Call_AS("n00", error)
+            Call_AS("n00", traceback.format_exc())
             return {'CANCELLED'}
     
 class ManualAssetsUpdateOperator(Operator):

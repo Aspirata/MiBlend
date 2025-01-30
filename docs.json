@@ -1,0 +1,48 @@
+{
+  "name": "MiBlend Wiki",
+  "description": "Multilingual documentation",
+  "sidebar": [
+    {
+      "group": "Main",
+      "pages": [
+        {
+          "title": "Welcome",
+          "href": "/"
+        }
+      ]
+    },
+    {
+      "group": "English",
+      "pages": [
+        {
+          "title": "FAQ",
+          "href": "/en/faq"
+        }
+      ]
+    },
+    {
+      "group": "Русский",
+      "pages": [
+        {
+          "title": "Домашняя Страница",
+          "href": "/ru/home"
+        },
+
+        {
+          "title": "Последняя версия",
+          "href": "/ru/last-update"
+        },
+
+        {
+          "title": "ЧАВО",
+          "href": "/ru/faq"
+        },
+
+        {
+          "title": "О MiBlend",
+          "href": "/ru/about"
+        }
+      ]
+    }
+  ]
+}
