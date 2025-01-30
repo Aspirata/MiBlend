@@ -1,4 +1,4 @@
-шimport bpy
+import bpy
 import os
 import json
 import zipfile
