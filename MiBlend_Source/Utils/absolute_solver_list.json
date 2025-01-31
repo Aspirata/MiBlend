@@ -42,7 +42,9 @@
         "01": 
         {
             "Name": "Legacy Component",
-            "Description": "A legacy component was detected in this scene. Some features may not work correctly."
+            "Description": "A legacy component was detected in this scene ({Data}). Some features may not work correctly.",
+            "Warning": "Reloading All Scene Lists will reset your settings !",
+            "Solution": "Reload All Scene Lists"
         },
 
         "02":

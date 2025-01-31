@@ -115,7 +115,7 @@ Foliage_Color = {
 
 Backface_Culling_Materials = ["glass", "door", "nether portal", "redstone torch"]
 
-SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay"]
+SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay", "wildflowers"]
 
 Translucent_Materials = ["leaves", "glass"]
 
@@ -134,24 +134,26 @@ gray_blocks = {
 Emissive_Materials = {
     "fire": {},
     "nether portal": {},
-    "firefly":{
-									"Better Emission":{
-														"From Min": 0.1,
-														"From Max": 0.6,
-									},
-					},
-    "brewing":{
-									"Better Emission":{
-														"From Min": 0.6,
-														"From Max": 1,
-									},
-					},
-    "froglight":{
-									"Better Emission":{
-														"From Min": 0.3,
-														"From Max": 0.6,
-									},
-					},
+    "redstone on": {},
+    "creaking heart active": {},
+    "firefly bush": {
+        "Better Emission": {
+            "From Min": 0.1,
+            "From Max": 0.6,
+        },
+    },
+    "brewing stand": {
+        "Better Emission": {
+            "From Min": 0.6,
+            "From Max": 1,
+        },
+    },
+    "froglight": {
+        "Better Emission": {
+            "From Min": 0.3,
+            "From Max": 0.6,
+        },
+    },
     "campfire log lit": {
         "Better Emission": {
             "From Min": 0.19,
@@ -175,10 +177,12 @@ Emissive_Materials = {
             "From Max": 0.6,
         },
     },
-    "torch": {
+    "torch : soul redstone": {
         "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
+            "Green": 0,
+            "Blue": 0,
+            "From Min": 0.6,
+            "From Max": 0.78,
         },
     },
     "powered rail on": {
@@ -228,7 +232,7 @@ Emissive_Materials = {
             "From Min": 0,
             "From Max": 0.6,
         },
-									"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
@@ -245,7 +249,7 @@ Emissive_Materials = {
             "From Min": 0,
             "From Max": 2,
         },
-									"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
@@ -256,26 +260,26 @@ Emissive_Materials = {
             "From Min": 0,
             "From Max": 0.6,
         },
-										"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
         },
     },
     "beacon": {
-									"Procedural Animation": {
+        "Better Emission": {},
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
-},
+    },
     "sea pickle": {},
     "sculk ; catalyst": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.4,
         },
-									"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
             "Period": 100,
@@ -335,28 +339,25 @@ Emissive_Materials = {
             "From Min": 0,
             "From Max": 0.6,
         },
-									"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
     },
     "crying obsidian": {
-									"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
-					},
+    },
     "smoker front on": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
         },
-									"Procedural Animation": {
+        "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
     },
 }

@@ -597,8 +597,7 @@ def setproceduralpbr():
             image_difference_X = 1
             image_difference_Y = 1
             Current_node_tree = None
-            scene = bpy.context.scene
-            PProperties = scene.ppbr_properties
+            PProperties = bpy.context.scene.miblend_properties.ppbr_properties
 
             for node in material.node_tree.nodes:
                 if node.type == "BSDF_PRINCIPLED":
@@ -614,7 +613,7 @@ def setproceduralpbr():
                         PNormals = node
                         Current_node_tree = node.node_tree
 
-                    elif "Better Animate Textures" in node.node_tree.name:
+                    elif "Procedurally Animated Better Emission" in node.node_tree.name:
                         better_animate_node = node
                         break
                 
@@ -745,7 +744,7 @@ def setproceduralpbr():
                     material_properties = Emissive_Materials[item]
                     if len(material_properties) >= 1:
                         if better_animate_node is None:
-                            better_animate_node = create_node_group(material.node_tree.nodes, "Better Animate Texture", (PBSDF.location.x - 200, PBSDF.location.y - 265))
+                            better_animate_node = create_node_group(material.node_tree.nodes, "Procedurally Animated Better Emission", (PBSDF.location.x - 200, PBSDF.location.y - 265))
 
                         if PProperties.randomize and not any(mod for mod in selected_object.modifiers if mod.type == "NODES" and "Random Face Value" in mod.node_group.name):
                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):

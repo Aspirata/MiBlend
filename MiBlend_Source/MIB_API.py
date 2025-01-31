@@ -29,10 +29,10 @@ def is_mesh(object):
     return object.type == "MESH"
 
 def get_selected_asset() -> dict:
+    current_index = bpy.context.scene.miblend_properties.assets_properties.asset_index
+    items = bpy.context.scene.miblend_properties.assets_properties.asset_items
+    
     try:
-        current_index = bpy.context.scene.miblend_properties.assetsproperties.asset_index
-        items = bpy.context.scene.miblend_properties.assetsproperties.asset_items
-
         return items[current_index]
     except Exception as error:
         if current_index < 0 or current_index >= len(items):

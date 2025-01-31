@@ -21,39 +21,53 @@ bl_info = {
 }
 
 def init_on_start():
+    try:
 
-    if "resource_packs" not in bpy.context.scene:
-        bpy.context.scene["resource_packs"] = {}
-        update_default_pack()
-    
-    if "mib_options" not in bpy.context.scene:
-        bpy.context.scene["mib_options"] = {}
-
-    mib_options = bpy.context.scene["mib_options"]
-    
-    original_materials_list = {}
-    with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
-        for material_name in data_from.materials:
-            split_name = material_name.split(" | ")
+        if "resource_packs" not in bpy.context.scene:
+            bpy.context.scene["resource_packs"] = {}
+            update_default_pack()
         
-            if len(split_name) > 1 and "Dev" not in split_name:
-                original_materials_list[split_name[0]] = split_name[1]
+        if "mib_options" not in bpy.context.scene:
+            bpy.context.scene["mib_options"] = {}
 
-    mib_options["is_replaced_materials"] = len(original_materials_list) > 0
+        mib_options = bpy.context.scene["mib_options"]
+        
+        original_materials_list = {}
+        with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
+            for material_name in data_from.materials:
+                split_name = material_name.split(" | ")
+            
+                if len(split_name) > 1 and "Dev" not in split_name:
+                    original_materials_list[split_name[0]] = split_name[1]
 
-    mib_options["components_vesion"] = {
-        "MiBlend": "Butterfly",
-        "UAS": "v2.1.3",
-        "Absolute Solver": "v2.0",
-    }
+        mib_options["is_replaced_materials"] = len(original_materials_list) > 0
 
-    if "temp_assets_paths" not in mib_options:
-        mib_options["temp_assets_paths"] = []
+        old_components_dict = dict(mib_options.get("components_vesion", {}))
+        new_components_dict = {
+            "MiBlend": "Butterfly",
+            "UAS": "v2.1.3",
+            "Absolute Solver": "v2.0",
+        }
 
-    update_assets()
+        for component, component_version in old_components_dict.items():
+            if component not in new_components_dict or component_version != new_components_dict.get(component):
+                Call_AS("e01", data=f"{component} = {component_version} -> {new_components_dict.get(component)}")
 
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and not sys.platform.startswith('linux'):
-        bpy.ops.wm.console_toggle()
+        if hasattr(bpy.context.scene, "world_properties") or hasattr(bpy.context.scene, "resource_properties") or hasattr(bpy.context.scene, "materials_properties") \
+        or hasattr(bpy.context.scene, "env_properties") or hasattr(bpy.context.scene, "ppbr_properties") or hasattr(bpy.context.scene, "assetsproperties"):
+            Call_AS("e01", data="Properties from MiBlend v0.6.x or below")
+
+        mib_options["components_vesion"] = new_components_dict
+
+        if "temp_assets_paths" not in mib_options:
+            mib_options["temp_assets_paths"] = []
+
+        update_assets()
+
+        if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and not sys.platform.startswith('linux'):
+            bpy.ops.wm.console_toggle()
+    except:
+        Call_AS("n00", traceback.format_exc())
 
 classes = [
     MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
