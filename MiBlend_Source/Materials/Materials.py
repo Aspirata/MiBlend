@@ -146,8 +146,7 @@ def fix_world():
             bfc_node = None
             Texture_Animator = None
             auvf_node = None
-            scene = bpy.context.scene
-            WProperties = scene.world_properties
+            WProperties = bpy.context.scene.miblend_properties.world_properties
 
             material.blend_method = 'HASHED'
             
@@ -286,7 +285,8 @@ def fix_world():
             elif auvf_node:
                 material.node_tree.nodes.remove(auvf_node)
             
-            selected_object["MiBlend ID"] = "World"
+            # Implement is_world() check
+            #selected_object["MiBlend ID"] = "World"
 
 @Perf_Time
 def recreate_env(self):

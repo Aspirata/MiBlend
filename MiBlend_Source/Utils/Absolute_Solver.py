@@ -34,13 +34,15 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                     type = code[0]
                     number = str(code[1:])
                     if type == "w":
-                        name = data_json.get("warnings", {}).get(number, {}).get("Name")
-                        description = data_json.get("warnings", {}).get(number, {}).get("Description")
-                    elif type == "e":
                         if not Preferences.show_warnings:
                             continue
+                        name = data_json.get("warnings", {}).get(number, {}).get("Name")
+                        description = data_json.get("warnings", {}).get(number, {}).get("Description")
+                        solutions = data_json.get("errors", {}).get(number, {}).get("Solutions", "")
+                    elif type == "e":
                         name = data_json.get("errors", {}).get(number, {}).get("Name")
                         description = data_json.get("errors", {}).get(number, {}).get("Description")
+                        solutions = data_json.get("errors", {}).get(number, {}).get("Solutions", "")
                     elif type == "n":
                         name = data_json.get("null", {}).get(number, {}).get("Name")
                         description = data_json.get("null", {}).get(number, {}).get("Description")
@@ -48,7 +50,7 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                     description = translate(description)
 
                     if name and description:
-                        call_data.append({"Code": code, "Name": name, "Description": description.format(Data=d), "Tech_Things": tech_things})
+                        call_data.append({"Code": code, "Name": name, "Description": description.format(Data=d), "Solutions": solutions, "Tech_Things": tech_things})
                     else:
                         call_data.append({"Code": "e00", "Name": critical_error_name, "Description": critical_error_description.format(Data=code), "Tech_Things": f"Code not found: {code}"})
         
@@ -71,6 +73,7 @@ class AbsoluteSolverPanel(bpy.types.Operator):
     Code: bpy.props.StringProperty()
     Name: bpy.props.StringProperty()
     Description: bpy.props.StringProperty()
+    Solutions: bpy.props.StringProperty()
     Tech_Things: bpy.props.StringProperty()
 
     def invoke(self, context, event):
@@ -91,6 +94,16 @@ class AbsoluteSolverPanel(bpy.types.Operator):
         sbox = box.box()
         row = sbox.row()
         row.label(text=f"{translate('Description')}: {self.Description}")
+
+        if self.Solutions != "":
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text=f"{translate('Solutions')}:")
+            for solution_operator in self.Solutions.split("; "):
+                if solution_operator == "":
+                    continue
+                row = sbox.row()
+                row.operator(solution_operator)
 
         if self.Tech_Things != "":
             sbox = box.box()

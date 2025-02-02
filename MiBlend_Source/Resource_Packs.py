@@ -699,9 +699,10 @@ def apply_resources():
             if material is None or not material.use_nodes:
                 continue
             
-            if selected_object.get("MiBlend ID", "") == "":
-                Call_AS("w02", data=material.name)
-                continue
+            # Implement is_world() check
+            #if selected_object.get("MiBlend ID", "") == "":
+                #Call_AS("w02", data=selected_object.name)
+                #continue
 
             PBSDF = None
             image_texture_node = None
@@ -748,24 +749,22 @@ def apply_resources():
                         LabPBR_s = node
 
                 if node.type == "TEX_IMAGE" and node.image:
-
-                    if node.type == "TEX_IMAGE" and node.image:
-                        image_name = node.image.name.replace(".png", "")
-                        if re.search(r'_n$', image_name):
-                            normal_texture_node = node
-                        elif re.search(r'_s$', image_name):
-                            specular_texture_node = node
-                        elif re.search(r'_e$', image_name):
-                            emission_texture_node = node
-                        else:
-                            image_texture_node = node
-                            image_texture = image_texture_node.image.name
+                    image_name = node.image.name.replace(".png", "")
+                    if re.search(r'_n$', image_name):
+                        normal_texture_node = node
+                    elif re.search(r'_s$', image_name):
+                        specular_texture_node = node
+                    elif re.search(r'_e$', image_name):
+                        emission_texture_node = node
+                    else:
+                        image_texture_node = node
+                        image_texture = image_texture_node.image.name
 
                 if node.type == "NORMAL_MAP":
                     normal_map_node = node
 
-            if image_texture is None:
-                dprint("No image texture found", is_deep=True, zone="rp")
+            if image_texture is None or image_texture_node is None:
+                dprint(f"{material} skipped, image or image node not found", is_deep=True, zone="rp")
                 continue
 
             try:

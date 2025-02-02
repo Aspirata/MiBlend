@@ -22,7 +22,8 @@
 
         "02": {
             "Name": "MiBlend hasn't modified that material",
-            "Description": "MiBlend hasn't modified {Data} that may and almost 100% will lead to problems"
+            "Description": "MiBlend hasn't modified {Data} that may and almost 100% will lead to problems",
+            "Solutions": "world.fix_world; "
         }
     },
 
@@ -42,9 +43,9 @@
         "01": 
         {
             "Name": "Legacy Component",
-            "Description": "A legacy component was detected in this scene ({Data}). Some features may not work correctly.",
+            "Description": "{Data}. Some features may not work correctly.",
             "Warning": "Reloading All Scene Lists will reset your settings !",
-            "Solution": "Reload All Scene Lists"
+            "Solutions": "resource_pack.update_default_pack; "
         },
 
         "02":
