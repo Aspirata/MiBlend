@@ -177,7 +177,7 @@ Emissive_Materials = {
             "From Max": 0.6,
         },
     },
-    "torch : soul redstone": {
+    "torch ; soul redstone": {
         "Better Emission": {
             "Green": 0,
             "Blue": 0,
