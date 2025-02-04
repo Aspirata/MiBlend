@@ -117,13 +117,13 @@ def EmissionMode(PBSDF, texture_name: str) -> int:
 
     Preferences = bpy.context.preferences.addons[__package__].preferences
     
-    if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name)[0]):
+    if Preferences.emissiondetection == 'Combined' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name, True)[0]):
         return 1
 
     elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
         return 2
     
-    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name)[0]:
+    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name, True)[0]:
         return 3
     
     return 0

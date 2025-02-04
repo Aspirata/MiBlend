@@ -133,8 +133,20 @@ gray_blocks = {
 
 Emissive_Materials = {
     "fire": {},
-    "nether portal": {},
-    "redstone on": {},
+    "nether portal": {
+        "Better Emission": {
+            "From Min": 0.4,
+            "From Max": 1,
+            "To Max": 2,
+        },
+        "Procedural Animation": {}
+    },
+    "redstone on": {
+        "Better Emission": {
+            "Green": 0,
+            "Blue": 0
+        }
+    },
     "creaking heart active": {},
     "firefly bush": {
         "Better Emission": {
@@ -144,21 +156,25 @@ Emissive_Materials = {
     },
     "brewing stand": {
         "Better Emission": {
-            "From Min": 0.6,
-            "From Max": 1,
+            "Blue": 0,
+            "From Min": 0.25,
+            "From Max": 0.6,
         },
+        "Procedural Animation": {}
     },
     "froglight": {
         "Better Emission": {
-            "From Min": 0.3,
-            "From Max": 0.6,
+            "From Min": 0,
+            "From Max": 1.6,
         },
+        "Procedural Animation": {}
     },
     "campfire log lit": {
         "Better Emission": {
             "From Min": 0.19,
             "From Max": 0.52,
         },
+        "Procedural Animation": {}
     },
     "sea lantern": {
         "Better Emission": {
@@ -168,14 +184,14 @@ Emissive_Materials = {
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
     },
     "glow lichen": {
         "Better Emission": {
-            "From Min": 0.18,
-            "From Max": 0.6,
+            "From Min": 0.7,
+            "From Max": 1,
         },
+        "Procedural Animation": {}
     },
     "torch ; soul redstone": {
         "Better Emission": {
@@ -187,6 +203,8 @@ Emissive_Materials = {
     },
     "powered rail on": {
         "Better Emission": {
+            "Green": 0,
+            "Blue": 0,
             "From Min": 0.52,
             "From Max": 0.6,
         },
@@ -235,7 +253,6 @@ Emissive_Materials = {
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
     },
     "glowstone": {
