@@ -151,14 +151,12 @@ Emissive_Materials = {
     "firefly bush": {
         "Better Emission": {
             "From Min": 0.1,
-            "From Max": 0.6,
         },
     },
     "brewing stand": {
         "Better Emission": {
             "Blue": 0,
             "From Min": 0.25,
-            "From Max": 0.6,
         },
         "Procedural Animation": {}
     },
@@ -206,50 +204,30 @@ Emissive_Materials = {
             "Green": 0,
             "Blue": 0,
             "From Min": 0.52,
-            "From Max": 0.6,
         },
     },
     "redstone wire on": {
-        "Better Emission": {
-            "From Min": 0.52,
-            "From Max": 0.6,
-        },
+        "Better Emission": {},
     },
     "redstone block": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
-        },
-    },
-    "redstone_lamp_on": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
-        },
+        "Better Emission": {},
     },
     "lava": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
-        },
+        "Better Emission": {},
     },
     "cave vines lit": {
         "Better Emission": {
             "From Min": 0.2,
-            "From Max": 0.6,
         },
     },
     "cave vines plant lit": {
         "Better Emission": {
             "From Min": 0.2,
-            "From Max": 0.6,
+            "To Max": 2,
         },
     },
     "sculk sensor": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
-        },
+        "Better Emission": {},
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
@@ -257,30 +235,24 @@ Emissive_Materials = {
     },
     "glowstone": {
         "Better Emission": {
-            "From Min": 0,
             "From Max": 2,
+            "To Min": 0.4,
         },
     },
     "shroomlight": {
         "Better Emission": {
-            "From Min": 0,
-            "From Max": 2,
+            "From Max": 4,
         },
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
         },
     },
     "magma": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
-        },
+        "Better Emission": {},
         "Procedural Animation": {
-            "To Min": 0,
+            "To Min": 0.5,
             "To Max": 1.5,
-            "Period": 100,
         },
     },
     "beacon": {
