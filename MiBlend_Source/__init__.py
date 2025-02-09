@@ -110,6 +110,8 @@ def register():
         ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
         assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
         script_asset_properties: bpy.props.PointerProperty(type=ScriptAssetProperties)
+        utilsproperties: bpy.props.PointerProperty(type=UtilsProperties)
+        optimizationproperties: bpy.props.PointerProperty(type=OptimizationProperties)
 
     bpy.utils.register_class(MiBlendProperties)
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)

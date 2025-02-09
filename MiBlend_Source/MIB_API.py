@@ -339,6 +339,27 @@ def detect_image_texture(PBSDF: object):
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
 
+def detect_world_exporter(world_obj: object) -> str:
+    exporter = "unknown"
+
+    if not world_obj.data.materials:
+        return exporter
+        
+    for mat in world_obj.data.materials:
+        mat_name = mat.name
+        if mat_name.startswith("MAT_"):
+            exporter = "MiEx"
+            break
+        elif "MWO" in mat_name or mat_name.count('-') == 0:
+            exporter = "Mineways"
+            break
+        elif mat_name.count('-') == 1:
+            exporter = "jmc2obj"
+            break
+    
+    dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
+    return exporter
+
 def SeparateMeshByMaterial(obj: object, material = None):
     obj_name = obj.name
 

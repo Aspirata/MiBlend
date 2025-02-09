@@ -724,7 +724,7 @@ class OptimizationPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-        row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
+        row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
         # Camera Culling Settings
         if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_settings:
             sbox = box.box()

@@ -133,6 +133,8 @@ def fix_world():
             bpy.ops.mesh.remove_doubles()
 
             bpy.ops.object.editmode_toggle()
+        
+        exporter = detect_world_exporter(selected_object)
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -159,12 +161,12 @@ def fix_world():
 
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
-                    if node.image.name.replace(".png", "").endswith("_y"):
-                        node.image.name = node.image.name.replace(".png", "")[-2:].replace("_y", "")
-                    elif node.image.name.replace(".png", "").endswith("_a"):
-                        node.node_tree.nodes.remove(node)
+                    if node.image:
+                        if node.image.name.replace(".png", "").endswith("_y") and exporter == "Mineways":
+                            node.image.name = node.image.name.replace("_y", "", 1)
+                        elif node.image.name.replace(".png", "").endswith("_a"):
+                            material.node_tree.nodes.remove(node)
                     node.interpolation = "Closest"
-
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node
                     image_texture_node = detect_texture_node(PBSDF)
