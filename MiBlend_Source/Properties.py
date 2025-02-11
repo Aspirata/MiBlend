@@ -834,9 +834,3 @@ class AssetsProperties(PropertyGroup):
         description="",
         default=True
         )
-    
-
-
-
-class ScriptAssetProperties(PropertyGroup):
-    pass # goto Assets.py 131 line

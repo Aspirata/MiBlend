@@ -128,7 +128,7 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
     
     return 0
 
-def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, name: str ="", exists_check: bool = False) -> object:
+def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="",) -> object:
     if exists_check:
         for node in place:
             if node.type == "GROUP" and node.node_tree.name == node_tree_name:

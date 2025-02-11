@@ -22,7 +22,6 @@ bl_info = {
 
 def init_on_start():
     try:
-
         if "resource_packs" not in bpy.context.scene:
             bpy.context.scene["resource_packs"] = {}
             update_default_pack()
@@ -31,7 +30,7 @@ def init_on_start():
             bpy.context.scene["mib_options"] = {}
 
         mib_options = bpy.context.scene["mib_options"]
-        
+
         original_materials_list = {}
         with bpy.data.libraries.load(os.path.join(materials_folder, "Replaced Materials.blend"), link=False) as (data_from, data_to):
             for material_name in data_from.materials:
@@ -73,7 +72,7 @@ def init_on_start():
 classes = [
     MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties, ScriptAssetProperties,
+    PPBRProperties, AssetTagItem, AssetsProperties,
     WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
@@ -109,7 +108,6 @@ def register():
         env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
         ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
         assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
-        script_asset_properties: bpy.props.PointerProperty(type=ScriptAssetProperties)
         utilsproperties: bpy.props.PointerProperty(type=UtilsProperties)
         optimizationproperties: bpy.props.PointerProperty(type=OptimizationProperties)
 
