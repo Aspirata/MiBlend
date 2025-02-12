@@ -161,6 +161,7 @@ def update_default_pack():
 
     # Adding Other Packs to the Scene
     if not os.path.exists(resource_packs_directory):
+        set_resource_packs(resource_packs)
         return
 
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as f:

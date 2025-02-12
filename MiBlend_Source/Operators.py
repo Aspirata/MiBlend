@@ -184,17 +184,6 @@ class UpdateDefaultPack(Operator):
     def execute(self, context):
         update_default_pack()
         return {'FINISHED'}
-    
-class FixPacks(Operator):
-    bl_idname = "resource_pack.fix"
-    bl_label = "Fix Packs"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        if "resource_packs" not in bpy.context.scene:
-            bpy.context.scene["resource_packs"] = {}
-        update_default_pack()
-        return {'FINISHED'}
 
 class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"

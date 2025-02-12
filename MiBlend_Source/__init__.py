@@ -75,7 +75,7 @@ classes = [
     PPBRProperties, AssetTagItem, AssetsProperties,
     WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
-    RemoveResourcePack, UpdateDefaultPack, FixPacks, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
+    RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
     SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator,
 ]

@@ -70,9 +70,15 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Resource Packs List", icon="OUTLINER")
         row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
-            try:
-                resource_packs = get_resource_packs()
+            resource_packs = get_resource_packs()
 
+            if not resource_packs:
+                row = sbox.row()
+                row.label(text="No resource packs found", icon="ERROR")
+                if not os.path.exists(get_resource_path()):
+                    row = sbox.row()
+                    row.label(text="Dev path is not set", icon="ERROR")
+            else:
                 for pack, pack_info in resource_packs.items():
                     row = sbox.row()
 
@@ -94,13 +100,9 @@ class WorldAndMaterialsPanel(Panel):
                     remove = row.operator("resource_pack.remove", text="", icon='X')
                     remove.pack_name = pack
             
-                row = sbox.row()
-                row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
-                row.operator("resource_pack.add", icon='ADD')
-
-            except:
-                row = sbox.row()
-                row.operator("resource_pack.fix", icon='TOOL_SETTINGS')
+            row = sbox.row()
+            row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
+            row.operator("resource_pack.add", icon='ADD')
         
         row = box.row()
         row.prop(scene.miblend_properties.resource_properties, "resource_packs_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.resource_packs_settings else "TRIA_RIGHT"))
