@@ -119,7 +119,7 @@ SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy"
 
 Translucent_Materials = ["leaves", "glass"]
 
-Metal = ["iron", "gold", "emerald", "copper", "diamond", "netherite", "minecart", "lantern", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
+Metal = ["iron", "gold", "emerald", "copper", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
 Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
@@ -242,23 +242,18 @@ Emissive_Materials = {
         "Better Emission": {
             "From Min": 0,
             "From Max": 2,
-        },
+        }, 
     },
     "shroomlight": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 2,
-        },
-        "Procedural Animation": {
-            "To Min": 0,
-            "To Max": 1.5,
-            "Period": 100,
+            "From Max": 1.5,
         },
     },
     "magma": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 0.8,
         },
         "Procedural Animation": {
             "To Min": 0,
@@ -267,7 +262,10 @@ Emissive_Materials = {
         },
     },
     "beacon": {
-        "Better Emission": {},
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 3,
+        },
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
@@ -288,56 +286,88 @@ Emissive_Materials = {
     "sculk vein": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 0.4,
+        },
+        "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 100,
         },
     },
     "end rod": {
         "Better Emission": {
-            "From Min": 0.5,
-            "From Max": 0.6,
+            "From Min": 1,
+            "From Max": 2,
         },
     },
-    "respawn anchor": {
+    "respawn anchor ; up": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 1.5,
+        },
+    },
+    "respawn anchor up": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 2,
+        },
+          "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+            "Period": 150,
         },
     },
     "candle lit": {},
     "large amethyst bud": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 2,
         },
     },
     "medium amethyst bud": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.4,
+            "From Max": 2,
         },
     },
     "small amethyst bud": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.2,
+            "From Max": 2,,
         },
     },
     "amethyst cluster": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 2,
         },
     },
-    "jack o lantern": {
+    "jack o lantern north": {
         "Better Emission": {
-            "From Min": 0,
-            "From Max": 0.6,
+            "From Min": 1.5,
+            "From Max": 2,
         },
     },
     "furnace front on": {
         "Better Emission": {
             "From Min": 0,
-            "From Max": 0.6,
+            "From Max": 1.5,
+            "Red": 1,
+            "Green": 0,
+            "Blue": 0,
+        },
+        "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+        },
+    },
+        "furnace north on": {
+        "Better Emission": {
+            "From Min": 0,
+            "From Max": 1.5,
+            "Red": 1,
+            "Green": 0,
+            "Blue": 0,
         },
         "Procedural Animation": {
             "To Min": 0,
@@ -345,13 +375,7 @@ Emissive_Materials = {
         },
     },
     "crying obsidian": {
-        "Procedural Animation": {
-            "To Min": 0,
-            "To Max": 1.5,
-        },
-    },
-    "smoker front on": {
-        "Better Emission": {
+         "Better Emission": {
             "From Min": 0,
             "From Max": 0.6,
         },
@@ -360,4 +384,25 @@ Emissive_Materials = {
             "To Max": 1.5,
         },
     },
+    "smoker front on": {
+        "Better Emission": {
+            "From Min": 0,4,
+            "From Max": 1,
+        },
+        "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+        },
+    },
+   "smoker north on": {
+        "Better Emission": {
+            "From Min": 0,4,
+            "From Max": 1,
+        },
+        "Procedural Animation": {
+            "To Min": 0,
+            "To Max": 1.5,
+        },
+    },
+
 }
