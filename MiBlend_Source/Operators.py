@@ -184,17 +184,6 @@ class UpdateDefaultPack(Operator):
     def execute(self, context):
         update_default_pack()
         return {'FINISHED'}
-    
-class FixPacks(Operator):
-    bl_idname = "resource_pack.fix"
-    bl_label = "Fix Packs"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        if "resource_packs" not in bpy.context.scene:
-            bpy.context.scene["resource_packs"] = {}
-        update_default_pack()
-        return {'FINISHED'}
 
 class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"
@@ -634,27 +623,17 @@ class ImportAssetOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        bpy.ops.object.select_all(action='DESELECT')
         try:
             asset_data = get_selected_asset()
             File_path = asset_data.get("File_path", "")
             
-            if os.path.isfile(File_path):
-                append_asset(asset_data)
-            else:
-                dprint(f"{File_path} not a file")
-            
-            for obj in bpy.context.selected_objects:
-                if obj.type == "ARMATURE":
-                    root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
-                    cursor_location = bpy.context.scene.cursor.location # It's a 3D Cursor
-                    if root_bone:
-                        obj.pose.bones[root_bone.name].matrix.translation = cursor_location
-                
-                obj["MiBlend_ID"] = "Asset"
+            if not os.path.isfile(File_path):
+                dprint(f"{File_path} isn't a file") # Replace with AS
+                return {'CANCELLED'}
+        
+            append_asset(asset_data)
 
             return {'FINISHED'}
-        
         except Exception as error:
             Call_AS("n00", traceback.format_exc())
             return {'CANCELLED'}

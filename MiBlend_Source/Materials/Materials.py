@@ -133,6 +133,8 @@ def fix_world():
             bpy.ops.mesh.remove_doubles()
 
             bpy.ops.object.editmode_toggle()
+        
+        exporter = detect_world_exporter(selected_object)
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -159,12 +161,12 @@ def fix_world():
 
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
-                    if node.image.name.replace(".png", "").endswith("_y"):
-                        node.image.name = node.image.name.replace(".png", "")[-2:].replace("_y", "")
-                    elif node.image.name.replace(".png", "").endswith("_a"):
-                        node.node_tree.nodes.remove(node)
+                    if node.image:
+                        if node.image.name.replace(".png", "").endswith("_y") and exporter == "Mineways":
+                            node.image.name = node.image.name.replace("_y", "", 1)
+                        elif node.image.name.replace(".png", "").endswith("_a"):
+                            material.node_tree.nodes.remove(node)
                     node.interpolation = "Closest"
-
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node
                     image_texture_node = detect_texture_node(PBSDF)
@@ -687,8 +689,7 @@ def setproceduralpbr():
                         if vector_connection:
                             material.node_tree.links.new(vector_connection, PNormals.inputs['Vector'])
 
-                elif PProperties.revert_normals:
-                    
+                elif PProperties.revert_normals:   
                     if bump_node is not None:
                         material.node_tree.nodes.remove(bump_node)
                     
@@ -701,30 +702,28 @@ def setproceduralpbr():
                 PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
 
             # Use SSS                            
-            if PProperties.use_sss:
-                if name_in(SSS_Materials, material.name)[0] or PProperties.sss_skip:
-                    PBSDF.subsurface_method = PProperties.sss_type
+            if PProperties.use_sss and (name_in(SSS_Materials, material.name)[0] or PProperties.sss_skip):
+                PBSDF.subsurface_method = PProperties.sss_type
 
-                    if PProperties.connect_texture:
-                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
-                    else:
-                        RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
+                if PProperties.connect_texture:
+                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
+                else:
+                    RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                    if blender_version("4.x.x"):
-                        PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
-                        PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
-                    else:
-                        PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
+                if blender_version("4.x.x"):
+                    PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
+                    PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
+                else:
+                    PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
 
-                    PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
-            elif PProperties.revert_sss:
+                PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
+            elif not PProperties.use_sss and PProperties.revert_sss:
                 PBSDF.inputs[PBSDF_compability("Subsurface Weight")].default_value = 0
 
             # Use Translucency
-            if PProperties.use_translucency:
-                    if name_in(Translucent_Materials, material.name)[0]:
-                        PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
-            elif PProperties.revert_translucency:
+            if PProperties.use_translucency and name_in(Translucent_Materials, material.name)[0]:
+                PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
+            elif not PProperties.use_translucency and PProperties.revert_translucency:
                 PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
 
             # Make Metals                            
@@ -758,8 +757,7 @@ def setproceduralpbr():
                             if input_socket.name in material_properties:
                                 current_section = input_socket.name
                             elif current_section and current_section in material_properties:
-                                if value := material_properties.get(current_section, {}).get(input_socket.name):
-                                    input_socket.default_value = value
+                                input_socket.default_value = material_properties.get(current_section, {}).get(input_socket.name, input_socket.default_value)
 
                         Better_Emission_Dict = material_properties.get("Better Emission", {})
                         if PProperties.better_emission and Better_Emission_Dict:

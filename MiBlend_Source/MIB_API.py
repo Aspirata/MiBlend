@@ -25,7 +25,7 @@ def PBSDF_compability(Input: str) -> str:
 def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]):
     return max(min_value, min(value, max_value))
 
-def is_mesh(object):
+def is_mesh(object: object):
     return object.type == "MESH"
 
 def get_selected_asset() -> dict:
@@ -113,22 +113,22 @@ def get_pack_info_properties(pack: str =None) -> dict:
         pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
     return pack_info
 
-def EmissionMode(PBSDF, texture_name: str) -> int:
+def EmissionMode(PBSDF: object, texture_name: str) -> int:
 
     Preferences = bpy.context.preferences.addons[__package__].preferences
     
-    if Preferences.emissiondetection == 'Automatic & Manual' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name)[0]):
+    if Preferences.emissiondetection == 'Combined' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name, True)[0]):
         return 1
 
     elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
         return 2
     
-    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name)[0]:
+    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name, True)[0]:
         return 3
     
     return 0
 
-def create_node_group(place, node_tree_name : str, location : tuple = (0, 0), file : str = nodes_file, name : str ="", exists_check : bool = False):
+def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="",) -> object:
     if exists_check:
         for node in place:
             if node.type == "GROUP" and node.node_tree.name == node_tree_name:
@@ -237,7 +237,7 @@ def is_gray(name: str, is_material: bool =False, mode: str ="all"):
         return name_in(gray_blocks.get("water"), name, not is_material)[0]
     return False
 
-def detect_texture_node(PBSDF):
+def detect_texture_node(PBSDF: object):
 
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
@@ -280,7 +280,7 @@ def detect_texture_node(PBSDF):
         if n.type == "TEX_IMAGE" and n.image:
             return n
         
-def get_nodes_list(material_or_node_group, is_recursive: bool =False):
+def get_nodes_list(material_or_node_group: object, is_recursive: bool =False):
     nodes_list = []
     
     if hasattr(material_or_node_group, 'use_nodes') and not material_or_node_group.use_nodes:
@@ -296,7 +296,7 @@ def get_nodes_list(material_or_node_group, is_recursive: bool =False):
 
     return nodes_list
         
-def detect_image_texture(PBSDF):
+def detect_image_texture(PBSDF: object):
 
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
@@ -339,16 +339,36 @@ def detect_image_texture(PBSDF):
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
 
-def SeparateMeshByMaterial(obj, material = None):
+def detect_world_exporter(world_obj: object) -> str:
+    exporter = "unknown"
+
+    if not world_obj.data.materials:
+        return exporter
+        
+    for mat in world_obj.data.materials:
+        mat_name = mat.name
+        if mat_name.startswith("MAT_"):
+            exporter = "MiEx"
+            break
+        elif "MWO" in mat_name or mat_name.count('-') == 0:
+            exporter = "Mineways"
+            break
+        elif mat_name.count('-') == 1:
+            exporter = "jmc2obj"
+            break
+    
+    dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
+    return exporter
+
+def SeparateMeshByMaterial(obj: object, material = None):
     obj_name = obj.name
 
     if bpy.context.object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
 
+    bpy.ops.object.select_all(action='DESELECT')
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
-
-    bpy.ops.object.select_all(action='DESELECT')
 
     if len(obj.material_slots) <= 1 or not obj.material_slots:
         return
@@ -372,14 +392,23 @@ def SeparateMeshByMaterial(obj, material = None):
         bpy.ops.object.material_slot_select()
         bpy.ops.mesh.separate(type="SELECTED")
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.context.view_layer.objects.active = bpy.context.view_layer.objects.get(obj_name)
-        if not obj.name.startswith("Main | "):
-            obj.name = f"Main | {obj_name}"
-        bpy.ops.object.material_slot_remove()
-        new_obj = bpy.context.selected_objects[-1]
-        bpy.context.view_layer.objects.active = new_obj
-        bpy.ops.object.material_slot_remove_unused()
-        new_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
+        
+        separated_obj = None
+        for o in bpy.context.selected_objects:
+            if o != obj:
+                separated_obj = o
+                break
+                
+        if separated_obj:
+            bpy.context.view_layer.objects.active = obj
+            if not obj.name.startswith("Main | "):
+                obj.name = f"Main | {obj_name}"
+            bpy.ops.object.material_slot_remove()
+            
+            bpy.context.view_layer.objects.active = separated_obj
+            bpy.ops.object.material_slot_remove_unused()
+            separated_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
+            new_obj = separated_obj
     else:
         new_collection = bpy.data.collections.new(obj_name.split("__")[0].replace("Main | ", ""))
         obj.users_collection[-1].children.link(new_collection)
@@ -412,7 +441,7 @@ def Perf_Time(func):
             dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
     return wrapper
 
-def GetConnectedSocketFrom(output: str, node):
+def GetConnectedSocketFrom(output: str, node: object):
     try:
         output_socket = node.outputs.get(output)
 
@@ -426,7 +455,7 @@ def GetConnectedSocketFrom(output: str, node):
     except Exception as error:
         Call_AS("n00", error)
 
-def GetConnectedSocketTo(input: Union[str, int], node):
+def GetConnectedSocketTo(input: Union[str, int], node: object):
     try:
         if isinstance(input, int):
             if input >= len(node.inputs):
@@ -447,7 +476,7 @@ def GetConnectedSocketTo(input: Union[str, int], node):
     except Exception as error:
         Call_AS("n00", error)
 
-def RemoveLinksFrom(sockets):
+def RemoveLinksFrom(sockets: object):
     try:
         for socket in sockets:
             for link in socket.links:

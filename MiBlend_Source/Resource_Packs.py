@@ -161,6 +161,7 @@ def update_default_pack():
 
     # Adding Other Packs to the Scene
     if not os.path.exists(resource_packs_directory):
+        set_resource_packs(resource_packs)
         return
 
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as f:
@@ -529,11 +530,9 @@ def apply_resources():
         except:
             pass
 
-        if normal_map_node is None:
-            normal_map_node = material.node_tree.nodes.new("ShaderNodeNormalMap")
-            normal_map_node.location = (normal_texture_node.location.x + 280, normal_texture_node.location.y)
-            material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
-            material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
+        normal_map_node = create_node_group(material.node_tree.nodes, "Normal Map Fixed", (normal_texture_node.location.x + 280, normal_texture_node.location.y), exists_check=True)
+        material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
+        material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
         
         animate_texture(normal_texture_node, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
         return True
@@ -731,7 +730,7 @@ def apply_resources():
 
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node
-                
+
                 if node.type == "GROUP":
                     if "Animated;" in node.node_tree.name:
                         if re.search(r'_n$', node.node_tree.name.replace(".png", "")):
@@ -744,9 +743,12 @@ def apply_resources():
                             ITexture_Animator = node
                             image_texture = node.node_tree.name.replace("Animated; ", "") + ".png"
                         Current_node_tree = node.node_tree
-                    
-                    if node.node_tree.name == "LabPBR Specular":
+
+                    elif node.node_tree.name == "LabPBR Specular":
                         LabPBR_s = node
+                    
+                    elif node.node_tree.name == "Normal Map Fixed":
+                        normal_map_node = node
 
                 if node.type == "TEX_IMAGE" and node.image:
                     image_name = node.image.name.replace(".png", "")
@@ -759,9 +761,6 @@ def apply_resources():
                     else:
                         image_texture_node = node
                         image_texture = image_texture_node.image.name
-
-                if node.type == "NORMAL_MAP":
-                    normal_map_node = node
 
             if image_texture is None or image_texture_node is None:
                 dprint(f"{material} skipped, image or image node not found", is_deep=True, zone="rp")

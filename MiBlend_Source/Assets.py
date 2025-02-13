@@ -1,6 +1,5 @@
 from .MIB_API import *
 from .Data import assets_directory
-from .Properties import ScriptAssetProperties
 
 def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name", "")
@@ -9,8 +8,9 @@ def append_asset(asset_data):
     asset_collection = asset_data.get("Collection_name", asset_name)
 
     try:
+        dprint(f"Appending asset: {asset_name} ({asset_type})")
         if asset_type == "Rig" or asset_type == "Model":
-            append_collection(asset_name, asset_collection, asset_path)
+            append_collection(asset_collection, asset_path)
 
         elif asset_type == "Script":
             run_python_script(asset_name, asset_path)
@@ -30,20 +30,28 @@ def append_asset(asset_data):
     except Exception as error:
         Call_AS("e05", error, asset_name)
 
-def append_collection(asset_name, asset_collection, asset_path):
+def append_collection(asset_collection, asset_path):
+
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
         data_to.collections = [asset_collection]
 
     for collection in data_to.collections:
-        if collection:
-            bpy.context.collection.children.link(collection)
-    
+        if not collection:
+            continue
+
+        bpy.context.collection.children.link(collection)
+        for obj in collection.objects:
+            if obj.type == "ARMATURE":
+                root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
+                cursor_location = bpy.context.scene.cursor.location
+                if root_bone:
+                    obj.pose.bones[root_bone.name].matrix.translation = cursor_location
+            
+            obj["MiBlend_ID"] = "Asset"
+
 def run_python_script(name, path):
     try:
-        properties = {}
-        for asset in bpy.context.scene.assetsproperties.asset_items:
-            if asset.get("Asset_name", "") == name:
-                properties = {key.replace('_property', ''): value for key, value in asset.items() if 'property' in key}
+        properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
 
         context = globals().copy()
         context["properties"] = properties
@@ -64,13 +72,6 @@ def append_snode(asset_data):
     Blend_file = asset_data.get("File_path", "")
     Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
-    if Node_name not in bpy.data.node_groups:
-        try:
-            with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
-                data_to.node_groups = [Node_name]
-        except Exception as error:
-            Call_AS("e05", error, Node_name)
-
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
         dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
@@ -78,7 +79,6 @@ def append_snode(asset_data):
     elif Append_mode == "Every Selected":
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
-            Node = None
             if is_mesh(selected_object):
                 for index, material in enumerate(selected_object.data.materials):
                     avg_x = []
@@ -87,14 +87,8 @@ def append_snode(asset_data):
                         for node in material.node_tree.nodes:
                             avg_x.append(node.location.x)
                             avg_y.append(node.location.y)
-                            if node.type == 'GROUP':
-                                if Node_name in node.node_tree.name:
-                                    Node = node
 
-                        if Node == None:
-                            Node = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                            Node.node_tree = bpy.data.node_groups[Node_name]
-                            Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
+                        create_node_group(material.node_tree.nodes, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
             else:
                 Call_AS("w01", data=selected_object)
 
@@ -103,8 +97,7 @@ def append_snode(asset_data):
         avg_x = []
         avg_y = []
         active_obj = bpy.context.active_object
-        Node = None
-        if active_obj and active_obj.active_material:
+        if active_obj and is_mesh(selected_object) and active_obj.active_material:
             current_material = active_obj.active_material
             if current_material is not None and current_material.use_nodes:
                 for node in current_material.node_tree.nodes:
@@ -114,10 +107,7 @@ def append_snode(asset_data):
                         if Node_name in node.node_tree.name:
                             Node = node
 
-                if Node == None:
-                    Node = current_material.node_tree.nodes.new(type='ShaderNodeGroup')
-                    Node.node_tree = bpy.data.node_groups[Node_name]
-                    Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
+                create_node_group(material.node_tree.nodes, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
 
 def append_cnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
@@ -231,7 +221,7 @@ def update_assets():
 
     directories_to_scan = [assets_directory]
     
-    temp_assets_paths = bpy.context.scene.get("mib_options").get("temp_assets_paths")
+    temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", '')
     temp_assets_path_list = list(temp_assets_paths)
 
     if len(temp_assets_path_list) > 0:
