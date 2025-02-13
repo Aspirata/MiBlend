@@ -16,8 +16,6 @@ https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 
 ## Контрибуторы:
 
-### .anonim4ik - Векторный Сamera Culling, ГеоНода Alpha Selector, ГеоНода Wind
-
 ### zipi.zip - Риги
 Ссылки:  
 - https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg  

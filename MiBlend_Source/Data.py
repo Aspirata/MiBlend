@@ -312,25 +312,7 @@ Emissive_Materials = {
         },
     },
     "candle lit": {},
-    "large amethyst bud": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 2,
-        },
-    },
-    "medium amethyst bud": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 2,
-        },
-    },
-    "small amethyst bud": {
-        "Better Emission": {
-            "From Min": 0,
-            "From Max": 2,,
-        },
-    },
-    "amethyst cluster": {
+    "amethyst": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 2,
@@ -355,7 +337,7 @@ Emissive_Materials = {
             "To Max": 1.5,
         },
     },
-        "furnace north on": {
+    "furnace north on": {
         "Better Emission": {
             "From Min": 0,
             "From Max": 1.5,
@@ -380,7 +362,7 @@ Emissive_Materials = {
     },
     "smoker front on": {
         "Better Emission": {
-            "From Min": 0,4,
+            "From Min": 0.4,
             "From Max": 1,
         },
         "Procedural Animation": {
@@ -390,7 +372,7 @@ Emissive_Materials = {
     },
    "smoker north on": {
         "Better Emission": {
-            "From Min": 0,4,
+            "From Min": 0.4,
             "From Max": 1,
         },
         "Procedural Animation": {
@@ -398,5 +380,4 @@ Emissive_Materials = {
             "To Max": 1.5,
         },
     },
-
 }

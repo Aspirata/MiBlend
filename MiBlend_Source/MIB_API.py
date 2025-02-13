@@ -103,15 +103,17 @@ def override_setting(setting_name: str, default_value: str) -> bool:
 
 def get_pack_info_properties(pack: str =None) -> dict:
     resource_packs_directory = get_resource_path()
-    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
-        data = json.load(file)
-        
-        if pack is None:
-            return data.keys()
-        
-        pack_list = data.get(pack, {})
-        pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
-    return pack_info
+    if os.path.exists(resource_packs_directory):
+        with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+            data = json.load(file)
+            
+            if pack is None:
+                return data.keys()
+            
+            pack_list = data.get(pack, {})
+            pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
+        return pack_info
+    return {}
 
 def EmissionMode(PBSDF: object, texture_name: str) -> int:
 
@@ -151,17 +153,25 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
     return group_node
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
+    obj = bpy.data.objects.get(obj_name)
+    if obj is None:
+        dprint(f"Object {obj_name} not found", is_deep=True, zone="rp")
+        return "unknown"
 
-    if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item": # Add check in the pack_info.json
+    miblend_id = obj.get("MiBlend ID", "")
+    obj_name_lower = obj_name.lower()
+    mat_name_lower = mat_name.lower()
+
+    if "item" in obj_name_lower or "item" in mat_name_lower or miblend_id == "item":
         dprint(f"{obj_name}; {mat_name} is an item", is_deep=True, zone="rp")
         return "item"
     
-    elif "block" in obj_name or "block" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "block":
+    elif "block" in obj_name_lower or "block" in mat_name_lower or miblend_id == "block":
         dprint(f"{obj_name}; {mat_name} is a block", is_deep=True, zone="rp")
         return "block"
     
-    elif "entity" in obj_name or "entity" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "entity":
-        dprint(f"{obj_name}; {mat_name} is a entity", is_deep=True, zone="rp")
+    elif "entity" in obj_name_lower or "entity" in mat_name_lower or miblend_id == "entity":
+        dprint(f"{obj_name}; {mat_name} is an entity", is_deep=True, zone="rp")
         return "entity"
     
     dprint(f"{obj_name}; {mat_name} is unknown", is_deep=True, zone="rp")

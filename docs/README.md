@@ -16,8 +16,6 @@ To Install Experimental Brach as addon you need to you can go to https://github.
 
 ## Contributors:
 
-### .anonim4ik - Vector Camera Culling, Alpha Selector GeoNode, Wind GeoNode
-
 ### zipi.zip - Rigs
 
 Links:
