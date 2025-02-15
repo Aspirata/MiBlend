@@ -378,7 +378,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     change_bsdf: BoolProperty(
-        name="Change BSDF Settings",
+        name="Change PBSDF Settings",
         default=True,
         description=""
     )

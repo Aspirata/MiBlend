@@ -53,8 +53,8 @@
             },
 
             {
-              "title": "📝 Релизы 📝",
-              "href": "https://github.com/Aspirata/MiBlend/releases"
+              "title": "Placeholder",
+              "href": "https://youtu.be/dQw4w9WgXcQ?si=2AaW6HfvziJQrntv"
             }
           ]
         },
@@ -65,11 +65,13 @@
           [
             {
               "title": "GitHub",
+              "icon": "github",
               "href": "https://github.com/Aspirata/MiBlend"
             },
             
             {
               "title": "Discord",
+              "icon": "discord",
               "href": "https://discord.gg/ahHRywSFH4"
             }
           ]
@@ -80,8 +82,13 @@
           "pages":
           [
             {
-              "title": "Discord",
-              "href": "https://discord.gg/ahHRywSFH4"
+              "title": "🌍 World & Materials",
+              "href": "./ru/world-materials-panel"
+            },
+
+            {
+              "title": "📦 Assets",
+              "href": "./ru/assets-pannel"
             }
           ]
         },
@@ -91,8 +98,8 @@
           "pages":
           [
             {
-              "title": "Discord",
-              "href": "https://discord.gg/ahHRywSFH4"
+              "title": "Placeholder",
+              "href": "https://youtu.be/dQw4w9WgXcQ?si=2AaW6HfvziJQrntv"
             }
           ]
         }
