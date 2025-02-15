@@ -40,6 +40,7 @@ def get_selected_asset() -> dict:
         else:
             Call_AS("n00", traceback.format_exc())
 
+# Checks if the version_name is a valid version number and returns the formatted version number else returns None
 def mc_version_formatter(version_name: str) -> Optional[str]:
     try:
         version_parts = re.split(r'[ -]', version_name)
@@ -50,7 +51,9 @@ def mc_version_formatter(version_name: str) -> Optional[str]:
     except Exception as error:
         Call_AS("n00", error)
 
-def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> Optional[tuple[bool, str]]:
+# Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
+# Array filters: " ; " - not, " " - and
+def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> tuple[bool, Optional[str]]:
     if is_texture:
         name = format_texture_name(material_or_texture_name)
     else:
@@ -202,12 +205,8 @@ def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool
             
         if is_deep and not Preferences.deep_debug:
             return
-            
-        if separate:
-            for message in messages:
-                print(message)
-        else:
-            print(*messages)
+        
+        print(*messages, sep="\n" if separate else "")
             
     except Exception as e:
         print(f"Debug print error: {str(e)}")
@@ -499,7 +498,6 @@ def blender_version(blender_version: str) -> bool:
     try:
         version_parts = blender_version.split(" ")
         if len(blender_version.split()) != 1:
-            
             operator = version_parts[0]
             major, minor, patch = version_parts[1].lower().split(".")
             version = (int(major), int(minor), int(patch))

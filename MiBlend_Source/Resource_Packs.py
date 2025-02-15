@@ -7,7 +7,11 @@ from urllib.parse import urlparse
 from distutils.version import LooseVersion
 
 def get_resource_packs() -> list:
-    return bpy.context.scene["resource_packs"]
+    try:
+        return bpy.context.scene["resource_packs"]
+    except Exception as error:
+        dprint(error, "cannot find resource packs attr, creating new one with update_default_pack()")
+        update_default_pack()
 
 def set_resource_packs(resource_packs):
     bpy.context.scene["resource_packs"] = resource_packs

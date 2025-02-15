@@ -1,0 +1,90 @@
+---
+title: Инструкция по установке бранча
+description: Здесь вы узнаете как установить любой бранч MiBlend
+---
+
+<Tabs>
+    <TabItem label="Windows" value="windows">
+
+        <Steps>
+            <Step title="Скачайте любой бранч" icon="download">
+                Перейдите на [гитхаб](https://github.com/Aspirata/MiBlend) и скачайте бранч.
+            </Step>
+
+            <Step title="Установите Python" icon="python">
+                Установите python с [официального сайта](https://www.python.org/downloads/)
+            </Step>
+
+            <Step title="Запустите build_windows.bat" icon="file-code">
+                Запустите ```build_windows.bat```, который находится в корневой папке бранча.
+                Скрипт сам скачает все зависимости.
+            </Step>
+
+            <Step title="Готово" icon="check">
+                Теперь MiBlend установлен на каждой версии блендера выше 3.6 !
+            </Step>
+        </Steps>
+    </TabItem>
+
+    <TabItem label="Linux" value="linux">
+
+        <Steps>
+            <Step title="Скачайте любой бранч" icon="download">
+                <Tabs>
+                    <TabItem label="Arch" value="arch">
+                        ```bash
+                        sudo pacman -S git
+                        git clone название_ветки https://github.com/Aspirata/MiBlend
+                        ```
+                    </TabItem>
+
+                    <TabItem label="Debian" value="debian">
+                        ```bash
+                        sudo apt install git
+                        git clone название_ветки https://github.com/Aspirata/MiBlend
+                        ```
+                    </TabItem>
+
+                    <TabItem label="Fedora" value="fedora">
+                        ```bash
+                        sudo dnf install git
+                        git clone название_ветки https://github.com/Aspirata/MiBlend
+                        ```
+                    </TabItem>
+                </Tabs>
+            </Step>
+
+            <Step title="Установите Python" icon="python">
+                Установите python через пакетник вашего дистрибутива.
+                <Tabs>
+                    <TabItem label="Arch" value="arch">
+                        ```bash
+                        sudo pacman -S python
+                        ```
+                    </TabItem>
+
+                    <TabItem label="Debian" value="debian">
+                        ```bash
+                        sudo apt install python3
+                        ```
+                    </TabItem>
+
+                    <TabItem label="Fedora" value="fedora">
+                        ```bash
+                        sudo dnf install python3
+                        ```
+                    </TabItem>
+                </Tabs>
+            </Step>
+
+            <Step title="Запустите build_linux.sh" icon="file-code">
+                Запустите ```build_linux.sh```, который находится в корневой папке бранча.
+                Скрипт сам скачает все зависимости.
+            </Step>
+
+            <Step title="Готово" icon="check">
+                Теперь MiBlend установлен на каждой версии блендера выше 3.6 !
+            </Step>
+        </Steps>
+    </TabItem>
+</Tabs>

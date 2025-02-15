@@ -10,7 +10,7 @@
 
 https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
 
-Чтобы установить эксперементальный бранч как аддон, вы можете перейти по ссылке: https://github.com/Aspirata/MiBlend/actions/workflows/Addon%20Build.yaml и скачать артефакт из последней автоматической сборки (**Для скачивания нужен аккаунт гитхаб !**) **ИЛИ**, если вы разработчик посмотрите https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/How to Build_ru.md.  
+Чтобы установить эксперементальный бранч как аддон, вы можете перейти по ссылке: https://github.com/Aspirata/MiBlend/actions/workflows/Addon%20Build.yaml и скачать артефакт из последней автоматической сборки (**Для скачивания нужен аккаунт гитхаб !**) **ИЛИ**, если вы разработчик посмотрите на вики [инструкцию](https://docs.page/Aspirata/MiBlend/ru/genius-zone/how-to-build).
 
 ### Если вы хотите стать участником разработки (помочь с риггингом, кодингом), вы можете связаться со мной в Discord (aspirata) или на [официальном сервере MiBlend в Discord](https://discord.gg/Kf4VsZQz22).  
 

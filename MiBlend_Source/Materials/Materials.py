@@ -669,6 +669,10 @@ def setproceduralpbr():
                             PNormals.node_tree = Current_node_tree
                             PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
 
+                        for node in Current_node_tree.nodes:
+                            if node.type == "TEX_IMAGE":
+                                node.image = image
+                        
                         if image.size[0] > image.size[1]:
                             image_difference_X = image.size[1] / image.size[0]
 
