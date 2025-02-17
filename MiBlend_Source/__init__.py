@@ -92,7 +92,6 @@ def delayed_init():
         return None
     return 0.1
 
-
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -100,6 +99,9 @@ def register():
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
             bpy.utils.register_class(cls)
+        
+        bpy.types.Scene.utils_properties: bpy.props.PointerProperty(type=UtilsProperties)
+        bpy.types.Scene.optimization_properties: bpy.props.PointerProperty(type=OptimizationProperties)
 
     class MiBlendProperties(bpy.types.PropertyGroup):
         world_properties: bpy.props.PointerProperty(type=WorldProperties)
@@ -108,8 +110,6 @@ def register():
         env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
         ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
         assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
-        utilsproperties: bpy.props.PointerProperty(type=UtilsProperties)
-        optimizationproperties: bpy.props.PointerProperty(type=OptimizationProperties)
 
     bpy.utils.register_class(MiBlendProperties)
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
@@ -120,6 +120,13 @@ def register():
     bpy.app.timers.register(delayed_init)
 
 def unregister():
+    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
+        for cls in deprecated_classes:
+            bpy.utils.unregister_class(cls)
+        
+        del bpy.types.Scene.utils_properties
+        del bpy.types.Scene.optimization_properties
+            
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
     

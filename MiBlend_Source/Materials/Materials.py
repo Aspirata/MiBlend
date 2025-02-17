@@ -125,7 +125,7 @@ def fix_world():
             Call_AS("w01", data=selected_object)
             continue
 
-        if Preferences.dev_tools and Preferences.experimental_features and WProperties.remove_doubles:
+        if Preferences.experimental_features and WProperties.remove_doubles:
             bpy.ops.object.editmode_toggle()
             
             bpy.ops.mesh.select_all(action='SELECT')
@@ -790,7 +790,7 @@ def setproceduralpbr():
                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                 material.node_tree.nodes.remove(better_animate_node)
 
-            if Preferences.dev_tools and Preferences.experimental_features:
+            if Preferences.experimental_features:
                 if PProperties.proughness:
                     if proughness_node is None:
                         proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')

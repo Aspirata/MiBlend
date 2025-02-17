@@ -22,6 +22,11 @@ class MiBlendPreferences(AddonPreferences):
         default=override_setting("enable_deprecated_features", False)
     )
 
+    experimental_features: BoolProperty(
+        name="Experimental Features",
+        default=override_setting("experimental_features", False)
+    )
+
     mc_instances_path: StringProperty(
         name="Minecraft Instances Folder",
         subtype="DIR_PATH"
@@ -91,11 +96,6 @@ class MiBlendPreferences(AddonPreferences):
         default=override_setting("uas_debug_mode", False)
     )
 
-    experimental_features: BoolProperty(
-        name="Experimental Features",
-        default=override_setting("experimental_features", False)
-    )
-
     open_console_on_start: BoolProperty(
         name="Open Console On Start",
         default=override_setting("open_console_on_start", False)
@@ -154,6 +154,9 @@ class MiBlendPreferences(AddonPreferences):
         row.prop(self, "enable_deprecated_features")
 
         row = box.row()
+        row.prop(self, "experimental_features")
+
+        row = box.row()
         row.prop(self, "mc_instances_path")
         
         box = layout.box()
@@ -193,9 +196,6 @@ class MiBlendPreferences(AddonPreferences):
 
             row = box.row()
             row.prop(self, "perf_time", toggle=True)
-
-            row = box.row()
-            row.prop(self, "experimental_features", toggle=True)
 
             if not sys.platform.startswith('linux'):
                 row = box.row()

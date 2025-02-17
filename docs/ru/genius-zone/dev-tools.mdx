@@ -39,12 +39,27 @@ dprint(f"Material: {material.name}", is_deep=True, zone="fw")
 ### Поднастройки
 
 * **Deep Debug** - Режим глубокой отладки, например для отладки функций по нахождению текстур в ресурс-паках
+* **UASv2 Debug Mode** - Режим отладки для UASv2
+* **Resource Packs Debug Mode** - Режим отладки для ресурс-паков
 * **Fix World Debug Mode** - Режим отладки для Fix World
-* **Fix World Debug Mode** - Режим отладки для Fix Materials
+* **Fix Material Debug Mode** - Режим отладки для Fix Materials
+* **UI Debug Mode** - Режим отладки для UI
 
 ## Debug Tools
 Описание: Функции для отладки
 
 Добавляет в UI кнопки для отладки. Например, чтобы удалить список ассетов или список ресурс-паков
 
-##
+## Perf_time
+Описание: Декоратор для измерения времени выполнения кода
+
+### Как использовать ?
+Пример:
+```python
+@ Perf_Time
+def fix_world(): ...
+```
+
+## Dev Resource Packs Path
+Описание: Путь к папке с ресурс-паками
+
