@@ -205,7 +205,7 @@ def fix_world():
                 material.use_backface_culling = True
 
                 if bfc_node is None:
-                    bfc_node = create_node_group(material.node_tree.nodes, "Backface Culling", (PBSDF.location.x - 170, PBSDF.location.y - 110))
+                    bfc_node = create_node_group(material, "Backface Culling", (PBSDF.location.x - 170, PBSDF.location.y - 110))
 
                 if alpha_connection and alpha_connection.node != bfc_node:
                     material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
@@ -223,7 +223,7 @@ def fix_world():
                 texture_parts = format_texture_name(image.name)
 
                 if lbcf_node is None:
-                    lbcf_node = create_node_group(material.node_tree.nodes, "Lazy Biome Color Fix", (PBSDF.location.x - 170, PBSDF.location.y - 20))
+                    lbcf_node = create_node_group(material, "Lazy Biome Color Fix", (PBSDF.location.x - 170, PBSDF.location.y - 20))
 
                 if base_color_connection and base_color_connection.node != lbcf_node:
                     material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
@@ -276,7 +276,7 @@ def fix_world():
                     material.node_tree.nodes.remove(Texture_Animator)
 
                 if auvf_node is None:
-                    auvf_node = create_node_group(material.node_tree.nodes, "Animated UV Fix", (image_texture_node.location.x - 200, image_texture_node.location.y - 220))
+                    auvf_node = create_node_group(material, "Animated UV Fix", (image_texture_node.location.x - 200, image_texture_node.location.y - 220))
 
                 if vector_connection and vector_connection.node != auvf_node:
                     material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
@@ -459,7 +459,7 @@ def create_env(mode=None):
 
             output_node = [node for node in fog_material.node_tree.nodes if node.type == "OUTPUT_MATERIAL"][0]
             fog_material.node_tree.nodes.remove(GetConnectedSocketTo(0, output_node).node)
-            fog_node = create_node_group(fog_material.node_tree.nodes, fog_node_tree_name, (output_node.location.x - 200, output_node.location.y))
+            fog_node = create_node_group(fog_material, fog_node_tree_name, (output_node.location.x - 200, output_node.location.y))
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
 
             bpy.context.scene.eevee.volumetric_end = fog_node.inputs["Max Distance"].default_value
@@ -747,7 +747,7 @@ def setproceduralpbr():
                     material_properties = Emissive_Materials[item]
                     if len(material_properties) >= 1:
                         if better_animate_node is None:
-                            better_animate_node = create_node_group(material.node_tree.nodes, "Procedurally Animated Better Emission", (PBSDF.location.x - 200, PBSDF.location.y - 265))
+                            better_animate_node = create_node_group(material, "Procedurally Animated Better Emission", (PBSDF.location.x - 200, PBSDF.location.y - 265))
 
                         if PProperties.randomize and not any(mod for mod in selected_object.modifiers if mod.type == "NODES" and "Random Face Value" in mod.node_group.name):
                             with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):

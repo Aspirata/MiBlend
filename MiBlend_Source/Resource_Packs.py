@@ -534,7 +534,7 @@ def apply_resources():
         except:
             pass
 
-        normal_map_node = create_node_group(material.node_tree.nodes, "Normal Map Fixed", (normal_texture_node.location.x + 280, normal_texture_node.location.y), exists_check=True)
+        normal_map_node = create_node_group(material, "Normal Map Fixed", (normal_texture_node.location.x + 280, normal_texture_node.location.y), exists_check=True)
         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
         

@@ -44,8 +44,7 @@
         {
             "Name": "Legacy Component",
             "Description": "{Data}. Some features may not work correctly.",
-            "Warning": "Reloading All Scene Lists will reset your settings !",
-            "Solutions": "resource_pack.update_default_pack; "
+            "Solutions": "as_solutions.update_components; "
         },
 
         "02":

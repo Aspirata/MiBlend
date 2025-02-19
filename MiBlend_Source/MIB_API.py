@@ -135,7 +135,7 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
 
 def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="",) -> object:
     if exists_check:
-        for node in place:
+        for node in place.node_tree.nodes:
             if node.type == "GROUP" and node.node_tree.name == node_tree_name:
                 return node
         
@@ -146,7 +146,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
         except Exception as error:
             Call_AS("e03", file, error)
 
-    group_node = place.new(type='ShaderNodeGroup')
+    group_node = place.node_tree.nodes.new(type='ShaderNodeGroup')
     if name != "":
         group_node.name = name
     

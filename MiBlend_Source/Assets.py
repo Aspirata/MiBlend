@@ -56,8 +56,6 @@ def run_python_script(name, path):
         context = globals().copy()
         context["properties"] = properties
 
-        context["properties"] = properties
-
         with open(path, 'r') as file:
             script = file.read()
 
@@ -73,41 +71,32 @@ def append_snode(asset_data):
     Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
     if os.path.isfile(Script_path):
-        run_python_script(asset_data.get("Asset_name"), Script_path)
         dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
+        run_python_script(asset_data.get("Asset_name"), Script_path)
 
     elif Append_mode == "Every Selected":
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
             if is_mesh(selected_object):
                 for index, material in enumerate(selected_object.data.materials):
-                    avg_x = []
-                    avg_y = []
                     if material is not None and material.use_nodes:
-                        for node in material.node_tree.nodes:
-                            avg_x.append(node.location.x)
-                            avg_y.append(node.location.y)
+                        nodes_list = material.node_tree.nodes
+                        avg_x = [node.location.x for node in nodes_list]
+                        avg_y = [node.location.y for node in nodes_list]
 
-                        create_node_group(material.node_tree.nodes, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
-            else:
-                Call_AS("w01", data=selected_object)
+                        create_node_group(material, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
 
     elif Append_mode == "Active Only":
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
-        avg_x = []
-        avg_y = []
         active_obj = bpy.context.active_object
-        if active_obj and is_mesh(selected_object) and active_obj.active_material:
+        if active_obj and is_mesh(active_obj) and active_obj.active_material:
             current_material = active_obj.active_material
             if current_material is not None and current_material.use_nodes:
-                for node in current_material.node_tree.nodes:
-                    avg_x.append(node.location.x)
-                    avg_y.append(node.location.y)
-                    if node.type == 'GROUP':
-                        if Node_name in node.node_tree.name:
-                            Node = node
+                nodes_list = current_material.node_tree.nodes
+                avg_x = [node.location.x for node in nodes_list]
+                avg_y = [node.location.y for node in nodes_list]
 
-                create_node_group(material.node_tree.nodes, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
+                create_node_group(current_material, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
 
 def append_cnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
