@@ -5,12 +5,12 @@ def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name", "")
     asset_path = asset_data.get("File_path", "")
     asset_type = asset_data.get("Type", "")
-    asset_collection = asset_data.get("Collection_name", asset_name)
+    asset_collection = asset_data.get("Collection_name", "Root")
 
     try:
         dprint(f"Appending asset: {asset_name} ({asset_type})")
         if asset_type == "Rig" or asset_type == "Model":
-            append_collection(asset_collection, asset_path)
+            append_collection(asset_name, asset_collection, asset_path)
 
         elif asset_type == "Script":
             run_python_script(asset_name, asset_path)
@@ -30,10 +30,18 @@ def append_asset(asset_data):
     except Exception as error:
         Call_AS("e05", error, asset_name)
 
-def append_collection(asset_collection, asset_path):
+def append_collection(asset_name, asset_collection, asset_path):
 
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
-        data_to.collections = [asset_collection]
+        if not data_from.collections:
+            Call_AS("05", data=asset_name)
+            return
+        
+        if asset_collection == "Root":
+            first_collection = data_from.collections[0]
+            data_to.collections = [first_collection]
+        else:
+            data_to.collections = [asset_collection]
 
     for collection in data_to.collections:
         if not collection:
@@ -113,7 +121,6 @@ def append_cnode(asset_data):
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
         dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
-
     else:
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         avg_x = []

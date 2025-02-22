@@ -1,5 +1,7 @@
 import bpy
+from ..MIB_API import * 
 from bpy.types import Operator
+from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
 class Update_Components_Solution(Operator):
     bl_idname = "as_solutions.update_components"

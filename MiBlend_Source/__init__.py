@@ -5,6 +5,7 @@ from .Assets import update_assets
 from .Utils.Absolute_Solver import AbsoluteSolverPanel
 from .Resource_Packs import update_default_pack
 from .UI import *
+from .Utils.AS_Solutions import *
 from .Operators import *
 from .Properties import *
 from bpy.app.handlers import persistent
@@ -44,7 +45,7 @@ def init_on_start():
         old_components_dict = dict(mib_options.get("components_vesion", {}))
         new_components_dict = {
             "MiBlend": "Butterfly",
-            "UAS": "v2.1.3",
+            "UAS": "v2.1.4",
             "Absolute Solver": "v2.0",
         }
 
@@ -77,7 +78,7 @@ classes = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
     SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator,
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, Update_Components_Solution,
 ]
 
 deprecated_classes = [OptimizationPanel, OptimizationProperties, OptimizeOperator, UtilsPanel, UtilsProperties, SetRenderSettingsOperator, AssingVertexGroupOperator]

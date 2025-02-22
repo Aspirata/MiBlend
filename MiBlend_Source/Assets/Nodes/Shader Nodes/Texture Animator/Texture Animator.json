@@ -1,0 +1,11 @@
+{
+    "Format_version": "10",
+    "Asset_name": "Texture Animator",
+    "Author": "Aspirata",
+    "File_path": "Nodes\\Shader Nodes\\Texture Animator\\Texture Animator",
+    "Node_name": "Texture Animator",
+    "Force Interpolation_property": false,
+    "Randomize Speed_property": false,
+    "Frametime_property": 20,
+    "Tags": ["Shader Node", "Node"]
+}

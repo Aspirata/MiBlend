@@ -133,6 +133,28 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
     
     return 0
 
+def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file):
+    if modifier_type_or_node_group.isupper():
+        modifier = object.modifiers.get(modifier_name) if modifier_name else None
+        if not modifier:
+            if modifier_name:
+                modifier = object.modifiers.new(modifier_name, type=modifier_type_or_node_group)
+            else:
+                modifiers = [mod for mod in object.modifiers if mod.type == modifier_type_or_node_group]
+                modifier = modifiers[0] if modifiers else object.modifiers.new(modifier_type_or_node_group, type=modifier_type_or_node_group)
+    else:
+        if modifier_type_or_node_group not in bpy.data.node_groups:
+            try:
+                with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
+                    data_to.node_groups = [modifier_type_or_node_group]
+            except Exception as error:
+                Call_AS("e03", file, error)
+
+        modifier = object.modifiers.new(modifier_name, type='NODES')
+        modifier.node_group = bpy.data.node_groups[modifier_type_or_node_group]
+    
+    return modifier
+
 def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="",) -> object:
     if exists_check:
         for node in place.node_tree.nodes:
@@ -191,6 +213,12 @@ def format_material_name(material_name: str, split: bool =True) -> str:
         return format_duplicate_name(material_name).lower().replace("-", "_").split("_")
     else:
         return format_duplicate_name(material_name).lower().replace("-", "_")
+
+def find_node(place: object, type: str, node_group_name=None):
+    if node_group_name:
+        return [node for node in place.node_tree.nodes if node.type == "GROUP" and node.node_tree.name == node_group_name][0]
+    else:
+        return [node for node in place.node_tree.nodes if node.type == type][0]
 
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:

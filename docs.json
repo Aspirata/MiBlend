@@ -73,6 +73,18 @@
               "title": "Discord",
               "icon": "discord",
               "href": "https://discord.gg/ahHRywSFH4"
+            },
+
+            {
+              "title": "YouTube",
+              "icon": "youtube",
+              "href": "https://www.youtube.com/@Aspirata1421"
+            },
+
+            {
+              "title": "Boosty",
+              "icon": "hand-holding-dollar",
+              "href": "https://boosty.to/aspirata_mc"
             }
           ]
         },
@@ -98,8 +110,13 @@
           "pages":
           [
             {
-              "title": "Placeholder",
-              "href": "https://youtu.be/dQw4w9WgXcQ?si=2AaW6HfvziJQrntv"
+              "title": "Инструменты разработчика",
+              "href": "./ru/genius-zone/dev-tools"
+            },
+
+            {
+              "title": "Инструкция по установке бранча",
+              "href": "./ru/genius-zone/how-to-build"
             }
           ]
         }
