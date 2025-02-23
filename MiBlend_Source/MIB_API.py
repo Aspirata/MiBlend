@@ -40,6 +40,7 @@ def get_selected_asset() -> dict:
         else:
             Call_AS("n00", traceback.format_exc())
 
+# Checks if the version_name is a valid version number and returns the formatted version number else returns None
 def mc_version_formatter(version_name: str) -> Optional[str]:
     try:
         version_parts = re.split(r'[ -]', version_name)
@@ -50,7 +51,9 @@ def mc_version_formatter(version_name: str) -> Optional[str]:
     except Exception as error:
         Call_AS("n00", error)
 
-def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> Optional[tuple[bool, str]]:
+# Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
+# Array filters: " ; " - not, " " - and
+def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> tuple[bool, Optional[str]]:
     if is_texture:
         name = format_texture_name(material_or_texture_name)
     else:
@@ -103,15 +106,17 @@ def override_setting(setting_name: str, default_value: str) -> bool:
 
 def get_pack_info_properties(pack: str =None) -> dict:
     resource_packs_directory = get_resource_path()
-    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
-        data = json.load(file)
-        
-        if pack is None:
-            return data.keys()
-        
-        pack_list = data.get(pack, {})
-        pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
-    return pack_info
+    if os.path.exists(resource_packs_directory):
+        with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+            data = json.load(file)
+            
+            if pack is None:
+                return data.keys()
+            
+            pack_list = data.get(pack, {})
+            pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
+        return pack_info
+    return {}
 
 def EmissionMode(PBSDF: object, texture_name: str) -> int:
 
@@ -128,12 +133,45 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
     
     return 0
 
-def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="",) -> object:
-    if exists_check:
-        for node in place:
-            if node.type == "GROUP" and node.node_tree.name == node_tree_name:
-                return node
+def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file):
+    # Check if modifier already exists
+    if modifier_name:
+        existing_modifier = object.modifiers.get(modifier_name)
+        if existing_modifier:
+            return existing_modifier
+
+    # Handle built-in Blender modifiers
+    if modifier_type_or_node_group.isupper():
+        modifiers = [mod for mod in object.modifiers if mod.type == modifier_type_or_node_group]
+        if modifiers and not modifier_name:
+            return modifiers[0]
         
+        name = modifier_name if modifier_name else modifier_type_or_node_group
+        modifier = object.modifiers.new(name, type=modifier_type_or_node_group)
+    
+    # Handle geometry node groups
+    else:
+        if modifier_type_or_node_group not in bpy.data.node_groups:
+            try:
+                with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
+                    data_to.node_groups = [modifier_type_or_node_group]
+            except Exception as error:
+                Call_AS("e03", file, error)
+
+        name = modifier_name if modifier_name else modifier_type_or_node_group
+        modifier = object.modifiers.new(name, type='NODES')
+        modifier.node_group = bpy.data.node_groups[modifier_type_or_node_group]
+    
+    return modifier
+
+def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="") -> object:
+    # Check for existing node group if requested
+    if exists_check:
+        existing_node = next((node for node in place.node_tree.nodes if node.type == "GROUP" and node.node_tree.name == node_tree_name), None)
+        if existing_node:
+            return existing_node
+    
+    # Load node group if not already in data
     if node_tree_name not in bpy.data.node_groups:
         try:
             with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
@@ -141,8 +179,9 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
         except Exception as error:
             Call_AS("e03", file, error)
 
-    group_node = place.new(type='ShaderNodeGroup')
-    if name != "":
+    # Create and configure new node
+    group_node = place.node_tree.nodes.new(type='ShaderNodeGroup')
+    if name:
         group_node.name = name
     
     group_node.node_tree = bpy.data.node_groups[node_tree_name]
@@ -151,17 +190,25 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
     return group_node
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
+    obj = bpy.data.objects.get(obj_name)
+    if obj is None:
+        dprint(f"Object {obj_name} not found", is_deep=True, zone="rp")
+        return "unknown"
 
-    if "item" in obj_name or "item" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "item": # Add check in the pack_info.json
+    miblend_id = obj.get("MiBlend ID", "")
+    obj_name_lower = obj_name.lower()
+    mat_name_lower = mat_name.lower()
+
+    if "item" in obj_name_lower or "item" in mat_name_lower or miblend_id == "item":
         dprint(f"{obj_name}; {mat_name} is an item", is_deep=True, zone="rp")
         return "item"
     
-    elif "block" in obj_name or "block" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "block":
+    elif "block" in obj_name_lower or "block" in mat_name_lower or miblend_id == "block":
         dprint(f"{obj_name}; {mat_name} is a block", is_deep=True, zone="rp")
         return "block"
     
-    elif "entity" in obj_name or "entity" in mat_name or bpy.data.objects[obj_name].get("MiBlend ID", None) == "entity":
-        dprint(f"{obj_name}; {mat_name} is a entity", is_deep=True, zone="rp")
+    elif "entity" in obj_name_lower or "entity" in mat_name_lower or miblend_id == "entity":
+        dprint(f"{obj_name}; {mat_name} is an entity", is_deep=True, zone="rp")
         return "entity"
     
     dprint(f"{obj_name}; {mat_name} is unknown", is_deep=True, zone="rp")
@@ -179,6 +226,16 @@ def format_material_name(material_name: str, split: bool =True) -> str:
     else:
         return format_duplicate_name(material_name).lower().replace("-", "_")
 
+def find_node(place: object, type_or_node_group_name: str):
+    nodes_list = place.node_tree.nodes
+    if type_or_node_group_name.isupper():
+        matching_nodes = [node for node in nodes_list if node.type == type_or_node_group_name]
+    else:
+        matching_nodes = [node for node in nodes_list if node.type == "GROUP" and node.node_tree.name == type_or_node_group_name]
+    
+    if matching_nodes:
+        return matching_nodes[0]
+    return None
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:
         Preferences = bpy.context.preferences.addons[__package__].preferences
@@ -192,12 +249,8 @@ def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool
             
         if is_deep and not Preferences.deep_debug:
             return
-            
-        if separate:
-            for message in messages:
-                print(message)
-        else:
-            print(*messages)
+        
+        print(*messages, sep="\n" if separate else "")
             
     except Exception as e:
         print(f"Debug print error: {str(e)}")
@@ -489,7 +542,6 @@ def blender_version(blender_version: str) -> bool:
     try:
         version_parts = blender_version.split(" ")
         if len(blender_version.split()) != 1:
-            
             operator = version_parts[0]
             major, minor, patch = version_parts[1].lower().split(".")
             version = (int(major), int(minor), int(patch))

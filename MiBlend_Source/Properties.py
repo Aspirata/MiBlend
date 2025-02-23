@@ -378,7 +378,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     change_bsdf: BoolProperty(
-        name="Change BSDF Settings",
+        name="Change PBSDF Settings",
         default=True,
         description=""
     )
@@ -834,3 +834,11 @@ class AssetsProperties(PropertyGroup):
         description="",
         default=True
         )
+    
+class MiBlendProperties(bpy.types.PropertyGroup):
+    world_properties: bpy.props.PointerProperty(type=WorldProperties)
+    resource_properties: bpy.props.PointerProperty(type=ResourcePackProperties)
+    materials_properties: bpy.props.PointerProperty(type=MaterialsProperties)
+    env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
+    ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
+    assets_properties: bpy.props.PointerProperty(type=AssetsProperties)

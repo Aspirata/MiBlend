@@ -498,25 +498,7 @@ class RemoveAsset(Operator):
     
     def execute(self, context):
         try:
-            current_asset = get_selected_asset()
-
-            properties = {key: value for key, value in current_asset.items() if 'property' in key.lower()}
-
-            file_path = current_asset.get("File_path", "")
-            json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
-
-        
-            with open(json_file_path, 'r') as json_file:
-                asset_data = json.load(json_file)
-
-            for key, value in properties.items():
-                if key in asset_data:
-                    asset_data[key] = value
-
-            with open(json_file_path, 'w') as json_file:
-                json.dump(asset_data, json_file, indent=4)
-            
-            self.report({'INFO'}, f"Properties saved to {json_file_path}")
+            NotImplemented
             return {'FINISHED'}
         
         except Exception as error:
@@ -614,8 +596,15 @@ class CreateAsset(Operator):
     bl_label = "Create Asset"
     bl_options = {'REGISTER', 'UNDO'}
 
+    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+
     def execute(self, context):
+        
         return {'FINISHED'} # Placeholder
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"

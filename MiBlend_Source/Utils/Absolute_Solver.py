@@ -103,7 +103,9 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                 if solution_operator == "":
                     continue
                 row = sbox.row()
-                row.operator(solution_operator)
+                solution = row.operator(solution_operator)
+                if hasattr(solution, "description"):
+                    solution.description = self.Description
 
         if self.Tech_Things != "":
             sbox = box.box()

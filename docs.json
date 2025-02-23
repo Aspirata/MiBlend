@@ -1,19 +1,23 @@
 {
   "name": "MiBlend Wiki",
   "description": "Multilingual documentation",
-  "sidebar": [
+  "sidebar": 
+  [
     {
       "group": "Main",
-      "pages": [
+      "pages": 
+      [
         {
           "title": "Welcome",
           "href": "/"
         }
       ]
     },
+
     {
       "group": "English",
-      "pages": [
+      "pages": 
+      [
         {
           "title": "FAQ",
           "href": "/en/faq"
@@ -22,25 +26,99 @@
     },
     {
       "group": "Русский",
-      "pages": [
+      "pages": 
+      [
         {
-          "title": "Домашняя Страница",
+          "title": "🏠 Домашняя Страница",
           "href": "/ru/home"
         },
 
         {
-          "title": "Последняя версия",
-          "href": "/ru/last-update"
+          "group": "ℹ️ Информация",
+          "pages": 
+          [
+            {
+              "title": "🎉 Последняя версия 🎉",
+              "href": "/ru/last-update"
+            },
+
+            {
+              "title": "❓ ЧАВО ❓",
+              "href": "/ru/faq"
+            },
+
+            {
+              "title": "О MiBlend",
+              "href": "/ru/about"
+            },
+
+            {
+              "title": "Placeholder",
+              "href": "https://youtu.be/dQw4w9WgXcQ?si=2AaW6HfvziJQrntv"
+            }
+          ]
         },
 
         {
-          "title": "ЧАВО",
-          "href": "/ru/faq"
+          "group": "🔗 Ссылки",
+          "pages":
+          [
+            {
+              "title": "GitHub",
+              "icon": "github",
+              "href": "https://github.com/Aspirata/MiBlend"
+            },
+            
+            {
+              "title": "Discord",
+              "icon": "discord",
+              "href": "https://discord.gg/ahHRywSFH4"
+            },
+
+            {
+              "title": "YouTube",
+              "icon": "youtube",
+              "href": "https://www.youtube.com/@Aspirata1421"
+            },
+
+            {
+              "title": "Boosty",
+              "icon": "hand-holding-dollar",
+              "href": "https://boosty.to/aspirata_mc"
+            }
+          ]
         },
 
         {
-          "title": "О MiBlend",
-          "href": "/ru/about"
+          "group": "🖼️ Панели",
+          "pages":
+          [
+            {
+              "title": "🌍 World & Materials",
+              "href": "./ru/world-materials-panel"
+            },
+
+            {
+              "title": "📦 Assets",
+              "href": "./ru/assets-pannel"
+            }
+          ]
+        },
+
+        {
+          "group": "🤓 Зона для Гениев",
+          "pages":
+          [
+            {
+              "title": "Инструменты разработчика",
+              "href": "./ru/genius-zone/dev-tools"
+            },
+
+            {
+              "title": "Инструкция по установке бранча",
+              "href": "./ru/genius-zone/how-to-build"
+            }
+          ]
         }
       ]
     }

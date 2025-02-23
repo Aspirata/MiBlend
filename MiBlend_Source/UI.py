@@ -39,7 +39,7 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
-        if Preferences.dev_tools and Preferences.experimental_features:
+        if Preferences.experimental_features:
             row = box.row()
             row.prop(WProperties, "remove_doubles")
 
@@ -584,7 +584,7 @@ class WorldAndMaterialsPanel(Panel):
             row = sbox.row()
             row.prop(scene.miblend_properties.ppbr_properties, "randomize")
         
-        if Preferences.dev_tools and Preferences.experimental_features:
+        if Preferences.experimental_features:
             row = box.row()
             row.prop(scene.miblend_properties.ppbr_properties, "pspecular")
             row.prop(scene.miblend_properties.ppbr_properties, "pspecular_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.pspecular_settings else "TRIA_LEFT"), icon_only=True)

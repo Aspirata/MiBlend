@@ -7,7 +7,11 @@ from urllib.parse import urlparse
 from distutils.version import LooseVersion
 
 def get_resource_packs() -> list:
-    return bpy.context.scene["resource_packs"]
+    try:
+        return bpy.context.scene["resource_packs"]
+    except Exception as error:
+        dprint(error, "cannot find resource packs attr, creating new one with update_default_pack()")
+        update_default_pack()
 
 def set_resource_packs(resource_packs):
     bpy.context.scene["resource_packs"] = resource_packs
@@ -30,41 +34,92 @@ Launchers = {
         "TL Legacy": "Unknown",
     }
 }
+            
+def find_mc() -> tuple[str, str]:
+    versions = {}
+    Preferences = bpy.context.preferences.addons[__package__].preferences
+    current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
+    os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
 
-def update_pack(pack: str):
+    for launcher, path in Launchers.get(current_os).items():
+        if path == "Unknown":
+            continue
+        folders = os.path.join(os_env, path)
+        if os.path.isdir(folders):
+            for folder in os.listdir(folders):
+                instance_path = None
+                if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
+                    versions[version] = (folder, os.path.join(os_env, path))
+                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
+                else:
+                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
+    
+    if Preferences.mc_instances_path:
+        folders = Preferences.mc_instances_path
+        if os.path.isdir(folders):
+            for folder in os.listdir(folders):
+                instance_path = None
+                if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
+                    versions[version] = (folder, Preferences.mc_instances_path)
+                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
+                else:
+                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
+        
+    if versions:
+        latest_version = max(versions, key=lambda x: LooseVersion(x))
+        latest_file, latest_path = versions[latest_version]
+        return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
+    
+    return None, None
+
+def update_pack(pack: str, connection=None):
     resource_packs_directory = get_resource_path()
+    
     try:
         with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
             data = json.load(file)
             pack_data = data.get(pack, {})
-            pack_info = (pack_data.get("mc_version"), pack_data.get("pack_version"))
+            pack_info = (pack_data.get("mc_version", "Unknown"), pack_data.get("pack_version", "Unknown"))
             link = pack_data.get("link")
-            type = pack_data.get("type", "Texture & PBR")
-
+            type_ = pack_data.get("type", "Texture & PBR")
+        
         if not link or "modrinth" not in link:
             return None
-
-        connection = http.client.HTTPSConnection("api.modrinth.com")
+        
+        if connection is None:
+            connection = http.client.HTTPSConnection("api.modrinth.com")
+            created_connection = True
+        else:
+            created_connection = False
+        
         api_path = f"/v2/project/{pack.lower().replace(' ', '-')}/version"
-
         connection.request("GET", api_path)
         response = connection.getresponse()
         
         if response.status != 200:
             dprint(f"Error {response.status}", is_deep=True, zone="rp")
+            if created_connection:
+                connection.close()
             return None
         
         versions = json.loads(response.read().decode("utf-8"))
         
         if not versions:
+            if created_connection:
+                connection.close()
             return None
         
         latest_version = max(versions, key=lambda v: v["date_published"])
         latest_pack_info = (latest_version["game_versions"], latest_version["version_number"], latest_version["files"][0]["url"])
-
         pack_path = os.path.join(resource_packs_directory, pack)
-        needs_update = not (all(pack_info[0] >= v for v in latest_pack_info[0]) and pack_info[1] >= latest_pack_info[1]) or not os.path.exists(pack_path) or (pack_info[0] == "Unknown" and pack_info[1] == "Unknown")
-
+        
+        needs_update = (
+            not all(LooseVersion(pack_info[0]) >= LooseVersion(v) for v in latest_pack_info[0]) or
+            LooseVersion(pack_info[1]) < LooseVersion(latest_pack_info[1]) or
+            not os.path.exists(pack_path) or
+            pack_info == ("Unknown", "Unknown")
+        )
+        
         if needs_update:
             dprint(f"Downloading pack: {pack} from {latest_pack_info[2]}", is_deep=True, zone="rp")
             if os.path.exists(pack_path):
@@ -73,7 +128,7 @@ def update_pack(pack: str):
             filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
             urlretrieve(latest_pack_info[2], filename)
             
-            with zipfile.ZipFile(filename, 'r') as zip_ref:
+            with ZipFile(filename, 'r') as zip_ref:
                 zip_ref.extractall(pack_path)
             os.remove(filename)
             
@@ -82,7 +137,7 @@ def update_pack(pack: str):
                 data[pack] = {
                     "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
                     "pack_version": latest_pack_info[1],
-                    "type": type,
+                    "type": type_,
                     "link": link
                 }
                 f.seek(0)
@@ -90,91 +145,65 @@ def update_pack(pack: str):
                 f.truncate()
             
             dprint("Successfully Downloaded!", is_deep=True, zone="rp")
-
+        
+        if created_connection:
+            connection.close()
+    
     except Exception as e:
         dprint(f"Error: {e}", is_deep=True, zone="rp")
-        return None
-    finally:
-        if 'connection' in locals():
+        if connection and created_connection:
             connection.close()
-            
-def find_mc() -> tuple[str, str]:
-        versions = {}
-        Preferences = bpy.context.preferences.addons[__package__].preferences
-        current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
-        os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
-
-        for launcher, path in Launchers.get(current_os).items():
-            if path == "Unknown":
-                continue
-            folders = os.path.join(os_env, path)
-            if os.path.isdir(folders):
-                for folder in os.listdir(folders):
-                    instance_path = None
-                    if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
-                        versions[version] = (folder, os.path.join(os_env, path))
-                        dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-                    else:
-                        dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
-        
-        if Preferences.mc_instances_path:
-            folders = Preferences.mc_instances_path
-            if os.path.isdir(folders):
-                for folder in os.listdir(folders):
-                    instance_path = None
-                    if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
-                        versions[version] = (folder, Preferences.mc_instances_path)
-                        dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-                    else:
-                        dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
-            
-        if versions:
-            latest_version = max(versions, key=lambda x: LooseVersion(x))
-            latest_file, latest_path = versions[latest_version]
-            return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
-        
-        return None, None
+        return None
 
 @Perf_Time
 def update_default_pack():
     resource_packs = dict(bpy.context.scene["resource_packs"])
     resource_packs_directory = get_resource_path()
-
-    #Delete current default packs
-    packs_to_remove = []
-    for pack, pack_info in resource_packs.items():
-        if pack_info.get("is_default", False):
-            packs_to_remove.append(pack)
     
+    packs_to_remove = [pack for pack, pack_info in resource_packs.items() if pack_info.get("is_default", False)]
     for pack in packs_to_remove:
         del resource_packs[pack]
     
-    # Minecraft Pack
     version, path = find_mc()
-    if version != None and path != None:
+    if version is not None and path is not None:
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": (path), "type": "Texture", "enabled": True, "is_default": True}
+        resource_packs[default_pack] = {"path": path, "type": "Texture", "enabled": True, "is_default": True}
         dprint(resource_packs[default_pack]["path"])
     else:
         print("MC instance not found")
-
-    # Adding Other Packs to the Scene
+    
     if not os.path.exists(resource_packs_directory):
         set_resource_packs(resource_packs)
         return
-
+    
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as f:
         data = json.load(f)
+        
+        connection = http.client.HTTPSConnection("api.modrinth.com")
+        
         for pack in data:
             if pack not in os.listdir(resource_packs_directory):
-                resource_packs[pack] = {"path": os.path.join(resource_packs_directory, pack), "type": data[pack]["type"], "enabled": True, "is_default": False}
-            update_pack(pack)
-
+                resource_packs[pack] = {
+                    "path": os.path.join(resource_packs_directory, pack),
+                    "type": data[pack]["type"],
+                    "enabled": True,
+                    "is_default": False
+                }
+            
+            update_pack(pack, connection=connection)
+            
             default_pack = pack
             default_path = os.path.join(resource_packs_directory, default_pack)
             default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
-            resource_packs[default_pack] = {"path": default_path, "type": default_type, "enabled": False, "is_default": True}
+            resource_packs[default_pack] = {
+                "path": default_path,
+                "type": default_type,
+                "enabled": False,
+                "is_default": True
+            }
+        
+        connection.close()
     
     set_resource_packs(resource_packs)
 
@@ -433,6 +462,11 @@ def apply_resources():
                     
                         for socket in GetConnectedSocketFrom("Alpha", texture_node):
                             material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], socket)
+                        
+                        vector_connection = GetConnectedSocketTo("Vector", texture_node)
+
+                        if vector_connection is not None and vector_connection.node != ITexture_Animator:
+                            material.node_tree.links.new(vector_connection, ITexture_Animator.inputs["Vector"])
 
                         material.node_tree.nodes.remove(texture_node)
 
@@ -442,7 +476,7 @@ def apply_resources():
                 ITexture_Animator.inputs["Randomize Speed"].default_value = r_props.randomize_speed
 
             else:
-                if ITexture_Animator is not None:
+                if ITexture_Animator:
                     texture_node = material.node_tree.nodes.new(type='ShaderNodeTexImage')
                     texture_node.location = ITexture_Animator.location
                     texture_node.image = image_texture
@@ -457,16 +491,12 @@ def apply_resources():
                     material.node_tree.nodes.remove(ITexture_Animator)
 
                 if Texture_Animator is None:
-                    if "Texture Animator" not in bpy.data.node_groups:
-                        try:
-                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                                data_to.node_groups = ["Texture Animator"]
-                        except:
-                            Call_AS("e03", "Materials.blend", traceback.format_exc())
-                
-                    Texture_Animator = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                    Texture_Animator.node_tree = bpy.data.node_groups["Texture Animator"]
-                    Texture_Animator.location = (texture_node.location.x - 200, texture_node.location.y - 60)
+                   Texture_Animator = create_node_group(material, "Texture Animator", (texture_node.location.x - 200, texture_node.location.y - 60))
+
+                vector_connection = GetConnectedSocketTo("Vector", texture_node)
+
+                if vector_connection is not None and vector_connection.node != Texture_Animator:
+                    material.node_tree.links.new(vector_connection, Texture_Animator.inputs["Vector"])
 
                 material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
             
@@ -530,7 +560,7 @@ def apply_resources():
         except:
             pass
 
-        normal_map_node = create_node_group(material.node_tree.nodes, "Normal Map Fixed", (normal_texture_node.location.x + 280, normal_texture_node.location.y), exists_check=True)
+        normal_map_node = create_node_group(material, "Normal Map Fixed", (normal_texture_node.location.x + 280, normal_texture_node.location.y), exists_check=True)
         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
         

@@ -5,6 +5,7 @@ from .Assets import update_assets
 from .Utils.Absolute_Solver import AbsoluteSolverPanel
 from .Resource_Packs import update_default_pack
 from .UI import *
+from .Utils.AS_Solutions import *
 from .Operators import *
 from .Properties import *
 from bpy.app.handlers import persistent
@@ -44,14 +45,14 @@ def init_on_start():
         old_components_dict = dict(mib_options.get("components_vesion", {}))
         new_components_dict = {
             "MiBlend": "Butterfly",
-            "UAS": "v2.1.3",
+            "UAS": "v2.1.4",
             "Absolute Solver": "v2.0",
         }
 
         for component, component_version in old_components_dict.items():
-            if component not in new_components_dict or component_version != new_components_dict.get(component) and component != "Absolute Solver" and component != "Index":
-                #Call_AS("e01", data=f"{component} is outdated ({component_version} -> {new_components_dict.get(component)})")
-                dprint(f"{component} is outdated ({component_version} -> {new_components_dict.get(component)})")
+            if component not in ["Absolute Solver", "Index"]:
+                if component not in new_components_dict or component_version != new_components_dict.get(component):
+                    dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 
         if hasattr(bpy.context.scene, "world_properties") or hasattr(bpy.context.scene, "resource_properties") or hasattr(bpy.context.scene, "materials_properties") \
         or hasattr(bpy.context.scene, "env_properties") or hasattr(bpy.context.scene, "ppbr_properties") or hasattr(bpy.context.scene, "assetsproperties"):
@@ -72,12 +73,12 @@ def init_on_start():
 classes = [
     MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties,
+    PPBRProperties, AssetTagItem, AssetsProperties, MiBlendProperties,
     WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
     SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator,
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, Update_Components_Solution,
 ]
 
 deprecated_classes = [OptimizationPanel, OptimizationProperties, OptimizeOperator, UtilsPanel, UtilsProperties, SetRenderSettingsOperator, AssingVertexGroupOperator]
@@ -92,7 +93,6 @@ def delayed_init():
         return None
     return 0.1
 
-
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -100,18 +100,10 @@ def register():
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
             bpy.utils.register_class(cls)
+        
+        bpy.types.Scene.utils_properties: bpy.props.PointerProperty(type=UtilsProperties)
+        bpy.types.Scene.optimization_properties: bpy.props.PointerProperty(type=OptimizationProperties)
 
-    class MiBlendProperties(bpy.types.PropertyGroup):
-        world_properties: bpy.props.PointerProperty(type=WorldProperties)
-        resource_properties: bpy.props.PointerProperty(type=ResourcePackProperties)
-        materials_properties: bpy.props.PointerProperty(type=MaterialsProperties)
-        env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
-        ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
-        assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
-        utilsproperties: bpy.props.PointerProperty(type=UtilsProperties)
-        optimizationproperties: bpy.props.PointerProperty(type=OptimizationProperties)
-
-    bpy.utils.register_class(MiBlendProperties)
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
     
     if on_scene_load not in bpy.app.handlers.load_post:
@@ -120,12 +112,17 @@ def register():
     bpy.app.timers.register(delayed_init)
 
 def unregister():
+    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
+        for cls in deprecated_classes:
+            bpy.utils.unregister_class(cls)
+        
+        del bpy.types.Scene.utils_properties
+        del bpy.types.Scene.optimization_properties
+            
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-    
-    if hasattr(bpy.types.Scene, "miblend_properties"):
-        delattr(bpy.types.Scene, "miblend_properties")
-        bpy.utils.unregister_class(MiBlendProperties)
+
+    del bpy.types.Scene.miblend_properties
 
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
