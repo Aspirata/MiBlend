@@ -222,8 +222,6 @@ def fix_world():
             if WProperties.lazy_biome_fix and is_gray(image.name):
                 texture_parts = format_texture_name(image.name)
 
-                
-
                 if lbcf_node is None:
                     lbcf_node = create_node_group(material, "Lazy Biome Color Fix", (PBSDF.location.x - 170, PBSDF.location.y - 20))
 

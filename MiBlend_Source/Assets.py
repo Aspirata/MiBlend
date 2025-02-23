@@ -27,8 +27,8 @@ def append_asset(asset_data):
         elif asset_type == "Material":
             append_material(asset_data)
         
-    except Exception as error:
-        Call_AS("e05", error, asset_name)
+    except:
+        Call_AS("e05", traceback.format_exc(), asset_name)
 
 def append_collection(asset_name, asset_collection, asset_path):
 
@@ -58,19 +58,15 @@ def append_collection(asset_name, asset_collection, asset_path):
             obj["MiBlend_ID"] = "Asset"
 
 def run_python_script(name, path):
-    try:
-        properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
+    properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
 
-        context = globals().copy()
-        context["properties"] = properties
+    context = globals().copy()
+    context["properties"] = properties
 
-        with open(path, 'r') as file:
-            script = file.read()
+    with open(path, 'r') as file:
+        script = file.read()
 
-        exec(script, context)
-
-    except Exception as error:
-        Call_AS("e06", error, name)
+    exec(script, context)
 
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
@@ -278,7 +274,7 @@ def update_assets():
                         assets_list.append(asset_info)
                     except Exception as error:
                         Call_AS("e06", error, asset_data.get("Asset_name"))
-    
+                        
     for asset in sorted(assets_list, key=lambda x: x["Asset_name"]):
         item = items.add()
         for key, value in asset.items():

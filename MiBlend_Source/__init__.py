@@ -50,9 +50,9 @@ def init_on_start():
         }
 
         for component, component_version in old_components_dict.items():
-            if component != "Absolute Solver" and component != "Index" and component not in new_components_dict or component_version != new_components_dict.get(component):
-                #Call_AS("e01", data=f"{component} is outdated ({component_version} -> {new_components_dict.get(component)})")
-                dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
+            if component not in ["Absolute Solver", "Index"]:
+                if component not in new_components_dict or component_version != new_components_dict.get(component):
+                    dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 
         if hasattr(bpy.context.scene, "world_properties") or hasattr(bpy.context.scene, "resource_properties") or hasattr(bpy.context.scene, "materials_properties") \
         or hasattr(bpy.context.scene, "env_properties") or hasattr(bpy.context.scene, "ppbr_properties") or hasattr(bpy.context.scene, "assetsproperties"):

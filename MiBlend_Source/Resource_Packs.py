@@ -465,7 +465,7 @@ def apply_resources():
                         
                         vector_connection = GetConnectedSocketTo("Vector", texture_node)
 
-                        if vector_connection is not None:
+                        if vector_connection is not None and vector_connection.node != ITexture_Animator:
                             material.node_tree.links.new(vector_connection, ITexture_Animator.inputs["Vector"])
 
                         material.node_tree.nodes.remove(texture_node)
@@ -495,7 +495,7 @@ def apply_resources():
 
                 vector_connection = GetConnectedSocketTo("Vector", texture_node)
 
-                if vector_connection is not None:
+                if vector_connection is not None and vector_connection.node != Texture_Animator:
                     material.node_tree.links.new(vector_connection, Texture_Animator.inputs["Vector"])
 
                 material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])

@@ -134,14 +134,22 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
     return 0
 
 def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file):
+    # Check if modifier already exists
+    if modifier_name:
+        existing_modifier = object.modifiers.get(modifier_name)
+        if existing_modifier:
+            return existing_modifier
+
+    # Handle built-in Blender modifiers
     if modifier_type_or_node_group.isupper():
-        modifier = object.modifiers.get(modifier_name) if modifier_name else None
-        if not modifier:
-            if modifier_name:
-                modifier = object.modifiers.new(modifier_name, type=modifier_type_or_node_group)
-            else:
-                modifiers = [mod for mod in object.modifiers if mod.type == modifier_type_or_node_group]
-                modifier = modifiers[0] if modifiers else object.modifiers.new(modifier_type_or_node_group, type=modifier_type_or_node_group)
+        modifiers = [mod for mod in object.modifiers if mod.type == modifier_type_or_node_group]
+        if modifiers and not modifier_name:
+            return modifiers[0]
+        
+        name = modifier_name if modifier_name else modifier_type_or_node_group
+        modifier = object.modifiers.new(name, type=modifier_type_or_node_group)
+    
+    # Handle geometry node groups
     else:
         if modifier_type_or_node_group not in bpy.data.node_groups:
             try:
@@ -150,17 +158,20 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
             except Exception as error:
                 Call_AS("e03", file, error)
 
-        modifier = object.modifiers.new(modifier_name, type='NODES')
+        name = modifier_name if modifier_name else modifier_type_or_node_group
+        modifier = object.modifiers.new(name, type='NODES')
         modifier.node_group = bpy.data.node_groups[modifier_type_or_node_group]
     
     return modifier
 
-def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="",) -> object:
+def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="") -> object:
+    # Check for existing node group if requested
     if exists_check:
-        for node in place.node_tree.nodes:
-            if node.type == "GROUP" and node.node_tree.name == node_tree_name:
-                return node
-        
+        existing_node = next((node for node in place.node_tree.nodes if node.type == "GROUP" and node.node_tree.name == node_tree_name), None)
+        if existing_node:
+            return existing_node
+    
+    # Load node group if not already in data
     if node_tree_name not in bpy.data.node_groups:
         try:
             with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
@@ -168,8 +179,9 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
         except Exception as error:
             Call_AS("e03", file, error)
 
+    # Create and configure new node
     group_node = place.node_tree.nodes.new(type='ShaderNodeGroup')
-    if name != "":
+    if name:
         group_node.name = name
     
     group_node.node_tree = bpy.data.node_groups[node_tree_name]
@@ -214,12 +226,16 @@ def format_material_name(material_name: str, split: bool =True) -> str:
     else:
         return format_duplicate_name(material_name).lower().replace("-", "_")
 
-def find_node(place: object, type: str, node_group_name=None):
-    if node_group_name:
-        return [node for node in place.node_tree.nodes if node.type == "GROUP" and node.node_tree.name == node_group_name][0]
+def find_node(place: object, type_or_node_group_name: str):
+    nodes_list = place.node_tree.nodes
+    if type_or_node_group_name.isupper():
+        matching_nodes = [node for node in nodes_list if node.type == type_or_node_group_name]
     else:
-        return [node for node in place.node_tree.nodes if node.type == type][0]
-
+        matching_nodes = [node for node in nodes_list if node.type == "GROUP" and node.node_tree.name == type_or_node_group_name]
+    
+    if matching_nodes:
+        return matching_nodes[0]
+    return None
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:
         Preferences = bpy.context.preferences.addons[__package__].preferences
