@@ -52,12 +52,15 @@ def init_on_start():
         for component, component_version in old_components_dict.items():
             if component not in ["Absolute Solver", "Index"]:
                 if component not in new_components_dict or component_version != new_components_dict.get(component):
+                    Call_AS("e01", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
                     dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 
         if hasattr(bpy.context.scene, "world_properties") or hasattr(bpy.context.scene, "resource_properties") or hasattr(bpy.context.scene, "materials_properties") \
         or hasattr(bpy.context.scene, "env_properties") or hasattr(bpy.context.scene, "ppbr_properties") or hasattr(bpy.context.scene, "assetsproperties"):
-            Call_AS("e01", data="Properties from MiBlend v0.6.x or below")
-
+            for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties", "script_asset_properties"]:
+                if hasattr(bpy.context.scene, prop):
+                    delattr(bpy.context.scene, prop)
+                    
         mib_options["components_vesion"] = new_components_dict
 
         if "temp_assets_paths" not in mib_options:
@@ -78,7 +81,7 @@ classes = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
     SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, Update_Components_Solution,
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, Recreate_Lists_Solution,
 ]
 
 deprecated_classes = [OptimizationPanel, OptimizationProperties, OptimizeOperator, UtilsPanel, UtilsProperties, SetRenderSettingsOperator, AssingVertexGroupOperator]

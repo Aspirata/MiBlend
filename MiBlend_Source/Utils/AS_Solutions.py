@@ -1,26 +1,21 @@
 import bpy
 from ..MIB_API import * 
+from ..Resource_Packs import update_default_pack
 from bpy.types import Operator
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
-class Update_Components_Solution(Operator):
-    bl_idname = "as_solutions.update_components"
-    bl_label = "Update Components"
+class Recreate_Lists_Solution(Operator):
+    bl_idname = "as_solutions.recreate_lists"
+    bl_label = "Recreate Lists"
     bl_options = {'REGISTER', 'UNDO'}
 
-    description: StringProperty()
+    description: StringProperty(
+        name="Description",
+        default=""
+    )
 
     def execute(self, context):
-        try:
-            del bpy.types.Scene.world_properties
-            del bpy.types.Scene.resource_properties
-            del bpy.types.Scene.materials_properties
-            del bpy.types.Scene.env_properties
-            del bpy.types.Scene.ppbr_properties
-            del bpy.types.Scene.optimizationproperties
-            del bpy.types.Scene.utilsproperties
-            del bpy.types.Scene.assetsproperties
-            del bpy.types.Scene.script_asset_properties
-        except:
-            return {"CANCELLED"}
+        if bpy.context.scene.get("resource_packs"):
+            bpy.context.scene["resource_packs"] = {}
+            update_default_pack()
         return {'FINISHED'}

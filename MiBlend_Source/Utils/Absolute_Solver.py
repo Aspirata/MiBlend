@@ -95,19 +95,17 @@ class AbsoluteSolverPanel(bpy.types.Operator):
         row = sbox.row()
         row.label(text=f"{translate('Description')}: {self.Description}")
 
-        if self.Solutions != "":
+        if self.Solutions:
             sbox = box.box()
             row = sbox.row()
             row.label(text=f"{translate('Solutions')}:")
             for solution_operator in self.Solutions.split("; "):
-                if solution_operator == "":
-                    continue
                 row = sbox.row()
                 solution = row.operator(solution_operator)
                 if hasattr(solution, "description"):
                     solution.description = self.Description
 
-        if self.Tech_Things != "":
+        if self.Tech_Things:
             sbox = box.box()
             row = sbox.row()
             row.operator("special.open_console")

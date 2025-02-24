@@ -390,7 +390,7 @@ def apply_resources():
                 for user in Users:
                     user.image = user_texture
 
-    def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None):
+    def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None, object: object=None):
         Texture_Animator = None
         auvf_node = None
         if new_image_texture_path == "" and texture_node is None:
@@ -408,6 +408,9 @@ def apply_resources():
                 
                 elif "Animated UV Fix" in node.node_tree.name:
                     auvf_node = node
+        
+        if r_props.randomize_speed:
+            add_modifier(object, "Random Face Value")
 
         if r_props.animate_textures:
             if int(image_texture.size[1] / image_texture.size[0]) <= 1:
@@ -564,7 +567,7 @@ def apply_resources():
         material.node_tree.links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
         material.node_tree.links.new(normal_map_node.outputs["Normal"], PBSDF.inputs["Normal"])
         
-        animate_texture(normal_texture_node, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path)
+        animate_texture(normal_texture_node, new_normal_image_path, NTexture_Animator, Current_node_tree, image_path, object=selected_object)
         return True
         
     def specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
@@ -668,7 +671,7 @@ def apply_resources():
                 RemoveLinksFrom(LabPBR_s.outputs["Emission Strength"])
                 RemoveLinksFrom(PBSDF.inputs[PBSDF_compability("Emission Color")])
 
-            animate_texture(specular_texture_node, new_specular_image_path, STexture_Animator, Current_node_tree, image_path)
+            animate_texture(specular_texture_node, new_specular_image_path, STexture_Animator, Current_node_tree, image_path, object=selected_object)
             return new_specular_image_path
         
         return False
@@ -716,7 +719,7 @@ def apply_resources():
         else:
             RemoveLinksFrom(emission_texture_node.outputs["Alpha"])
 
-        animate_texture(emission_texture_node, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path)
+        animate_texture(emission_texture_node, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path, object=selected_object)
         return True
 
     for selected_object in bpy.context.selected_objects:
@@ -808,7 +811,7 @@ def apply_resources():
                 continue
 
             if not r_props.use_i:
-                animate_texture(image_texture_node, "", ITexture_Animator, Current_node_tree)
+                animate_texture(image_texture_node, "", ITexture_Animator, Current_node_tree, object=selected_object)
             else:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
@@ -821,7 +824,7 @@ def apply_resources():
                             
                         update_texture(new_image_path, image_texture)
                         
-                        animate_texture(image_texture_node, new_image_path, ITexture_Animator, Current_node_tree)
+                        animate_texture(image_texture_node, new_image_path, ITexture_Animator, Current_node_tree, object=selected_object)
                         image_path = new_image_path
                         break
 
@@ -847,7 +850,7 @@ def apply_resources():
                     if normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
                         break
             else:
-                animate_texture(normal_texture_node, "", NTexture_Animator, Current_node_tree)
+                animate_texture(normal_texture_node, "", NTexture_Animator, Current_node_tree, object=selected_object)
 
                 if NTexture_Animator is not None:
                     material.node_tree.nodes.remove(NTexture_Animator)
@@ -872,7 +875,7 @@ def apply_resources():
                         break
             
             else:
-                animate_texture(specular_texture_node, "", STexture_Animator, Current_node_tree)
+                animate_texture(specular_texture_node, "", STexture_Animator, Current_node_tree, object=selected_object)
 
                 if STexture_Animator is not None:
                     material.node_tree.nodes.remove(STexture_Animator)
@@ -909,7 +912,7 @@ def apply_resources():
                         break
 
             else:
-                animate_texture(emission_texture_node, "", ETexture_Animator, Current_node_tree)
+                animate_texture(emission_texture_node, "", ETexture_Animator, Current_node_tree, object=selected_object)
 
                 if ETexture_Animator is not None:
                     material.node_tree.nodes.remove(ETexture_Animator)

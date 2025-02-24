@@ -35,6 +35,9 @@ for selected_object in bpy.context.selected_objects:
 
     if int(image_texture.size[1] / image_texture.size[0]) <= 1:
         continue
+
+    if randomize_speed:
+        add_modifier(object, "Random Face Value")
         
     if interpolate:
         if Texture_Animator:

@@ -44,7 +44,7 @@
         {
             "Name": "Legacy Component",
             "Description": "{Data}. Some features may not work correctly.",
-            "Solutions": "as_solutions.update_components; "
+            "Solutions": "as_solutions.recreate_lists; "
         },
 
         "02":
