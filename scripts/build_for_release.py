@@ -18,6 +18,8 @@ def archive_folder(folder_name, output_archive_name, milestone_index):
     temp_dir = os.path.join(os.path.dirname(output_archive_name), "_temp_archive")
     os.makedirs(temp_dir, exist_ok=True)
 
+    Milestone_Index_line = 48
+
     try:
         temp_folder_path = os.path.join(temp_dir, os.path.basename(folder_name))
         shutil.copytree(folder_name, temp_folder_path)
@@ -29,14 +31,13 @@ def archive_folder(folder_name, output_archive_name, milestone_index):
                     lines = init_file.readlines()
                     if milestone_index.replace("_", "").isdigit():
                         lines.insert(16, f'    "warning": "This is Milestone {milestone_index}",\n')
-                        lines.insert(46, f'        "Milestone": "{milestone_index}",\n')
+                        lines.insert(Milestone_Index_line, f'            "Milestone": "{milestone_index}",\n')
                     elif isinstance(milestone_index, str):
-                        lines.insert(45, f'        "Index": "{milestone_index.capitalize()}",\n')
+                        lines.insert(Milestone_Index_line, f'            "Index": "{milestone_index.capitalize()}",\n')
                     init_file.seek(0)
                     init_file.writelines(lines)
             else:
                 print(f"File '__init__.py' not found in folder '{folder_name}'.")
-
 
         shutil.make_archive(output_archive_name, 'zip', temp_dir)
         print(f"Folder '{folder_name}' successfully archived to '{output_archive_name}.zip'.")
