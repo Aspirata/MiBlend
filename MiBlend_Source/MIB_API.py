@@ -22,10 +22,10 @@ def PBSDF_compability(Input: str) -> str:
         }.get(Input, Input)
     return Input
 
-def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]):
+def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]) -> Union[int, float]:
     return max(min_value, min(value, max_value))
 
-def is_mesh(object: object):
+def is_mesh(object: object) -> bool:
     return object.type == "MESH"
 
 def get_selected_asset() -> dict:
@@ -133,7 +133,7 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
     
     return 0
 
-def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file):
+def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file) -> object:
     # Check if modifier already exists
     if modifier_name:
         existing_modifier = object.modifiers.get(modifier_name)
@@ -164,6 +164,23 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
     
     return modifier
 
+def get_collections(data : object = None) -> list:
+    collections_list = []
+
+    if not data:
+        data = bpy.data
+
+    # Recursive check
+    def add_collection(collection):
+        collections_list.append(collection)
+
+        for child in collection.children:
+            add_collection(child)
+
+    add_collection(root_collection)
+
+    return collections_list
+
 def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="") -> object:
     # Check for existing node group if requested
     if exists_check:
@@ -191,21 +208,22 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     obj = bpy.data.objects.get(obj_name)
-    if obj is None:
+    if obj is None or is_mesh(obj):
         dprint(f"Object {obj_name} not found", is_deep=True, zone="rp")
         return "unknown"
 
     miblend_id = obj.get("MiBlend ID", "")
     obj_name_lower = obj_name.lower()
     mat_name_lower = mat_name.lower()
+    exporter = detect_world_exporter(obj)
 
-    if "item" in obj_name_lower or "item" in mat_name_lower or miblend_id == "item":
-        dprint(f"{obj_name}; {mat_name} is an item", is_deep=True, zone="rp")
-        return "item"
-    
-    elif "block" in obj_name_lower or "block" in mat_name_lower or miblend_id == "block":
+    if exporter != "unknown" or "block" in obj_name_lower or "block" in mat_name_lower or miblend_id == "block":
         dprint(f"{obj_name}; {mat_name} is a block", is_deep=True, zone="rp")
         return "block"
+
+    elif "item" in obj_name_lower or "item" in mat_name_lower or miblend_id == "item":
+        dprint(f"{obj_name}; {mat_name} is an item", is_deep=True, zone="rp")
+        return "item"
     
     elif "entity" in obj_name_lower or "entity" in mat_name_lower or miblend_id == "entity":
         dprint(f"{obj_name}; {mat_name} is an entity", is_deep=True, zone="rp")
@@ -226,7 +244,7 @@ def format_material_name(material_name: str, split: bool =True) -> str:
     else:
         return format_duplicate_name(material_name).lower().replace("-", "_")
 
-def find_node(place: object, type_or_node_group_name: str):
+def find_node(place: object, type_or_node_group_name: str) -> Optional[object]:
     nodes_list = place.node_tree.nodes
     if type_or_node_group_name.isupper():
         matching_nodes = [node for node in nodes_list if node.type == type_or_node_group_name]
@@ -236,6 +254,7 @@ def find_node(place: object, type_or_node_group_name: str):
     if matching_nodes:
         return matching_nodes[0]
     return None
+
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:
         Preferences = bpy.context.preferences.addons[__package__].preferences
@@ -265,7 +284,7 @@ def isduplicate(text: str, original_text: str=None) -> bool:
             return True
     return False
 
-def format_duplicate_name(text: str, original_text: str=None):
+def format_duplicate_name(text: str, original_text: str=None) -> str:
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
@@ -276,21 +295,24 @@ def format_duplicate_name(text: str, original_text: str=None):
             return base_text
     return text
 
-def is_gray(name: str, is_material: bool =False, mode: str ="all"):
+def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
 
     #dprint(f'{format_material_name(name)} vegetation: {name_in(gray_blocks.get("vegetation"), name, not is_material)} \nrednstone: {name_in(gray_blocks.get("redstone"), name, not is_material)} \nwater: {name_in(gray_blocks.get("water"), name, not is_material)}', is_deep=True, zone="fw")
-    
+    result = False
     if mode == "all":
-        return (name_in(gray_blocks.get("vegetation"), name, not is_material)[0] or name_in(gray_blocks.get("redstone"), name, not is_material)[0] or name_in(gray_blocks.get("water"), name, not is_material)[0])
+        result += name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
+        result += name_in(gray_blocks.get("redstone"), name, not is_material)[0]
+        result += name_in(gray_blocks.get("water"), name, not is_material)[0]
     elif mode == "vegetation":
-        return name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
+        result += name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
     elif mode == "redstone":
-        return name_in(gray_blocks.get("redstone"), name, not is_material)[0]
+        result += name_in(gray_blocks.get("redstone"), name, not is_material)[0]
     elif mode == "water":
-        return name_in(gray_blocks.get("water"), name, not is_material)[0]
-    return False
+        result += name_in(gray_blocks.get("water"), name, not is_material)[0]
+    
+    return bool(result)
 
-def detect_texture_node(PBSDF: object):
+def detect_texture_node(PBSDF: object) -> object:
 
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
@@ -333,7 +355,7 @@ def detect_texture_node(PBSDF: object):
         if n.type == "TEX_IMAGE" and n.image:
             return n
         
-def get_nodes_list(material_or_node_group: object, is_recursive: bool =False):
+def get_nodes_list(material_or_node_group: object, is_recursive: bool =False) -> list:
     nodes_list = []
     
     if hasattr(material_or_node_group, 'use_nodes') and not material_or_node_group.use_nodes:
@@ -349,7 +371,7 @@ def get_nodes_list(material_or_node_group: object, is_recursive: bool =False):
 
     return nodes_list
         
-def detect_image_texture(PBSDF: object):
+def detect_image_texture(PBSDF: object) -> object:
 
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
@@ -401,10 +423,10 @@ def detect_world_exporter(world_obj: object) -> str:
     for mat in world_obj.data.materials:
         mat_name = mat.name
         if mat_name.startswith("MAT_"):
-            exporter = "MiEx"
+            exporter = "miex"
             break
         elif "MWO" in mat_name or mat_name.count('-') == 0:
-            exporter = "Mineways"
+            exporter = "mineways"
             break
         elif mat_name.count('-') == 1:
             exporter = "jmc2obj"
@@ -413,7 +435,7 @@ def detect_world_exporter(world_obj: object) -> str:
     dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
     return exporter
 
-def SeparateMeshByMaterial(obj: object, material = None):
+def SeparateMeshByMaterial(obj: object, material = None) -> Optional[object]:
     obj_name = obj.name
 
     if bpy.context.object.mode != 'OBJECT':
@@ -494,7 +516,7 @@ def Perf_Time(func):
             dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
     return wrapper
 
-def GetConnectedSocketFrom(output: str, node: object):
+def GetConnectedSocketFrom(output: str, node: object) -> list:
     try:
         output_socket = node.outputs.get(output)
 
@@ -508,7 +530,7 @@ def GetConnectedSocketFrom(output: str, node: object):
     except Exception as error:
         Call_AS("n00", error)
 
-def GetConnectedSocketTo(input: Union[str, int], node: object):
+def GetConnectedSocketTo(input: Union[str, int], node: object) -> Optional[object]:
     try:
         if isinstance(input, int):
             if input >= len(node.inputs):

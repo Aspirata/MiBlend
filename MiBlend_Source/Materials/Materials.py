@@ -270,8 +270,17 @@ def fix_world():
             
             if image.size[0] == 0:
                 continue
+
+            x_divider = 1.0
+            frames = 1
+
+            if name_in(["lava flow"], image.name, True)[0]:
+                frames = int(image.size[1] / image.size[0])*2
+                x_divider = 2.0
+            else:
+                frames = int(image.size[1] / image.size[0])
             
-            if WProperties.animated_uv_fix and int(image.size[1] / image.size[0]) > 1:
+            if WProperties.animated_uv_fix and frames > 1:
                 if Texture_Animator is not None:
                     material.node_tree.nodes.remove(Texture_Animator)
 
@@ -281,7 +290,8 @@ def fix_world():
                 if vector_connection and vector_connection.node != auvf_node:
                     material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
 
-                auvf_node.inputs["Frames"].default_value = int(image.size[1] / image.size[0])
+                auvf_node.inputs["Frames"].default_value = frames
+                auvf_node.inputs["X Divider"].default_value = x_divider
                 material.node_tree.links.new(auvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])
 
             elif auvf_node:
@@ -424,7 +434,7 @@ def create_env(mode=None):
 
     else:
         # Create Sky
-        if (scene.env_properties.create_sky and mode == None) or mode == "Sky":
+        if (scene.miblend_properties.env_properties.create_sky and mode == None) or mode == "Sky":
             if os.path.exists(nodes_file):
                 if world_material_name not in bpy.data.worlds:
                     with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -437,7 +447,7 @@ def create_env(mode=None):
                 Call_AS("e03", traceback.format_exc(), "Nodes.blend")
 
         # Create Fog
-        if (scene.env_properties.create_fog and mode == None) or mode == "Fog":
+        if (scene.miblend_properties.env_properties.create_fog and mode == None) or mode == "Fog":
     
             if not MIB_env_collection:
                 MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
@@ -467,7 +477,7 @@ def create_env(mode=None):
             bpy.context.object["MiBlend ID"] = "Fog"
 
         # Create Clouds
-        if (scene.env_properties.create_clouds and mode == None) or mode == "Clouds":
+        if (scene.miblend_properties.env_properties.create_clouds and mode == None) or mode == "Clouds":
             if os.path.exists(clouds_path):
                 if clouds_node_tree_name not in bpy.data.node_groups:
                     with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):

@@ -81,7 +81,7 @@ classes = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
     SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, Recreate_Lists_Solution,
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility,
 ]
 
 deprecated_classes = [OptimizationPanel, OptimizationProperties, OptimizeOperator, UtilsPanel, UtilsProperties, SetRenderSettingsOperator, AssingVertexGroupOperator]

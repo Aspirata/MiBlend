@@ -221,7 +221,7 @@ def apply_resources():
                 return predicted_texture
         return None
     
-    def find_image(image_name: str, root_folder: str, obj_type: str = "unknown") -> Optional[str]:
+    def find_image(image_name: str, root_folder: str, obj_type: str = "unknown", exporter_type: str ="unknown") -> Optional[str]:
 
         if r_props.combine_duplicates:
             image_name = format_duplicate_name(image_name)
@@ -408,12 +408,18 @@ def apply_resources():
                 
                 elif "Animated UV Fix" in node.node_tree.name:
                     auvf_node = node
-        
-        if r_props.randomize_speed:
-            add_modifier(object, "Random Face Value")
 
         if r_props.animate_textures:
-            if int(image_texture.size[1] / image_texture.size[0]) <= 1:
+            x_divider = 1.0
+            frames = 1
+
+            if name_in(["lava flow"], image_texture.name, True)[0]:
+                frames = int(image_texture.size[1] / image_texture.size[0])*2
+                x_divider = 2.0
+            else:
+                frames = int(image_texture.size[1] / image_texture.size[0])
+
+            if frames <= 1:
                 return
             
             animation_file = new_image_texture_path + ".mcmeta"
@@ -429,6 +435,9 @@ def apply_resources():
                     data = json.load(file).get('animation', {})
                     frametime = data.get('frametime', 20)
                     interpolate = data.get('interpolate', False)
+            
+            if r_props.randomize_speed:
+                add_modifier(object, "Random Face Value")
             
             if auvf_node:
                  material.node_tree.nodes.remove(auvf_node)
@@ -459,21 +468,26 @@ def apply_resources():
                             if node.type == "TEX_IMAGE":
                                 node.image = image_texture
 
-                    if texture_node is not None:
-                        for socket in GetConnectedSocketFrom("Color", texture_node):
-                            material.node_tree.links.new(ITexture_Animator.outputs["Color"], socket)
+                    if texture_node:
+                        color_connection = GetConnectedSocketFrom("Color", texture_node)
+                        if color_connection:
+                            for socket in color_connection:
+                                material.node_tree.links.new(ITexture_Animator.outputs["Color"], socket)
                     
-                        for socket in GetConnectedSocketFrom("Alpha", texture_node):
-                            material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], socket)
+                        alpha_connection = GetConnectedSocketFrom("Alpha", texture_node)
+                        if alpha_connection:
+                            for socket in alpha_connection:
+                                material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], socket)
                         
                         vector_connection = GetConnectedSocketTo("Vector", texture_node)
 
-                        if vector_connection is not None and vector_connection.node != ITexture_Animator:
+                        if vector_connection and vector_connection.node != ITexture_Animator:
                             material.node_tree.links.new(vector_connection, ITexture_Animator.inputs["Vector"])
 
                         material.node_tree.nodes.remove(texture_node)
 
-                ITexture_Animator.inputs["Frames"].default_value = int(image_texture.size[1] / image_texture.size[0])
+                ITexture_Animator.inputs["Frames"].default_value = frames
+                ITexture_Animator.inputs["X Divider"].default_value = x_divider
                 ITexture_Animator.inputs["Frametime"].default_value = frametime
                 ITexture_Animator.inputs["Interpolate"].default_value = True
                 ITexture_Animator.inputs["Randomize Speed"].default_value = r_props.randomize_speed
@@ -485,11 +499,15 @@ def apply_resources():
                     texture_node.image = image_texture
                     texture_node.interpolation = "Closest"
 
-                    for socket in GetConnectedSocketFrom("Color", ITexture_Animator):
-                        material.node_tree.links.new(texture_node.outputs["Color"], socket)
+                    color_connection = GetConnectedSocketFrom("Color", ITexture_Animator)
+                    if color_connection:
+                        for socket in color_connection:
+                            material.node_tree.links.new(texture_node.outputs["Color"], socket)
                     
-                    for socket in GetConnectedSocketFrom("Alpha", ITexture_Animator):
-                        material.node_tree.links.new(texture_node.outputs["Alpha"], socket)
+                    alpha_connection = GetConnectedSocketFrom("Alpha", ITexture_Animator)
+                    if alpha_connection:
+                        for socket in alpha_connection:
+                            material.node_tree.links.new(texture_node.outputs["Alpha"], socket)
 
                     material.node_tree.nodes.remove(ITexture_Animator)
 
@@ -503,7 +521,8 @@ def apply_resources():
 
                 material.node_tree.links.new(Texture_Animator.outputs["Current Frame"], texture_node.inputs["Vector"])
             
-                Texture_Animator.inputs["Frames"].default_value = int(image_texture.size[1] / image_texture.size[0])
+                Texture_Animator.inputs["Frames"].default_value = frames
+                Texture_Animator.inputs["X Divider"].default_value = x_divider
                 Texture_Animator.inputs["Frametime"].default_value = frametime
                 Texture_Animator.inputs["Interpolate"].default_value = False
                 Texture_Animator.inputs["Randomize Speed"].default_value = r_props.randomize_speed
@@ -525,7 +544,7 @@ def apply_resources():
             if Texture_Animator is not None:
                 material.node_tree.nodes.remove(Texture_Animator)
 
-            if auvf_node is not None and int(image_texture.size[1] / image_texture.size[0]) > 1:
+            if auvf_node is not None and frames > 1:
                 material.node_tree.links.new(auvf_node.outputs["Fixed UV"], texture_node.inputs["Vector"])
 
     def normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):

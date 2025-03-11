@@ -38,7 +38,7 @@ def append_collection(asset_name, asset_collection, asset_path):
             return
         
         if asset_collection == "Root":
-            first_collection = data_from.collections[0]
+            first_collection = get_collections(data_from)[0]
             data_to.collections = [first_collection]
         else:
             data_to.collections = [asset_collection]
