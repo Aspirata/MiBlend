@@ -37,19 +37,16 @@ def append_collection(asset_name, asset_collection, asset_path):
             Call_AS("05", data=asset_name)
             return
         
-        if asset_collection == "Root":
-            first_collection = get_collections(data_from)[0]
-            data_to.collections = [first_collection]
-        else:
-            data_to.collections = [asset_collection]
+        data_to.collections = [asset_collection]
 
     for collection in data_to.collections:
-        if not collection:
-            continue
 
+        bpy.ops.object.select_all(action='DESELECT')
         bpy.context.collection.children.link(collection)
         for obj in collection.objects:
             if obj.type == "ARMATURE":
+                obj.select_set(True)
+                bpy.context.view_layer.objects.active = obj
                 root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
                 cursor_location = bpy.context.scene.cursor.location
                 if root_bone:

@@ -164,20 +164,19 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
     
     return modifier
 
-def get_collections(data : object = None) -> list:
+def get_collections(data: object = None) -> list:
     collections_list = []
 
     if not data:
         data = bpy.data
 
-    # Recursive check
-    def add_collection(collection):
-        collections_list.append(collection)
-
+    def add_collection(collection, level=0):
+        collections_list.append((collection.name, level))
         for child in collection.children:
-            add_collection(child)
+            add_collection(child, level + 1)
 
-    add_collection(root_collection)
+    for collection in data.collections:
+        add_collection(collection)
 
     return collections_list
 
