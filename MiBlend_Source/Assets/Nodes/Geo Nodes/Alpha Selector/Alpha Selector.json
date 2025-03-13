@@ -1,6 +1,7 @@
 {
     "Format_version": "10",
     "Asset_name": "Alpha Selector",
+    "Blender_version": ">= 4.1.0",
     "Author": "Anonim4k, Aspirata",
     "File_path": "Nodes\\Geo Nodes\\Alpha Selector\\Alpha Selector",
     "Node_name": "Alpha Selector",

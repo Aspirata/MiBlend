@@ -221,7 +221,7 @@ def apply_resources():
                 return predicted_texture
         return None
     
-    def find_image(image_name: str, root_folder: str, obj_type: str = "unknown", exporter_type: str ="unknown") -> Optional[str]:
+    def find_image(image_name: str, root_folder: str, obj_type: str = "unknown", entity_name: str = "") -> Optional[str]:
 
         if r_props.combine_duplicates:
             image_name = format_duplicate_name(image_name)
@@ -233,11 +233,16 @@ def apply_resources():
                 print("Bad Zip File")
         else:
             for dirpath, dirnames, files in os.walk(root_folder):
-
                 if "textures" not in dirpath:
                     continue
 
-                if obj_type != "unknown":
+                if entity_name:
+                    dprint(f"{image_name} is {obj_type} using entity filter...", is_deep=True, zone="rp")
+                    if "sign" in entity_name:
+                        dirpath = os.path.join(dirpath, obj_type, entity_name, "hanging" if "hang" in entity_name else "signs")
+                    else:
+                        dirpath = os.path.join(dirpath, obj_type, entity_name)
+                elif obj_type != "unknown":
                     dprint(f"{image_name} is {obj_type} using texture filter...", is_deep=True, zone="rp")
                     dirpath = os.path.join(dirpath, obj_type)
                 else:
@@ -603,10 +608,10 @@ def apply_resources():
 
         predicted_texture_path = fast_find_image([new_normal_image_path, new_image_path], specular_image_name)
         if predicted_texture_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
-            new_specular_image_path = find_image(specular_image_name, path)
+            new_specular_image_path = find_image(specular_image_name, path, entity_name=selected_object.name)
         else:
             if not r_props.use_i or not r_props.use_n:
-                new_specular_image_path = find_image(specular_image_name, path)
+                new_specular_image_path = find_image(specular_image_name, path, entity_name=selected_object.name)
             else:
                 new_specular_image_path = predicted_texture_path
 
@@ -837,7 +842,7 @@ def apply_resources():
                     if not enabled or "Texture" not in Type:
                         continue
                     
-                    new_image_path = find_image(image_texture, path, obj_type)
+                    new_image_path = find_image(image_texture, path, obj_type, selected_object.name)
 
                     if new_image_path is not None and os.path.isfile(new_image_path):
                             
@@ -862,9 +867,9 @@ def apply_resources():
                     new_normal_image_path = fast_find_image([new_image_path], normal_image_name)
 
                     if new_normal_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
-                        new_normal_image_path = find_image(normal_image_name, path, obj_type)
+                        new_normal_image_path = find_image(normal_image_name, path, obj_type, selected_object.name)
                     elif r_props.use_i == False:
-                        new_normal_image_path = find_image(normal_image_name, path, obj_type)
+                        new_normal_image_path = find_image(normal_image_name, path, obj_type, selected_object.name)
 
                     if normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
                         break
@@ -923,9 +928,9 @@ def apply_resources():
                     new_emission_image_path = fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name)
 
                     if new_emission_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
-                        new_emission_image_path = find_image(emission_image_name, path, obj_type)
+                        new_emission_image_path = find_image(emission_image_name, path, obj_type, selected_object.name)
                     elif r_props.use_i == False or r_props.use_n == False or r_props.use_s == False:
-                        new_emission_image_path = find_image(emission_image_name, path, obj_type)
+                        new_emission_image_path = find_image(emission_image_name, path, obj_type, selected_object.name)
 
                     if emission_texture_change(new_emission_image_path, emission_texture_node, PBSDF, image_texture_node, image_path):
                         break

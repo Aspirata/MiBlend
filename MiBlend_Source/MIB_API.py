@@ -207,7 +207,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     obj = bpy.data.objects.get(obj_name)
-    if obj is None or is_mesh(obj):
+    if obj is None or not is_mesh(obj):
         dprint(f"Object {obj_name} not found", is_deep=True, zone="rp")
         return "unknown"
 
@@ -216,17 +216,17 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     mat_name_lower = mat_name.lower()
     exporter = detect_world_exporter(obj)
 
-    if exporter != "unknown" or "block" in obj_name_lower or "block" in mat_name_lower or miblend_id == "block":
+    if "entity" in obj_name_lower or "entity" in mat_name_lower or miblend_id == "entity":
+        dprint(f"{obj_name}; {mat_name} is an entity", is_deep=True, zone="rp")
+        return "entity"
+
+    elif exporter != "unknown" or "block" in obj_name_lower or "block" in mat_name_lower or miblend_id == "block":
         dprint(f"{obj_name}; {mat_name} is a block", is_deep=True, zone="rp")
         return "block"
 
     elif "item" in obj_name_lower or "item" in mat_name_lower or miblend_id == "item":
         dprint(f"{obj_name}; {mat_name} is an item", is_deep=True, zone="rp")
         return "item"
-    
-    elif "entity" in obj_name_lower or "entity" in mat_name_lower or miblend_id == "entity":
-        dprint(f"{obj_name}; {mat_name} is an entity", is_deep=True, zone="rp")
-        return "entity"
     
     dprint(f"{obj_name}; {mat_name} is unknown", is_deep=True, zone="rp")
     return "unknown"
