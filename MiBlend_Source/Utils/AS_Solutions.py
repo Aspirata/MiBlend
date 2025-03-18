@@ -22,7 +22,7 @@ class FixCompatibility(Operator):
         with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
             new_node_groups_list = [node_group for node_group in data_from.node_groups]
             old_node_groups_list = bpy.data.node_groups
-            has_old_node_groups = any(node_group for node_group in data_from.node_groups if node_group in data_from.node_group)
+            has_old_node_groups = any(node_group for node_group in data_from.node_groups if node_group in old_node_groups_list)
 
             if not has_old_node_groups:
                 return
@@ -31,4 +31,5 @@ class FixCompatibility(Operator):
                 if node_group in old_node_groups_list:
                     old_node_groups_list.remove(node_group)
                     data_to.node_groups = [node_group]
+                    
         return {'FINISHED'}

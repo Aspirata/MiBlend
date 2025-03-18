@@ -725,49 +725,49 @@ class OptimizationPanel(Panel):
 
         box = layout.box()
         row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "use_camera_culling", text="Use Camera Culling")
-        row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
+        row.prop(bpy.context.scene.miblend_properties.optimization_properties, "use_camera_culling", text="Use Camera Culling")
+        row.prop(bpy.context.scene.miblend_properties.optimization_properties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.miblend_properties.optimization_properties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
         # Camera Culling Settings
-        if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_settings:
+        if bpy.context.scene.miblend_properties.optimization_properties.camera_culling_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
             row = sbox.row()
-            row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "camera_culling_type", text='camera_culling_type', expand=True)
-            if bpy.context.scene.miblend_properties.optimizationproperties.camera_culling_type == 'Raycast':
+            row.prop(bpy.context.scene.miblend_properties.optimization_properties, "camera_culling_type", text='camera_culling_type', expand=True)
+            if bpy.context.scene.miblend_properties.optimization_properties.camera_culling_type == 'Raycast':
                 # Raycast Camera Culling Settings
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Culling Mode:")
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "culling_mode", expand=True, text='culling_mode')
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "culling_mode", expand=True, text='culling_mode')
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "culling_distance", text="Anti-Culling Distance")
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "culling_distance", text="Anti-Culling Distance")
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "predict_fov", text="Predict FOV")
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "predict_fov", text="Predict FOV")
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "merge_by_distance", text="Merge By Distance")
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "merge_by_distance", text="Merge By Distance")
                     
-                if bpy.context.scene.miblend_properties.optimizationproperties.merge_by_distance:
+                if bpy.context.scene.miblend_properties.optimization_properties.merge_by_distance:
                     row = tbox.row()
-                    row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "merge_distance", text="Merge Distance")
+                    row.prop(bpy.context.scene.miblend_properties.optimization_properties, "merge_distance", text="Merge Distance")
 
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "backface_culling", text="Backface Culling")
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "backface_culling", text="Backface Culling")
 
-                if bpy.context.scene.miblend_properties.optimizationproperties.backface_culling:
+                if bpy.context.scene.miblend_properties.optimization_properties.backface_culling:
                     row = tbox.row()
-                    row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "backface_culling_distance", text="Backface Culling Distance")
+                    row.prop(bpy.context.scene.miblend_properties.optimization_properties, "backface_culling_distance", text="Backface Culling Distance")
 
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "scale")
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "scale")
             else:
                 # Vector Camera Culling Settings
                 tbox = sbox.box()
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "backface_culling", text="Backface Culling")
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "backface_culling", text="Backface Culling")
                 row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimizationproperties, "threshold", slider=True)
+                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "threshold", slider=True)
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -794,7 +794,7 @@ class UtilsPanel(Panel):
         row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
 
         row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "current_preset", text="Current Preset")
+        row.prop(bpy.context.scene.miblend_properties.utils_properties, "current_preset", text="Current Preset")
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("utils.setrendersettings")
@@ -803,13 +803,13 @@ class UtilsPanel(Panel):
         row = box.row()
         row.label(text="Rigging", icon="ARMATURE_DATA")
         row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "armature")
+        row.prop(bpy.context.scene.miblend_properties.utils_properties, "armature")
 
         row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "lattice")
+        row.prop(bpy.context.scene.miblend_properties.utils_properties, "lattice")
 
         row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utilsproperties, "vertex_group_name")
+        row.prop(bpy.context.scene.miblend_properties.utils_properties, "vertex_group_name")
 
         row = box.row()
         row.scale_y = Big_Button_Scale

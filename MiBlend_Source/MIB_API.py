@@ -142,15 +142,19 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
 
     # Handle built-in Blender modifiers
     if modifier_type_or_node_group.isupper():
-        modifiers = [mod for mod in object.modifiers if mod.type == modifier_type_or_node_group]
-        if modifiers and not modifier_name:
-            return modifiers[0]
+        existing_modifier = next((mod for mod in object.modifiers if mod.type == modifier_type_or_node_group), None)
+        if existing_modifier:
+            return existing_modifier
         
         name = modifier_name if modifier_name else modifier_type_or_node_group
         modifier = object.modifiers.new(name, type=modifier_type_or_node_group)
     
     # Handle geometry node groups
     else:
+        existing_modifier = next((mod for mod in object.modifiers if mod.type == "NODES" and mod.node_group.name == modifier_type_or_node_group), None)
+        if existing_modifier:
+            return existing_modifier
+        
         if modifier_type_or_node_group not in bpy.data.node_groups:
             try:
                 with bpy.data.libraries.load(file, link=False) as (data_from, data_to):

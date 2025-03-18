@@ -759,12 +759,8 @@ def setproceduralpbr():
                         if better_animate_node is None:
                             better_animate_node = create_node_group(material, "Procedurally Animated Better Emission", (PBSDF.location.x - 200, PBSDF.location.y - 265))
 
-                        if PProperties.randomize and not any(mod for mod in selected_object.modifiers if mod.type == "NODES" and "Random Face Value" in mod.node_group.name):
-                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                                data_to.node_groups = ["Random Face Value"]
-
-                            selected_object.modifiers.new("Random Face Value", "NODES")
-                            selected_object.modifiers["Random Face Value"].node_group = bpy.data.node_groups["Random Face Value"]
+                        if PProperties.randomize:
+                            add_modifier(selected_object, "Random Face Value")
 
                         current_section = None
                         for input_socket in better_animate_node.inputs:

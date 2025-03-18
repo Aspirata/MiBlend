@@ -783,7 +783,7 @@ class UtilsProperties(PropertyGroup):
 
 
 
-class AssetTagItem(bpy.types.PropertyGroup):
+class AssetTagItem(PropertyGroup):
     name: StringProperty()
     enabled: BoolProperty(default=False)
 
@@ -835,10 +835,12 @@ class AssetsProperties(PropertyGroup):
         default=True
         )
     
-class MiBlendProperties(bpy.types.PropertyGroup):
+class MiBlendProperties(PropertyGroup):
     world_properties: bpy.props.PointerProperty(type=WorldProperties)
     resource_properties: bpy.props.PointerProperty(type=ResourcePackProperties)
     materials_properties: bpy.props.PointerProperty(type=MaterialsProperties)
     env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
     ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
     assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
+    utils_properties: bpy.props.PointerProperty(type=UtilsProperties)
+    optimization_properties: bpy.props.PointerProperty(type=OptimizationProperties)

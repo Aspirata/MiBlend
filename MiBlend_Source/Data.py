@@ -132,7 +132,18 @@ gray_blocks = {
 }
 
 Emissive_Materials = {
-    "fire": {},
+    "campfire log lit": {
+        "Better Emission": {
+            "From Min": 0.19,
+            "From Max": 1.0,
+            "Green": 0,
+            "Blue": 0,
+        },
+        "Procedural Animation": {}
+    },
+
+    "fire ; campfire": {},
+    "campfire fire": {},
     "nether portal": {
         "Better Emission": {
             "From Min": 0.4,
@@ -164,13 +175,6 @@ Emissive_Materials = {
         "Better Emission": {
             "From Min": 0,
             "From Max": 1.6,
-        },
-        "Procedural Animation": {}
-    },
-    "campfire log lit": {
-        "Better Emission": {
-            "From Min": 0.19,
-            "From Max": 0.52,
         },
         "Procedural Animation": {}
     },

@@ -76,7 +76,7 @@ def init_on_start():
 classes = [
     MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
     WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties, MiBlendProperties,
+    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, MiBlendProperties,
     WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
     RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
@@ -84,7 +84,7 @@ classes = [
     ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility,
 ]
 
-deprecated_classes = [OptimizationPanel, OptimizationProperties, OptimizeOperator, UtilsPanel, UtilsProperties, SetRenderSettingsOperator, AssingVertexGroupOperator]
+deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRenderSettingsOperator, AssingVertexGroupOperator]
 
 @persistent
 def on_scene_load(dummy):
@@ -103,9 +103,6 @@ def register():
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
             bpy.utils.register_class(cls)
-        
-        bpy.types.Scene.utils_properties: bpy.props.PointerProperty(type=UtilsProperties)
-        bpy.types.Scene.optimization_properties: bpy.props.PointerProperty(type=OptimizationProperties)
 
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
     

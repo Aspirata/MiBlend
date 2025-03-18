@@ -61,7 +61,7 @@ def Camera_Culling(obj, OProperties, geonodes_modifier):
     
 def Optimize():
     selected_objects = bpy.context.selected_objects
-    OProperties = bpy.context.scene.optimization_properties
+    OProperties = bpy.context.scene.miblend_properties.optimization_properties
     if OProperties.use_camera_culling == True:
         if bpy.context.scene.camera != None:
             script_directory = os.path.dirname(os.path.realpath(__file__))
