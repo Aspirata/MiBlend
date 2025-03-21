@@ -250,13 +250,11 @@ def format_material_name(material_name: str, split: bool =True) -> str:
 def find_node(place: object, type_or_node_group_name: str) -> Optional[object]:
     nodes_list = place.node_tree.nodes
     if type_or_node_group_name.isupper():
-        matching_nodes = [node for node in nodes_list if node.type == type_or_node_group_name]
+        matching_node = next((node for node in nodes_list if node.type == type_or_node_group_name), None)
     else:
-        matching_nodes = [node for node in nodes_list if node.type == "GROUP" and node.node_tree.name == type_or_node_group_name]
+        matching_node = next((node for node in nodes_list if node.type == "GROUP" and node.node_tree.name == type_or_node_group_name), None)
     
-    if matching_nodes:
-        return matching_nodes[0]
-    return None
+    return matching_node
 
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:
@@ -299,19 +297,18 @@ def format_duplicate_name(text: str, original_text: str=None) -> str:
     return text
 
 def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
-
     #dprint(f'{format_material_name(name)} vegetation: {name_in(gray_blocks.get("vegetation"), name, not is_material)} \nrednstone: {name_in(gray_blocks.get("redstone"), name, not is_material)} \nwater: {name_in(gray_blocks.get("water"), name, not is_material)}', is_deep=True, zone="fw")
     result = False
     if mode == "all":
-        result += name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
+        result = name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
         result += name_in(gray_blocks.get("redstone"), name, not is_material)[0]
         result += name_in(gray_blocks.get("water"), name, not is_material)[0]
     elif mode == "vegetation":
-        result += name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
+        result = name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
     elif mode == "redstone":
-        result += name_in(gray_blocks.get("redstone"), name, not is_material)[0]
+        result = name_in(gray_blocks.get("redstone"), name, not is_material)[0]
     elif mode == "water":
-        result += name_in(gray_blocks.get("water"), name, not is_material)[0]
+        result = name_in(gray_blocks.get("water"), name, not is_material)[0]
     
     return bool(result)
 
@@ -365,9 +362,6 @@ def get_nodes_list(material_or_node_group: object, is_recursive: bool =False) ->
         return []
 
     for node in material_or_node_group.node_tree.nodes:
-        if node.type == 'REROUTE':
-            continue
-        
         nodes_list.append(node)
         if node.type == 'GROUP' and node.node_tree and is_recursive:
             nodes_list.extend(get_nodes_list(node))
