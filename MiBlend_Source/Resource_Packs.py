@@ -128,7 +128,7 @@ def update_pack(pack: str, connection=None):
             filename = os.path.join(resource_packs_directory, os.path.basename(urlparse(latest_pack_info[2]).path))
             urlretrieve(latest_pack_info[2], filename)
             
-            with ZipFile(filename, 'r') as zip_ref:
+            with zipfile.ZipFile(filename, 'r') as zip_ref:
                 zip_ref.extractall(pack_path)
             os.remove(filename)
             

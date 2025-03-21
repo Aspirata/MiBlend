@@ -610,6 +610,7 @@ def setproceduralpbr():
             image_difference_Y = 1
             Current_node_tree = None
             PProperties = bpy.context.scene.miblend_properties.ppbr_properties
+            
 
             for node in material.node_tree.nodes:
                 if node.type == "BSDF_PRINCIPLED":
@@ -639,76 +640,81 @@ def setproceduralpbr():
             if not PBSDF:
                 continue
 
+            base_color_connection = GetConnectedSocketTo("Base Color", PBSDF)
+
             # Use Normals
-            if image:
-                if image_texture_node.type == "GROUP":
-                    vector_connection = image_texture_node.outputs["Current Frame"]
-                else:
-                    vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
+            if PProperties.use_normals:
 
-                if PProperties.use_normals:
-
-                    if PProperties.normals_selector == 'Bump':
-                        if PNormals:
-                            material.node_tree.nodes.remove(PNormals)
-
-                        if bump_node is None:
-                            bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
-                            bump_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
-                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), bump_node.inputs['Height'])
-                            material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
-
-                        bump_node.inputs[0].default_value = PProperties.bump_strength
-
-                    else:
-                        if bump_node:
-                            material.node_tree.nodes.remove(bump_node)
-                        
-                        if PNormals is None:
-                            PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                            group_name = f"PNormals; {material.name}"
-
-                            if group_name in bpy.data.node_groups:
-                                Current_node_tree = bpy.data.node_groups[group_name]
-                            else:
-                                with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                                    data_to.node_groups = ["PNormals"]
-                                bpy.data.node_groups["PNormals"].name = group_name
-                                Current_node_tree = bpy.data.node_groups[group_name]
-
-                            PNormals.node_tree = Current_node_tree
-                            PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
-
-                        for node in Current_node_tree.nodes:
-                            if node.type == "TEX_IMAGE":
-                                node.image = image
-                        
-                        if image.size[0] > image.size[1]:
-                            image_difference_X = image.size[1] / image.size[0]
-
-                        if image.size[0] < image.size[1]:
-                            image_difference_Y = image.size[0] / image.size[1]
-
-                        PNormals.inputs["Size"].default_value = PProperties.pnormals_size
-                        PNormals.inputs["Blur"].default_value = PProperties.pnormals_blur
-                        PNormals.inputs["Strength"].default_value = PProperties.pnormals_strength
-                        PNormals.inputs["Exclude"].default_value = PProperties.pnormals_exclude
-                        PNormals.inputs["Min"].default_value = PProperties.pnormals_min
-                        PNormals.inputs["Max"].default_value = PProperties.pnormals_max
-                        PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_difference_X
-                        PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_difference_Y
-
-                        material.node_tree.links.new(PNormals.outputs['Normal Map'], PBSDF.inputs['Normal'])
-
-                        if vector_connection:
-                            material.node_tree.links.new(vector_connection, PNormals.inputs['Vector'])
-
-                elif PProperties.revert_normals:   
-                    if bump_node is not None:
-                        material.node_tree.nodes.remove(bump_node)
-                    
-                    if PNormals is not None:
+                if PProperties.normals_selector == 'Bump' and base_color_connection:
+                    if PNormals:
                         material.node_tree.nodes.remove(PNormals)
+
+                    if bump_node is None:
+                        bump_node = material.node_tree.nodes.new(type='ShaderNodeBump')
+                        bump_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
+                        material.node_tree.links.new(base_color_connection, bump_node.inputs['Height'])
+                        material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
+
+                    bump_node.inputs[0].default_value = PProperties.bump_strength
+
+                elif image_texture_node and image:
+                    if bump_node:
+                        material.node_tree.nodes.remove(bump_node)
+
+                    if image_texture_node.type == "GROUP":
+                        vector_connection = image_texture_node.outputs["Current Frame"]
+                    else:
+                        vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
+                    
+                    group_name = f"PNormals; {image.name}"
+                    
+                    if PNormals is None:
+                        PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
+                        group_name = f"PNormals; {image.name}"
+
+                        if group_name in bpy.data.node_groups:
+                            Current_node_tree = bpy.data.node_groups[group_name]
+                        else:
+                            with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                                data_to.node_groups = ["PNormals"]
+                            bpy.data.node_groups["PNormals"].name = group_name
+                            Current_node_tree = bpy.data.node_groups[group_name]
+
+                        PNormals.node_tree = Current_node_tree
+                        PNormals.location = (PBSDF.location.x - 180, PBSDF.location.y - 132)
+
+                    for node in Current_node_tree.nodes:
+                        if node.type == "TEX_IMAGE":
+                            node.image = image
+                    
+                    PNormals.node_group.name = group_name
+                    
+                    if image.size[0] > image.size[1]:
+                        image_difference_X = image.size[1] / image.size[0]
+
+                    if image.size[0] < image.size[1]:
+                        image_difference_Y = image.size[0] / image.size[1]
+
+                    PNormals.inputs["Size"].default_value = PProperties.pnormals_size
+                    PNormals.inputs["Blur"].default_value = PProperties.pnormals_blur
+                    PNormals.inputs["Strength"].default_value = PProperties.pnormals_strength
+                    PNormals.inputs["Exclude"].default_value = PProperties.pnormals_exclude
+                    PNormals.inputs["Min"].default_value = PProperties.pnormals_min
+                    PNormals.inputs["Max"].default_value = PProperties.pnormals_max
+                    PNormals.inputs["Size X Multiplier"].default_value = PProperties.pnormals_size_x_multiplier * image_difference_X
+                    PNormals.inputs["Size Y Multiplier"].default_value = PProperties.pnormals_size_y_multiplier * image_difference_Y
+
+                    material.node_tree.links.new(PNormals.outputs['Normal Map'], PBSDF.inputs['Normal'])
+
+                    if vector_connection:
+                        material.node_tree.links.new(vector_connection, PNormals.inputs['Vector'])
+
+            elif PProperties.revert_normals:   
+                if bump_node is not None:
+                    material.node_tree.nodes.remove(bump_node)
+                
+                if PNormals is not None:
+                    material.node_tree.nodes.remove(PNormals)
 
             # Change PBSDF Settings                                
             if PProperties.change_bsdf:
@@ -750,7 +756,7 @@ def setproceduralpbr():
                 PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
             # Make Better Emission and Animate Textures
-            if (PProperties.better_emission or PProperties.procedural_animation) and image and EmissionMode(PBSDF, image.name):
+            if (PProperties.better_emission or PProperties.procedural_animation) and base_color_connection and image and EmissionMode(PBSDF, image.name):
                 is_valid, item = name_in(Emissive_Materials.keys(), material.name)
 
                 if is_valid:
@@ -796,7 +802,7 @@ def setproceduralpbr():
                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])
                 material.node_tree.nodes.remove(better_animate_node)
 
-            if Preferences.experimental_features:
+            if Preferences.experimental_features and base_color_connection:
                 if PProperties.proughness:
                     if proughness_node is None:
                         proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
