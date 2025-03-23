@@ -73,19 +73,23 @@ def init_on_start():
     except:
         Call_AS("n00", traceback.format_exc())
 
-classes = [
-    MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment,
-    WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, MiBlendProperties,
-    WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_,
-    RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, MoveResourcePackUp, MoveResourcePackDown,
-    RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, FixMaterialsOperator, UpgradeMaterialsOperator,
-    SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility,
+panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
+properties = [WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
+    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, MiBlendProperties
+]
+special_classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment]
+
+operators = [
+    RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
+    MoveResourcePackUp, MoveResourcePackDown,RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
+    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility
 ]
 
+debug_classes = [DebugPanel, TriggerASErrorOperator]
 deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRenderSettingsOperator, AssingVertexGroupOperator]
 
+classes = properties + special_classes + operators + panels 
 @persistent
 def on_scene_load(dummy):
     init_on_start()
@@ -102,6 +106,10 @@ def register():
     
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
+            bpy.utils.register_class(cls)
+    
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.debug_tools:
+        for cls in debug_classes:
             bpy.utils.register_class(cls)
 
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)

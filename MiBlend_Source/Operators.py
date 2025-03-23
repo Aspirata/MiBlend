@@ -596,15 +596,106 @@ class CreateAsset(Operator):
     bl_label = "Create Asset"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    asset_name: bpy.props.StringProperty(name="Asset Name", default="NewAsset")
+
+    asset_type: bpy.props.EnumProperty(
+        name="Asset Type",
+        items=[
+            ('COLLECTION', "Collection", "Export a collection"),
+            ('NODE_GROUP', "Node Group", "Export a node group"),
+            ('MATERIAL', "Material", "Export a material")
+        ],
+        default='COLLECTION',
+        update=lambda self, ctx: self.update_asset_list(ctx)
+    )
+
+    # Заглушка для EnumProperty
+    asset_choice: bpy.props.EnumProperty(name="Asset Choice", items=lambda self, ctx: [("NONE", "None Available", "No assets found")])
+
+    def update_asset_list(self, context):
+        """Обновляет список доступных коллекций, нодов или материалов"""
+        if self.asset_type == 'COLLECTION':
+            items = [(coll.name, coll.name, "") for coll in bpy.data.collections]
+        elif self.asset_type == 'NODE_GROUP':
+            items = [(ng.name, ng.name, "") for ng in bpy.data.node_groups]
+        elif self.asset_type == 'MATERIAL':
+            items = [(mat.name, mat.name, "") for mat in bpy.data.materials]
+        else:
+            items = []
+
+        if not items:
+            items = [("NONE", "None Available", "No assets found")]
+
+        # Пересоздаём EnumProperty
+        def items_callback(self, context):
+            return items
+
+        if "asset_choice" in self.__annotations__:
+            del self.__annotations__["asset_choice"]  # Удаляем аннотацию
+
+        self.__annotations__["asset_choice"] = bpy.props.EnumProperty(
+            name="Asset Choice",
+            description="Choose an asset",
+            items=items_callback
+        )
+
+        # Присваиваем первый доступный элемент
+        self.asset_choice = items[0][0]
 
     def execute(self, context):
-        
-        return {'FINISHED'} # Placeholder
-    
+        if not self.filepath.endswith(".blend"):
+            self.report({'ERROR'}, "Please select a .blend file")
+            return {'CANCELLED'}
+
+        if self.asset_choice == "NONE":
+            self.report({'ERROR'}, f"No {self.asset_type.lower()} found to export.")
+            return {'CANCELLED'}
+
+        # Директория хранения ассетов
+        assets_root = bpy.context.preferences.addons[__name__].preferences.assets_path  # Указать путь
+        asset_folder = os.path.join(assets_root, "Rigs", self.asset_name)
+
+        if os.path.exists(asset_folder):
+            shutil.rmtree(asset_folder)
+        os.makedirs(asset_folder, exist_ok=True)
+
+        # Копирование .blend файла
+        blend_dst_path = os.path.join(asset_folder, f"{self.asset_name}.blend")
+        shutil.copy2(self.filepath, blend_dst_path)
+
+        # Создание JSON файла
+        json_data = {
+            "Format_version": "10",
+            "Asset_name": self.asset_name,
+            "Author": "Aspirata",
+            "File_path": f"Rigs\\{self.asset_name}\\{self.asset_name}",
+            "Collection_name": self.asset_choice if self.asset_type == "COLLECTION" else "",
+            "Node_group": self.asset_choice if self.asset_type == "NODE_GROUP" else "",
+            "Material": self.asset_choice if self.asset_type == "MATERIAL" else "",
+            "Tags": ["Rig", "Simple"] if self.asset_type == "COLLECTION" else ["NodeGroup"] if self.asset_type == "NODE_GROUP" else ["Material"]
+        }
+
+        json_path = os.path.join(asset_folder, f"{self.asset_name}.json")
+        with open(json_path, 'w') as json_file:
+            json.dump(json_data, json_file, indent=4)
+
+        self.report({'INFO'}, f"Asset '{self.asset_name}' created successfully")
+        return {'FINISHED'}
+
     def invoke(self, context, event):
+        self.update_asset_list(context)
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "asset_name")
+        layout.prop(self, "asset_type")
+        layout.prop(self, "asset_choice")
+
+    def check(self, context):
+        return True
 
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
@@ -634,4 +725,13 @@ class ManualAssetsUpdateOperator(Operator):
     
     def execute(self, context):
         update_assets()
+        return {'FINISHED'}
+
+class TriggerASErrorOperator(Operator):
+    bl_idname = "debug.trigger_as_error"
+    bl_label = "Trigger AS Error"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        Call_AS("e-1")
         return {'FINISHED'}

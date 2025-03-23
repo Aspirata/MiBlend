@@ -1,11 +1,10 @@
 from ..Data import *
 from ..Utils.Translator import translate
-import bpy, time
+import bpy, time, json, os, traceback
 
 def Call_AS(code: str, tech_things: str = "", data: str = ""):
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
     
-    # Store calls in a queue
     if not hasattr(Call_AS, 'call_queue'):
         Call_AS.call_queue = []
         Call_AS.last_call_time = 0
@@ -13,15 +12,10 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
     
     current_time = time.time()
     
-    # Add current call to queue
     Call_AS.call_queue.append((code, data))
     
-    # Process queue if enough time has passed or this is the first call
     if (current_time - Call_AS.last_call_time >= 5.0) and not Call_AS.is_processing:
         Call_AS.is_processing = True
-
-        type = code[0]
-        number = str(code[1:])
 
         call_data = []
         try:
@@ -33,12 +27,13 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                 for code, d in Call_AS.call_queue:
                     type = code[0]
                     number = str(code[1:])
+                    
                     if type == "w":
                         if not Preferences.show_warnings:
                             continue
                         name = data_json.get("warnings", {}).get(number, {}).get("Name")
                         description = data_json.get("warnings", {}).get(number, {}).get("Description")
-                        solutions = data_json.get("errors", {}).get(number, {}).get("Solutions", "")
+                        solutions = data_json.get("warnings", {}).get(number, {}).get("Solutions", "")
                     elif type == "e":
                         name = data_json.get("errors", {}).get(number, {}).get("Name")
                         description = data_json.get("errors", {}).get(number, {}).get("Description")
@@ -46,21 +41,21 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                     elif type == "n":
                         name = data_json.get("null", {}).get(number, {}).get("Name")
                         description = data_json.get("null", {}).get(number, {}).get("Description")
+                        solutions = ""
 
                     description = translate(description)
 
                     if name and description:
-                        call_data.append({"Code": code, "Name": name, "Description": description.format(Data=d), "Solutions": solutions, "Tech_Things": tech_things})
+                        call_data.append(f"{code}:::{name}:::{description.format(Data=d)}:::{solutions}:::{tech_things}")
                     else:
-                        call_data.append({"Code": "e00", "Name": critical_error_name, "Description": critical_error_description.format(Data=code), "Tech_Things": f"Code not found: {code}"})
-        
+                        call_data.append(f"e00:::Critical Error:::{critical_error_description.format(Data=code)}::::Code not found: {code}")
+
         except Exception:
-            call_data.append({"Code": "e00", "Name": critical_error_name, "Description": critical_error_description.format(Data=code), "Tech_Things": str(traceback.format_exc())})
+            call_data.append(f"e00:::Critical Error:::Failed to load error data::::{traceback.format_exc()}")
 
         if call_data:
-            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', **call_data[-1])
+            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', call_data="|||".join(call_data))
 
-        # Update time and reset processing state
         Call_AS.call_queue.clear()
         Call_AS.last_call_time = current_time
         Call_AS.is_processing = False
@@ -70,52 +65,62 @@ class AbsoluteSolverPanel(bpy.types.Operator):
     bl_idname = "special.absolute_solver"
     bl_options = {'REGISTER', 'UNDO'}
 
-    Code: bpy.props.StringProperty()
-    Name: bpy.props.StringProperty()
-    Description: bpy.props.StringProperty()
-    Solutions: bpy.props.StringProperty()
-    Tech_Things: bpy.props.StringProperty()
+    call_data: bpy.props.StringProperty()  # Строка со всеми ошибками
 
     def invoke(self, context, event):
+        # Разбираем строку в список ошибок
+        self.errors = []
+        for entry in self.call_data.split("|||"):
+            parts = entry.split(":::")
+            if len(parts) == 5:
+                self.errors.append({
+                    "Code": parts[0],
+                    "Name": parts[1],
+                    "Description": parts[2],
+                    "Solutions": parts[3],
+                    "Tech_Things": parts[4]
+                })
+        
         return context.window_manager.invoke_props_dialog(self, width=600)
     
     def draw(self, context):
         layout = self.layout
+
+        for error in self.errors:
+            box = layout.box()
+
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text=f"{translate('Code')}: {error['Code']}")
         
-        box = layout.box()
+            row = sbox.row()
+            row.label(text=f"{translate('Name')}: {translate(error['Name'])}")
 
-        sbox = box.box()
-        row = sbox.row()
-        row.label(text=f"{translate('Code')}: {self.Code}")
-    
-        row = sbox.row()
-        row.label(text=f"{translate('Name')}: {(translate(self.Name))}")
-
-        sbox = box.box()
-        row = sbox.row()
-        row.label(text=f"{translate('Description')}: {self.Description}")
-
-        if self.Solutions:
             sbox = box.box()
             row = sbox.row()
-            row.label(text=f"{translate('Solutions')}:")
-            for solution_operator in self.Solutions.split("; "):
+            row.label(text=f"{translate('Description')}: {error['Description']}")
+
+            if error["Solutions"]:
+                sbox = box.box()
                 row = sbox.row()
-                solution = row.operator(solution_operator)
-                if hasattr(solution, "description"):
-                    solution.description = self.Description
+                row.label(text=f"{translate('Solutions')}:")
+                for solution_operator in error["Solutions"].split("; "):
+                    row = sbox.row()
+                    solution = row.operator(solution_operator)
+                    if hasattr(solution, "description"):
+                        solution.description = error["Description"]
 
-        if self.Tech_Things:
-            sbox = box.box()
-            row = sbox.row()
-            row.operator("special.open_console")
+            if error["Tech_Things"]:
+                sbox = box.box()
+                row = sbox.row()
+                row.operator("special.open_console")
 
-            row = sbox.row()
-            copy_to_clipboard = row.operator("special.copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
-            copy_to_clipboard.text = self.Tech_Things
+                row = sbox.row()
+                copy_to_clipboard = row.operator("special.copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
+                copy_to_clipboard.text = error["Tech_Things"]
 
-            # Print the error to the console
-            print(f"\033[33mAbsolute Solver Report: \033[31m\n{self.Tech_Things}\033[0m")
+                # Print error to console
+                print(f"\033[33mAbsolute Solver Report: \033[31m\n{error['Tech_Things']}\033[0m")
 
     def execute(self, context):
         return {'FINISHED'}

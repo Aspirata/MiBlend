@@ -844,7 +844,10 @@ class AssetPanel(Panel):
             self.bl_options = {'DEFAULT_CLOSED'}
 
         box = layout.box()
+        row = box.row()
+        row.label(text="Assets", icon="ASSET_MANAGER")
 
+        row = box.row()
         box.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
         row = box.row()
@@ -962,3 +965,26 @@ class Assets_List_UL_(bpy.types.UIList):
                 flt_flags.append(0)
 
         return flt_flags, []
+
+class DebugPanel(Panel):
+    bl_label = "Debug"
+    bl_idname = "debug.panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'MiBlend'
+
+    def draw(self, context):
+        layout = self.layout
+        prefs = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+        
+        if prefs.transparent_ui:
+            self.bl_options = {'HIDE_HEADER'}
+        else:
+            self.bl_options = {'DEFAULT_CLOSED'}
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Debug", icon="MODIFIER_DATA")
+
+        row = box.row()
+        row.operator("debug.trigger_as_error")

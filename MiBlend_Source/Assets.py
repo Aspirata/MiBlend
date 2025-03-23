@@ -37,12 +37,17 @@ def append_collection(asset_name, asset_collection, asset_path):
             Call_AS("05", data=asset_name)
             return
         
+        if asset_collection not in data_from.collections:
+            Call_AS("05", data=asset_name)
+            return
+        
         data_to.collections = [asset_collection]
 
     for collection in data_to.collections:
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.collection.children.link(collection)
         for obj in collection.objects:
+            obj["MiBlend_ID"] = "Asset"
             if obj.type == "ARMATURE":
                 obj.select_set(True)
                 bpy.context.view_layer.objects.active = obj
@@ -50,8 +55,6 @@ def append_collection(asset_name, asset_collection, asset_path):
                 cursor_location = bpy.context.scene.cursor.location
                 if root_bone:
                     obj.pose.bones[root_bone.name].matrix.translation = cursor_location
-            
-            obj["MiBlend_ID"] = "Asset"
 
 def run_python_script(name, path):
     properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
