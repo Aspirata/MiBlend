@@ -49,6 +49,9 @@ def init_on_start():
             "Absolute Solver": "v2.0",
         }
 
+        if "Better Animate Texture" in bpy.data.node_groups:
+            Call_AS("e01", data=f"Component: Node_group is outdated (Better Animate Texture -> Procedurally Animated Better Emission")
+        
         for component, component_version in old_components_dict.items():
             if component not in ["Absolute Solver", "Index"]:
                 if component not in new_components_dict or component_version != new_components_dict.get(component):
