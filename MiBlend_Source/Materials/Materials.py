@@ -692,7 +692,7 @@ def setproceduralpbr():
                         if node.type == "TEX_IMAGE":
                             node.image = image
                     
-                    PNormals.node_group.name = group_name
+                    PNormals.node_tree.name = group_name
                     
                     if image.size[0] > image.size[1]:
                         image_difference_X = image.size[1] / image.size[0]
