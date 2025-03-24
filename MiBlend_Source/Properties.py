@@ -58,7 +58,7 @@ class ResourcePackProperties(PropertyGroup):
 
     use_additional_textures: BoolProperty(
         name="Use PBR Textures",            # 16.09.2024 This was renamed, but i'm too lazy to change the name in the code LoL
-        default=True,
+        default=True,                       # 24.03.2025 Change this in v0.8 Resouce Packs Rewrite
     )
 
     textures_settings: BoolProperty(
@@ -834,6 +834,9 @@ class AssetsProperties(PropertyGroup):
         description="",
         default=True
         )
+
+class AbsoluteSolverProperties(PropertyGroup):
+    ignored_codes: StringProperty()
     
 class MiBlendProperties(PropertyGroup):
     world_properties: bpy.props.PointerProperty(type=WorldProperties)
@@ -842,5 +845,6 @@ class MiBlendProperties(PropertyGroup):
     env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
     ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
     assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
+    absolute_solver_properties: bpy.props.PointerProperty(type=AbsoluteSolverProperties)
     utils_properties: bpy.props.PointerProperty(type=UtilsProperties)
     optimization_properties: bpy.props.PointerProperty(type=OptimizationProperties)

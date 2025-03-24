@@ -847,7 +847,6 @@ class AssetPanel(Panel):
         row = box.row()
         row.label(text="Assets", icon="ASSET_MANAGER")
 
-        row = box.row()
         box.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
         row = box.row()
@@ -988,3 +987,6 @@ class DebugPanel(Panel):
 
         row = box.row()
         row.operator("debug.trigger_as_error")
+
+        row = box.row()
+        row.operator("debug.clear_ignored_codes")

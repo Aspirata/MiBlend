@@ -449,9 +449,7 @@ class ResetPropertiesOperator(Operator):
             return {'FINISHED'}
         
         except Exception as error:
-            if current_index < 0 or current_index >= len(items):
-                Call_AS("e08", error)
-            elif not os.path.isfile(json_file_path):
+            if not os.path.isfile(json_file_path):
                 Call_AS("e03", error, json_file_path)
             else:
                 Call_AS("n00", error)
@@ -725,6 +723,15 @@ class ManualAssetsUpdateOperator(Operator):
     
     def execute(self, context):
         update_assets()
+        return {'FINISHED'}
+    
+class ClearIgnoredCodesOperator(Operator):
+    bl_idname = "debug.clear_ignored_codes"
+    bl_label = "Clear Ignored Codes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes = ""
         return {'FINISHED'}
 
 class TriggerASErrorOperator(Operator):

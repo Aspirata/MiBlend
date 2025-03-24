@@ -44,26 +44,18 @@ def find_mc() -> tuple[str, str]:
     for launcher, path in Launchers.get(current_os).items():
         if path == "Unknown":
             continue
-        folders = os.path.join(os_env, path)
-        if os.path.isdir(folders):
-            for folder in os.listdir(folders):
-                instance_path = None
-                if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(os_env, path, folder, f"{folder}.jar")):
-                    versions[version] = (folder, os.path.join(os_env, path))
-                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-                else:
-                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
-    
-    if Preferences.mc_instances_path:
-        folders = Preferences.mc_instances_path
-        if os.path.isdir(folders):
-            for folder in os.listdir(folders):
-                instance_path = None
-                if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(Preferences.mc_instances_path, folder, f"{folder}.jar")):
-                    versions[version] = (folder, Preferences.mc_instances_path)
-                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-                else:
-                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
+
+        folders = Preferences.mc_instances_path if Preferences.mc_instances_path else os.path.join(os_env, path)
+        if not os.path.isdir(folders):
+            continue
+
+        for folder in os.listdir(folders):
+            instance_path = None
+            if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(folders, folder, f"{folder}.jar")):
+                versions[version] = (folder, os.path.join(os_env, path))
+                dprint(f"{instance_path} valid", is_deep=True, zone="rp")
+            else:
+                dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
     if versions:
         latest_version = max(versions, key=lambda x: LooseVersion(x))
@@ -228,82 +220,90 @@ def apply_resources():
 
         if root_folder.endswith(('.zip', '.jar')):
             try:
-                return zip_unpacker(root_folder, image_name, obj_type)
+                return zip_unpacker(root_folder, image_name, obj_type, entity_name=entity_name)
             except zipfile.BadZipFile:
                 print("Bad Zip File")
-        else:
-            for dirpath, dirnames, files in os.walk(root_folder):
-                if "textures" not in dirpath:
-                    continue
 
-                if entity_name:
-                    dprint(f"{image_name} is {obj_type} using entity filter...", is_deep=True, zone="rp")
-                    if "sign" in entity_name:
-                        dirpath = os.path.join(dirpath, obj_type, entity_name, "hanging" if "hang" in entity_name else "signs")
-                    else:
-                        dirpath = os.path.join(dirpath, obj_type, entity_name)
-                elif obj_type != "unknown":
-                    dprint(f"{image_name} is {obj_type} using texture filter...", is_deep=True, zone="rp")
-                    dirpath = os.path.join(dirpath, obj_type)
+        for dirpath, dirnames, files in os.walk(root_folder):
+            if "textures" not in dirpath:
+                continue
+
+            if entity_name and "entity" in entity_name:
+                dprint(f"{image_name} is {obj_type} using entity filter...", is_deep=True, zone="rp")
+                if "sign" in entity_name:
+                    dirpath = os.path.join(dirpath, obj_type, entity_name, "hanging" if "hang" in entity_name else "signs")
                 else:
-                    dprint(f"{image_name} is {obj_type}", is_deep=True, zone="rp")
-                    dprint(f"Switching to hybrid mode...", is_deep=True, zone="rp")
+                    dirpath = os.path.join(dirpath, obj_type, entity_name)
+            elif obj_type != "unknown":
+                dprint(f"{image_name} is {obj_type} using texture filter...", is_deep=True, zone="rp")
+                dirpath = os.path.join(dirpath, obj_type)
+            else:
+                dprint(f"{image_name} is {obj_type}", is_deep=True, zone="rp")
+                dprint(f"Switching to hybrid mode...", is_deep=True, zone="rp")
 
-                fast_image = os.path.join(dirpath, image_name)
+            fast_image = os.path.join(dirpath, image_name)
 
-                if os.path.isfile(fast_image):
-                    dprint(f"{fast_image} is found", is_deep=True, zone="rp")
-                    return fast_image
-                else:
-                    dprint(f"{fast_image} isn't found, searching for the {image_name}...", is_deep=True, zone="rp")
+            if os.path.isfile(fast_image):
+                dprint(f"{fast_image} is found", is_deep=True, zone="rp")
+                return fast_image
+            else:
+                dprint(f"{fast_image} isn't found, searching for the {image_name}...", is_deep=True, zone="rp")
 
-                if not os.path.exists(dirpath):
-                    continue
+            if not os.path.exists(dirpath):
+                continue
 
-                for dirpath, dirnames, files in os.walk(dirpath):
-                    for file in files:
-                        if "colormap" in dirnames:
-                            continue
+            for dirpath, dirnames, files in os.walk(dirpath):
+                for file in files:
+                    if "colormap" in dirnames:
+                        continue
 
-                        if file == image_name:
-                            return os.path.join(dirpath, file)
-                        
-                        if "grass" in image_name and (file == f"short_{image_name}" or file == image_name.replace("short_", "") or file == image_name):
-                            return os.path.join(dirpath, file)
+                    if file == image_name:
+                        return os.path.join(dirpath, file)
+                    
+                    if "grass" in image_name and (file == f"short_{image_name}" or file == image_name.replace("short_", "") or file == image_name):
+                        return os.path.join(dirpath, file)
 
-                        if file.endswith(('.zip', '.jar')):
-                            try:
-                                return zip_unpacker(os.path.join(dirpath, file), image_name, obj_type, file)
-                            except zipfile.BadZipFile:
-                                Call_AS("n00", traceback.format_exc())
+                    if file.endswith(('.zip', '.jar')):
+                        try:
+                            return zip_unpacker(os.path.join(dirpath, file), image_name, obj_type, file, entity_name)
+                        except zipfile.BadZipFile:
+                            Call_AS("n00", traceback.format_exc())
         return None
     
-    def zip_unpacker(root_folder: str, image_name: str, obj_type: str , file=None) -> Optional[str]:
+    def zip_unpacker(root_folder: str, image_name: str, obj_type: str = "Unknown", file=None, entity_name: str = "") -> Optional[str]:
         resource_packs_directory = get_resource_path()
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
             namelist = zip_ref.namelist()
             
-            if obj_type == "unknown":
-                #dprint(f"{image_name} is {obj_type}")
-                #dprint(f"Switching to hybrid mode...")
-                filtered_namelist = [item for item in namelist if f"textures" in item and "colormap" not in item]
+            if entity_name and "entity" in entity_name:
+                dprint(f"{image_name} is {obj_type} using entity filter...", is_deep=True, zone="rp")
+                if "sign" in entity_name:
+                    filtered_namelist = [item for item in namelist if f"textures/{obj_type}/{entity_name}/{'hanging' if 'hang' in entity_name else 'signs'}" in item and "colormap" not in item]
+                else:
+                    filtered_namelist = [item for item in namelist if f"textures/{obj_type}/{entity_name}" in item and "colormap" not in item]
+            elif obj_type == "unknown":
+                dprint(f"{image_name} is {obj_type}", is_deep=True, zone="rp")
+                dprint(f"Switching to hybrid mode...", is_deep=True, zone="rp")
+                filtered_namelist = [item for item in namelist if "textures" in item and "colormap" not in item]
             else:
-                #dprint(f"{image_name} is {obj_type} using texture filter...")
+                dprint(f"{image_name} is {obj_type} using texture filter...", is_deep=True, zone="rp")
                 filtered_namelist = [item for item in namelist if f"textures/{obj_type}" in item and "colormap" not in item]
-
             namelist = filtered_namelist
 
+            if not namelist:
+                return None
+            
             fast_image = namelist[0].replace(os.path.basename(namelist[0]), image_name)
             extracted_file_path = os.path.join(extract_path, fast_image)
             
             if fast_image in namelist:
-                #dprint(f"{fast_image} is found")
+                dprint(f"{fast_image} is found", is_deep=True, zone="rp")
                 if not os.path.isfile(os.path.join(extract_path, fast_image)):
                     zip_ref.extract(fast_image, extract_path)
                 return extracted_file_path
-            #else:
-                #dprint(f"{fast_image} isn't found, searching for the {image_name}...")
+            else:
+                dprint(f"{fast_image} isn't found, searching for the {image_name}...", is_deep=True, zone="rp")
 
             if r_props.animate_textures:
                 for zip_info in namelist:
@@ -608,10 +608,10 @@ def apply_resources():
 
         predicted_texture_path = fast_find_image([new_normal_image_path, new_image_path], specular_image_name)
         if predicted_texture_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
-            new_specular_image_path = find_image(specular_image_name, path, entity_name=selected_object.name)
+            new_specular_image_path = find_image(specular_image_name, path, entity_name=material.name)
         else:
             if not r_props.use_i or not r_props.use_n:
-                new_specular_image_path = find_image(specular_image_name, path, entity_name=selected_object.name)
+                new_specular_image_path = find_image(specular_image_name, path, entity_name=material.name)
             else:
                 new_specular_image_path = predicted_texture_path
 
@@ -747,7 +747,7 @@ def apply_resources():
         return True
 
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots:
+        if not selected_object.material_slots and not is_code_ignored("w01"):
             Call_AS("w01", selected_object)
             continue
 
@@ -755,11 +755,10 @@ def apply_resources():
             if material is None or not material.use_nodes:
                 continue
             
-            # Implement is_world() check
-            #if selected_object.get("MiBlend ID", "") == "":
-                #Call_AS("w02", data=selected_object.name)
-                #continue
-
+            if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02"):
+                Call_AS("w02", data=selected_object.name)
+                continue
+            
             PBSDF = None
             image_texture_node = None
             image_path = None
@@ -842,7 +841,7 @@ def apply_resources():
                     if not enabled or "Texture" not in Type:
                         continue
                     
-                    new_image_path = find_image(image_texture, path, obj_type, selected_object.name)
+                    new_image_path = find_image(image_texture, path, obj_type, material.name)
 
                     if new_image_path is not None and os.path.isfile(new_image_path):
                             
@@ -867,9 +866,9 @@ def apply_resources():
                     new_normal_image_path = fast_find_image([new_image_path], normal_image_name)
 
                     if new_normal_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
-                        new_normal_image_path = find_image(normal_image_name, path, obj_type, selected_object.name)
+                        new_normal_image_path = find_image(normal_image_name, path, obj_type, material.name)
                     elif r_props.use_i == False:
-                        new_normal_image_path = find_image(normal_image_name, path, obj_type, selected_object.name)
+                        new_normal_image_path = find_image(normal_image_name, path, obj_type, material.name)
 
                     if normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
                         break
@@ -928,9 +927,9 @@ def apply_resources():
                     new_emission_image_path = fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name)
 
                     if new_emission_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
-                        new_emission_image_path = find_image(emission_image_name, path, obj_type, selected_object.name)
+                        new_emission_image_path = find_image(emission_image_name, path, obj_type, material.name)
                     elif r_props.use_i == False or r_props.use_n == False or r_props.use_s == False:
-                        new_emission_image_path = find_image(emission_image_name, path, obj_type, selected_object.name)
+                        new_emission_image_path = find_image(emission_image_name, path, obj_type, material.name)
 
                     if emission_texture_change(new_emission_image_path, emission_texture_node, PBSDF, image_texture_node, image_path):
                         break

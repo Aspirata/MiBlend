@@ -2,7 +2,7 @@ from .Data import *
 from .Preferences import MiBlendPreferences
 from .MIB_API import *
 from .Assets import update_assets
-from .Utils.Absolute_Solver import AbsoluteSolverPanel
+from .Utils.Absolute_Solver import *
 from .Resource_Packs import update_default_pack
 from .UI import *
 from .Utils.AS_Solutions import *
@@ -46,7 +46,6 @@ def init_on_start():
         new_components_dict = {
             "MiBlend": "Butterfly",
             "UAS": "v2.1.3",
-            "Absolute Solver": "v2.0",
         }
 
         if "Better Animate Texture" in bpy.data.node_groups:
@@ -78,30 +77,25 @@ def init_on_start():
 
 panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
 properties = [WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, MiBlendProperties
+    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
 ]
-special_classes = [MiBlendPreferences, AbsoluteSolverPanel, RecreateEnvironment]
+special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverCancel, AbsoluteSolverPanel, RecreateEnvironment]
 
 operators = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
     MoveResourcePackUp, MoveResourcePackDown,RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
     FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator
 ]
 
 debug_classes = [DebugPanel, TriggerASErrorOperator]
 deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRenderSettingsOperator, AssingVertexGroupOperator]
 
-classes = properties + special_classes + operators + panels 
+classes = properties + special_classes + operators + panels
+
 @persistent
 def on_scene_load(dummy):
-    init_on_start()
-
-def delayed_init():
-    if bpy.context.scene is not None:
-        init_on_start()
-        return None
-    return 0.1
+    bpy.app.timers.register(init_on_start, first_interval=0.1)
 
 def register():
     for cls in classes:
@@ -119,8 +113,6 @@ def register():
     
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
-
-    bpy.app.timers.register(delayed_init)
 
 def unregister():
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:

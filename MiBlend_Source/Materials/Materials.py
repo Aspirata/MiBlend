@@ -18,7 +18,7 @@ def replace_materials():
         return
     
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object):
+        if not is_mesh(selected_object) and not is_code_ignored("w01"):
             Call_AS("w01", selected_object)
             continue
 
@@ -121,7 +121,7 @@ def fix_world():
 
     for selected_object in bpy.context.selected_objects:
 
-        if not is_mesh(selected_object):
+        if not is_mesh(selected_object) and not is_code_ignored("w01"):
             Call_AS("w01", data=selected_object)
             continue
 
@@ -135,6 +135,12 @@ def fix_world():
             bpy.ops.object.editmode_toggle()
         
         exporter = detect_world_exporter(selected_object)
+
+        if exporter == "unknown":
+            Call_AS("w03")
+            continue
+
+        selected_object["MiBlend ID"] = "World"
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -162,7 +168,7 @@ def fix_world():
             for node in material.node_tree.nodes:
                 if node.type == "TEX_IMAGE":
                     if node.image:
-                        if node.image.name.replace(".png", "").endswith("_y") and exporter == "Mineways":
+                        if node.image.name.replace(".png", "").endswith("_y") and exporter == "mineways":
                             node.image.name = node.image.name.replace("_y", "", 1)
                         elif node.image.name.replace(".png", "").endswith("_a"):
                             material.node_tree.nodes.remove(node)
@@ -435,16 +441,16 @@ def create_env(mode=None):
     else:
         # Create Sky
         if (scene.miblend_properties.env_properties.create_sky and mode == None) or mode == "Sky":
-            if os.path.exists(nodes_file):
-                if world_material_name not in bpy.data.worlds:
-                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-                        data_to.worlds = [world_material_name]
-                    appended_world_material = bpy.data.worlds.get(world_material_name)
-                else:
-                    appended_world_material = bpy.data.worlds[world_material_name]
-                bpy.context.scene.world = appended_world_material
-            else:
+            if not os.path.exists(nodes_file):
                 Call_AS("e03", traceback.format_exc(), "Nodes.blend")
+
+            if world_material_name not in bpy.data.worlds:
+                with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                    data_to.worlds = [world_material_name]
+                appended_world_material = bpy.data.worlds.get(world_material_name)
+            else:
+                appended_world_material = bpy.data.worlds[world_material_name]
+            bpy.context.scene.world = appended_world_material
 
         # Create Fog
         if (scene.miblend_properties.env_properties.create_fog and mode == None) or mode == "Fog":
@@ -478,21 +484,20 @@ def create_env(mode=None):
 
         # Create Clouds
         if (scene.miblend_properties.env_properties.create_clouds and mode == None) or mode == "Clouds":
-            if os.path.exists(clouds_path):
-                if clouds_node_tree_name not in bpy.data.node_groups:
-                    with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
-                        data_to.node_groups = [clouds_node_tree_name]
-                else:
-                    bpy.data.node_groups[clouds_node_tree_name]
-        
-                if "Clouds" not in bpy.data.materials:
-                    with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
-                        data_to.materials = ["Clouds"]
-                else:
-                    bpy.data.materials["Clouds"]
-            else:
+            if not os.path.exists(clouds_path):
                 Call_AS("e03", traceback.format_exc(), f"Clouds Generator {clouds_file_comp()}")
 
+            if clouds_node_tree_name not in bpy.data.node_groups:
+                with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
+                    data_to.node_groups = [clouds_node_tree_name]
+            else:
+                bpy.data.node_groups[clouds_node_tree_name]
+    
+            if "Clouds" not in bpy.data.materials:
+                with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
+                    data_to.materials = ["Clouds"]
+            else:
+                bpy.data.materials["Clouds"]
 
             if not MIB_env_collection:
                 MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
@@ -513,7 +518,7 @@ def create_env(mode=None):
 @ Perf_Time
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object):
+        if not is_mesh(selected_object) and not is_code_ignored("w01"):
             Call_AS("w01", data=selected_object)
             continue
 
@@ -565,7 +570,7 @@ def swap_textures(folder_path):
         return None
     
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object):
+        if not is_mesh(selected_object) and not is_code_ignored("w01"):
             Call_AS("w01", selected_object)
             continue
 
@@ -590,7 +595,7 @@ def setproceduralpbr():
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
         
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object):
+        if not is_mesh(selected_object) and not is_code_ignored("w01"):
             Call_AS("w01", data=selected_object)
             continue
 

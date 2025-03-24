@@ -21,9 +21,14 @@
         },
 
         "02": {
-            "Name": "MiBlend hasn't modified that material",
-            "Description": "MiBlend hasn't modified {Data} that may and almost 100% will lead to problems",
+            "Name": "MiBlend hasn't fixed that world",
+            "Description": "MiBlend hasn't fixed {Data} that may and almost 100% will lead to problems",
             "Solutions": "world.fix_world; "
+        },
+
+        "03": {
+            "Name": "Selceted object isn't a world",
+            "Description": "You've tried to fix world that isn't a world, perhaps you should try to fix materials instead"
         }
     },
 
@@ -85,7 +90,7 @@
 
         "08":
         {
-            "Name": "Broken Assets List",
+            "Name": "DEPRECATED Broken Assets List",
             "Description": "Something went wrong with the assets list (Maybe because of a legacy asset list)"
         },
         

@@ -118,6 +118,9 @@ def get_pack_info_properties(pack: str =None) -> dict:
         return pack_info
     return {}
 
+def is_code_ignored(code: str) -> bool:
+    return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()
+
 def EmissionMode(PBSDF: object, texture_name: str) -> int:
 
     Preferences = bpy.context.preferences.addons[__package__].preferences

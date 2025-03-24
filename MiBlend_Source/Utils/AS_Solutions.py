@@ -20,16 +20,14 @@ class FixCompatibility(Operator):
             bpy.context.scene["resource_packs"] = {}
             update_default_pack()
 
-        # Проверка наличия файла
         if not nodes_file:
             self.report({'ERROR'}, "nodes_file is not defined")
             return {'CANCELLED'}
 
         with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
-            new_node_groups = {name: None for name in data_from.node_groups}  # Используем словарь для хранения имен
+            new_node_groups = {name: None for name in data_from.node_groups}
             old_node_groups = {node_group.name: node_group for node_group in bpy.data.node_groups}
             
-            # Сохранение значений входов старых групп
             input_values = {}
             for name, old_group in old_node_groups.items():
                 if name in new_node_groups:

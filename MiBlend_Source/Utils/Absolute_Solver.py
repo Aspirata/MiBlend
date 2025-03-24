@@ -1,4 +1,5 @@
 from ..Data import *
+from ..MIB_API import *
 from ..Utils.Translator import translate
 import bpy, time, json, os, traceback
 
@@ -17,7 +18,7 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
     if (current_time - Call_AS.last_call_time >= 5.0) and not Call_AS.is_processing:
         Call_AS.is_processing = True
 
-        call_data = []
+        call_data = {}
         try:
             with open(os.path.join(utils_directory, "absolute_solver_list.json"), "r") as file:
                 data_json = json.load(file)
@@ -25,6 +26,9 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                 critical_error_description = translate(data_json.get("errors", {}).get("00", {}).get("Description", "Unknown error occurred: {Data}"))
 
                 for code, d in Call_AS.call_queue:
+                    if code in call_data or code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split():
+                        continue
+                    
                     type = code[0]
                     number = str(code[1:])
                     
@@ -42,20 +46,20 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                         name = data_json.get("null", {}).get(number, {}).get("Name")
                         description = data_json.get("null", {}).get(number, {}).get("Description")
                         solutions = ""
-
+                    
                     description = translate(description)
-
+                    
                     if name and description:
-                        call_data.append(f"{code}:::{name}:::{description.format(Data=d)}:::{solutions}:::{tech_things}")
+                        call_data[code] = f"{code}:::{name}:::{description.format(Data=d)}:::{solutions}:::{tech_things}"
                     else:
-                        call_data.append(f"e00:::Critical Error:::{critical_error_description.format(Data=code)}::::Code not found: {code}")
-
+                        call_data[code] = f"e00:::{critical_error_name}:::{critical_error_description.format(Data=code)}::::Code not found: {code}"
+        
         except Exception:
-            call_data.append(f"e00:::Critical Error:::Failed to load error data::::{traceback.format_exc()}")
-
+            call_data["e00"] = f"e00:::Critical Error:::Failed to load error data::::{traceback.format_exc()}"
+        
         if call_data:
-            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', call_data="|||".join(call_data))
-
+            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', call_data="|||".join(call_data.values()))
+        
         Call_AS.call_queue.clear()
         Call_AS.last_call_time = current_time
         Call_AS.is_processing = False
@@ -65,10 +69,9 @@ class AbsoluteSolverPanel(bpy.types.Operator):
     bl_idname = "special.absolute_solver"
     bl_options = {'REGISTER', 'UNDO'}
 
-    call_data: bpy.props.StringProperty()  # Строка со всеми ошибками
+    call_data: bpy.props.StringProperty()
 
     def invoke(self, context, event):
-        # Разбираем строку в список ошибок
         self.errors = []
         for entry in self.call_data.split("|||"):
             parts = entry.split(":::")
@@ -81,13 +84,20 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                     "Tech_Things": parts[4]
                 })
         
-        return context.window_manager.invoke_props_dialog(self, width=600)
+        context.window_manager.invoke_popup(self, width=600)
+        return {'RUNNING_MODAL'}
     
     def draw(self, context):
         layout = self.layout
+        layout.label(text="Absolute Solver", icon='ERROR')
+        layout.separator()
 
         for error in self.errors:
             box = layout.box()
+            if "e" in error["Code"]:
+                box.label(text="Error !", icon='ERROR')
+            elif "w" in error["Code"]:
+                box.label(text="Warning !", icon='WARNING_LARGE')
 
             sbox = box.box()
             row = sbox.row()
@@ -96,7 +106,6 @@ class AbsoluteSolverPanel(bpy.types.Operator):
             row = sbox.row()
             row.label(text=f"{translate('Name')}: {translate(error['Name'])}")
 
-            sbox = box.box()
             row = sbox.row()
             row.label(text=f"{translate('Description')}: {error['Description']}")
 
@@ -121,6 +130,38 @@ class AbsoluteSolverPanel(bpy.types.Operator):
 
                 # Print error to console
                 print(f"\033[33mAbsolute Solver Report: \033[31m\n{error['Tech_Things']}\033[0m")
+            
+            row = layout.row()
+            ignore_operator = row.operator("special.as_ignore")
+            ignore_operator.error_code = error["Code"]
+            cancel_operator = row.operator("special.as_cancel", depress=True)
 
     def execute(self, context):
         return {'FINISHED'}
+    
+class AbsoluteSolverIgnore(bpy.types.Operator):
+    bl_idname = "special.as_ignore"
+    bl_label = "Ignore"
+
+    error_code: bpy.props.StringProperty()
+
+    def execute(self, context):
+        as_props = context.scene.miblend_properties.absolute_solver_properties
+
+        ignored_list = as_props.ignored_codes.split()
+
+        if self.error_code not in ignored_list:
+            ignored_list.append(self.error_code)
+            as_props.ignored_codes = " ".join(ignored_list)
+
+            self.report({'INFO'}, f"{self.error_code} is being ignored now.")
+
+        return {'FINISHED'}
+
+class AbsoluteSolverCancel(bpy.types.Operator):
+    bl_idname = "special.as_cancel"
+    bl_label = "Cancel"
+
+    def execute(self, context):
+        raise Exception("Caanceled by user")
+        return {'CANCELLED'}
