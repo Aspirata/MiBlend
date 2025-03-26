@@ -661,6 +661,8 @@ def setproceduralpbr():
                         material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
 
                     bump_node.inputs[0].default_value = PProperties.bump_strength
+                    if blender_version(">= 4.4.1"):
+                        bump_node.inputs["Filter Width"].default_value = 1.0
 
                 elif image_texture_node and image:
                     if bump_node:
