@@ -46,6 +46,11 @@ class MiBlendPreferences(AddonPreferences):
         default=override_setting("emissiondetection", emissiondetectionfix())
     )
 
+    update_packs: BoolProperty(
+        name="Update Packs",
+        default=override_setting("update_packs", True)
+    )
+
     dev_tools: BoolProperty(
         name="Dev Tools",
         default=override_setting("dev_tools", False)
@@ -143,8 +148,12 @@ class MiBlendPreferences(AddonPreferences):
 
         row = box.row()
         row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
+
         row = box.row()
         row.prop(self, "emissiondetection", text='emissiondetection', expand=True)
+
+        row = box.row()
+        row.prop(self, "update_packs")
 
         box = layout.box()
         row = box.row()

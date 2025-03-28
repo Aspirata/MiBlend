@@ -150,6 +150,7 @@ def update_pack(pack: str, connection=None):
 @Perf_Time
 def update_default_pack():
     resource_packs = dict(bpy.context.scene["resource_packs"])
+    Preferences = bpy.context.preferences.addons[__package__].preferences
     resource_packs_directory = get_resource_path()
     
     packs_to_remove = [pack for pack, pack_info in resource_packs.items() if pack_info.get("is_default", False)]
@@ -172,7 +173,8 @@ def update_default_pack():
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as f:
         data = json.load(f)
         
-        connection = http.client.HTTPSConnection("api.modrinth.com")
+        if Preferences.update_packs:
+            connection = http.client.HTTPSConnection("api.modrinth.com")
         
         for pack in data:
             if pack not in os.listdir(resource_packs_directory):
@@ -183,7 +185,8 @@ def update_default_pack():
                     "is_default": False
                 }
             
-            update_pack(pack, connection=connection)
+            if Preferences.update_packs:
+                update_pack(pack, connection=connection)
             
             default_pack = pack
             default_path = os.path.join(resource_packs_directory, default_pack)
@@ -195,7 +198,8 @@ def update_default_pack():
                 "is_default": True
             }
         
-        connection.close()
+        if Preferences.update_packs:
+            connection.close()
     
     set_resource_packs(resource_packs)
 
@@ -295,12 +299,19 @@ def apply_resources():
                 return None
             
             fast_image = namelist[0].replace(os.path.basename(namelist[0]), image_name)
+            fast_mcmeta = namelist[0].replace(os.path.basename(namelist[0]), image_name + ".mcmeta")
             extracted_file_path = os.path.join(extract_path, fast_image)
             
             if fast_image in namelist:
                 dprint(f"{fast_image} is found", is_deep=True, zone="rp")
                 if not os.path.isfile(os.path.join(extract_path, fast_image)):
                     zip_ref.extract(fast_image, extract_path)
+
+                if r_props.animate_textures and fast_mcmeta in namelist:
+                    dprint(f"{fast_mcmeta} is found", is_deep=True, zone="rp")
+                    if not os.path.isfile(os.path.join(extract_path, fast_mcmeta)):
+                        zip_ref.extract(fast_mcmeta, extract_path)
+
                 return extracted_file_path
             else:
                 dprint(f"{fast_image} isn't found, searching for the {image_name}...", is_deep=True, zone="rp")
@@ -313,9 +324,8 @@ def apply_resources():
                     texture = os.path.basename(zip_info).replace(".mcmeta", "")
                     extracted_file_path = os.path.join(extract_path, zip_info)
 
-                    if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)) \
+                    if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or texture == image_name)) \
                         and not os.path.isfile(extracted_file_path):
-
                         zip_ref.extract(zip_info, extract_path)
 
             for zip_info in namelist:
@@ -325,7 +335,7 @@ def apply_resources():
                 texture = os.path.basename(zip_info)
                 extracted_file_path = os.path.join(extract_path, zip_info)
 
-                if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or file == image_name)):
+                if (texture == image_name) or ("grass" in image_name and (texture == f"short_{image_name}" or texture == image_name.replace("short_", "") or texture == image_name)):
 
                     if not os.path.isfile(extracted_file_path):
                         zip_ref.extract(zip_info, extract_path)

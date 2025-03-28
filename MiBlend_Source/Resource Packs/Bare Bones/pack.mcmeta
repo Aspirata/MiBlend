@@ -8,11 +8,11 @@
     "entries": [
       {
         "directory": "overlay_1_21_2",
-        "formats": [42, 42]
+        "formats": [42, 55]
       },
       {
         "directory": "overlay_1_21_4",
-        "formats": [46, 46]
+        "formats": [46, 55]
       },
       {
         "directory": "overlay_1_21_5",
