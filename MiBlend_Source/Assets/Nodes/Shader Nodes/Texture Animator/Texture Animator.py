@@ -13,17 +13,14 @@ for selected_object in bpy.context.selected_objects:
     if not material.use_nodes:
         continue
 
-    Texture_Animator = find_node(material, "Texture Animator")
-    ITexture_Animator = [node for node in material.node_tree.nodes if node.type == "GROUP" and "Animated; " in node.node_tree.name]
-
-    if ITexture_Animator:
-        ITexture_Animator = ITexture_Animator[0]
-
-    if ITexture_Animator:
-        image_texture = find_node(ITexture_Animator, "TEX_IMAGE").image
-    else:
-        texture_node = detect_texture_node(find_node(material, "BSDF_PRINCIPLED"))
-        image_texture = texture_node.image
+    textures_list = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE" or node.type == "NODE_GROUP" and "Animated; " in node.node_tree.name]
+    for texture_node in textures_list:
+        if texture_node.type == "NODE_GROUP":
+            ITexture_Animator = texture_node
+            image_texture = find_node(ITexture_Animator, "TEX_IMAGE").image
+        else:
+            Texture_Animator = texture_node.inputs["Vector"].links[0] if texture_node.inputs["Vector"].is_linked else None
+            image_texture = texture_node.image
 
     if not image_texture:
         nodes_list = material.node_tree.nodes

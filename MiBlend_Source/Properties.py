@@ -284,6 +284,18 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
+    override_better_emission: BoolProperty(
+        name="Override Better Emission",
+        default=False,
+        description=""
+    )
+
+    better_emission_revert: BoolProperty(
+        name="Revert",
+        default=True,
+        description=""
+    )
+
     procedural_animation: BoolProperty(
         name="Procedural Animation",
         default=False,
@@ -298,6 +310,12 @@ class PPBRProperties(PropertyGroup):
 
     randomize: BoolProperty(
         name="Randomize",
+        default=True,
+        description=""
+    )
+
+    procedural_animation_revert: BoolProperty(
+        name="Revert",
         default=True,
         description=""
     )

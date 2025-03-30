@@ -573,6 +573,13 @@ class WorldAndMaterialsPanel(Panel):
             row = sbox.row()
             row.prop(scene.miblend_properties.ppbr_properties, "non_camera_strength")
 
+            row = sbox.row()
+            row.prop(scene.miblend_properties.ppbr_properties, "override_better_emission")
+
+            row = sbox.row()
+            row.prop(scene.miblend_properties.ppbr_properties, "better_emission_revert")
+            row.enabled = not context.scene.miblend_properties.ppbr_properties.better_emission
+
         row = box.row()
         row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation")
         row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.procedural_animation_settings else "TRIA_LEFT"), icon_only=True)
@@ -583,6 +590,10 @@ class WorldAndMaterialsPanel(Panel):
 
             row = sbox.row()
             row.prop(scene.miblend_properties.ppbr_properties, "randomize")
+
+            row = sbox.row()
+            row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation_revert")
+            row.enabled = not context.scene.miblend_properties.ppbr_properties.procedural_animation
         
         if Preferences.experimental_features:
             row = box.row()
@@ -601,6 +612,7 @@ class WorldAndMaterialsPanel(Panel):
 
                 row = sbox.row()
                 row.prop(scene.miblend_properties.ppbr_properties, "ps_revert")
+                row.enabled = not context.scene.miblend_properties.ppbr_properties.pspecular
         
             row = box.row()
             row.prop(scene.miblend_properties.ppbr_properties, "proughness")
@@ -618,6 +630,7 @@ class WorldAndMaterialsPanel(Panel):
 
                 row = sbox.row()
                 row.prop(scene.miblend_properties.ppbr_properties, "pr_revert")
+                row.enabled = not context.scene.miblend_properties.ppbr_properties.proughness
 
         row = box.row()
         row.prop(scene.miblend_properties.ppbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.advanced_settings else "TRIA_RIGHT"))
