@@ -221,8 +221,9 @@ class WorldAndMaterialsPanel(Panel):
                     clouds_obj = obj
                     geonodes_modifier = obj.modifiers.get("Clouds Generator")
                     material_tree = obj.material_slots[0].material.node_tree
-                    map_range_node = material_tree.nodes.get("Map Range").inputs[2]
-                    shadow_node = material_tree.nodes.get("Math").inputs[1]
+                    fade_distance_value = material_tree.nodes.get("Fade Distance").inputs[2]
+                    height_transparency_multiplier_value = material_tree.nodes.get("Height Transparency Multiplier").inputs[1]
+                    shadow_intensity_value = material_tree.nodes.get("Shadow Intensity").inputs[1]
                     base_color = material_tree.nodes.get("Principled BSDF").inputs[0]
                     
                 elif obj.get("MiBlend ID") == "Fog":
@@ -452,10 +453,13 @@ class WorldAndMaterialsPanel(Panel):
                         row.prop(base_color, "default_value", text="Color")
                         
                         row = tbox.row()
-                        row.prop(map_range_node, "default_value", text="Fade Distance")
+                        row.prop(fade_distance_value, "default_value", text="Fade Distance")
 
                         row = tbox.row()
-                        row.prop(shadow_node, "default_value", text="Shadow intensity")
+                        row.prop(shadow_intensity_value, "default_value", text="Shadow intensity")
+
+                        row = tbox.row()
+                        row.prop(height_transparency_multiplier_value, "default_value", text="Height Transparency Multiplier")
 
         except:
             box = layout.box()

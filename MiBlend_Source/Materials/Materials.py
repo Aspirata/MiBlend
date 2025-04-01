@@ -459,11 +459,13 @@ def create_env(mode=None):
                 MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
                 bpy.context.scene.collection.children.link(MIB_env_collection)
 
-            bpy.ops.mesh.primitive_cube_add(size=1, enter_editmode=False, align='WORLD', location=(0, 0, 50))
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.mesh.primitive_cube_add(size=1.0, enter_editmode=False, align='WORLD', location=(0, 0, 50))
             fog_cube = bpy.context.active_object
 
+            for collection in fog_cube.users_collection:
+                collection.objects.unlink(fog_cube)
             MIB_env_collection.objects.link(fog_cube)
-            bpy.context.scene.collection.objects.unlink(fog_cube)
 
             fog_cube.name = "Fog"
             #fog_cube.display_type = "BOUNDS"
@@ -478,7 +480,7 @@ def create_env(mode=None):
             fog_node = create_node_group(fog_material, fog_node_tree_name, (output_node.location.x - 200, output_node.location.y))
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
 
-            bpy.context.scene.eevee.volumetric_end = fog_node.inputs["Max Distance"].default_value
+            bpy.context.scene.eevee.volumetric_end = fog_node.inputs["Max Distance"].default_value + 400.0
     
             bpy.context.object["MiBlend ID"] = "Fog"
 
@@ -503,17 +505,21 @@ def create_env(mode=None):
                 MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
                 bpy.context.scene.collection.children.link(MIB_env_collection)
 
-            bpy.ops.mesh.primitive_plane_add(size=50.0, enter_editmode=False, align='WORLD', location=(0, 0, 100))
-            bpy.context.object.name = "Clouds"
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.mesh.primitive_plane_add(size=1.0, enter_editmode=False, align='WORLD', location=(0, 0, 500))
+            clouds_obj = bpy.context.active_object
 
-            MIB_env_collection.objects.link(bpy.context.object)
-            bpy.context.scene.collection.objects.unlink(bpy.context.object)
+            for collection in clouds_obj.users_collection:
+                collection.objects.unlink(clouds_obj)
+            MIB_env_collection.objects.link(clouds_obj)
 
-            bpy.context.object.data.materials.append(bpy.data.materials.get("Clouds"))
-            geonodes_modifier = bpy.context.object.modifiers.new('Clouds Generator', type='NODES')
+            clouds_obj.name = "Clouds"
+            clouds_obj.scale = (400, 400, 1)
+            clouds_obj.data.materials.append(bpy.data.materials.get("Clouds"))
+            geonodes_modifier = clouds_obj.modifiers.new('Clouds Generator', type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
-            bpy.context.object["MiBlend ID"] = "Clouds"
+            clouds_obj["MiBlend ID"] = "Clouds"
 
 @ Perf_Time
 def fix_materials():
