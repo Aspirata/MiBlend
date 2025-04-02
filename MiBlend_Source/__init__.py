@@ -121,15 +121,17 @@ def register():
         bpy.app.handlers.load_post.append(on_scene_load)
 
 def unregister():
-    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
-        for cls in deprecated_classes:
-            bpy.utils.unregister_class(cls)
-            
-    for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
-
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
+
+    for cls in reversed(classes):
+        if hasattr(bpy.types, cls.__name__):
+            bpy.utils.unregister_class(cls)
+
+    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
+        for cls in deprecated_classes:
+            if hasattr(bpy.types, cls.__name__):
+                bpy.utils.unregister_class(cls)
 
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
