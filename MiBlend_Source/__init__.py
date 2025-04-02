@@ -99,14 +99,20 @@ def on_scene_load(dummy):
 
 def register():
     for cls in classes:
+        if hasattr(bpy.types, cls.__name__):
+            bpy.utils.unregister_class(cls)
         bpy.utils.register_class(cls)
     
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
+            if hasattr(bpy.types, cls.__name__):
+                bpy.utils.unregister_class(cls)
             bpy.utils.register_class(cls)
     
     if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.debug_tools:
         for cls in debug_classes:
+            if hasattr(bpy.types, cls.__name__):
+                bpy.utils.unregister_class(cls)
             bpy.utils.register_class(cls)
 
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
@@ -118,14 +124,12 @@ def unregister():
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
             bpy.utils.unregister_class(cls)
-        
-        del bpy.types.Scene.utils_properties
-        del bpy.types.Scene.optimization_properties
             
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Scene.miblend_properties
+    if hasattr(bpy.types.Scene, "miblend_properties"):
+        del bpy.types.Scene.miblend_properties
 
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
