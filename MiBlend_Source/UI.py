@@ -220,20 +220,20 @@ class WorldAndMaterialsPanel(Panel):
                     clouds_exists = True
                     clouds_obj = obj
                     geonodes_modifier = obj.modifiers.get("Clouds Generator")
-                    material_tree = obj.material_slots[0].material.node_tree
-                    fade_distance_value = material_tree.nodes.get("Fade Distance").inputs[2]
-                    height_transparency_multiplier_value = material_tree.nodes.get("Height Transparency Multiplier").inputs[1]
-                    shadow_intensity_value = material_tree.nodes.get("Shadow Intensity").inputs[1]
-                    base_color = material_tree.nodes.get("Principled BSDF").inputs[0]
+                    clouds_material_tree = obj.material_slots[0].material.node_tree.nodes
+                    fade_distance_value = next((node for node in clouds_material_tree if node.label == "Fade Distance"), None).inputs[2]
+                    height_transparency_multiplier_value = next((node for node in clouds_material_tree if node.label == "Height Transparency Multiplier"), None).inputs[1]
+                    shadow_intensity_value = next((node for node in clouds_material_tree if node.label == "Shadow Intensity"), None).inputs[1]
+                    base_color = next((node for node in clouds_material_tree if node.type == "BSDF_PRINCIPLED"), None).inputs[0]
                     
                 elif obj.get("MiBlend ID") == "Fog":
                     fog_exists = True
                     fog_obj = obj
-                    for node in fog_obj.material_slots[0].material.node_tree.nodes:
-                        if node.type == 'GROUP':
-                            if "Fog" in node.node_tree.name:
-                                fog_node = node
-                                break
+                    fog_material_tree = obj.material_slots[0].material.node_tree.nodes
+                    fog_node = next((node for node in fog_material_tree if node.type == 'GROUP' and "Fog" in node.node_tree.name), None)
+                
+                if clouds_exists and fog_exists:
+                    break
 
             box = layout.box()
             row = box.row()

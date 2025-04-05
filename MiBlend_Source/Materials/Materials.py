@@ -484,6 +484,8 @@ def create_env(mode=None):
     
             bpy.context.object["MiBlend ID"] = "Fog"
 
+            bpy.ops.object.select_all(action='DESELECT')
+
         # Create Clouds
         if (scene.miblend_properties.env_properties.create_clouds and mode == None) or mode == "Clouds":
             if not os.path.exists(clouds_path):
@@ -520,6 +522,8 @@ def create_env(mode=None):
             geonodes_modifier.node_group = bpy.data.node_groups.get(clouds_node_tree_name)
 
             clouds_obj["MiBlend ID"] = "Clouds"
+
+            bpy.ops.object.select_all(action='DESELECT')
 
 @ Perf_Time
 def fix_materials():
@@ -639,13 +643,12 @@ def setproceduralpbr():
 
                     elif "Procedurally Animated Better Emission" in node.node_tree.name:
                         better_animate_node = node
-                        break
                 
                 elif node.type == "MAP_RANGE":
-                    if "Procedural Roughness Node" in node.name:
+                    if "Procedural Roughness Node" in node.label:
                         proughness_node = node
                     
-                    elif "Procedural Specular Node" in node.name:
+                    elif "Procedural Specular Node" in node.label:
                         pspecular_node = node
 
             if not PBSDF:
@@ -845,7 +848,7 @@ def setproceduralpbr():
                 if PProperties.proughness:
                     if proughness_node is None:
                         proughness_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
-                        proughness_node.name = "Procedural Roughness Node"
+                        proughness_node.label = "Procedural Roughness Node"
                         proughness_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 90)
                         proughness_node.hide = True
 
@@ -864,7 +867,7 @@ def setproceduralpbr():
                 if PProperties.pspecular:
                     if pspecular_node is None:
                         pspecular_node = material.node_tree.nodes.new(type='ShaderNodeMapRange')
-                        pspecular_node.name = "Procedural Specular Node"
+                        pspecular_node.label = "Procedural Specular Node"
                         pspecular_node.location = (PBSDF.location.x - 180, PBSDF.location.y - 200)
                         pspecular_node.hide = True
 
