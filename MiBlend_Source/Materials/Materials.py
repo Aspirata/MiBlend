@@ -328,14 +328,14 @@ def recreate_env(self):
                                     vec = group.interface.items_tree[socket.name].default_value[vec_counter]
                             except:
                                 socket.default_value = group.interface.items_tree[socket.name].default_value
-                    else:
-                        try:
-                            vec_counter = 0
-                            for vec in socket.default_value:
-                                vec_counter += 1
-                                vec = group.inputs[socket.name].default_value[vec_counter]
-                        except:
-                                socket.default_value = group.inputs[socket.name].default_value
+                else:
+                    try:
+                        vec_counter = 0
+                        for vec in socket.default_value:
+                            vec_counter += 1
+                            vec = group.inputs[socket.name].default_value[vec_counter]
+                    except:
+                            socket.default_value = group.inputs[socket.name].default_value
 
     if self.create_sky == 'Recreate Sky':
         if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) is not None:
