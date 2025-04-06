@@ -1,47 +1,57 @@
-# [Readme En](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README.md)
+# [Readme in English](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README.md)
 
 # MiBlend  
-Полезный инструмент для создания контента Minecraft в Blender  
+**MiBlend** — мощный инструмент для создания контента Minecraft в **Blender**.
 
-> [!WARNING]  
-> MiBlend находится в бета-версии, поэтому ожидайте ошибки и изменения в процессе разработки.  
+---
 
-**Спасибо woodplank**, который сделал видео о MiBlend, он использовал версию v0.4.0 M2, поэтому видео немного устарело.
+## 📖 Wiki  
+Подробнее о MiBlend можно узнать на официальной [вики](https://docs.page/Aspirata/MiBlend~Experimental).
 
-https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
+> [!WARNING] 
+> MiBlend находится в стадии **беты**, поэтому ожидайте баги и частые изменения в процессе разработки.
 
-Чтобы установить эксперементальный бранч как аддон, вы можете перейти по ссылке: https://github.com/Aspirata/MiBlend/actions/workflows/Addon%20Build.yaml и скачать артефакт из последней автоматической сборки (**Для скачивания нужен аккаунт гитхаб !**) **ИЛИ**, если вы разработчик посмотрите на вики [инструкцию](https://docs.page/Aspirata/MiBlend/ru/genius-zone/how-to-build).
+---
 
-### Если вы хотите стать участником разработки (помочь с риггингом, кодингом), вы можете связаться со мной в Discord (aspirata) или на [официальном сервере MiBlend в Discord](https://discord.gg/Kf4VsZQz22).  
+## 🎬 Видеоролик  
+**Отдельное спасибо woodplank** за видео о MiBlend.  
+Обратите внимание: видео снято по версии **v0.4.0 M2**, и уже достаточно сильно устарело.
 
-## Контрибуторы:
+▶️ [Смотреть на YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
 
-### zipi.zip - Риги
-Ссылки:  
-- https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg  
+---
 
-### HeyItsAnjello - Нода процедурных нормалей, туман
-Ссылки:  
-- https://twitter.com/HeyItsAnjello  
+## 🤝 Хотите помочь?
 
-### RobotPants - Ресурс-пак Bare Bones  
-Ссылки:  
-- https://modrinth.com/resourcepack/bare-bones  
+Если вы хотите помочь с **риггингом**, **программированием** или чем-либо ещё:
+- Напишите мне в Discord: `aspirata`
+- Или присоединяйтесь к [официальному серверу MiBlend в Discord](https://discord.gg/Kf4VsZQz22)
 
-### Mwti - Ресурс-пак Embrace Pixels PBR  
-Ссылки:  
-- https://modrinth.com/resourcepack/embrace-pixels  
+---
 
-### Faizek - Риг Персонажа Story Mode, Риг Creaking
-Ссылки:  
-- https://x.com/fluffy_aizek  
-- https://t.me/flufyaizekmedia  
-- https://vk.com/fluffy_aizek  
+## 👥 Контрибуторы
 
-## Особая благодарность:
+### `zipi.zip` — Риги  
+🔗 [YouTube канал](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
-### Roni Raihan (TRPHB Animation) - Скрипт для удаления дублирующихся граней  
+### `HeyItsAnjello` — Нода процедурных нормалей, туман  
+🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
-### jabady - Активное тестирование и репорты об ошибках  
+### `RobotPants` — Ресурс-пак *Bare Bones*  
+🔗 [Modrinth](https://modrinth.com/resourcepack/bare-bones)
 
-### humusus. - Помощь с ригом эллея
+### `Mwti` — Ресурс-пак *Embrace Pixels PBR*  
+🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
+
+### `Faizek` — Риг персонажа из Story Mode, риг Creaking  
+🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
+🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
+🔗 [VK](https://vk.com/fluffy_aizek)
+
+---
+
+## 🙌 Особая благодарность
+
+- **Roni Raihan (TRPHB Animation)** — скрипт удаления дублирующихся граней  
+- **jabady** — активное тестирование и отчёты об ошибках  
+- **humusus.** — помощь с ригом эллея (Allay)

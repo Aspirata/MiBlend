@@ -1,52 +1,57 @@
-# [Readme Ru](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README_ru.md)
+# [Readme in Russian](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README_ru.md)
 
 # MiBlend
-A useful tool for creating minecraft content in blender
+**MiBlend** is a powerful tool for creating Minecraft content in **Blender**.
 
-> [!WARNING]
-> MiBlend is in beta state, so expect bugs and changes during development
+---
 
-**Thanks to woodplank**, who made a video about MiBlend, he used v0.4.0 M2, so this video is a bit outdated
+## 📖 Wiki  
+Learn more about MiBlend on the official [Wiki](https://docs.page/Aspirata/MiBlend~Experimental).
 
-https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp
+> [!WARNING] 
+> MiBlend is currently in **beta**, so expect bugs and frequent changes during development.
 
-To Install Experimental Brach as addon you need to you can go to https://github.com/Aspirata/MiBlend/actions/workflows/Addon%20Build.yaml and download artifact from the lastest auto build (**You need a github account to download artifacts !**) **OR** if you're a developer, check the [wiki](https://docs.page/Aspirata/MiBlend/en/genius-zone/how-to-build)
+---
 
-### If you want to be a contributor (Help me in rigging, coding etc.) you can contact me at the discord (aspirata) or on the [Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
+## 🎬 Video Showcase  
+**Special thanks to woodplank** for making a video about MiBlend.  
+Note: The video covers **v0.4.0 M2**, which is outdated.
 
-## Contributors:
+▶️ [Watch here](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
 
-### zipi.zip - Rigs
+---
 
-Links:
-- https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg
+## 🤝 Want to Contribute?
 
-### HeyItsAnjello - Procedural Normals Node, Fog
+If you're interested in helping with **rigging**, **coding**, or anything else:
+- Contact me on Discord: `aspirata`
+- Or join the [Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
 
-Links:
-- https://twitter.com/HeyItsAnjello
+---
 
-### RobotPants - Bare Bones Resource Pack
+## 👥 Contributors
 
-Links:
-- https://modrinth.com/resourcepack/bare-bones
+### `zipi.zip` – Rigs  
+🔗 [YouTube Channel](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
-### Mwti - Embrace Pixels PBR Resource Pack
+### `HeyItsAnjello` – Procedural Normals Node, Fog  
+🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
-Links:
-- https://modrinth.com/resourcepack/embrace-pixels
+### `RobotPants` – *Bare Bones* Resource Pack  
+🔗 [Modrinth](https://modrinth.com/resourcepack/bare-bones)
 
-### Faizek - Story Mode Character Rig, Creaking Rig
+### `Mwti` – *Embrace Pixels* PBR Resource Pack  
+🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
-Links:
-- https://x.com/fluffy_aizek
-- https://t.me/flufyaizekmedia
-- https://vk.com/fluffy_aizek
+### `Faizek` – Story Mode Character Rig, Creaking Rig  
+🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
+🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
+🔗 [VK](https://vk.com/fluffy_aizek)
 
-## Special Thanks:
+---
 
-### Roni Raihan (TRPHB Animation) - Remove Double Faces Script
+## 🙌 Special Thanks
 
-### jabady - Active Testing And Bug Reporting
-
-### humusus. - Helping with Allay Rig
+- **Roni Raihan (TRPHB Animation)** – Double Faces Removal Script  
+- **jabady** – Active testing and bug reporting  
+- **humusus.** – Help with the Allay rig
