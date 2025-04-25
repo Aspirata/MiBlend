@@ -241,6 +241,8 @@ def update_assets():
                             asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".py")
                         else:
                             asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".blend")
+                        
+                        dprint(os.path.basename(os.path.normpath(asset_data.get("File_path", ""))), os.path.normpath(asset_data.get("File_path", "")))
 
                         if format_version != "test":
                             if not asset_name:

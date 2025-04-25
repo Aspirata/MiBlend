@@ -43,11 +43,6 @@
 ### `Mwti` — Ресурс-пак *Embrace Pixels PBR*  
 🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
-### `Faizek` — Риг персонажа из Story Mode, риг Creaking  
-🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
-🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
-🔗 [VK](https://vk.com/fluffy_aizek)
-
 ---
 
 ## 🙌 Особая благодарность
