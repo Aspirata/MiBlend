@@ -413,7 +413,7 @@ class SetRenderSettingsOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        current_preset = bpy.context.scene.miblend_properties.utilsproperties.current_preset
+        current_preset = bpy.context.scene.miblend_properties.utils_properties.current_preset
         SetRenderSettings(current_preset)
         return {'FINISHED'}
     

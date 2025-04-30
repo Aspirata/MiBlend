@@ -43,6 +43,11 @@ If you're interested in helping with **rigging**, **coding**, or anything else:
 ### `Mwti` – *Embrace Pixels* PBR Resource Pack  
 🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
+### `Faizek` – Story Mode Character Rig, Creaking Rig  
+🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
+🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
+🔗 [VK](https://vk.com/fluffy_aizek)
+
 ---
 
 ## 🙌 Special Thanks

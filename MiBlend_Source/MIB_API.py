@@ -435,76 +435,82 @@ def detect_world_exporter(world_obj: object) -> str:
     dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
     return exporter
 
-def SeparateMeshByMaterial(obj: object, material = None) -> Optional[object]:
-    obj_name = obj.name
+def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
+    try:
+        obj_name = obj.name if obj.name.split('__')[0] else "World" + obj.name
+        new_obj = None
 
-    if bpy.context.object.mode != 'OBJECT':
-        bpy.ops.object.mode_set(mode='OBJECT')
+        # Ensure we're in object mode
+        if bpy.context.object.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
 
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.view_layer.objects.active = obj
-    obj.select_set(True)
+        # Early return if separation not needed
+        if len(obj.material_slots) <= 1 or not obj.material_slots:
+            return obj
 
-    if len(obj.material_slots) <= 1 or not obj.material_slots:
-        return
+        # Setup selection
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set(True)
 
-    if material:
-        if bpy.data.collections.get(obj_name.split('__')[0].replace("Main | ", "")) is None:
-            new_collection = bpy.data.collections.new(obj_name.split("__")[0].replace("Main | ", ""))
-            obj.users_collection[-1].children.link(new_collection)
-
+        # Create collection if needed
+        collection_name = obj_name.split('__')[0].replace("Main | ", "") or "World"
+        collection = bpy.data.collections.get(collection_name)
+        if not collection:
+            collection = bpy.data.collections.new(collection_name)
+            obj.users_collection[-1].children.link(collection)
+            
+            # Move object to new collection
             for col in obj.users_collection:
                 col.objects.unlink(obj)
+            collection.objects.link(obj)
 
-            new_collection.objects.link(obj)
+        if material:
+            # Separate specific material
+            for i, mat in enumerate(obj.data.materials):
+                if mat == material:
+                    bpy.context.object.active_material_index = i
+                    break
 
-        for i, mat in enumerate(obj.data.materials):
-            if mat == material:
-                bpy.context.object.active_material_index = i
-                break
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.object.material_slot_select()
+            bpy.ops.mesh.separate(type="SELECTED")
+            bpy.ops.object.mode_set(mode='OBJECT')
 
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.object.material_slot_select()
-        bpy.ops.mesh.separate(type="SELECTED")
-        bpy.ops.object.mode_set(mode='OBJECT')
+            # Find separated object
+            new_obj = next((o for o in bpy.context.selected_objects if o != obj), None)
+            if new_obj:
+                # Clean up original object
+                bpy.context.view_layer.objects.active = obj
+                if not obj.name.startswith("Main | "):
+                    obj.name = f"Main | {obj_name}"
+                bpy.ops.object.material_slot_remove()
+
+                # Setup new object
+                bpy.context.view_layer.objects.active = new_obj
+                bpy.ops.object.material_slot_remove_unused()
+                new_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
+
+        else:
+            # Separate all materials
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.separate(type="MATERIAL")
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            # Rename separated objects
+            for new_obj in collection.objects:
+                if new_obj in bpy.context.selected_objects and obj_name in new_obj.name:
+                    mat_name = new_obj.material_slots[0].material.name if new_obj.material_slots else "Unknown"
+                    new_obj.name = f"{mat_name} | {obj_name.replace('Main | ', '')}"
+
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.view_layer.update()
         
-        separated_obj = None
-        for o in bpy.context.selected_objects:
-            if o != obj:
-                separated_obj = o
-                break
-                
-        if separated_obj:
-            bpy.context.view_layer.objects.active = obj
-            if not obj.name.startswith("Main | "):
-                obj.name = f"Main | {obj_name}"
-            bpy.ops.object.material_slot_remove()
-            
-            bpy.context.view_layer.objects.active = separated_obj
-            bpy.ops.object.material_slot_remove_unused()
-            separated_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
-            new_obj = separated_obj
-    else:
-        new_collection = bpy.data.collections.new(obj_name.split("__")[0].replace("Main | ", ""))
-        obj.users_collection[-1].children.link(new_collection)
+        return new_obj
 
-        for col in obj.users_collection:
-            col.objects.unlink(obj)
-
-        new_collection.objects.link(obj)
-
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.separate(type="MATERIAL")
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        for new_obj in new_collection.objects:
-            if new_obj in bpy.context.selected_objects and obj_name in new_obj.name:
-                new_obj.name = f"{new_obj.material_slots[0].material.name} | {obj_name.replace('Main | ', '')}"
-
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.view_layer.update()
-
-    return new_obj
+    except Exception as error:
+        Call_AS("n00", str(error))
+        return None
 
 def Perf_Time(func):
     def wrapper(*args, **kwargs):

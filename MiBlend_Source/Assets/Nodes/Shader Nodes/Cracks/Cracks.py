@@ -1,7 +1,5 @@
 import bpy
 
-from MCB_API import GetConnectedSocketTo
-
 active_obj = bpy.context.active_object
 if active_obj and active_obj.active_material:
     current_material = active_obj.active_material
