@@ -18,7 +18,7 @@ def replace_materials():
         return
     
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01"):
+        if not is_mesh(selected_object) and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", selected_object)
             continue
 
@@ -121,7 +121,7 @@ def fix_world():
 
     for selected_object in bpy.context.selected_objects:
 
-        if not is_mesh(selected_object) and not is_code_ignored("w01"):
+        if not is_mesh(selected_object) and not is_code_ignored("w01") and Preferences.show_warnings:
             Call_AS("w01", data=selected_object)
             continue
 
@@ -528,7 +528,7 @@ def create_env(mode=None):
 @ Perf_Time
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01"):
+        if not is_mesh(selected_object) and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", data=selected_object)
             continue
 
@@ -580,7 +580,7 @@ def swap_textures(folder_path):
         return None
     
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01"):
+        if not is_mesh(selected_object) and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", selected_object)
             continue
 
@@ -605,7 +605,7 @@ def setproceduralpbr():
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
         
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01"):
+        if not is_mesh(selected_object) and not is_code_ignored("w01") and Preferences.show_warnings:
             Call_AS("w01", data=selected_object)
             continue
 

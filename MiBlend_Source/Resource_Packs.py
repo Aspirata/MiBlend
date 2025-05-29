@@ -757,7 +757,7 @@ def apply_resources():
         return True
 
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots and not is_code_ignored("w01"):
+        if not selected_object.material_slots and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", selected_object)
             continue
 
@@ -765,7 +765,7 @@ def apply_resources():
             if material is None or not material.use_nodes:
                 continue
             
-            if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02"):
+            if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
                 Call_AS("w02", data=selected_object.name)
                 continue
             
