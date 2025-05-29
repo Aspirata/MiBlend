@@ -5,8 +5,7 @@ def separate_by_material(obj):
 
     obj_name = obj.name
 
-    if bpy.context.object.mode != 'OBJECT':
-        bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)

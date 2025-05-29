@@ -86,10 +86,15 @@ class WorldAndMaterialsPanel(Panel):
                     toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
                     toggle_op.pack_name = pack
 
-                    if get_pack_info_properties(pack).get('mc_version') is None:
-                        row.label(text=f"{pack} ({pack_info['type']})")
+                    pack_info_props = get_pack_info_properties(pack)
+                    mc_version = pack_info_props.get('mc_version', '')
+                    pack_type = pack_info.get('type', 'Texture & PBR')
+                    
+                    if mc_version is None:
+                        row.label(text=f"{pack} ({pack_type})")
                     else:
-                        row.label(text=f"{pack} {get_pack_info_properties(pack).get('mc_version') if get_pack_info_properties(pack).get('mc_version') != 'Unknown' else ''} ({pack_info.get('type', 'Texture & PBR')})")
+                        version_text = mc_version if mc_version != 'Unknown' else ''
+                        row.label(text=f"{pack} {version_text} ({pack_type})")
                     
                     move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
                     move_up.pack_name = pack
@@ -244,7 +249,7 @@ class WorldAndMaterialsPanel(Panel):
 
             # Sky Settings
 
-            if sky_node is not None:
+            if sky_node:
                 row.prop(scene.miblend_properties.env_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
                 if scene.miblend_properties.env_properties.sky_settings:
                     sbox = box.box()
@@ -911,6 +916,24 @@ class AssetPanel(Panel):
             primary_tags = {"Rig", "Script", "Shader Node", "Geo Node", "Compositor Node", "Model", "Material"}
             secondary_tags = {"Simple", "Realistic", "Story Mode", "Node", "Particles"}
 
+            # Sort tags into categories
+            primary_tag_list = []
+            secondary_tag_list = []
+            other_tag_list = []
+            
+            for tag in assets_props.tags:
+                if tag.name in primary_tags:
+                    primary_tag_list.append(tag)
+                elif tag.name in secondary_tags:
+                    secondary_tag_list.append(tag)
+                else:
+                    other_tag_list.append(tag)
+                
+            # Sort tags within each category alphabetically
+            primary_tag_list.sort(key=lambda x: x.name)
+            secondary_tag_list.sort(key=lambda x: x.name)
+            other_tag_list.sort(key=lambda x: x.name)
+
             row = sbox.row()
             row.label(text="Tags:")
             row = sbox.row()
@@ -919,20 +942,18 @@ class AssetPanel(Panel):
 
             col_primary = split.column()
             col_primary.label(text="Primary")
-            for tag in assets_props.tags:
-                if tag.name in primary_tags:
-                    col_primary.prop(tag, "enabled", text=tag.name)
+            for tag in primary_tag_list:
+                col_primary.prop(tag, "enabled", text=tag.name)
 
             col_secondary = split.column()
             col_secondary.label(text="Secondary")
-            for tag in assets_props.tags:
-                if tag.name in secondary_tags:
-                    col_secondary.prop(tag, "enabled", text=tag.name)
-
-            col_other = split.column()
-            col_other.label(text="Other")
-            for tag in assets_props.tags:
-                if tag.name not in primary_tags and tag.name not in secondary_tags:
+            for tag in secondary_tag_list:
+                col_secondary.prop(tag, "enabled", text=tag.name)
+            
+            if other_tag_list:
+                col_other = split.column()
+                col_other.label(text="Other")
+                for tag in other_tag_list:
                     col_other.prop(tag, "enabled", text=tag.name)
 
             row = sbox.row()
@@ -944,7 +965,6 @@ class AssetPanel(Panel):
         row = box.row()
         row.scale_y = Big_Button_Scale
         row.operator("assets.import_asset", text=import_asset_text(current_index), icon="REC")
-
 
 class Assets_List_UL_(bpy.types.UIList):
 
@@ -960,10 +980,10 @@ class Assets_List_UL_(bpy.types.UIList):
             "Model": "OBJECT_DATA",
         }.get(asset_type, "QUESTION")
 
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         layout.row().label(text=item.get("Asset_name", "Unknown"), icon=self.get_custom_icon(item))
     
-    def filter_items(self, context, data, property):
+    def filter_items(self, context, data, _property):
         flt_flags = []
         selected_tags = {tag.name for tag in context.scene.miblend_properties.assets_properties.tags if tag.enabled}
         tags_mode = context.scene.miblend_properties.assets_properties.tags_mode
@@ -971,11 +991,18 @@ class Assets_List_UL_(bpy.types.UIList):
 
         for index, item in enumerate(data.asset_items):
             item_tags = set(item.get('Tags', []))
+            
             matches_tags = (tags_mode == "and" and selected_tags.issubset(item_tags)) or \
-                           (tags_mode == "or" and selected_tags.intersection(item_tags))
-
-            if ("All" in selected_tags or matches_tags) and self.filter_name.lower() in item.get('Asset_name').lower() and \
-               (blender_version(item.get('Blender_version', "x.x.x")) or not filter_by_version):
+                 (tags_mode == "or" and selected_tags.intersection(item_tags))
+            
+            # Check if name matches filter (only if filter is not empty)
+            matches_name = True if not self.filter_name else self.filter_name.lower() in item.get('Asset_name').lower()
+            
+            # Check version compatibility 
+            matches_version = blender_version(item.get('Blender_version', "x.x.x")) or not filter_by_version
+            
+            # Item passes if it matches all enabled filters
+            if ((not selected_tags or matches_tags) and matches_name and matches_version):
                 flt_flags.append(self.bitflag_filter_item)
             else:
                 flt_flags.append(0)

@@ -308,7 +308,7 @@ def fix_world():
 
 @Perf_Time
 def recreate_env(self):
-        
+
     scene = bpy.context.scene
     world = scene.world
 
@@ -321,13 +321,13 @@ def recreate_env(self):
             if node.type == 'GROUP' and "MiBlend Sky" in node.node_tree.name:
                 if blender_version("4.x.x"):
                     for socket in node.inputs:
-                            try:
-                                vec_counter = 0
-                                for vec in socket.default_value:
-                                    vec_counter += 1
-                                    vec = group.interface.items_tree[socket.name].default_value[vec_counter]
-                            except:
-                                socket.default_value = group.interface.items_tree[socket.name].default_value
+                        try:
+                            vec_counter = 0
+                            for vec in socket.default_value:
+                                vec_counter += 1
+                                vec = group.interface.items_tree[socket.name].default_value[vec_counter]
+                        except:
+                            socket.default_value = group.interface.items_tree[socket.name].default_value
                 else:
                     try:
                         vec_counter = 0
