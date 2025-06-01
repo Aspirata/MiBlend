@@ -31,14 +31,9 @@ def append_asset(asset_data):
         Call_AS("e05", traceback.format_exc(), asset_name)
 
 def append_collection(asset_name, asset_collection, asset_path):
-
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
-        if not data_from.collections:
-            Call_AS("05", data=asset_name)
-            return
-        
         if asset_collection not in data_from.collections:
-            Call_AS("05", data=asset_name)
+            Call_AS("e05", data=asset_name, tech_things=f"Collection {asset_collection} not found")
             return
         
         data_to.collections = [asset_collection]

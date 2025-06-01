@@ -260,14 +260,14 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    better_emission: BoolProperty(
-        name="Better Emission",
+    procedural_emission_and_animation: BoolProperty(
+        name="Procedural Emission & Animation",
         default=True,
         description=""
     )
 
-    better_emission_settings: BoolProperty(
-        name="Better Emission Settings",
+    procedural_emission_and_animation_settings: BoolProperty(
+        name="Procedural Emission & Animation Settings",
         default=False,
         description=""
     )
@@ -284,26 +284,8 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    override_better_emission: BoolProperty(
-        name="Override Better Emission",
-        default=False,
-        description=""
-    )
-
-    better_emission_revert: BoolProperty(
-        name="Revert",
-        default=True,
-        description=""
-    )
-
     procedural_animation: BoolProperty(
         name="Procedural Animation",
-        default=False,
-        description=""
-    )
-
-    procedural_animation_settings: BoolProperty(
-        name="Procedurally Animate Textures Settings",
         default=False,
         description=""
     )
@@ -314,7 +296,13 @@ class PPBRProperties(PropertyGroup):
         description=""
     )
 
-    procedural_animation_revert: BoolProperty(
+    custom_peaa_config: BoolProperty(
+        name="Custom Config",
+        default=True,
+        description=""
+    )
+
+    procedural_emission_and_animation_revert: BoolProperty(
         name="Revert",
         default=True,
         description=""

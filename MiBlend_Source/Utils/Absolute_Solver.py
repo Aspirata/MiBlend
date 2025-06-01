@@ -15,7 +15,7 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
     
     Call_AS.call_queue.append((code, data))
     
-    if (current_time - Call_AS.last_call_time >= 5.0) and not Call_AS.is_processing:
+    if (current_time - Call_AS.last_call_time >= 0.1) and not Call_AS.is_processing:
         Call_AS.is_processing = True
 
         call_data = {}
@@ -58,7 +58,9 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
             call_data["e00"] = f"e00:::Critical Error:::Failed to load error data::::{traceback.format_exc()}"
         
         if call_data:
-            bpy.ops.special.absolute_solver('INVOKE_DEFAULT', call_data="|||".join(call_data.values()))
+            result = bpy.ops.special.absolute_solver('INVOKE_DEFAULT', call_data="|||".join(call_data.values()))
+            if 'CANCELLED' in result:
+                raise Exception("Cancelled by user")
         
         Call_AS.call_queue.clear()
         Call_AS.last_call_time = current_time
@@ -83,9 +85,7 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                     "Solutions": parts[3],
                     "Tech_Things": parts[4]
                 })
-        
-        context.window_manager.invoke_popup(self, width=600)
-        return {'RUNNING_MODAL'}
+        return context.window_manager.invoke_popup(self, width=600)
     
     def draw(self, context):
         layout = self.layout
@@ -128,17 +128,19 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                 copy_to_clipboard = row.operator("special.copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
                 copy_to_clipboard.text = error["Tech_Things"]
 
-                # Print error to console
                 print(f"\033[33mAbsolute Solver Report: \033[31m\n{error['Tech_Things']}\033[0m")
             
             row = layout.row()
+            if error["Solutions"]:
+                auto_solution = row.operator(error["Solutions"].split("; ")[0], text="Auto Solve", depress=True)
+                if hasattr(auto_solution, "description"):
+                    auto_solution.description = error["Description"]
             ignore_operator = row.operator("special.as_ignore")
             ignore_operator.error_code = error["Code"]
-            cancel_operator = row.operator("special.as_cancel", depress=True)
 
     def execute(self, context):
         return {'FINISHED'}
-    
+
 class AbsoluteSolverIgnore(bpy.types.Operator):
     bl_idname = "special.as_ignore"
     bl_label = "Ignore"
@@ -147,21 +149,11 @@ class AbsoluteSolverIgnore(bpy.types.Operator):
 
     def execute(self, context):
         as_props = context.scene.miblend_properties.absolute_solver_properties
-
         ignored_list = as_props.ignored_codes.split()
 
         if self.error_code not in ignored_list:
             ignored_list.append(self.error_code)
             as_props.ignored_codes = " ".join(ignored_list)
-
             self.report({'INFO'}, f"{self.error_code} is being ignored now.")
 
         return {'FINISHED'}
-
-class AbsoluteSolverCancel(bpy.types.Operator):
-    bl_idname = "special.as_cancel"
-    bl_label = "Cancel"
-
-    def execute(self, context):
-        raise Exception("Caanceled by user")
-        return {'CANCELLED'}

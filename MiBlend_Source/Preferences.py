@@ -61,6 +61,11 @@ class MiBlendPreferences(AddonPreferences):
         default=override_setting("dprint", True)
     )
 
+    debug_panel: BoolProperty(
+        name="Enable Debug Panel (Requires Restart)",
+        default=override_setting("enable_debug_panel", False)
+    )
+
     deep_debug: BoolProperty(
         name="Deep Debug",
         default=override_setting("deep_debug", False)
@@ -184,6 +189,9 @@ class MiBlendPreferences(AddonPreferences):
 
             row = sbox.row()
             row.prop(self, "debug_tools", toggle=True)
+
+            row = sbox.row()
+            row.prop(self, "debug_panel", toggle=True)
 
             row = sbox.row()
             row.prop(self, "deep_debug", toggle=True)

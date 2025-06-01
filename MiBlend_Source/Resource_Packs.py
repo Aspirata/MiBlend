@@ -10,8 +10,9 @@ def get_resource_packs() -> list:
     try:
         return bpy.context.scene["resource_packs"]
     except Exception as error:
-        dprint(error, "cannot find resource packs attr, creating new one with update_default_pack()")
+        dprint(error, "Сannot find resource packs attr, creating new one with update_default_pack()")
         update_default_pack()
+        return bpy.context.scene["resource_packs"]
 
 def set_resource_packs(resource_packs):
     bpy.context.scene["resource_packs"] = resource_packs
@@ -22,6 +23,7 @@ def set_resource_packs(resource_packs):
 Launchers = {
     "Windows":{
         "Mojang": ".minecraft\\versions",
+        "Prism Launcher": "PrismLauncher\\libraries\\com\\mojang\\minecraft",
         "New_Modrinth": "ModrinthApp\\meta\\versions",
         "Old_Modrinth": "com.modrinth.theseus\\meta\\versions",
         "TL Legacy": ".tlauncher\\legacy\\Minecraft\\game\\versions",
@@ -29,6 +31,7 @@ Launchers = {
 
     "Linux": {
         "Mojang": "Unknown",
+        "Prism Launcher": "Unknown",
         "New_Modrinth": ".local/share/ModrinthApp/meta/versions",
         "Old_Modrinth": "Unknown",
         "TL Legacy": "Unknown",
@@ -149,6 +152,9 @@ def update_pack(pack: str, connection=None):
 
 @Perf_Time
 def update_default_pack():
+    if "resource_packs" not in bpy.context.scene:
+        bpy.context.scene["resource_packs"] = {}
+
     resource_packs = dict(bpy.context.scene["resource_packs"])
     Preferences = bpy.context.preferences.addons[__package__].preferences
     resource_packs_directory = get_resource_path()

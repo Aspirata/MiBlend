@@ -76,7 +76,7 @@ panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
 properties = [WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
     PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
 ]
-special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverCancel, AbsoluteSolverPanel, RecreateEnvironment]
+special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel, RecreateEnvironment]
 
 operators = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
@@ -85,7 +85,7 @@ operators = [
     ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator
 ]
 
-debug_classes = [DebugPanel, TriggerASErrorOperator]
+debug_classes = [DebugPanel, TriggerASErrorOperator, OpenMiBlendFolder]
 deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRenderSettingsOperator, AssingVertexGroupOperator]
 
 classes = properties + special_classes + operators + panels

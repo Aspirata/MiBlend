@@ -133,7 +133,7 @@ gray_blocks = {
 
 Emissive_Materials = {
     "campfire log lit": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.19,
             "From Max": 1.0,
             "Green": 0,
@@ -145,7 +145,7 @@ Emissive_Materials = {
     "fire ; campfire": {},
     "campfire fire": {},
     "nether portal": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.4,
             "From Max": 1,
             "To Max": 2,
@@ -153,33 +153,33 @@ Emissive_Materials = {
         "Procedural Animation": {}
     },
     "redstone on": {
-        "Better Emission": {
+        "Procedural Emission": {
             "Green": 0,
             "Blue": 0
         }
     },
     "creaking heart active": {},
     "firefly bush": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.1,
         },
     },
     "brewing stand": {
-        "Better Emission": {
+        "Procedural Emission": {
             "Blue": 0,
             "From Min": 0.25,
         },
         "Procedural Animation": {}
     },
     "froglight": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 1.6,
         },
         "Procedural Animation": {}
     },
     "sea lantern": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 1,
         },
@@ -189,14 +189,16 @@ Emissive_Materials = {
         },
     },
     "glow lichen": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.7,
             "From Max": 1,
         },
-        "Procedural Animation": {}
+        "Procedural Animation": {
+            "Randomize": True,
+        }
     },
     "torch ; soul redstone": {
-        "Better Emission": {
+        "Procedural Emission": {
             "Green": 0,
             "Blue": 0,
             "From Min": 0.6,
@@ -204,63 +206,65 @@ Emissive_Materials = {
         },
     },
     "powered rail on": {
-        "Better Emission": {
+        "Procedural Emission": {
             "Green": 0,
             "Blue": 0,
             "From Min": 0.52,
         },
     },
     "redstone wire on": {
-        "Better Emission": {},
+        "Procedural Emission": {},
     },
     "redstone block": {
-        "Better Emission": {},
+        "Procedural Emission": {},
     },
     "lava": {
-        "Better Emission": {},
+        "Procedural Emission": {},
     },
     "cave vines lit": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.2,
         },
     },
     "cave vines plant lit": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.2,
             "To Max": 2,
+            "Randomize": True,
         },
     },
     "sculk sensor": {
-        "Better Emission": {},
+        "Procedural Emission": {},
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
         },
     },
     "glowstone": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Max": 2,
             "To Min": 0.4,
         }, 
     },
     "shroomlight": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 1.5,
         },
     },
     "magma": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 0.8,
         },
         "Procedural Animation": {
             "To Min": 0.5,
             "To Max": 1.5,
+            "Randomize": True,
         },
     },
     "beacon": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 3,
         },
@@ -271,65 +275,65 @@ Emissive_Materials = {
     },
     "sea pickle": {},
     "sculk ; catalyst": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 0.4,
         },
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
+            "Speed": 0.4,
+            "Randomize": True,
         },
     },
     "sculk vein": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 0.4,
         },
         "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 100,
+            "Randomize": True,
         },
     },
     "end rod": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 1,
             "From Max": 2,
         },
     },
     "respawn anchor ; up": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 1.5,
         },
     },
     "respawn anchor up": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 2,
         },
           "Procedural Animation": {
             "To Min": 0,
             "To Max": 1.5,
-            "Period": 150,
         },
     },
     "candle lit": {},
     "amethyst": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 2,
         },
     },
     "jack o lantern north": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 1.5,
             "From Max": 2,
         },
     },
     "furnace front on": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 1.5,
             "Red": 1,
@@ -342,7 +346,7 @@ Emissive_Materials = {
         },
     },
     "furnace north on": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0,
             "From Max": 1.5,
             "Red": 1,
@@ -355,7 +359,7 @@ Emissive_Materials = {
         },
     },
     "crying obsidian": {
-         "Better Emission": {
+         "Procedural Emission": {
             "From Min": 0,
             "From Max": 0.6,
         },
@@ -365,7 +369,7 @@ Emissive_Materials = {
         },
     },
     "smoker front on": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.4,
             "From Max": 1,
         },
@@ -375,7 +379,7 @@ Emissive_Materials = {
         },
     },
    "smoker north on": {
-        "Better Emission": {
+        "Procedural Emission": {
             "From Min": 0.4,
             "From Max": 1,
         },

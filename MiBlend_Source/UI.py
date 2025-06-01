@@ -70,7 +70,10 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Resource Packs List", icon="OUTLINER")
         row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
-            resource_packs = get_resource_packs()
+            try:
+                resource_packs = get_resource_packs()
+            except:
+                resource_packs = None
 
             if not resource_packs:
                 row = sbox.row()
@@ -569,12 +572,12 @@ class WorldAndMaterialsPanel(Panel):
             row.enabled = not context.scene.miblend_properties.ppbr_properties.use_normals
         
         row = box.row()
-        row.prop(scene.miblend_properties.ppbr_properties, "better_emission")
-        row.prop(scene.miblend_properties.ppbr_properties, "better_emission_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.better_emission_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.miblend_properties.ppbr_properties.better_emission_settings:
+        row.prop(scene.miblend_properties.ppbr_properties, "procedural_emission_and_animation")
+        row.prop(scene.miblend_properties.ppbr_properties, "procedural_emission_and_animation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.procedural_emission_and_animation_settings else "TRIA_LEFT"), icon_only=True)
+        if scene.miblend_properties.ppbr_properties.procedural_emission_and_animation_settings:
             sbox = box.box()
             row = sbox.row()
-            row.label(text="Better Emission Settings:", icon="MODIFIER")
+            row.label(text="Procedural Emission Settings:", icon="MODIFIER")
 
             row = sbox.row()
             row.prop(scene.miblend_properties.ppbr_properties, "camera_strength")
@@ -583,26 +586,17 @@ class WorldAndMaterialsPanel(Panel):
             row.prop(scene.miblend_properties.ppbr_properties, "non_camera_strength")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.ppbr_properties, "override_better_emission")
-
-            row = sbox.row()
-            row.prop(scene.miblend_properties.ppbr_properties, "better_emission_revert")
-            row.enabled = not context.scene.miblend_properties.ppbr_properties.better_emission
-
-        row = box.row()
-        row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation")
-        row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.ppbr_properties.procedural_animation_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.miblend_properties.ppbr_properties.procedural_animation_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Procedural Animation Settings:", icon="MODIFIER")
+            row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation")
 
             row = sbox.row()
             row.prop(scene.miblend_properties.ppbr_properties, "randomize")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.ppbr_properties, "procedural_animation_revert")
-            row.enabled = not context.scene.miblend_properties.ppbr_properties.procedural_animation
+            row.prop(scene.miblend_properties.ppbr_properties, "custom_peaa_config")
+
+            row = sbox.row()
+            row.prop(scene.miblend_properties.ppbr_properties, "procedural_emission_and_animation_revert")
+            row.enabled = not context.scene.miblend_properties.ppbr_properties.procedural_emission_and_animation
         
         if Preferences.experimental_features:
             row = box.row()
@@ -654,7 +648,6 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.label(text="Global PBSDF Settings:", icon="MODIFIER")
                 row = tbox.row()
-                # Добавить все штуки из PBSDF
                 row.prop(scene.miblend_properties.ppbr_properties, "specular", slider=True)
                 row = tbox.row()
                 row.prop(scene.miblend_properties.ppbr_properties, "roughness", slider=True)
@@ -938,7 +931,7 @@ class AssetPanel(Panel):
             row.label(text="Tags:")
             row = sbox.row()
 
-            split = row.split(factor=0.33)
+            split = row.split(factor=0.33 if other_tag_list else 0.5)
 
             col_primary = split.column()
             col_primary.label(text="Primary")
@@ -1034,3 +1027,6 @@ class DebugPanel(Panel):
 
         row = box.row()
         row.operator("debug.clear_ignored_codes")
+
+        row = box.row()
+        row.operator("debug.open_miblend_folder")

@@ -641,7 +641,7 @@ def setproceduralpbr():
                         PNormals = node
                         Current_node_tree = node.node_tree
 
-                    elif "Procedurally Animated Better Emission" in node.node_tree.name:
+                    elif "Procedural Emission & Animation" in node.node_tree.name:
                         better_animate_node = node
                 
                 elif node.type == "MAP_RANGE":
@@ -658,7 +658,6 @@ def setproceduralpbr():
 
             # Use Normals
             if PProperties.use_normals:
-
                 if PProperties.normals_selector == 'Bump' and base_color_connection:
                     if PNormals:
                         material.node_tree.nodes.remove(PNormals)
@@ -772,14 +771,14 @@ def setproceduralpbr():
                 PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
             # Make Better Emission and Animate Textures
-            if (PProperties.better_emission or PProperties.procedural_animation) and base_color_connection and image and EmissionMode(PBSDF, image.name):
+            if PProperties.procedural_emission_and_animation and base_color_connection and image and EmissionMode(PBSDF, image.name):
                 is_valid, item = name_in(Emissive_Materials.keys(), material.name)
 
-                if is_valid:
+                if is_valid and PProperties.custom_peaa_config:
                     material_properties = Emissive_Materials[item]
-                    if len(material_properties) >= 1:
-                        if better_animate_node is None:
-                            better_animate_node = create_node_group(material, "Procedurally Animated Better Emission", (PBSDF.location.x - 200, PBSDF.location.y - 265))
+                    if material_properties:
+                        if not better_animate_node:
+                            better_animate_node = create_node_group(material, "Procedural Emission & Animation", (PBSDF.location.x - 200, PBSDF.location.y - 265))
 
                         if PProperties.randomize:
                             add_modifier(selected_object, "Random Face Value")
@@ -791,9 +790,9 @@ def setproceduralpbr():
                             elif current_section and current_section in material_properties:
                                 input_socket.default_value = material_properties.get(current_section, {}).get(input_socket.name, input_socket.default_value)
 
-                        Better_Emission_Dict = material_properties.get("Better Emission", {})
-                        if PProperties.better_emission and Better_Emission_Dict:
-                            better_animate_node.inputs["Better Emission"].default_value = bool(PProperties.better_emission and material_properties.get("Better Emission", False))
+                        Better_Emission_Dict = material_properties.get("Procedural Emission", {})
+                        if Better_Emission_Dict:
+                            better_animate_node.inputs["Procedural Emission"].default_value = bool(PProperties.procedural_emission_and_animation and material_properties.get("Procedural Emission", False))
                             better_animate_node.inputs["Camera Strength"].default_value = PProperties.camera_strength
                             better_animate_node.inputs["Non-Camera Strength"].default_value = PProperties.non_camera_strength
 
@@ -812,17 +811,16 @@ def setproceduralpbr():
                         material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), better_animate_node.inputs["Emission Color"])
                         material.node_tree.links.new(better_animate_node.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-                elif PProperties.override_better_emission:
-                    if better_animate_node is None:
-                        better_animate_node = create_node_group(material, "Procedurally Animated Better Emission", (PBSDF.location.x - 200, PBSDF.location.y - 265))
+                elif not PProperties.custom_peaa_config:
+                    if not better_animate_node:
+                        better_animate_node = create_node_group(material, "Procedural Emission & Animation", (PBSDF.location.x - 200, PBSDF.location.y - 265))
 
                     if PProperties.randomize:
                         add_modifier(selected_object, "Random Face Value")
                     
-                    if PProperties.better_emission and Better_Emission_Dict:
-                        better_animate_node.inputs["Better Emission"].default_value = PProperties.better_emission
-                        better_animate_node.inputs["Camera Strength"].default_value = PProperties.camera_strength
-                        better_animate_node.inputs["Non-Camera Strength"].default_value = PProperties.non_camera_strength
+                    better_animate_node.inputs["Procedural Emission"].default_value = PProperties.procedural_emission_and_animation
+                    better_animate_node.inputs["Camera Strength"].default_value = PProperties.camera_strength
+                    better_animate_node.inputs["Non-Camera Strength"].default_value = PProperties.non_camera_strength
                     
                     if PProperties.procedural_animation:
                         better_animate_node.inputs["Procedural Animation"].default_value = PProperties.procedural_animation
@@ -838,7 +836,7 @@ def setproceduralpbr():
                     material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), better_animate_node.inputs["Emission Color"])
                     material.node_tree.links.new(better_animate_node.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
 
-            elif PProperties.better_emission_revert and PProperties.procedural_animation_revert and not PProperties.better_emission and not PProperties.procedural_animation and better_animate_node:
+            elif PProperties.procedural_emission_and_animation_revert and not PProperties.procedural_emission_and_animation and better_animate_node:
                 mult_socket = GetConnectedSocketTo("Multiply", better_animate_node)
                 if mult_socket:
                     material.node_tree.links.new(mult_socket, PBSDF.inputs["Emission Strength"])

@@ -7,6 +7,8 @@ from bpy.types import Operator
 from .Assets import *
 from .Utils.Absolute_Solver import Call_AS
 import shutil
+import platform
+import subprocess
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
@@ -740,5 +742,25 @@ class TriggerASErrorOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        Call_AS("e-1")
+        if "e-1" in context.scene.miblend_properties.absolute_solver_properties.ignored_codes:
+            self.report({'ERROR'}, f"You're ignoring this error dumbass")
+        elif bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
+            self.report({'ERROR'}, f"You can't see warnings because you've disabled them dumbass")
+        else:
+            Call_AS("e-1")
+        return {'FINISHED'}
+
+class OpenMiBlendFolder(Operator):
+    bl_idname = "debug.open_miblend_folder"
+    bl_label = "Open MiBlend Folder"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        folder_path = os.path.abspath(os.path.dirname(__file__))
+        if platform.system() == "Windows":
+            os.startfile(folder_path)
+        elif platform.system() == "Darwin":
+            subprocess.call(["open", folder_path])
+        else:
+            subprocess.call(["xdg-open", folder_path])
         return {'FINISHED'}
