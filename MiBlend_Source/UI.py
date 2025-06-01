@@ -866,9 +866,7 @@ class AssetPanel(Panel):
 
         row = box.row()
         row.operator("assets.update_assets", icon="FILE_REFRESH")
-        row = box.row()
         row.operator("assets.add_asset", icon="ADD")
-        row.operator("assets.create_asset", icon="FILE_NEW")
 
         if prefs.dev_tools and prefs.debug_tools:
             row = box.row()
