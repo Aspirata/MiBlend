@@ -681,11 +681,11 @@ def setproceduralpbr():
                     else:
                         vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
                     
-                    group_name = f"PNormals; {image.name}"
+                    group_name = f"PNormals; {image.name[:63]}"
                     
                     if PNormals is None:
                         PNormals = material.node_tree.nodes.new(type='ShaderNodeGroup')
-                        group_name = f"PNormals; {image.name}"
+                        group_name = f"PNormals; {image.name[:63]}"
 
                         if group_name in bpy.data.node_groups:
                             Current_node_tree = bpy.data.node_groups[group_name]
