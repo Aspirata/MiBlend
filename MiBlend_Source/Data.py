@@ -178,6 +178,14 @@ Emissive_Materials = {
         },
         "Procedural Animation": {}
     },
+    "lantern": {
+        "Procedural Emission": {
+            "Green": 0,
+            "Blue": 0,
+            "From Max": 1,
+        },
+        "Procedural Animation": {},
+    },
     "sea lantern": {
         "Procedural Emission": {
             "From Min": 0,
