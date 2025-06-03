@@ -142,7 +142,7 @@ Emissive_Materials = {
         "Procedural Animation": {}
     },
 
-    "fire ; campfire": {},
+    "fire ; campfire coral": {},
     "campfire fire": {},
     "nether portal": {
         "Procedural Emission": {
