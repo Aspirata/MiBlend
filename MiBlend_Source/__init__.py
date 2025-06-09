@@ -23,11 +23,11 @@ bl_info = {
 
 def init_on_start():
     try:
-        if "resource_packs" not in bpy.context.scene:
+        if not bpy.context.scene.get("resource_packs", None):
             bpy.context.scene["resource_packs"] = {}
             update_default_pack()
-        
-        if "mib_options" not in bpy.context.scene:
+
+        if not bpy.context.scene.get("mib_options", None):
             bpy.context.scene["mib_options"] = {}
 
         mib_options = bpy.context.scene["mib_options"]
@@ -49,16 +49,13 @@ def init_on_start():
         }
         
         for component, component_version in old_components_dict.items():
-            if component not in ["Absolute Solver", "Index"]:
-                if component not in new_components_dict or component_version != new_components_dict.get(component):
-                    Call_AS("e01", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
-                    dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
+            if component not in ["Absolute Solver", "Index"] and component not in new_components_dict or component_version != new_components_dict.get(component):
+                Call_AS("e01", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
+                dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 
-        if hasattr(bpy.context.scene, "world_properties") or hasattr(bpy.context.scene, "resource_properties") or hasattr(bpy.context.scene, "materials_properties") \
-        or hasattr(bpy.context.scene, "env_properties") or hasattr(bpy.context.scene, "ppbr_properties") or hasattr(bpy.context.scene, "assetsproperties"):
-            for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties", "script_asset_properties"]:
-                if hasattr(bpy.context.scene, prop):
-                    delattr(bpy.context.scene, prop)
+        for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties"]:
+            if hasattr(bpy.context.scene, prop):
+                delattr(bpy.context.scene, prop)
                     
         mib_options["components_vesion"] = new_components_dict
 
@@ -95,6 +92,9 @@ def on_scene_load(dummy):
     bpy.app.timers.register(init_on_start, first_interval=0.1)
 
 def register():
+    if on_scene_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(on_scene_load)
+        
     for cls in classes:
         if hasattr(bpy.types, cls.__name__):
             bpy.utils.unregister_class(cls)
@@ -114,10 +114,11 @@ def register():
 
     bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
     
-    if on_scene_load not in bpy.app.handlers.load_post:
-        bpy.app.handlers.load_post.append(on_scene_load)
-
 def unregister():
+    
+    if on_scene_load in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(on_scene_load)
+        
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
 
@@ -129,9 +130,6 @@ def unregister():
         for cls in deprecated_classes:
             if hasattr(bpy.types, cls.__name__):
                 bpy.utils.unregister_class(cls)
-
-    if on_scene_load in bpy.app.handlers.load_post:
-        bpy.app.handlers.load_post.remove(on_scene_load)
 
 if __name__ == "__main__":
     register()

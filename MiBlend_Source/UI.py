@@ -77,8 +77,8 @@ class WorldAndMaterialsPanel(Panel):
 
             if not resource_packs:
                 row = sbox.row()
-                row.label(text="No resource packs found", icon="ERROR")
-                if not os.path.exists(get_resource_path()):
+                row.label(text="No resource packs found, reload default packs", icon="ERROR")
+                if not os.path.exists(get_resource_path()) and Preferences.dev_tools:
                     row = sbox.row()
                     row.label(text="Dev path is not set", icon="ERROR")
             else:
