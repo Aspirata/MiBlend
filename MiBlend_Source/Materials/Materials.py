@@ -21,6 +21,9 @@ def replace_materials():
         if not is_mesh(selected_object) and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", selected_object)
             continue
+        
+        elif not is_mesh(selected_object):
+            continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -120,9 +123,10 @@ def fix_world():
     WProperties = bpy.context.scene.miblend_properties.world_properties
 
     for selected_object in bpy.context.selected_objects:
-
         if not is_mesh(selected_object) and not is_code_ignored("w01") and Preferences.show_warnings:
             Call_AS("w01", data=selected_object)
+            continue
+        elif not is_mesh(selected_object):
             continue
 
         if Preferences.experimental_features and WProperties.remove_doubles:
@@ -531,6 +535,9 @@ def fix_materials():
         if not is_mesh(selected_object) and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", data=selected_object)
             continue
+        
+        elif not is_mesh(selected_object):
+            continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -583,6 +590,8 @@ def swap_textures(folder_path):
         if not is_mesh(selected_object) and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", selected_object)
             continue
+        elif not is_mesh(selected_object):
+            continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -607,6 +616,8 @@ def setproceduralpbr():
     for selected_object in bpy.context.selected_objects:
         if not is_mesh(selected_object) and not is_code_ignored("w01") and Preferences.show_warnings:
             Call_AS("w01", data=selected_object)
+            continue
+        elif not is_mesh(selected_object):
             continue
 
         for slot, material in enumerate(selected_object.data.materials):

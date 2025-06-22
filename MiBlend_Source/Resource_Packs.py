@@ -766,6 +766,9 @@ def apply_resources():
         if not selected_object.material_slots and not is_code_ignored("w01") and bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
             Call_AS("w01", selected_object)
             continue
+        
+        elif not selected_object.material_slots:
+            continue
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:

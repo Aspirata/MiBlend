@@ -45,18 +45,18 @@ def init_on_start():
         old_components_dict = dict(mib_options.get("components_vesion", {}))
         new_components_dict = {
             "MiBlend": "Butterfly",
-            "UAS": "v2.1.3",
+            "UAS": "v2.1.4",
         }
         
         for component, component_version in old_components_dict.items():
             if component not in ["Absolute Solver", "Index"] and component not in new_components_dict or component_version != new_components_dict.get(component):
-                Call_AS("e01", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
+                Call_AS("w04", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
                 dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 
         for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties"]:
             if hasattr(bpy.context.scene, prop):
                 delattr(bpy.context.scene, prop)
-                    
+
         mib_options["components_vesion"] = new_components_dict
 
         if "temp_assets_paths" not in mib_options:
@@ -94,42 +94,81 @@ def on_scene_load(dummy):
 def register():
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
-        
+   
+    # Safe registration of main classes
     for cls in classes:
-        if hasattr(bpy.types, cls.__name__):
-            bpy.utils.unregister_class(cls)
-        bpy.utils.register_class(cls)
-    
+        try:
+            # Attempt to unregister if class already exists
+            if hasattr(bpy.types, cls.__name__):
+                try:
+                    bpy.utils.unregister_class(cls)
+                except (ValueError, RuntimeError):
+                    # Class might be registered by another addon
+                    pass
+           
+            # Register class
+            bpy.utils.register_class(cls)
+           
+        except ValueError as e:
+            dprint(f"Error registering class {cls.__name__}: {e}")
+            # Logic for handling specific errors can be added here
+            continue
+   
+    # Registration of deprecated classes
     if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
         for cls in deprecated_classes:
-            if hasattr(bpy.types, cls.__name__):
-                bpy.utils.unregister_class(cls)
-            bpy.utils.register_class(cls)
-    
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.debug_tools:
+            try:
+                if hasattr(bpy.types, cls.__name__):
+                    try:
+                        bpy.utils.unregister_class(cls)
+                    except (ValueError, RuntimeError):
+                        pass
+                bpy.utils.register_class(cls)
+            except ValueError as e:
+                dprint(f"Error registering deprecated class {cls.__name__}: {e}")
+                continue
+   
+    # Registration of debug classes
+    if bpy.context.preferences.addons[__package__].preferences.dev_tools and \
+        bpy.context.preferences.addons[__package__].preferences.debug_tools and bpy.context.preferences.addons[__package__].debug_panel:
         for cls in debug_classes:
-            if hasattr(bpy.types, cls.__name__):
-                bpy.utils.unregister_class(cls)
-            bpy.utils.register_class(cls)
+            try:
+                if hasattr(bpy.types, cls.__name__):
+                    try:
+                        bpy.utils.unregister_class(cls)
+                    except (ValueError, RuntimeError):
+                        pass
+                bpy.utils.register_class(cls)
+            except ValueError as e:
+                dprint(f"Error registering debug class {cls.__name__}: {e}")
+                continue
 
-    bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
+    # Scene properties registration
+    try:
+        bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
+    except Exception as e:
+        dprint(f"Error registering scene properties: {e}")
     
+    bpy.app.timers.register(init_on_start, first_interval=0.4)
+
 def unregister():
-    
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
-        
+       
+    # Remove scene properties
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
 
-    for cls in reversed(classes):
-        if hasattr(bpy.types, cls.__name__):
-            bpy.utils.unregister_class(cls)
-
-    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
-        for cls in deprecated_classes:
+    # Unregister all classes
+    all_classes = classes + deprecated_classes + debug_classes
+   
+    for cls in reversed(all_classes):
+        try:
             if hasattr(bpy.types, cls.__name__):
                 bpy.utils.unregister_class(cls)
+        except (ValueError, RuntimeError) as e:
+            dprint(f"Error unregistering class {cls.__name__}: {e}")
+            continue
 
 if __name__ == "__main__":
     register()

@@ -27,8 +27,15 @@
         },
 
         "03": {
-            "Name": "Selceted object isn't a world",
+            "Name": "Selected object isn't a world",
             "Description": "You've tried to fix world that isn't a world, perhaps you should try to fix materials instead"
+        },
+
+        "04": 
+        {
+            "Name": "Legacy Component",
+            "Description": "{Data}. Some features may not work correctly.",
+            "Solutions": "as_solutions.fix_compatibility; "
         }
     },
 
@@ -43,13 +50,6 @@
         {
             "Name": "Absolute Solver Error",
             "Description": "Absolute Solver cannot display {Data}"
-        },
-
-        "01": 
-        {
-            "Name": "Legacy Component",
-            "Description": "{Data}. Some features may not work correctly.",
-            "Solutions": "as_solutions.fix_compatibility; "
         },
 
         "02":

@@ -861,8 +861,11 @@ class AssetPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Assets", icon="ASSET_MANAGER")
-
-        box.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
+        row = box.row()
+        if not assets_props.asset_items:
+            row.label(text="No assets found, reload assets list", icon="ERROR")
+        else:
+            row.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
         row = box.row()
         row.operator("assets.update_assets", icon="FILE_REFRESH")
@@ -871,7 +874,7 @@ class AssetPanel(Panel):
         if prefs.dev_tools and prefs.debug_tools:
             row = box.row()
             remove_attr = row.operator("special.remove_attribute", text="Remove Assets List")
-            remove_attr.attribute = "assetsproperties.asset_items"
+            remove_attr.attribute = "miblend_properties.assets_properties.asset_items"
 
         current_index = assets_props.asset_index
         items = assets_props.asset_items
