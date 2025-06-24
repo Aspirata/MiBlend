@@ -908,7 +908,7 @@ class AssetPanel(Panel):
         if assets_props.filters:
             sbox = box.box()
             primary_tags = {"Rig", "Script", "Shader Node", "Geo Node", "Compositor Node", "Model", "Material"}
-            secondary_tags = {"Simple", "Realistic", "Story Mode", "Node", "Particles"}
+            secondary_tags = {"Simple", "Realistic", "Mixed", "Story Mode", "Node", "Particles"}
 
             # Sort tags into categories
             primary_tag_list = []

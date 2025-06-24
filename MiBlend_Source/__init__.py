@@ -49,7 +49,10 @@ def init_on_start():
         }
         
         for component, component_version in old_components_dict.items():
-            if component not in ["Absolute Solver", "Index"] and component not in new_components_dict or component_version != new_components_dict.get(component):
+            if component in ["Absolute Solver", "Index"]:
+                continue
+                
+            if component not in new_components_dict or component_version != new_components_dict.get(component):
                 Call_AS("w04", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
                 dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 

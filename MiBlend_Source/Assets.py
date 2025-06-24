@@ -290,4 +290,4 @@ def update_assets():
     for tag in unique_tags:
         item = tags.add()
         item.name = tag
-        item.enabled = current_states.get(tag, True)
+        item.enabled = current_states.get(tag, False)
