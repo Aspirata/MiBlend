@@ -18,7 +18,7 @@ class MiBlendPreferences(AddonPreferences):
     )
 
     enable_deprecated_features: BoolProperty(
-        name="Enable Deprecated Features (Requires Restart)",
+        name="Enable Deprecated Features",
         default=override_setting("enable_deprecated_features", False)
     )
 
@@ -62,7 +62,7 @@ class MiBlendPreferences(AddonPreferences):
     )
 
     debug_panel: BoolProperty(
-        name="Enable Debug Panel (Requires Restart)",
+        name="Enable Debug Panel",
         default=override_setting("enable_debug_panel", False)
     )
 
@@ -173,6 +173,11 @@ class MiBlendPreferences(AddonPreferences):
         row = box.row()
         row.prop(self, "mc_instances_path")
         
+        if self.experimental_features: # Settings override shoud be remade, default values should be applied after registering the props
+            row = box.row()
+            row.operator("preferences.save_preferences")
+            row.operator("preferences.reset_preferences")
+
         box = layout.box()
         row = box.row()
         row.prop(self, "dev_tools", text="")

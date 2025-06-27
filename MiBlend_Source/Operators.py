@@ -736,6 +736,68 @@ class ClearIgnoredCodesOperator(Operator):
         bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes = ""
         return {'FINISHED'}
 
+class SavePreferencesOperator(Operator):
+    bl_idname = "preferences.save_preferences"
+    bl_label = "Save Preferences"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        addon_prefs = context.preferences.addons[__package__].preferences
+        prefs_to_save: dict[str, Union[str, bool, int, float]] = {}
+        settings_override_path = os.path.join(os.path.dirname(main_directory), "settings_override.json")
+        system_props = {
+            'rna_type', 'name', 'bl_idname', 'bl_label', 'bl_description', 
+            'bl_options', 'bl_context', 'bl_region_type', 'bl_space_type'
+        }
+        
+        for prop_id, prop in type(addon_prefs).bl_rna.properties.items():
+            if prop_id in system_props or prop_id.startswith('_'):
+                continue
+
+            default_value = prop.default
+            current_value = getattr(addon_prefs, prop_id)
+            
+            if current_value == default_value:
+                continue
+            
+            prefs_to_save[prop_id] = current_value
+        
+        if not prefs_to_save and os.path.exists(settings_override_path):
+            os.remove(settings_override_path)
+            self.report({'INFO'}, "Settings reset to defaults")
+        
+        elif not prefs_to_save:
+            self.report({'INFO'}, f"Saved 0 preferences")
+            return {'CANCELLED'}
+        
+        os.makedirs(os.path.dirname(settings_override_path), exist_ok=True)
+        
+        with open(settings_override_path, "w", encoding="utf-8") as file:
+            json.dump(prefs_to_save, file, indent=2, ensure_ascii=False)
+        
+        self.report({'INFO'}, f"Saved {len(prefs_to_save)} preference(s)")
+
+        return {'FINISHED'}
+
+class ResetPreferencesOperator(Operator):
+    bl_idname = "preferences.reset_preferences"
+    bl_label = "Reset Preferences"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        addon_prefs = context.preferences.addons[__package__].preferences
+        system_props = {
+            'rna_type', 'name', 'bl_idname', 'bl_label', 'bl_description', 
+            'bl_options', 'bl_context', 'bl_region_type', 'bl_space_type'
+        }
+        
+        for prop_id, prop in type(addon_prefs).bl_rna.properties.items():
+            if prop_id in system_props or prop_id.startswith('_'):
+                continue
+            
+            setattr(addon_prefs, prop_id, prop.default)
+        return {'FINISHED'}
+
 class TriggerASErrorOperator(Operator):
     bl_idname = "debug.trigger_as_error"
     bl_label = "Trigger AS Error"

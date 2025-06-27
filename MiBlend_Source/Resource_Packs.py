@@ -414,6 +414,8 @@ def apply_resources():
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None, object: object=None):
         Texture_Animator = None
         auvf_node = None
+        frames = 1
+        
         if new_image_texture_path == "" and texture_node is None:
             return
         
@@ -432,7 +434,6 @@ def apply_resources():
 
         if r_props.animate_textures:
             x_divider = 1.0
-            frames = 1
 
             if name_in(["lava flow"], image_texture.name, True)[0]:
                 frames = int(image_texture.size[1] / image_texture.size[0])*2

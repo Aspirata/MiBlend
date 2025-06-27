@@ -49,7 +49,7 @@ def init_on_start():
         }
         
         for component, component_version in old_components_dict.items():
-            if component in ["Absolute Solver", "Index"]:
+            if component in ["Absolute Solver", "Index", "Milestone"]:
                 continue
                 
             if component not in new_components_dict or component_version != new_components_dict.get(component):
@@ -82,13 +82,13 @@ operators = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
     MoveResourcePackUp, MoveResourcePackDown,RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
     FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator
+    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, SavePreferencesOperator, ResetPreferencesOperator
 ]
 
 debug_classes = [DebugPanel, TriggerASErrorOperator, OpenMiBlendFolder]
 deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRenderSettingsOperator, AssingVertexGroupOperator]
 
-classes = properties + special_classes + operators + panels
+classes = properties + special_classes + operators + panels + debug_classes + deprecated_classes
 
 @persistent
 def on_scene_load(dummy):
@@ -98,7 +98,7 @@ def register():
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
    
-    # Safe registration of main classes
+    # Safe registration of the classes
     for cls in classes:
         try:
             # Attempt to unregister if class already exists
@@ -116,35 +116,6 @@ def register():
             dprint(f"Error registering class {cls.__name__}: {e}")
             # Logic for handling specific errors can be added here
             continue
-   
-    # Registration of deprecated classes
-    if bpy.context.preferences.addons[__package__].preferences.enable_deprecated_features:
-        for cls in deprecated_classes:
-            try:
-                if hasattr(bpy.types, cls.__name__):
-                    try:
-                        bpy.utils.unregister_class(cls)
-                    except (ValueError, RuntimeError):
-                        pass
-                bpy.utils.register_class(cls)
-            except ValueError as e:
-                dprint(f"Error registering deprecated class {cls.__name__}: {e}")
-                continue
-   
-    # Registration of debug classes
-    if bpy.context.preferences.addons[__package__].preferences.dev_tools and \
-        bpy.context.preferences.addons[__package__].preferences.debug_tools and bpy.context.preferences.addons[__package__].debug_panel:
-        for cls in debug_classes:
-            try:
-                if hasattr(bpy.types, cls.__name__):
-                    try:
-                        bpy.utils.unregister_class(cls)
-                    except (ValueError, RuntimeError):
-                        pass
-                bpy.utils.register_class(cls)
-            except ValueError as e:
-                dprint(f"Error registering debug class {cls.__name__}: {e}")
-                continue
 
     # Scene properties registration
     try:
@@ -161,11 +132,8 @@ def unregister():
     # Remove scene properties
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
-
-    # Unregister all classes
-    all_classes = classes + deprecated_classes + debug_classes
    
-    for cls in reversed(all_classes):
+    for cls in reversed(classes):
         try:
             if hasattr(bpy.types, cls.__name__):
                 bpy.utils.unregister_class(cls)

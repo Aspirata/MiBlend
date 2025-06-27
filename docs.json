@@ -68,11 +68,11 @@
           "pages": [
             {
               "title": "🌍 World & Materials",
-              "href": "./en/world-materials-panel"
+              "href": "./en/panels/world-materials-panel"
             },
             {
               "title": "📦 Assets",
-              "href": "./en/assets-panel"
+              "href": "./en/panels/assets-panel"
             }
           ]
         },
@@ -157,11 +157,11 @@
           "pages": [
             {
               "title": "🌍 World & Materials",
-              "href": "./ru/world-materials-panel"
+              "href": "./ru/panels/world-materials-panel"
             },
             {
               "title": "📦 Assets",
-              "href": "./ru/assets-panel"
+              "href": "./ru/panels/assets-panel"
             }
           ]
         },

@@ -728,6 +728,14 @@ class OptimizationPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'MiBlend'
+    
+    @classmethod
+    def poll(cls, context):
+        try:
+            prefs = context.preferences.addons[__package__].preferences
+            return prefs.enable_deprecated_features
+        except (AttributeError, KeyError):
+            return False
 
     def draw(self, context):
 
@@ -794,6 +802,14 @@ class UtilsPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'MiBlend'
+    
+    @classmethod
+    def poll(cls, context):
+        try:
+            prefs = context.preferences.addons[__package__].preferences
+            return prefs.enable_deprecated_features
+        except (AttributeError, KeyError):
+            return False
 
     def draw(self, context):
         layout = self.layout
@@ -1009,6 +1025,14 @@ class DebugPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'MiBlend'
+    
+    @classmethod
+    def poll(cls, context):
+        try:
+            prefs = context.preferences.addons[__package__].preferences
+            return prefs.dev_tools and prefs.debug_panel
+        except (AttributeError, KeyError):
+            return False
 
     def draw(self, context):
         layout = self.layout
