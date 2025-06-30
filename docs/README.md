@@ -37,16 +37,19 @@ If you're interested in helping with **rigging**, **coding**, or anything else:
 ### `HeyItsAnjello` – Procedural Normals Node, Fog  
 🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
-### `RobotPants` – *Bare Bones* Resource Pack  
+### `RobotPants` – Bare Bones Resource Pack  
 🔗 [Modrinth](https://modrinth.com/resourcepack/bare-bones)
 
-### `Mwti` – *Embrace Pixels* PBR Resource Pack  
+### `Mwti` – Embrace Pixels PBR Resource Pack  
 🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
 ### `Faizek` – Story Mode Character Rig, Creaking Rig  
 🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
 🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
 🔗 [VK](https://vk.com/fluffy_aizek)
+
+### TheRatmir - TheRig
+🔗 [Website](https://theratmir.github.io/TheRatmir-Portfolio)
 
 ---
 

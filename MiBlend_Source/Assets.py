@@ -39,17 +39,22 @@ def append_collection(asset_name, asset_collection, asset_path):
         data_to.collections = [asset_collection]
 
     for collection in data_to.collections:
+        bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.collection.children.link(collection)
         for obj in collection.objects:
             obj["MiBlend_ID"] = "Asset"
-            if obj.type == "ARMATURE":
-                obj.select_set(True)
-                bpy.context.view_layer.objects.active = obj
-                root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
-                cursor_location = bpy.context.scene.cursor.location
-                if root_bone:
-                    obj.pose.bones[root_bone.name].matrix.translation = cursor_location
+            if obj.type != "ARMATURE":
+                continue
+            
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            root_bone = next((bone for bone in obj.data.bones if bone.name.lower() == "root"), None)
+            if not root_bone:
+                continue
+            
+            cursor_location = bpy.context.scene.cursor.location
+            obj.pose.bones[root_bone.name].matrix.translation = cursor_location
 
 def run_python_script(name, path):
     properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}

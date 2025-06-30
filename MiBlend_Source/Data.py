@@ -158,6 +158,17 @@ Emissive_Materials = {
             "Blue": 0
         }
     },
+    "powered rail on": {
+        "Procedural Emission": {
+            "Red": 0,
+            "Blue": 0,
+            "From Min": 0.0,
+            "From Max": 0.0
+        },
+        "Procedural Animation": {
+            "Speed": 0.4
+        }
+    },
     "creaking heart active": {},
     "firefly bush": {
         "Procedural Emission": {
@@ -213,6 +224,16 @@ Emissive_Materials = {
             "From Max": 0.78,
         },
     },
+    
+    "redstone torch": {
+        "Procedural Emission": {
+            "Green": 0,
+            "Blue": 0,
+            "From Min": 0.36,
+            "From Max": 0.38,
+        },
+    },
+    
     "powered rail on": {
         "Procedural Emission": {
             "Green": 0,

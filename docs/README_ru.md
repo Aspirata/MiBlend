@@ -32,7 +32,7 @@
 ## 👥 Контрибуторы
 
 ### `zipi.zip` — Риги  
-🔗 [YouTube канал](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+🔗 [YouTube Канал](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
 ### `HeyItsAnjello` — Нода процедурных нормалей, туман  
 🔗 [Twitter](https://twitter.com/HeyItsAnjello)
@@ -47,6 +47,9 @@
 🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
 🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
 🔗 [VK](https://vk.com/fluffy_aizek)
+
+### TheRatmir - TheRig
+🔗 [Сайт](https://theratmir.github.io/TheRatmir-Portfolio)
 
 ---
 

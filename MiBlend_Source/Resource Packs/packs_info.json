@@ -10,10 +10,5 @@
         "pack_version": "2.1",
         "type": "PBR",
         "link": "https://modrinth.com/resourcepack/embrace-pixels"
-    },
-    "Better Emission": {
-        "mc_version": "1.20.1",
-        "pack_version": "0.000001",
-        "type": "PBR"
     }
 }
