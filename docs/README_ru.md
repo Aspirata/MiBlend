@@ -6,7 +6,7 @@
 ---
 
 ## 📖 Wiki  
-Подробнее о MiBlend можно узнать на официальной [вики](https://docs.page/Aspirata/MiBlend~Experimental).
+Подробнее о MiBlend можно узнать на официальной [вики](https://docs.page/Aspirata/MiBlend).
 
 > [!WARNING] 
 > MiBlend находится в стадии **беты**, поэтому ожидайте баги и частые изменения в процессе разработки.
