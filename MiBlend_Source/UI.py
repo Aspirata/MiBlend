@@ -577,7 +577,7 @@ class WorldAndMaterialsPanel(Panel):
         if scene.miblend_properties.ppbr_properties.procedural_emission_and_animation_settings:
             sbox = box.box()
             row = sbox.row()
-            row.label(text="Procedural Emission Settings:", icon="MODIFIER")
+            row.label(text="Procedural Emission & Animation Settings:", icon="MODIFIER")
 
             row = sbox.row()
             row.prop(scene.miblend_properties.ppbr_properties, "camera_strength")
