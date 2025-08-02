@@ -22,6 +22,9 @@ def PBSDF_compability(Input: str) -> str:
         }.get(Input, Input)
     return Input
 
+def is_unix_system() -> bool:
+    return "linux" in sys.platform or "darwin" in sys.platform
+
 def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]) -> Union[int, float]:
     return max(min_value, min(value, max_value))
 

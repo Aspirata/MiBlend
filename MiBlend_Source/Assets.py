@@ -235,12 +235,13 @@ def update_assets():
 
                         asset_name = asset_data.get("Asset_name")
                         asset_author = asset_data.get("Author")
+                        file_path = os.path.normpath(root if is_unix_system() else asset_data.get("File_path", ""))
                         asset_tags = asset_data.get("Tags", [])
 
                         if asset_tags[0] == "Script":
-                            asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".py")
+                            asset_file_path = os.path.join(root, os.path.basename(file_path) + ".py")
                         else:
-                            asset_file_path = os.path.join(root, os.path.basename(os.path.normpath(asset_data.get("File_path", ""))) + ".blend")
+                            asset_file_path = os.path.join(root, os.path.basename(file_path) + ".blend")
 
                         if format_version != "test":
                             if not asset_name:

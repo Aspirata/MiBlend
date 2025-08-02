@@ -1,26 +1,26 @@
 {
   "pack": {
     "pack_format": 34,
-    "supported_formats": [34, 63],
-    "description": "Simplify your world!"
+    "supported_formats": [34, 64],
+    "description": "Just like the trailers!"
   },
   "overlays": {
     "entries": [
       {
         "directory": "overlay_1_21_2",
-        "formats": [42, 63]
+        "formats": [42, 64]
       },
       {
         "directory": "overlay_1_21_4",
-        "formats": [46, 63]
+        "formats": [46, 64]
       },
       {
         "directory": "overlay_1_21_5",
-        "formats": [55, 63]
+        "formats": [55, 64]
       },
       {
         "directory": "overlay_1_21_6",
-        "formats": [55, 63]
+        "formats": [55, 64]
       }
     ]
   }
