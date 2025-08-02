@@ -39,7 +39,8 @@ def append_collection(asset_name, asset_collection, asset_path):
         data_to.collections = [asset_collection]
 
     for collection in data_to.collections:
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if bpy.context.active_object:
+            bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.collection.children.link(collection)
         for obj in collection.objects:
