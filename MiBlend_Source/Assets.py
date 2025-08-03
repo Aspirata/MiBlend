@@ -224,70 +224,76 @@ def update_assets():
     for directory in directories_to_scan:
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if file.endswith(".json"):
-                    json_path = os.path.join(root, file)
-                    with open(json_path, 'r') as f:
+                if not file.endswith(".json"):
+                    continue
+                
+                json_path = os.path.join(root, file)
+                try:
+                    with open(json_path, 'r', encoding='utf-8') as f:
                         asset_data = json.load(f)
-    
-                    try:
-                        format_version = asset_data.get("Format_version")
-                        if format_version == "dev":
+                except (json.JSONDecodeError, IOError) as e:
+                    dprint(f"Error reading JSON file {json_path}: {e}", is_deep=True, zone="uas")
+                    continue
+
+                try:
+                    format_version = asset_data.get("Format_version")
+                    if format_version == "dev":
+                        continue
+
+                    asset_name = asset_data.get("Asset_name")
+                    asset_author = asset_data.get("Author")
+                    asset_tags = asset_data.get("Tags", [])
+                    
+                    asset_file_path = os.path.splitext(os.path.basename(json_path))[0]
+                    if asset_tags and asset_tags[0] == "Script":
+                        asset_file_path = os.path.join(root, asset_file_path + ".py")
+                    else:
+                        asset_file_path = os.path.join(root, asset_file_path + ".blend")
+
+                    if format_version != "test":
+                        if not asset_name:
+                            dprint("Asset_name is not defined", is_deep=True, zone="uas")
+                            continue
+                        if not asset_author:
+                            dprint("Author is not defined", is_deep=True, zone="uas")
+                            continue
+                        if not asset_tags:
+                            dprint("Tags are not defined", is_deep=True, zone="uas")
+                            continue
+                        if not asset_file_path:
+                            dprint("File_path is not defined", is_deep=True, zone="uas")
+                            continue
+                        if not os.path.isfile(asset_file_path):
+                            dprint(f"Cannot find the asset file: {asset_file_path}", is_deep=True, zone="uas")
                             continue
 
-                        asset_name = asset_data.get("Asset_name")
-                        asset_author = asset_data.get("Author")
-                        file_path = os.path.normpath(root if is_unix_system() else asset_data.get("File_path", ""))
-                        asset_tags = asset_data.get("Tags", [])
+                    asset_info = {}
+                    for key, value in asset_data.items():
+                        if key not in ["Format_version"]:
+                            asset_info[key] = value
 
-                        if asset_tags[0] == "Script":
-                            asset_file_path = os.path.join(root, os.path.basename(file_path) + ".py")
-                        else:
-                            asset_file_path = os.path.join(root, os.path.basename(file_path) + ".blend")
+                    asset_info["Type"] = asset_tags[0]
+                    asset_info["File_path"] = asset_file_path
 
-                        if format_version != "test":
-                            if not asset_name:
-                                dprint("Asset_name is not defined", is_deep=True, zone="uas")
-                                continue
-                            if not asset_author:
-                                dprint("Author is not defined", is_deep=True, zone="uas")
-                                continue
-                            if not asset_file_path:
-                                dprint("File_path is not defined", is_deep=True, zone="uas")
-                                continue
-                            if not os.path.isfile(asset_file_path):
-                                dprint(f"Cannot find the asset file: {asset_file_path}", is_deep=True, zone="uas")
-                                continue
-                            if not asset_tags:
-                                dprint("Tags are not defined", is_deep=True, zone="uas")
-                                continue
+                    if any('property' in key for key in asset_info):
+                        asset_info["has_properties"] = True
 
-                        asset_info = {}
-                        for key, value in asset_data.items():
-                            if key not in ["Format_version"]:
-                                asset_info[key] = value
-
-                        asset_info["Type"] = asset_tags[0]
-                        asset_info["File_path"] = asset_file_path
-
-                        if any('property' in key for key in asset_info):
-                            asset_info["has_properties"] = True
-
-                        assets_list.append(asset_info)
-                    except Exception as error:
-                        Call_AS("e06", error, asset_data.get("Asset_name"))
+                    assets_list.append(asset_info)
+                    
+                except Exception as error:
+                    Call_AS("e06", error, asset_data.get("Asset_name"))
                         
-    for asset in sorted(assets_list, key=lambda x: x["Asset_name"]):
+    for asset in sorted(assets_list, key=lambda x: x.get("Asset_name", "")):
         item = items.add()
         for key, value in asset.items():
             item[key] = value
 
     # Tags
     current_states = {tag.name: tag.enabled for tag in bpy.context.scene.miblend_properties.assets_properties.tags}
-
     tags = bpy.context.scene.miblend_properties.assets_properties.tags
     tags.clear()
+    
     unique_tags = set()
-
     for asset in items:
         asset_tags = asset.get("Tags", [])
         unique_tags.update(asset_tags)
