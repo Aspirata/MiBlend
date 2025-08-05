@@ -121,8 +121,22 @@ def append_cnode(asset_data):
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         avg_x = []
         avg_y = []
-        bpy.context.scene.use_nodes = True
-        tree = bpy.context.scene.node_tree
+        scene = bpy.context.scene
+        if blender_version(">= 5.0.0"):
+            if not scene.compositing_node_group:
+                tree = bpy.data.node_groups.new("New Compositor", "CompositorNodeTree")
+                scene.compositing_node_group = tree
+                rlayers = tree.nodes.new(type="CompositorNodeRLayers")
+                output = tree.nodes.new(type='NodeGroupOutput')
+                tree.interface.new_socket(name="Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+                tree.links.new(output.inputs["Image"], rlayers.outputs["Image"])
+                rlayers.location[0] -= 1.5 * rlayers.width
+            else:
+                tree = scene.compositing_node_group
+        else:
+            scene.use_nodes = True
+            tree = scene.node_tree
+
         Node = None
         for node in tree.nodes:
             avg_x.append(node.location.x)

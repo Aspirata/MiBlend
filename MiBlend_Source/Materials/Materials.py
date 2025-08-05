@@ -323,21 +323,17 @@ def recreate_env(self):
 
         for node in world_material.nodes:
             if node.type == 'GROUP' and "MiBlend Sky" in node.node_tree.name:
-                if blender_version("4.x.x"):
+                if blender_version(">= 4.0.0"):
                     for socket in node.inputs:
                         try:
-                            vec_counter = 0
-                            for vec in socket.default_value:
-                                vec_counter += 1
-                                vec = group.interface.items_tree[socket.name].default_value[vec_counter]
+                            for i, vector_value in enumerate(socket.default_value, 1):
+                                vector_value = group.interface.items_tree[socket.name].default_value[i]
                         except:
                             socket.default_value = group.interface.items_tree[socket.name].default_value
                 else:
                     try:
-                        vec_counter = 0
-                        for vec in socket.default_value:
-                            vec_counter += 1
-                            vec = group.inputs[socket.name].default_value[vec_counter]
+                        for i, vector_value in enumerate(socket.default_value, 1):
+                            vector_value = group.inputs[socket.name].default_value[i]
                     except:
                             socket.default_value = group.inputs[socket.name].default_value
 
