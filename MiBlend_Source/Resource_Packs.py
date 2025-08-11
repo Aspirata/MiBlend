@@ -624,7 +624,7 @@ def apply_resources():
             specular_image_name = specular_texture_node.image.name
 
         predicted_texture_path = fast_find_image([new_normal_image_path, new_image_path], specular_image_name)
-        if predicted_texture_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+        if predicted_texture_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) >= 1:
             new_specular_image_path = find_image(specular_image_name, path, entity_name=material.name)
         else:
             if not r_props.use_i or not r_props.use_n:
@@ -885,7 +885,7 @@ def apply_resources():
 
                     new_normal_image_path = fast_find_image([new_image_path], normal_image_name)
 
-                    if new_normal_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+                    if new_normal_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) >= 1:
                         new_normal_image_path = find_image(normal_image_name, path, obj_type, material.name)
                     elif r_props.use_i == False:
                         new_normal_image_path = find_image(normal_image_name, path, obj_type, material.name)
@@ -893,17 +893,18 @@ def apply_resources():
                     if normal_texture_change(new_normal_image_path, normal_texture_node, normal_map_node, PBSDF, image_texture_node, image_path):
                         break
             else:
-                animate_texture(normal_texture_node, "", NTexture_Animator, Current_node_tree, object=selected_object)
-
-                if NTexture_Animator is not None:
+                if NTexture_Animator:
                     material.node_tree.nodes.remove(NTexture_Animator)
                     NTexture_Animator = None
 
-                if normal_texture_node is not None:
+                elif normal_texture_node:
+                    if GetConnectedSocketTo(0, normal_texture_node):
+                        material.node_tree.nodes.remove(GetConnectedSocketTo(0, normal_texture_node).node)
+                        
                     material.node_tree.nodes.remove(normal_texture_node)
                     normal_texture_node = None
-                
-                if normal_map_node is not None:
+
+                if normal_map_node:
                     material.node_tree.nodes.remove(normal_map_node)
                     normal_map_node = None
 
@@ -918,17 +919,18 @@ def apply_resources():
                         break
             
             else:
-                animate_texture(specular_texture_node, "", STexture_Animator, Current_node_tree, object=selected_object)
-
-                if STexture_Animator is not None:
+                if STexture_Animator:
                     material.node_tree.nodes.remove(STexture_Animator)
                     STexture_Animator = None
 
-                if specular_texture_node is not None:
+                elif specular_texture_node:
+                    if GetConnectedSocketTo(0, specular_texture_node):
+                        material.node_tree.nodes.remove(GetConnectedSocketTo(0, specular_texture_node).node)
+
                     material.node_tree.nodes.remove(specular_texture_node)
                     specular_texture_node = None
-                
-                if LabPBR_s is not None:
+
+                if LabPBR_s:
                     material.node_tree.nodes.remove(LabPBR_s)
                     LabPBR_s = None
             
@@ -946,7 +948,7 @@ def apply_resources():
 
                     new_emission_image_path = fast_find_image([new_image_path, new_normal_image_path, new_specular_image_path], emission_image_name)
 
-                    if new_emission_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) > 1:
+                    if new_emission_image_path is None and len([pack for pack in get_resource_packs().values() if "PBR" in pack.get("type", "")]) >= 1:
                         new_emission_image_path = find_image(emission_image_name, path, obj_type, material.name)
                     elif r_props.use_i == False or r_props.use_n == False or r_props.use_s == False:
                         new_emission_image_path = find_image(emission_image_name, path, obj_type, material.name)
@@ -955,12 +957,12 @@ def apply_resources():
                         break
 
             else:
-                animate_texture(emission_texture_node, "", ETexture_Animator, Current_node_tree, object=selected_object)
-
-                if ETexture_Animator is not None:
+                if ETexture_Animator:
                     material.node_tree.nodes.remove(ETexture_Animator)
                     ETexture_Animator = None
 
-                if emission_texture_node is not None:
+                elif emission_texture_node:
+                    if GetConnectedSocketTo(0, emission_texture_node):
+                        material.node_tree.nodes.remove(GetConnectedSocketTo(0, emission_texture_node).node)
                     material.node_tree.nodes.remove(emission_texture_node)
                     emission_texture_node = None

@@ -303,7 +303,7 @@ class AddResourcePack(Operator):
                 json.dump(data, f, indent=4)
                 f.truncate()
 
-        update_assets()
+        update_default_pack()
         return {'FINISHED'}
     
     def invoke(self, context, event):
