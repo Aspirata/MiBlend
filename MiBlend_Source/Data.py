@@ -119,7 +119,7 @@ SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy"
 
 Translucent_Materials = ["leaves", "glass"]
 
-Metal = ["iron", "gold", "emerald", "copper", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
+Metal = ["iron", "gold", "emerald", "copper ; torch", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
 
 Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
@@ -197,6 +197,15 @@ Emissive_Materials = {
         },
         "Procedural Animation": {},
     },
+     "copper lantern": {
+        "Procedural Emission": {
+            "Red": 0,
+            "Green": 1,
+            "Blue": 0,
+            "From Max": 1,
+        },
+        "Procedural Animation": {},
+    },
     "sea lantern": {
         "Procedural Emission": {
             "From Min": 0,
@@ -224,7 +233,15 @@ Emissive_Materials = {
             "From Max": 0.78,
         },
     },
-    
+    "Copper Torch": {
+        "Procedural Emission": {
+            "Red": 0
+            "Green": 1,
+            "Blue": 0,
+            "From Min": 0.6,
+            "From Max": 0.78,
+        },
+    },
     "redstone torch": {
         "Procedural Emission": {
             "Green": 0,
