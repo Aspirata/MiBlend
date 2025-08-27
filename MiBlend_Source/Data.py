@@ -233,7 +233,7 @@ Emissive_Materials = {
             "From Max": 0.78,
         },
     },
-    "Copper Torch": {
+    "copper torch": {
         "Procedural Emission": {
             "Red": 0
             "Green": 1,
