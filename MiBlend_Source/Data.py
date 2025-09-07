@@ -235,7 +235,7 @@ Emissive_Materials = {
     },
     "copper torch": {
         "Procedural Emission": {
-            "Red": 0
+            "Red": 0,
             "Green": 1,
             "Blue": 0,
             "From Min": 0.6,
