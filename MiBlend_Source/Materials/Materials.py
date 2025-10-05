@@ -307,8 +307,8 @@ def fix_world():
             elif auvf_node:
                 material.node_tree.nodes.remove(auvf_node)
             
-            # Implement is_world() check
-            #selected_object["MiBlend ID"] = "World"
+            # Implement is_world() check | 05.10.25 Why tho ?
+            # selected_object["MiBlend ID"] = "World"
 
 @Perf_Time
 def recreate_env(self):
