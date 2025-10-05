@@ -5,6 +5,7 @@ import shutil, sys, re, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
+import platform
 
 def get_resource_packs() -> list:
     try:
@@ -21,7 +22,7 @@ def set_resource_packs(resource_packs):
         print(f"{pack}, {pack_info['path']}, {pack_info['type']}")
 
 Launchers = {
-    "Windows":{
+    "Windows": {
         "Mojang": ".minecraft\\versions",
         "Prism Launcher": "PrismLauncher\\libraries\\com\\mojang\\minecraft",
         "New_Modrinth": "ModrinthApp\\meta\\versions",
@@ -31,18 +32,26 @@ Launchers = {
 
     "Linux": {
         "Mojang": "Unknown",
-        "Prism Launcher": "Unknown",
+        "Prism Launcher": ".local/share/PrismLauncher/libraries/com/mojang/minecraft",
         "New_Modrinth": ".local/share/ModrinthApp/meta/versions",
+        "Old_Modrinth": "Unknown",
+        "TL Legacy": "Unknown",
+    },
+
+    "Darwin": {
+        "Mojang": "Library/Application Support/minecraft/versions",
+        "Prism Launcher": "Unknown",
+        "New_Modrinth": "Library/Application Support/ModrinthApp/meta/versions",
         "Old_Modrinth": "Unknown",
         "TL Legacy": "Unknown",
     }
 }
-            
+
 def find_mc() -> tuple[str, str]:
     versions = {}
     Preferences = bpy.context.preferences.addons[__package__].preferences
-    current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
-    os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
+    current_os = platform.system()
+    os_env = os.getenv('APPDATA') if current_os == "Windows" else os.path.expanduser("~")
 
     for launcher, path in Launchers.get(current_os).items():
         if path == "Unknown":
