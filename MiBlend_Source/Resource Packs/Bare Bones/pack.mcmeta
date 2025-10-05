@@ -1,26 +1,42 @@
 {
   "pack": {
     "pack_format": 34,
-    "supported_formats": [34, 64],
+    "supported_formats": [34, 69],
+    "min_format": [34, 0],
+    "max_format": [69, 0],
     "description": "Just like the trailers!"
   },
   "overlays": {
     "entries": [
       {
         "directory": "overlay_1_21_2",
-        "formats": [42, 64]
+        "formats": [42, 69],
+        "min_format": [42, 0],
+        "max_format": [69, 0]
       },
       {
         "directory": "overlay_1_21_4",
-        "formats": [46, 64]
+        "formats": [46, 69],
+        "min_format": [46, 0],
+        "max_format": [69, 0]
       },
       {
         "directory": "overlay_1_21_5",
-        "formats": [55, 64]
+        "formats": [55, 69],
+        "min_format": [55, 0],
+        "max_format": [69, 0]
       },
       {
         "directory": "overlay_1_21_6",
-        "formats": [55, 64]
+        "formats": [55, 69],
+        "min_format": [55, 0],
+        "max_format": [69, 0]
+      },
+      {
+        "directory": "overlay_1_21_9",
+        "formats": [65, 69],
+        "min_format": [65, 0],
+        "max_format": [69, 0]
       }
     ]
   }
