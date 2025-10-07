@@ -59,23 +59,23 @@ Rigs for Warden, Creeper, and Axolotl
 🔗 [YouTube](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
 ### `HeyItsAnjello`  
-Procedural Normals Node, Fog System  
+Procedural Normals Node, Fog Node
 🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
-### `RobotPants`  
-**Bare Bones** Resource Pack  
+### `RobotPants`
+Bare Bones Resource Pack  
 🔗 [Modrinth](https://modrinth.com/resourcepack/bare-bones)
 
 ### `Mwti`  
-**Embrace Pixels PBR** Resource Pack  
+Embrace Pixels PBR Resource Pack  
 🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
 ### `Faizek`  
-Story Mode Character Rig, **Creaking Rig**  
+Story Mode Character Rig, Creaking Rig  
 🔗 [X (Twitter)](https://x.com/fluffy_aizek) | [Telegram](https://t.me/flufyaizekmedia) | [VK](https://vk.com/fluffy_aizek)
 
 ### `TheRatmir`  
-Author of **TheRig**, Copper Golem Rig  
+Author of TheRig, Copper Golem Rig  
 🔗 [Portfolio](https://theratmir.github.io/TheRatmir-Portfolio)
 
 ---
