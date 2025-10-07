@@ -13,7 +13,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
-    "version": (0, 7, 0),
+    "version": (0, 7, 1),
     "blender": (3, 6, 0),
     "doc_url": "https://docs.page/Aspirata/MiBlend",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",

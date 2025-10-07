@@ -868,54 +868,59 @@ class AssetPanel(Panel):
         layout = self.layout
         prefs = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
         assets_props = bpy.context.scene.miblend_properties.assets_properties
+        current_index = assets_props.asset_index
+        items = assets_props.asset_items
         
         if prefs.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
         else:
             self.bl_options = {'DEFAULT_CLOSED'}
+            
+        if current_index >= 0 and current_index < len(items):
+            current_asset = items[current_index]
+        else:
+            current_asset = None
 
         box = layout.box()
         row = box.row()
         row.label(text="Assets", icon="ASSET_MANAGER")
-        row = box.row()
+        sbox = box.box()
+        row = sbox.row()
         if not assets_props.asset_items:
             row.label(text="No assets found, reload assets list", icon="ERROR")
         else:
             row.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
-        row = box.row()
-        row.operator("assets.update_assets", icon="FILE_REFRESH")
-        row.operator("assets.add_asset", icon="ADD")
+        row = sbox.row()
+        row.operator("assets.add_asset", text="", icon="ADD")
+        row.operator("assets.remove_asset", icon="REMOVE")
 
         if prefs.dev_tools and prefs.debug_tools:
-            row = box.row()
-            remove_attr = row.operator("special.remove_attribute", text="Remove Assets List")
+            remove_attr = row.operator("special.remove_attribute", text="", icon="X")
             remove_attr.attribute = "miblend_properties.assets_properties.asset_items"
+            
+        row.operator("assets.update_assets", icon="FILE_REFRESH")
 
-        current_index = assets_props.asset_index
-        items = assets_props.asset_items
+        if current_asset and current_asset.get("has_properties", False):
+            
+            properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key}
 
-        if current_index >= 0 and current_index < len(items):
-            current_asset = items[current_index]
-
-            if current_asset.get("has_properties", False):
-                properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key}
-
-                sbox = box.box()
-                row = sbox.row()
-                row.label(text="Properties:")
-                row.prop(assets_props, "properties_toggle", icon=("TRIA_DOWN" if assets_props.properties_toggle else "TRIA_LEFT"), icon_only=True)
-                if assets_props.properties_toggle:
-                    for key, value in properties.items():
-                        row = sbox.row()
-                        if isinstance(value, (bool, int, float, str)):
-                            row.prop(current_asset, f'["{key}_property"]', text=key)
-                        else:
-                            row.label(text=f"{key}: {value}")
-
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Properties:", icon="PROPERTIES")
+            row.prop(assets_props, "properties_toggle", icon=("TRIA_DOWN" if assets_props.properties_toggle else "TRIA_LEFT"), icon_only=True)
+            
+            if assets_props.properties_toggle:
+                for key, value in properties.items():
                     row = sbox.row()
-                    row.operator("assets.reset_properties")
-                    row.operator("assets.save_properties")
+                    if isinstance(value, (bool, int, float, str)):
+                        row.prop(current_asset, f'["{key}_property"]', text=key)
+                    else:
+                        row.label(text=f"{key}: {value}")
+
+                row = sbox.row()
+                row.operator("assets.reset_properties")
+                row.operator("assets.save_properties")
         
         # Filters
         row = box.row()
@@ -945,7 +950,7 @@ class AssetPanel(Panel):
             other_tag_list.sort(key=lambda x: x.name)
 
             row = sbox.row()
-            row.label(text="Tags:")
+            row.label(text="Tags:", icon="TAG")
             row = sbox.row()
 
             split = row.split(factor=0.33 if other_tag_list else 0.5)

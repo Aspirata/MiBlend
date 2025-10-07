@@ -513,75 +513,81 @@ class AddAsset(Operator):
     bl_label = "Add Asset"
     bl_options = {'REGISTER', 'UNDO'}
     
-    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(
+        default="*.zip;*.json",
+        options={'HIDDEN'},
+    )
+    
+    filter_folder: bpy.props.BoolProperty(default=True, options={'HIDDEN'})
+    filter_text: bpy.props.BoolProperty(default=True, options={'HIDDEN'})
 
     def execute(self, context):
         path = self.filepath
         json_file_path = None
-        asset_type = 'Presistent'
+        is_asset_persistent = True
 
         if path.endswith('.json'):
-            asset_type = 'Scene Only'
+            is_asset_persistent = True
             json_file_path = path
+            
         elif path.endswith('.zip'):
             extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
 
             if os.path.exists(extract_path):
                 shutil.rmtree(extract_path)
             os.makedirs(extract_path, exist_ok=True)
-
-            if path.endswith('.zip'):
-                with zipfile.ZipFile(path, 'r') as zip_ref:
-                    zip_ref.extractall(extract_path)
-                dprint(f"ZIP file extracted to {extract_path}", is_deep=True, zone="uas")
-            else:
-                dprint("The provided path is neither a directory nor a ZIP file.", is_deep=True, zone="uas")
-                return {'CANCELLED'}
-        else:
-            dprint(f"Unknown File {os.path.basename(path)}", is_deep=True, zone="uas")
             
-        if asset_type == "Presistent":
+            with zipfile.ZipFile(path, 'r') as zip_ref:
+                zip_ref.extractall(extract_path)
+                
+            dprint(f"ZIP file extracted to {extract_path}", is_deep=True, zone="uas")
+            
             for root, dirs, files in os.walk(extract_path):
                 for file in files:
                     if file.endswith('.json'):
                         json_file_path = os.path.join(root, file)
                         break
-                if json_file_path:
-                    break
-
-        if os.path.isfile(json_file_path):
-            with open(json_file_path, 'r') as f:
-                asset_data = json.load(f)
-
-            file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
-            
-            if asset_type == 'Scene Only':
-                temp_assets_path = bpy.context.scene.get("mib_options").get("temp_assets_paths")
-    
-                temp_assets_path_list = list(temp_assets_path)
-                temp_assets_path_list.append(os.path.dirname(json_file_path))
-                
-                bpy.context.scene["mib_options"]["temp_assets_paths"] = temp_assets_path_list
-                dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
-
-            elif file_path_in_json:
-                destination_path = os.path.join(assets_directory, file_path_in_json)
-                os.makedirs(destination_path, exist_ok=True)
-
-                for item in os.listdir(extract_path):
-                    src_path = os.path.join(extract_path, item)
-                    dst_path = os.path.join(destination_path, item)
-
-                    if os.path.isdir(src_path):
-                        shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
-                    else:
-                        shutil.copy2(src_path, dst_path)
-
-                dprint(f"Persistent asset files successfully copied to {destination_path}")
-            else:
-                dprint("File_path not specified in the JSON file")
         else:
+            dprint("The provided path is neither a .json nor a .zip file.", is_deep=True, zone="uas")
+            return {'CANCELLED'}
+
+        if not os.path.isfile(json_file_path):
             dprint("No .json file found in the extracted content")
+            return {'CANCELLED'}
+            
+        with open(json_file_path, 'r') as f:
+            asset_data = json.load(f)
+
+        file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
+        
+        if not file_path_in_json:
+            dprint("File_path not specified in the JSON file")
+            return {'CANCELLED'}
+
+        if is_asset_persistent:
+            temp_assets_path = bpy.context.scene.get("mib_options").get("temp_assets_paths")
+
+            temp_assets_path_list = list(temp_assets_path)
+            temp_assets_path_list.append(os.path.dirname(json_file_path))
+            
+            bpy.context.scene["mib_options"]["temp_assets_paths"] = temp_assets_path_list
+            dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
+
+        else:
+            destination_path = os.path.join(assets_directory, file_path_in_json)
+            os.makedirs(destination_path, exist_ok=True)
+
+            for item in os.listdir(extract_path):
+                src_path = os.path.join(extract_path, item)
+                dst_path = os.path.join(destination_path, item)
+
+                if os.path.isdir(src_path):
+                    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(src_path, dst_path)
+
+            dprint(f"Persistent asset files successfully copied to {destination_path}")
 
         update_assets()
         
@@ -590,6 +596,15 @@ class AddAsset(Operator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+class RemoveAsset(Operator):
+    bl_idname = "assets.remove_asset"
+    bl_label = ""
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        # Remove the selected asset
+        return {'FINISHED'}
 
 class CreateAsset(Operator):
     bl_idname = "assets.create_asset"
