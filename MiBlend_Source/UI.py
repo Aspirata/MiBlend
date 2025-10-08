@@ -66,9 +66,9 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Resource Packs", icon="FILE_FOLDER")
         
         sbox = box.box()
-        row = sbox.row()
-        row.label(text="Resource Packs List", icon="OUTLINER")
-        row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
+        #row = sbox.row()
+        #row.label(text="Resource Packs List", icon="OUTLINER")
+        #row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
             try:
                 resource_packs = get_resource_packs()
@@ -82,8 +82,9 @@ class WorldAndMaterialsPanel(Panel):
                     row = sbox.row()
                     row.label(text="Dev path is not set", icon="ERROR")
             else:
+                tbox = sbox.box()
                 for pack, pack_info in resource_packs.items():
-                    row = sbox.row()
+                    row = tbox.row()
 
                     icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
                     toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
@@ -98,19 +99,27 @@ class WorldAndMaterialsPanel(Panel):
                     else:
                         version_text = mc_version if mc_version != 'Unknown' else ''
                         row.label(text=f"{pack} {version_text} ({pack_type})")
+                        
+                    buttons_row = row.row(align=True)
+                        
+                    if not pack_info.get("is_default", False):
+                        remove = buttons_row.operator("resource_pack.remove", text="", icon='X')
+                        remove.pack_name = pack
                     
-                    move_up = row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
+                    move_up = buttons_row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
                     move_up.pack_name = pack
 
-                    move_down = row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
+                    move_down = buttons_row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
                     move_down.pack_name = pack
-
-                    remove = row.operator("resource_pack.remove", text="", icon='X')
-                    remove.pack_name = pack
             
             row = sbox.row()
-            row.operator("resource_pack.update_default_pack", icon='NEWFOLDER')
-            row.operator("resource_pack.add", icon='ADD')
+            row.operator("resource_pack.add", text="", icon='ADD')
+            
+            if Preferences.dev_tools and Preferences.debug_tools:
+                remove_attr = row.operator("special.remove_attribute", text="", icon='X')
+                remove_attr.attribute = "resource_packs"
+                
+            row.operator("resource_pack.update_default_pack", icon='FILE_REFRESH')
         
         row = box.row()
         row.prop(scene.miblend_properties.resource_properties, "resource_packs_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.resource_packs_settings else "TRIA_RIGHT"))
@@ -188,11 +197,6 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.miblend_properties.resource_properties, "randomize_speed")
                 row.enabled = scene.miblend_properties.resource_properties.animate_textures
-
-        if Preferences.dev_tools and Preferences.debug_tools:
-            row = box.row()
-            remove_attr = row.operator("special.remove_attribute", text="Remove Resource Packs List")
-            remove_attr.attribute = "resource_packs"
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -568,7 +572,7 @@ class WorldAndMaterialsPanel(Panel):
                 row.prop(scene.miblend_properties.ppbr_properties, "pnormals_size_y_multiplier", slider=True)
             
             row = tbox.row()
-            row.prop(scene.miblend_properties.ppbr_properties, "revert_normals", slider=True)
+            row.prop(scene.miblend_properties.ppbr_properties, "revert_normals")
             row.enabled = not context.scene.miblend_properties.ppbr_properties.use_normals
         
         row = box.row()
@@ -720,7 +724,7 @@ class WorldAndMaterialsPanel(Panel):
                 
         row = box.row()
         row.scale_y = Big_Button_Scale
-        row.operator("ppbr.setproceduralpbr", text="Set Procedural PBR")
+        row.operator("ppbr.setproceduralpbr", text="Apply Procedural PBR", icon="CHECKMARK")
 
 class OptimizationPanel(Panel):
     bl_label = "Optimization"
@@ -893,7 +897,9 @@ class AssetPanel(Panel):
 
         row = sbox.row()
         row.operator("assets.add_asset", text="", icon="ADD")
-        row.operator("assets.remove_asset", icon="REMOVE")
+
+        if current_asset.get("File_path", "") in bpy.context.scene.get("mib_options").get("temp_assets_paths"):
+            row.operator("assets.remove_asset", icon="REMOVE")
 
         if prefs.dev_tools and prefs.debug_tools:
             remove_attr = row.operator("special.remove_attribute", text="", icon="X")

@@ -490,23 +490,6 @@ class SavePropertiesOperator(Operator):
             else:
                 Call_AS("n00", error)
             return {'CANCELLED'}
-    
-class RemoveAsset(Operator):
-    bl_idname = "assets.remove_asset"
-    bl_label = "Add Asset"
-    bl_options = {'REGISTER', 'UNDO'}
-    
-    def execute(self, context):
-        try:
-            NotImplemented
-            return {'FINISHED'}
-        
-        except Exception as error:
-            if not os.path.isfile(json_file_path):
-                Call_AS("e03", error, json_file_path)
-            else:
-                Call_AS("n00", error)
-            return {'CANCELLED'}
 
 class AddAsset(Operator):
     bl_idname = "assets.add_asset"
@@ -528,7 +511,7 @@ class AddAsset(Operator):
         is_asset_persistent = True
 
         if path.endswith('.json'):
-            is_asset_persistent = True
+            is_asset_persistent = False
             json_file_path = path
             
         elif path.endswith('.zip'):
