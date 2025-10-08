@@ -1,4 +1,4 @@
-# Languages: [RU](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README_ru.md) | [**EN**](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README.md)
+# Languages: [RU](README_ru.md) | [**EN**](README.md)
 
 # MiBlend
 
