@@ -109,17 +109,17 @@ def override_setting(setting_name: str, default_value: Union[str, bool, int, flo
 
 def get_pack_info_properties(pack: str =None) -> dict:
     resource_packs_directory = get_resource_path()
-    if os.path.exists(resource_packs_directory):
-        with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
-            data = json.load(file)
-            
-            if pack is None:
-                return data.keys()
-            
-            pack_list = data.get(pack, {})
-            pack_info = {"mc_version": pack_list.get("mc_version", None), "pack_version": pack_list.get("pack_version", None), "type": pack_list.get("type", None), "link": pack_list.get("link", None)}
-        return pack_info
-    return {}
+    if not os.path.exists(resource_packs_directory):
+        return {}
+    
+    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
+        data = json.load(file)
+        
+        if pack is None:
+            return data.keys()
+        
+        return data.get(pack, {})
+    return pack_info
 
 def is_code_ignored(code: str) -> bool:
     return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()

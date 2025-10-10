@@ -3,12 +3,14 @@
         "mc_version": "1.21.9",
         "pack_version": "1.4.10",
         "type": "Texture",
-        "link": "https://modrinth.com/resourcepack/bare-bones"
+        "link": "https://modrinth.com/resourcepack/bare-bones",
+        "is_built_in": true
     },
     "Embrace Pixels": {
         "mc_version": "1.20.1",
         "pack_version": "2.1",
         "type": "PBR",
-        "link": "https://modrinth.com/resourcepack/embrace-pixels"
+        "link": "https://modrinth.com/resourcepack/embrace-pixels",
+        "is_built_in": true
     }
 }

@@ -25,7 +25,7 @@ def init_on_start():
     try:
         if not bpy.context.scene.get("resource_packs", None):
             bpy.context.scene["resource_packs"] = {}
-            update_default_pack()
+        update_default_pack()
 
         if not bpy.context.scene.get("mib_options", None):
             bpy.context.scene["mib_options"] = {}
@@ -81,7 +81,7 @@ special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel
 operators = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
     MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
-    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
+    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, SavePreferencesOperator, ResetPreferencesOperator
 ]
 

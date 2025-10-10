@@ -101,8 +101,8 @@ class WorldAndMaterialsPanel(Panel):
                         row.label(text=f"{pack} {version_text} ({pack_type})")
                         
                     buttons_row = row.row(align=True)
-                        
-                    if not pack_info.get("is_default", False):
+
+                    if not pack_info.get("is_built_in", False):
                         remove = buttons_row.operator("resource_pack.remove", text="", icon='X')
                         remove.pack_name = pack
                     
@@ -898,7 +898,7 @@ class AssetPanel(Panel):
         row = sbox.row()
         row.operator("assets.add_asset", text="", icon="ADD")
 
-        if current_asset.get("File_path", "") in bpy.context.scene.get("mib_options").get("temp_assets_paths"):
+        if os.path.dirname(current_asset.get("File_path", "")) in bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", []):
             row.operator("assets.remove_asset", icon="REMOVE")
 
         if prefs.dev_tools and prefs.debug_tools:
@@ -925,8 +925,8 @@ class AssetPanel(Panel):
                         row.label(text=f"{key}: {value}")
 
                 row = sbox.row()
-                row.operator("assets.reset_properties")
-                row.operator("assets.save_properties")
+                row.operator("assets.reset_properties", icon="LOOP_BACK")
+                row.operator("assets.save_properties", icon="FILE_TICK")
         
         # Filters
         row = box.row()

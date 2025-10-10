@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from distutils.version import LooseVersion
 import platform
 
-def get_resource_packs() -> list:
+def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
         return bpy.context.scene["resource_packs"]
     except Exception as error:
@@ -138,12 +138,10 @@ def update_pack(pack: str, connection=None):
             
             with open(os.path.join(resource_packs_directory, "packs_info.json"), "r+") as f:
                 data = json.load(f)
-                data[pack] = {
+                data[pack].update({
                     "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
-                    "pack_version": latest_pack_info[1],
-                    "type": type_,
-                    "link": link
-                }
+                    "pack_version": latest_pack_info[1]
+                })
                 f.seek(0)
                 json.dump(data, f, indent=4)
                 f.truncate()
@@ -176,7 +174,7 @@ def update_default_pack():
     if version is not None and path is not None:
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": path, "type": "Texture", "enabled": True, "is_default": True}
+        resource_packs[default_pack] = {"path": path, "type": "Texture", "enabled": True, "is_default": True, "is_built_in": True}
         dprint(resource_packs[default_pack]["path"])
     else:
         print("MC instance not found")
@@ -197,7 +195,8 @@ def update_default_pack():
                     "path": os.path.join(resource_packs_directory, pack),
                     "type": data[pack]["type"],
                     "enabled": True,
-                    "is_default": False
+                    "is_default": False,
+                    "is_built-in": False
                 }
             
             if Preferences.update_packs:
@@ -206,11 +205,13 @@ def update_default_pack():
             default_pack = pack
             default_path = os.path.join(resource_packs_directory, default_pack)
             default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
+            is_built_in = get_pack_info_properties(default_pack).get("is_built_in", False)
             resource_packs[default_pack] = {
                 "path": default_path,
                 "type": default_type,
                 "enabled": False,
-                "is_default": True
+                "is_default": True,
+                "is_built_in": is_built_in
             }
         
         if Preferences.update_packs:

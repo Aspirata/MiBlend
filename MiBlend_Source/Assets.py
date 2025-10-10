@@ -226,8 +226,8 @@ def update_assets():
     assets_list = []
 
     directories_to_scan = [assets_directory]
-    
-    temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", '')
+
+    temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", [])
     temp_assets_path_list = list(temp_assets_paths)
 
     if len(temp_assets_path_list) > 0:
