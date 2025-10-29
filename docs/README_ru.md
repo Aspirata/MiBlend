@@ -1,4 +1,4 @@
-# Languages: [**RU**](README_ru.md) | [EN](README.md)
+# Languages: [🇷🇺 RU](README_ru.md) | [🇺🇸 *EN*](README.md)
 
 # MiBlend
 
@@ -60,23 +60,23 @@ Alpha Selector, помощь с обновлением списков в Data.py
 🔗 [YouTube](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
 ### `HeyItsAnjello`  
-Нода процедурных нормалей и тумана 
+Нода процедурных нормалей и тумана  
 🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
 ### `RobotPants`  
-Ресурс-пак Bare Bones
+Ресурс-пак Bare Bones  
 🔗 [Modrinth](https://modrinth.com/resourcepack/bare-bones)
 
 ### `Mwti`  
-Ресурс-пак Embrace Pixels PBR
+Ресурс-пак Embrace Pixels PBR  
 🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
 ### `Faizek`  
-Риг персонажа из *Story Mode*, риг Creaking
+Риг персонажа из *Story Mode*, риг Creaking  
 🔗 [X (Twitter)](https://x.com/fluffy_aizek) | [Telegram](https://t.me/flufyaizekmedia) | [VK](https://vk.com/fluffy_aizek)
 
 ### `TheRatmir`  
-Автор TheRig, риг Медного Голема
+Автор TheRig, риг Медного Голема  
 🔗 [Портфолио](https://theratmir.github.io/TheRatmir-Portfolio)
 
 ---

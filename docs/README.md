@@ -1,4 +1,4 @@
-# Languages: [RU](README_ru.md) | [**EN**](README.md)
+# Languages: [🇷🇺 *RU*](README_ru.md) | [🇺🇸 EN](README.md)
 
 # MiBlend
 
@@ -59,7 +59,7 @@ Rigs for Warden, Creeper, and Axolotl
 🔗 [YouTube](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
 
 ### `HeyItsAnjello`  
-Procedural Normals Node, Fog Node
+Procedural Normals Node, Fog Node  
 🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
 ### `RobotPants`
