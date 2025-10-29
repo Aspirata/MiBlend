@@ -1,8 +1,7 @@
-import bpy
-import sys
+import bpy, sys
 from bpy.types import AddonPreferences
 from .MIB_API import blender_version, override_setting
-from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
+from bpy.props import IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty
 
 class MiBlendPreferences(AddonPreferences):
     bl_idname = __package__

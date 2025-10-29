@@ -1,6 +1,10 @@
-from .MIB_API import *
+import bpy, os
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
+from .MIB_API import get_resource_path, get_pack_info_properties, blender_version
+from .Data import world_material_name
+
+Big_Button_Scale = 1.4
 
 class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"

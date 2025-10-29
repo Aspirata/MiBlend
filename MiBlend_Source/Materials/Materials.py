@@ -1,6 +1,6 @@
+import bpy, os, zipfile, traceback
 from ..MIB_API import *
 from ..Data import *
-from ..Resource_Packs import *
 from ..Utils.Absolute_Solver import Call_AS
 
 @ Perf_Time
@@ -412,10 +412,7 @@ def recreate_env(self):
 def create_env(mode=None):
 
     def clouds_file_comp():
-        if blender_version("4.x.x"):
-            return "4.0"
-        else:
-            return "3.6"
+        return "4.0" if blender_version(">= 4.0.0") else "3.6"
     
     scene = bpy.context.scene
     MIB_env_collection = bpy.data.collections.get("MiBlend Environment", None)
@@ -755,7 +752,7 @@ def setproceduralpbr():
                 else:
                     RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                if blender_version("4.x.x"):
+                if blender_version(">= 4.0.0"):
                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
                 else:

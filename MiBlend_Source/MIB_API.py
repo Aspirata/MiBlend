@@ -1,9 +1,7 @@
-from .Data import *
+import bpy, os, json, time, sys, re, traceback
+from .Data import main_directory, nodes_file, Emissive_Materials, gray_blocks
 from .Utils.Absolute_Solver import Call_AS
-from typing import Optional, Union
-import time
-import sys
-import re
+from typing import Union
 
 def PBSDF_compability(Input: str) -> str:
     if blender_version("< 4.0.0"):
@@ -44,7 +42,7 @@ def get_selected_asset() -> dict:
             Call_AS("n00", traceback.format_exc())
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
-def mc_version_formatter(version_name: str) -> Optional[str]:
+def mc_version_formatter(version_name: str) -> str | None:
     try:
         version_parts = re.split(r'[ -]', version_name)
         for part in version_parts:
@@ -52,11 +50,11 @@ def mc_version_formatter(version_name: str) -> Optional[str]:
                 return part
         return None
     except Exception as error:
-        Call_AS("n00", error)
+        Call_AS("n00", traceback.format_exc())
 
 # Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
 # Array filters: " ; " - not, " " - and
-def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> tuple[bool, Optional[str]]:
+def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="in") -> tuple[bool, str | None]:
     if is_texture:
         name = format_texture_name(material_or_texture_name)
     else:
@@ -253,7 +251,7 @@ def format_material_name(material_name: str, split: bool =True) -> str:
     else:
         return format_duplicate_name(material_name).lower().replace("-", "_")
 
-def find_node(place: object, type_or_node_group_name: str) -> Optional[object]:
+def find_node(place: object, type_or_node_group_name: str) -> object | None:
     nodes_list = place.node_tree.nodes
     if type_or_node_group_name.isupper():
         matching_node = next((node for node in nodes_list if node.type == type_or_node_group_name), None)
@@ -285,20 +283,20 @@ def isduplicate(text: str, original_text: str=None) -> bool:
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
-        if original_text:
-            return base_text == original_text
-        else:
+        if not original_text:
             return True
+        
+        return base_text == original_text
     return False
 
 def format_duplicate_name(text: str, original_text: str=None) -> str:
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
-        if original_text:
-            if base_text == original_text:
-                return base_text
-        else:
+        if not original_text:
+            return base_text
+        
+        if base_text == original_text:
             return base_text
     return text
 
@@ -539,7 +537,7 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
     except Exception as error:
         Call_AS("n00", error)
 
-def GetConnectedSocketTo(input: Union[str, int], node: object) -> Optional[object]:
+def GetConnectedSocketTo(input: Union[str, int], node: object) -> object | None:
     try:
         if isinstance(input, int):
             if input >= len(node.inputs):

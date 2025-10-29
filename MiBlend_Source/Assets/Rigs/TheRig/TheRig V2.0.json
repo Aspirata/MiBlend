@@ -1,9 +1,9 @@
 {
     "Format_version": "10",
-    "Asset_name": "TheRig V1.9",
+    "Asset_name": "TheRig V2.0",
     "Author": "TheRatmir",
     "Blender_version": "> 4.2.0",
-    "File_path": "Rigs\\TheRig\\TheRig V1.9",
+    "File_path": "Rigs\\TheRig\\TheRig V2.0",
     "Collection_name": "TheRig(Append)",
     "Tags": ["Rig", "Mixed"]
 }

@@ -1,6 +1,8 @@
-from .Data import *
-from .MIB_API import *
+import bpy, os, json
+from .MIB_API import blender_version
+from .Data import Render_Settings, assets_directory
 from bpy.types import PropertyGroup
+from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty, PointerProperty, CollectionProperty
 
 class WorldProperties(PropertyGroup):
 
@@ -767,14 +769,14 @@ class UtilsProperties(PropertyGroup):
         description="Select Settings to Use",
     )
 
-    armature: bpy.props.PointerProperty(
+    armature: PointerProperty(
         name="Armature",
         description="",
         type=bpy.types.Object,
         poll=lambda self, obj: obj.type == 'ARMATURE'
     )
 
-    lattice: bpy.props.PointerProperty(
+    lattice: PointerProperty(
         name="Lattice",
         description="",
         type=bpy.types.Object,
@@ -795,7 +797,7 @@ class AssetTagItem(PropertyGroup):
 
 class AssetsProperties(PropertyGroup):
 
-    asset_items: bpy.props.CollectionProperty(type=PropertyGroup)
+    asset_items: CollectionProperty(type=PropertyGroup)
 
     asset_index: IntProperty(default=0)
 
@@ -820,7 +822,7 @@ class AssetsProperties(PropertyGroup):
         unique_tags = sorted(unique_tags)
         return [('All', "All", "")] + [(tag, tag, "") for tag in unique_tags]
 
-    tags: bpy.props.CollectionProperty(type=AssetTagItem)
+    tags: CollectionProperty(type=AssetTagItem)
     
     properties_toggle: BoolProperty(
         name="Properties Toggle",
@@ -845,12 +847,12 @@ class AbsoluteSolverProperties(PropertyGroup):
     ignored_codes: StringProperty()
     
 class MiBlendProperties(PropertyGroup):
-    world_properties: bpy.props.PointerProperty(type=WorldProperties)
-    resource_properties: bpy.props.PointerProperty(type=ResourcePackProperties)
-    materials_properties: bpy.props.PointerProperty(type=MaterialsProperties)
-    env_properties: bpy.props.PointerProperty(type=CreateEnvProperties)
-    ppbr_properties: bpy.props.PointerProperty(type=PPBRProperties)
-    assets_properties: bpy.props.PointerProperty(type=AssetsProperties)
-    absolute_solver_properties: bpy.props.PointerProperty(type=AbsoluteSolverProperties)
-    utils_properties: bpy.props.PointerProperty(type=UtilsProperties)
-    optimization_properties: bpy.props.PointerProperty(type=OptimizationProperties)
+    world_properties: PointerProperty(type=WorldProperties)
+    resource_properties: PointerProperty(type=ResourcePackProperties)
+    materials_properties: PointerProperty(type=MaterialsProperties)
+    env_properties: PointerProperty(type=CreateEnvProperties)
+    ppbr_properties: PointerProperty(type=PPBRProperties)
+    assets_properties: PointerProperty(type=AssetsProperties)
+    absolute_solver_properties: PointerProperty(type=AbsoluteSolverProperties)
+    utils_properties: PointerProperty(type=UtilsProperties)
+    optimization_properties: PointerProperty(type=OptimizationProperties)

@@ -1,6 +1,7 @@
-from .Data import *
+import bpy, os
 from .Preferences import MiBlendPreferences
-from .MIB_API import *
+from .MIB_API import dprint
+from .Data import materials_folder
 from .Assets import update_assets
 from .Utils.Absolute_Solver import *
 from .Resource_Packs import update_default_pack

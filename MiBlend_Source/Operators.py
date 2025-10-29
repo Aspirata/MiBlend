@@ -1,14 +1,13 @@
-from .Data import *
+import bpy, os, json, shutil, platform, subprocess
 from .Materials import Materials
-from .Resource_Packs import *
+from .Resource_Packs import apply_resources, get_resource_packs, set_resource_packs, get_resource_path, update_default_pack
 from .Optimization import Optimize
 from .Utils_tools import *
 from bpy.types import Operator
+from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty
 from .Assets import *
 from .Utils.Absolute_Solver import Call_AS
-import shutil
-import platform
-import subprocess
+from .Data import main_directory
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
