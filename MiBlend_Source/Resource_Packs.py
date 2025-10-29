@@ -54,15 +54,19 @@ def find_mc() -> tuple[str, str]:
 
     for launcher, path in Launchers.get(current_os).items():
         if path == "Unknown":
-            continue
+            guessed_path = os.path.join(os_env, Launchers.get("Windows").get(launcher))
+            if not os.path.exists(guessed_path):
+                continue
+            path = guessed_path
 
         folders = Preferences.mc_instances_path if Preferences.mc_instances_path else os.path.join(os_env, path)
         if not os.path.isdir(folders):
             continue
 
         for folder in os.listdir(folders):
-            instance_path = None
-            if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(folders, folder, f"{folder}.jar")):
+            instance_path = os.path.join(folders, folder, f"{folder}.jar")
+            version = mc_version_formatter(folder)
+            if version and os.path.isfile(instance_path):
                 versions[version] = (folder, os.path.join(os_env, path))
                 dprint(f"{instance_path} valid", is_deep=True, zone="rp")
             else:
