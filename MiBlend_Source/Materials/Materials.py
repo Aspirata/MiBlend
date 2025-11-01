@@ -412,7 +412,7 @@ def recreate_env(self):
 def create_env(mode=None):
 
     def clouds_file_comp():
-        if blender_version("4.x.x"):
+        if blender_version(">= 4.0.0"):
             return "4.0"
         else:
             return "3.6"
@@ -755,7 +755,7 @@ def setproceduralpbr():
                 else:
                     RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                if blender_version("4.x.x"):
+                if blender_version(">= 4.0.0"):
                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
                 else:
