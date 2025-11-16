@@ -422,7 +422,7 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(scene.miblend_properties.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.miblend_properties.env_properties.geonodes_settings:
-                        if blender_version("4.x.x"):
+                        if bpy.app.version >= (4, 0, 0):
 
                             fbox = tbox.box()
                             row = fbox.row()
@@ -672,12 +672,12 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.miblend_properties.ppbr_properties, "sss_skip")
                 row = tbox.row()
-                if blender_version("4.x.x"):
+                if bpy.app.version >= (4, 0, 0):
                     row.prop(scene.miblend_properties.ppbr_properties, "connect_texture")
                 else:
                     row.prop(scene.miblend_properties.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
 
-                if blender_version("4.x.x"):
+                if bpy.app.version >= (4, 0, 0):
                     row = tbox.row()
                     row.prop(scene.miblend_properties.ppbr_properties, "sss_weight", slider=True)
                     row = tbox.row()

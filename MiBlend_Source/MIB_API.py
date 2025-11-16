@@ -4,7 +4,7 @@ from .Utils.Absolute_Solver import Call_AS
 from typing import Union
 
 def PBSDF_compability(Input: str) -> str:
-    if blender_version("< 4.0.0"):
+    if bpy.app.version < (4, 0, 0):
         return {
             "Subsurface Weight": "Subsurface",
             "Subsurface Radius": "Subsurface Color",

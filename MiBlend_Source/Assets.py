@@ -124,7 +124,7 @@ def append_cnode(asset_data):
         avg_x = []
         avg_y = []
         scene = bpy.context.scene
-        if blender_version(">= 5.0.0"):
+        if bpy.app.version >= (5, 0, 0):
             if not scene.compositing_node_group:
                 tree = bpy.data.node_groups.new("New Compositor", "CompositorNodeTree")
                 scene.compositing_node_group = tree
