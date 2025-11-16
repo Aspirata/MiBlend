@@ -1,7 +1,7 @@
 import bpy
 import sys
 from bpy.types import AddonPreferences
-from .MIB_API import blender_version, override_setting
+from .MIB_API import override_setting
 from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty)
 
 class MiBlendPreferences(AddonPreferences):
@@ -33,7 +33,7 @@ class MiBlendPreferences(AddonPreferences):
     )
 
     def emissiondetectionfix():
-        return 'Manual' if blender_version("3.6.x") else 'Combined'
+        return 'Manual' if bpy.app.version < (4, 0, 0) else 'Combined'
 
     emissiondetection: EnumProperty(
         items=[('Automatic', 'Automatic', ''), 
@@ -135,7 +135,7 @@ class MiBlendPreferences(AddonPreferences):
         row = box.row()
         row.label(text="UI:")                                                          # UI
 
-        if blender_version(">= 4.1.0"):
+        if bpy.app.version >= (4, 1, 0):
             row = box.row()
             row.prop(self, "transparent_ui")
         else:

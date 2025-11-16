@@ -6,7 +6,7 @@ import sys
 import re
 
 def PBSDF_compability(Input: str) -> str:
-    if blender_version("< 4.0.0"):
+    if bpy.app.version < (4, 0, 0):
         return {
             "Subsurface Weight": "Subsurface",
             "Subsurface Radius": "Subsurface Color",

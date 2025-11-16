@@ -436,7 +436,7 @@ class PPBRProperties(PropertyGroup):
     )
 
     def sss_type_fix():
-        if blender_version(">= 4.0.0"):
+        if bpy.app.version >= (4, 0, 0):
             items=[('BURLEY', 'Christensen Burley', ''), 
                 ('RANDOM_WALK', 'Random Walk', ''),
                 ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')]

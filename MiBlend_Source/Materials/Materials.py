@@ -162,7 +162,7 @@ def fix_world():
 
             material.blend_method = 'HASHED'
             
-            if blender_version("< 4.3.0"):
+            if bpy.app.version < (4, 3, 0):
                 material.shadow_method = 'HASHED'
 
             # Delete Useless Textres
@@ -323,7 +323,7 @@ def recreate_env(self):
 
         for node in world_material.nodes:
             if node.type == 'GROUP' and "MiBlend Sky" in node.node_tree.name:
-                if blender_version(">= 4.0.0"):
+                if bpy.app.version >= (4, 0, 0):
                     for socket in node.inputs:
                         try:
                             for i, vector_value in enumerate(socket.default_value, 1):
@@ -412,7 +412,7 @@ def recreate_env(self):
 def create_env(mode=None):
 
     def clouds_file_comp():
-        if blender_version(">= 4.0.0"):
+        if bpy.app.version >= (4, 0, 0):
             return "4.0"
         else:
             return "3.6"
@@ -676,10 +676,10 @@ def setproceduralpbr():
                         material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
 
                     bump_node.inputs[0].default_value = PProperties.bump_strength
-                    if blender_version(">= 4.4.1"):
+                    if bpy.app.version >= (4, 4, 1):
                         bump_node.inputs["Filter Width"].default_value = 1.0
                     
-                    if blender_version(">= 4.5.0"):
+                    if bpy.app.version >= (4, 5, 0):
                         bump_node.inputs["Distance"].default_value = 1.0
 
                 elif image_texture_node and image:
@@ -755,7 +755,7 @@ def setproceduralpbr():
                 else:
                     RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                if blender_version(">= 4.0.0"):
+                if bpy.app.version >= (4, 0, 0):
                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
                 else:
