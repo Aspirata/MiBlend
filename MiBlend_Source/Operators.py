@@ -12,11 +12,12 @@ from .Data import main_directory
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
     bl_idname = "special.recreate_env"
+    bl_description = "Recreates the environment with options for sky, fog, and clouds"
     bl_options = {'REGISTER', 'UNDO'}
     
     reset_settings: BoolProperty(
         name="Reset Settings",
-        description="Resets the settings",
+        description="Resets the sky settings",
         default=False
     )
 
@@ -25,6 +26,7 @@ class RecreateEnvironment(Operator):
             ('Create Sky', 'Create Sky', 'Reuses Already Imported Sky Material'), 
             ('Recreate Sky', 'Recreate Sky', 'Reappends Sky Material')],
         name="create_sky",
+        description="Options for reusing imported sky assets or reimporting them",
         default='None'
     )
 
@@ -33,6 +35,7 @@ class RecreateEnvironment(Operator):
             ('Create Fog', 'Create Fog', 'l'), 
             ('Recreate Fog', 'Recreate Fog', '')],
         name="create_fog",
+        description="Options for reusing imported fog assets or reimporting them",
         default='None'
     )
     
@@ -41,13 +44,12 @@ class RecreateEnvironment(Operator):
             ('Create Clouds', 'Create Clouds', ''), 
             ('Recreate Clouds', 'Recreate Clouds', '')],
         name="create_clouds",
+        description="Options for reusing imported cloud assets or reimporting them",
         default='None'
     )
 
     def execute(self, context):
-
         Materials.recreate_env(self)
-
         return {'FINISHED'}
         
     def invoke(self, context, event):
@@ -76,6 +78,7 @@ class RecreateEnvironment(Operator):
 class RemoveAttributeOperator(Operator):
     bl_idname = "special.remove_attribute"
     bl_label = "Remove Attribute"
+    bl_description = "Removes a specified attribute from the scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     attribute: bpy.props.StringProperty()
@@ -107,6 +110,7 @@ class RemoveAttributeOperator(Operator):
 class FixWorldOperator(Operator):
     bl_idname = "world.fix_world"
     bl_label = "Fix World"
+    bl_description = "Fixes the world problems"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -116,6 +120,7 @@ class FixWorldOperator(Operator):
 class ResourcePackToggleOperator(Operator):
     bl_idname = "resource_pack.toggle"
     bl_label = "Toggle Resource Pack"
+    bl_description = "Toggles the enabled state of a resource pack"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -132,6 +137,7 @@ class ResourcePackToggleOperator(Operator):
 class MoveResourcePackUp(Operator):
     bl_idname = "resource_pack.move_up"
     bl_label = "Move Resource Pack Up"
+    bl_description = "Moves the selected resource pack up in the priority list"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -149,6 +155,7 @@ class MoveResourcePackUp(Operator):
 class MoveResourcePackDown(Operator):
     bl_idname = "resource_pack.move_down"
     bl_label = "Move Resource Pack Down"
+    bl_description = "Moves the selected resource pack down in the priority list"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -166,6 +173,7 @@ class MoveResourcePackDown(Operator):
 class RemoveResourcePack(Operator):
     bl_idname = "resource_pack.remove"
     bl_label = "Remove Resource Pack"
+    bl_description = "Removes a resource pack from the list"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -212,6 +220,7 @@ class RemoveResourcePack(Operator):
 class UpdateDefaultPack(Operator):
     bl_idname = "resource_pack.update_default_pack"
     bl_label = "Reload Packs List"
+    bl_description = "Reloads the resource packs list"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -221,6 +230,7 @@ class UpdateDefaultPack(Operator):
 class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"
     bl_label = "Add Resource Pack"
+    bl_description = "Adds a new resource pack to the list"
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
@@ -344,6 +354,7 @@ class AddResourcePack(Operator):
 class ApplyResourcePack(Operator):
     bl_idname = "resource_pack.apply"
     bl_label = "Apply Resource Packs"
+    bl_description = "Applies enabled resource packs"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -353,6 +364,7 @@ class ApplyResourcePack(Operator):
 class CreateEnvOperator(Operator):
     bl_idname = "env.create_env"
     bl_label = "Create Environment"
+    bl_description = "Creates a new environment"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -371,6 +383,7 @@ class UpgradeMaterialsOperator(Operator):
 class FixMaterialsOperator(Operator):
     bl_idname = "materials.fix_materials"
     bl_label = "Fix Materials"
+    bl_description = "Fixes materials with maximum compatibility"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
