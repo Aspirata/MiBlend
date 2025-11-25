@@ -91,56 +91,30 @@ deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRender
 
 classes = properties + special_classes + operators + panels + debug_classes + deprecated_classes
 
+cls_register, cls_unregister = bpy.utils.register_classes_factory(classes)
+
 @persistent
 def on_scene_load(dummy):
     bpy.app.timers.register(init_on_start, first_interval=0.1)
 
 def register():
+    cls_register()
+    
+    bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
+    
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
-   
-    # Safe registration of the classes
-    for cls in classes:
-        try:
-            # Attempt to unregister if class already exists
-            if hasattr(bpy.types, cls.__name__):
-                try:
-                    bpy.utils.unregister_class(cls)
-                except (ValueError, RuntimeError):
-                    # Class might be registered by another addon
-                    pass
-           
-            # Register class
-            bpy.utils.register_class(cls)
-           
-        except ValueError as e:
-            dprint(f"Error registering class {cls.__name__}: {e}")
-            # Logic for handling specific errors can be added here
-            continue
-
-    # Scene properties registration
-    try:
-        bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
-    except Exception as e:
-        dprint(f"Error registering scene properties: {e}")
-    
+        
     bpy.app.timers.register(init_on_start, first_interval=0.4)
 
 def unregister():
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
-       
-    # Remove scene properties
+
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
-   
-    for cls in reversed(classes):
-        try:
-            if hasattr(bpy.types, cls.__name__):
-                bpy.utils.unregister_class(cls)
-        except (ValueError, RuntimeError) as e:
-            dprint(f"Error unregistering class {cls.__name__}: {e}")
-            continue
+
+    cls_unregister()
 
 if __name__ == "__main__":
     register()
