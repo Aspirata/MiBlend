@@ -12,7 +12,7 @@ from .Data import main_directory
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
     bl_idname = "special.recreate_env"
-    bl_description = "Recreates the environment with options for sky, fog, and clouds"
+    bl_description = "Recreates the Environment with Options for Sky, Fog, and Clouds"
     bl_options = {'REGISTER', 'UNDO'}
     
     reset_settings: BoolProperty(
@@ -78,7 +78,7 @@ class RecreateEnvironment(Operator):
 class RemoveAttributeOperator(Operator):
     bl_idname = "special.remove_attribute"
     bl_label = "Remove Attribute"
-    bl_description = "Removes a specified attribute from the scene"
+    bl_description = "Removes a Specified Attribute from the Scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     attribute: bpy.props.StringProperty()
@@ -110,7 +110,7 @@ class RemoveAttributeOperator(Operator):
 class FixWorldOperator(Operator):
     bl_idname = "world.fix_world"
     bl_label = "Fix World"
-    bl_description = "Fixes the world problems"
+    bl_description = "Fixes the World's Problems After Import"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -120,7 +120,7 @@ class FixWorldOperator(Operator):
 class ResourcePackToggleOperator(Operator):
     bl_idname = "resource_pack.toggle"
     bl_label = "Toggle Resource Pack"
-    bl_description = "Toggles the enabled state of a resource pack"
+    bl_description = "Toggles the Enabled State of a Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -137,7 +137,7 @@ class ResourcePackToggleOperator(Operator):
 class MoveResourcePackUp(Operator):
     bl_idname = "resource_pack.move_up"
     bl_label = "Move Resource Pack Up"
-    bl_description = "Moves the selected resource pack up in the priority list"
+    bl_description = "Moves the Selected Resource Rack Up in the Priority List"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -155,7 +155,7 @@ class MoveResourcePackUp(Operator):
 class MoveResourcePackDown(Operator):
     bl_idname = "resource_pack.move_down"
     bl_label = "Move Resource Pack Down"
-    bl_description = "Moves the selected resource pack down in the priority list"
+    bl_description = "Moves the Selected Resource Pack Down in the Priority List"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -173,7 +173,7 @@ class MoveResourcePackDown(Operator):
 class RemoveResourcePack(Operator):
     bl_idname = "resource_pack.remove"
     bl_label = "Remove Resource Pack"
-    bl_description = "Removes a resource pack from the list"
+    bl_description = "Removes a Resource Pack from the List"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -220,7 +220,7 @@ class RemoveResourcePack(Operator):
 class UpdateDefaultPack(Operator):
     bl_idname = "resource_pack.update_default_pack"
     bl_label = "Reload Packs List"
-    bl_description = "Reloads the resource packs list"
+    bl_description = "Reloads the Resource Packs List"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -230,7 +230,7 @@ class UpdateDefaultPack(Operator):
 class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"
     bl_label = "Add Resource Pack"
-    bl_description = "Adds a new resource pack to the list"
+    bl_description = "Adds a New Resource Pack to the List"
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
@@ -354,7 +354,7 @@ class AddResourcePack(Operator):
 class ApplyResourcePack(Operator):
     bl_idname = "resource_pack.apply"
     bl_label = "Apply Resource Packs"
-    bl_description = "Applies enabled resource packs"
+    bl_description = "Applies Enabled Resource Packs in a Specified Order"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -364,7 +364,7 @@ class ApplyResourcePack(Operator):
 class CreateEnvOperator(Operator):
     bl_idname = "env.create_env"
     bl_label = "Create Environment"
-    bl_description = "Creates a new environment"
+    bl_description = "Creates a New Environment"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -374,6 +374,7 @@ class CreateEnvOperator(Operator):
 class UpgradeMaterialsOperator(Operator):
     bl_idname = "materials.replace_materials"
     bl_label = "Upgrade Materials"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -383,7 +384,7 @@ class UpgradeMaterialsOperator(Operator):
 class FixMaterialsOperator(Operator):
     bl_idname = "materials.fix_materials"
     bl_label = "Fix Materials"
-    bl_description = "Fixes materials with maximum compatibility"
+    bl_description = "Fixes Materials with Maximum Compatibility"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -393,6 +394,7 @@ class FixMaterialsOperator(Operator):
 class SwapTexturesOperator(Operator):
     bl_idname = "materials.swap_textures"
     bl_label = "Swap Textures"
+    bl_description = "Swapes Textures with Maximum Compatibility"
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: StringProperty(subtype="DIR_PATH")
@@ -413,6 +415,7 @@ class SwapTexturesOperator(Operator):
 class OpenConsoleOperator(Operator):
     bl_idname = "special.open_console"
     bl_label = "Open Console"
+    bl_description = "Toggles Blender System Console"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -425,6 +428,7 @@ class OpenConsoleOperator(Operator):
 class CopyToClipboardOperator(Operator):
     bl_idname = "special.copy_to_clipboard"
     bl_label = "Copy to Clipboard"
+    bl_description = "Copies the Text to your Clipboard"
     bl_options = {'REGISTER', 'UNDO'}
     
     text: StringProperty()
@@ -435,9 +439,11 @@ class CopyToClipboardOperator(Operator):
         except RuntimeError:
             return {'CANCELLED'}
         return {'FINISHED'}
+
 class SetProceduralPBROperator(Operator):
     bl_idname = "ppbr.setproceduralpbr"
     bl_label = "Set Procedural PBR"
+    bl_description = "Applies Procedural PBR"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -447,6 +453,7 @@ class SetProceduralPBROperator(Operator):
 class OptimizeOperator(Operator):
     bl_idname = "optimization.optimization"
     bl_label = "Optimize"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -456,6 +463,7 @@ class OptimizeOperator(Operator):
 class SetRenderSettingsOperator(Operator):
     bl_idname = "utils.setrendersettings"
     bl_label = "Set Render Settings"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -466,6 +474,7 @@ class SetRenderSettingsOperator(Operator):
 class AssingVertexGroupOperator(Operator):
     bl_idname = "utils.assingvertexgroup"
     bl_label = "Assing Vertex Group"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -475,6 +484,7 @@ class AssingVertexGroupOperator(Operator):
 class ResetPropertiesOperator(Operator):
     bl_idname = "assets.reset_properties"
     bl_label = "Reset Properties"
+    bl_description = "Resets Propreties to their Default Values"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -504,6 +514,7 @@ class ResetPropertiesOperator(Operator):
 class SavePropertiesOperator(Operator):
     bl_idname = "assets.save_properties"
     bl_label = "Save Properties"
+    bl_description = "Overwrites the Asset's Properties Default Values"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -538,6 +549,7 @@ class SavePropertiesOperator(Operator):
 class AddAsset(Operator):
     bl_idname = "assets.add_asset"
     bl_label = "Add Asset"
+    bl_description = "Addes a MiBlend Ready Asset to the list"
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
@@ -626,7 +638,7 @@ class AddAsset(Operator):
 
 class RemoveAsset(Operator):
     bl_idname = "assets.remove_asset"
-    bl_label = ""
+    bl_label = "Removes Temporal Asset from the List"
     bl_options = {'REGISTER', 'UNDO'}
    
     def execute(self, context):
@@ -652,6 +664,7 @@ class RemoveAsset(Operator):
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
     bl_label = "Import Asset"
+    bl_description = "Appends/Executes Selected Asset to the Scene"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -673,6 +686,7 @@ class ImportAssetOperator(Operator):
 class ManualAssetsUpdateOperator(Operator):
     bl_idname = "assets.update_assets"
     bl_label = "Reload Assets List"
+    bl_description = "Reloads Assets List"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -682,6 +696,7 @@ class ManualAssetsUpdateOperator(Operator):
 class ClearIgnoredCodesOperator(Operator):
     bl_idname = "debug.clear_ignored_codes"
     bl_label = "Clear Ignored Codes"
+    bl_description = "Cleares the List of Ignored Errors and Warnings"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -691,6 +706,7 @@ class ClearIgnoredCodesOperator(Operator):
 class SavePreferencesOperator(Operator):
     bl_idname = "preferences.save_preferences"
     bl_label = "Save Preferences"
+    bl_description = "Saves Current Preferencies to settings_override.json"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -734,6 +750,7 @@ class SavePreferencesOperator(Operator):
 class ResetPreferencesOperator(Operator):
     bl_idname = "preferences.reset_preferences"
     bl_label = "Reset Preferences"
+    bl_description = "Resets MiBlend Preferencies to their Default Values"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -753,6 +770,7 @@ class ResetPreferencesOperator(Operator):
 class TriggerASErrorOperator(Operator):
     bl_idname = "debug.trigger_as_error"
     bl_label = "Trigger AS Error"
+    bl_description = "Triggers e00"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -767,6 +785,7 @@ class TriggerASErrorOperator(Operator):
 class OpenMiBlendFolder(Operator):
     bl_idname = "debug.open_miblend_folder"
     bl_label = "Open MiBlend Folder"
+    bl_description = "Opens MiBlend Folder in your File Explorer"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
