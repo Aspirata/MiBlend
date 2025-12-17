@@ -42,7 +42,7 @@ class MiBlendPreferences(AddonPreferences):
         items=[('Automatic', 'Automatic', 'Uses a Material-based method of Defining Emissive Blocks'), 
             ('Combined', 'Combined', 'Uses both Manual and Automatic Detection (recommended for Blender 4.0+)'),
             ('Manual', 'Manual', 'Uses a Pre-defined List of Emissive Blocks (legacy method, recommended for Blender 3.6)')],
-        name="emissiondetection",,
+        name="emissiondetection",
         description="Method Used to Detect Which Blocks Should Emit Light",
         default=override_setting("emissiondetection", emissiondetectionfix())
     )

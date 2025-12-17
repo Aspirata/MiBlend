@@ -28,7 +28,8 @@
 
         "03": {
             "Name": "Selected object isn't a world",
-            "Description": "You've tried to fix world that isn't a world, perhaps you should try to fix materials instead"
+            "Description": "You've tried to fix world that isn't a world, perhaps you should try to fix materials instead",
+            "Solutions": "materials.fix_materials; "
         },
 
         "04": 
