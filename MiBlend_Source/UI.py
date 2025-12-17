@@ -47,6 +47,9 @@ class WorldAndMaterialsPanel(Panel):
             row = box.row()
             row.prop(WProperties, "remove_doubles")
 
+            row = box.row()
+            row.prop(WProperties, "force_shade_flat")
+
         row = box.row()
         row.prop(WProperties, "advanced_settings", toggle=True, icon=("TRIA_DOWN" if WProperties.advanced_settings else "TRIA_RIGHT"))
 

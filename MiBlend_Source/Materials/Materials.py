@@ -128,15 +128,6 @@ def fix_world():
             continue
         elif not is_mesh(selected_object):
             continue
-
-        if Preferences.experimental_features and WProperties.remove_doubles:
-            bpy.ops.object.editmode_toggle()
-            
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.edge_split(type='VERT')
-            bpy.ops.mesh.remove_doubles()
-
-            bpy.ops.object.editmode_toggle()
         
         exporter = detect_world_exporter(selected_object)
 
@@ -145,6 +136,19 @@ def fix_world():
             continue
 
         selected_object["MiBlend ID"] = "World"
+
+        if Preferences.experimental_features:
+            if WProperties.remove_doubles:
+                bpy.ops.object.editmode_toggle()
+                
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.edge_split(type='VERT')
+                bpy.ops.mesh.remove_doubles()
+
+                bpy.ops.object.editmode_toggle()
+            
+            if WProperties.force_shade_flat:
+                bpy.ops.object.shade_flat()
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:

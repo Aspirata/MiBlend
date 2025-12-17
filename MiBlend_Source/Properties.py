@@ -21,6 +21,11 @@ class WorldProperties(PropertyGroup):
         default=False,
     )
 
+    force_shade_flat: BoolProperty(
+        name="Force Shade Flat",
+        default=True,
+    )
+
     advanced_settings: BoolProperty(
         name="Advanced Settings",
         default=False,
