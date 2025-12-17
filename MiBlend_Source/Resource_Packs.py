@@ -53,8 +53,9 @@ def find_mc() -> tuple[str, str]:
     os_env = os.getenv('APPDATA') if current_os == "Windows" else os.path.expanduser("~")
 
     for launcher, path in Launchers.get(current_os).items():
-        if path == "Unknown":
-            guessed_path = os.path.join(os_env, Launchers.get("Windows").get(launcher))
+        if path == "Unknown" and current_os != "Windows":
+            os_apps_dir = "Library/Application Support" if current_os == "Darwin" else ".local/share"
+            guessed_path = os.path.join(os_env, os_apps_dir, Launchers.get("Windows").get(launcher))
             if not os.path.exists(guessed_path):
                 continue
             path = guessed_path
