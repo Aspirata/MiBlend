@@ -74,8 +74,8 @@ def init_on_start():
         Call_AS("n00", traceback.format_exc())
 
 panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
-properties = [WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
+properties = [WorldProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, AssetTagItem, 
+            AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
 ]
 special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel, RecreateEnvironment]
 
