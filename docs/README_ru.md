@@ -1,21 +1,41 @@
-# [Readme in English](https://github.com/Aspirata/MiBlend/blob/Stable-Legacy-Addon/docs/README.md)
+# Languages: [🇷🇺 RU](README_ru.md) | [🇺🇸 *EN*](README.md)
 
-# MiBlend  
-**MiBlend** — мощный инструмент для создания контента Minecraft в **Blender**.
+# MiBlend
+
+![GitHub downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)
+
+> [!CAUTION]
+> **MiBlend** находится на стадии **бета-тестирования**. Возможны ошибки и частые изменения в ходе разработки.
+
+> [!WARNING]
+> В данный момент **MiBlend** не разрабатывается активно, и крупных обновлений **не планируется**.  
+> Подробнее — в [сообщении на Discord](https://discord.com/channels/1275706547162452039/1275861086507110453/1414263092073861220)  
+> 💬 [Присоединиться к серверу MiBlend](https://discord.gg/Kf4VsZQz22)
 
 ---
 
-## 📖 Wiki  
-Подробнее о MiBlend можно узнать на официальной [вики](https://docs.page/Aspirata/MiBlend).
+## 💡 Что такое MiBlend ?
 
-> [!WARNING] 
-> MiBlend находится в стадии **беты**, поэтому ожидайте баги и частые изменения в процессе разработки.
+**MiBlend** — это современная альтернатива Mcprep, созданная с нуля, без форка оригинального кода.  
+Проект предлагает новые, современные инструменты и более гибкий рабочий процесс для создания контента по **Minecraft** в **Blender**.
+
+
+## 🎯 Зачем нужен MiBlend ?
+
+MiBlend создан, чтобы:
+- устранить недостатки Mcprep
+- предоставить удобные инструменты для быстрого и качественного создания сцен
+
+## 📖 Документация
+
+Подробнее о MiBlend читайте на официальной [вики](https://docs.page/Aspirata/MiBlend).
 
 ---
 
-## 🎬 Видеоролик  
-**Отдельное спасибо woodplank** за видео о MiBlend.  
-Обратите внимание: видео снято по версии **v0.4.0 M2**, и уже достаточно сильно устарело.
+## 🎬 Видеообзор
+
+**Отдельное спасибо [woodplank](https://www.youtube.com/@woodplank)** за обзор MiBlend!  
+Обратите внимание: ролик снят по версии **v0.4.0 M2** и **частично устарел**.
 
 ▶️ [Смотреть на YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
 
@@ -23,33 +43,41 @@
 
 ## 🤝 Хотите помочь?
 
-Если вы хотите помочь с **риггингом**, **программированием** или чем-либо ещё:
-- Напишите мне в Discord: `aspirata`
-- Или присоединяйтесь к [официальному серверу MiBlend в Discord](https://discord.gg/Kf4VsZQz22)
+Если хотите внести вклад в развитие MiBlend — будь то **риггинг**, **скрипты**, **материалы** или **тестирование**:  
+- Напишите в Discord: `aspirata`  
+- Или присоединяйтесь к [официальному серверу MiBlend](https://discord.gg/Kf4VsZQz22)
 
 ---
 
 ## 👥 Контрибуторы
 
-### `zipi.zip` — Риги  
-🔗 [YouTube Канал](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+### `ANONIM4IK (geo nodes fanboy)`  
+Alpha Selector, помощь с обновлением списков в Data.py, общая поддержка разработки  
+🔗 [X (Twitter)](https://x.com/ANONIM4IK3327?t=BAdb71fMQMT3UQj7Y7HL7Q&s=09) | [Hipolink](https://t.co/1nE0NRJUPV)
 
-### `HeyItsAnjello` — Нода процедурных нормалей, туман  
+### `zipi.zip`  
+Риги Вардена, Крипера и Аксолотля  
+🔗 [YouTube](https://www.youtube.com/channel/UCpCCSLhVHlq0KUixgts0gjg)
+
+### `HeyItsAnjello`  
+Нода процедурных нормалей и тумана  
 🔗 [Twitter](https://twitter.com/HeyItsAnjello)
 
-### `RobotPants` — Ресурс-пак *Bare Bones*  
+### `RobotPants`  
+Ресурс-пак Bare Bones  
 🔗 [Modrinth](https://modrinth.com/resourcepack/bare-bones)
 
-### `Mwti` — Ресурс-пак *Embrace Pixels PBR*  
+### `Mwti`  
+Ресурс-пак Embrace Pixels PBR  
 🔗 [Modrinth](https://modrinth.com/resourcepack/embrace-pixels)
 
-### `Faizek` — Риг персонажа из Story Mode, риг Creaking  
-🔗 [X (Twitter)](https://x.com/fluffy_aizek)  
-🔗 [Telegram Media](https://t.me/flufyaizekmedia)  
-🔗 [VK](https://vk.com/fluffy_aizek)
+### `Faizek`  
+Риг персонажа из *Story Mode*, риг Creaking  
+🔗 [X (Twitter)](https://x.com/fluffy_aizek) | [Telegram](https://t.me/flufyaizekmedia) | [VK](https://vk.com/fluffy_aizek)
 
-### TheRatmir - TheRig
-🔗 [Сайт](https://theratmir.github.io/TheRatmir-Portfolio)
+### `TheRatmir`  
+Автор TheRig, риг Медного Голема  
+🔗 [Портфолио](https://theratmir.github.io/TheRatmir-Portfolio)
 
 ---
 

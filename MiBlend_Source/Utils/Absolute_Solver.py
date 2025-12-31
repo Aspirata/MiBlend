@@ -1,7 +1,6 @@
-from ..Data import *
-from ..MIB_API import *
+import bpy, os, time, json, traceback
+from ..Data import utils_directory
 from ..Utils.Translator import translate
-import bpy, time, json, os, traceback
 
 def Call_AS(code: str, tech_things: str = "", data: str = ""):
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences

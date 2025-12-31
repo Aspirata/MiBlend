@@ -1,23 +1,23 @@
-from .Data import *
+import bpy, os, json, shutil, platform, subprocess
 from .Materials import Materials
-from .Resource_Packs import *
+from .Resource_Packs import apply_resources, get_resource_packs, set_resource_packs, get_resource_path, update_default_pack
 from .Optimization import Optimize
 from .Utils_tools import *
 from bpy.types import Operator
+from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty
 from .Assets import *
 from .Utils.Absolute_Solver import Call_AS
-import shutil
-import platform
-import subprocess
+from .Data import main_directory
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
     bl_idname = "special.recreate_env"
+    bl_description = "Recreates the Environment with Options for Sky, Fog, and Clouds"
     bl_options = {'REGISTER', 'UNDO'}
     
     reset_settings: BoolProperty(
         name="Reset Settings",
-        description="Resets the settings",
+        description="Resets the sky settings",
         default=False
     )
 
@@ -26,6 +26,7 @@ class RecreateEnvironment(Operator):
             ('Create Sky', 'Create Sky', 'Reuses Already Imported Sky Material'), 
             ('Recreate Sky', 'Recreate Sky', 'Reappends Sky Material')],
         name="create_sky",
+        description="Options for reusing imported sky assets or reimporting them",
         default='None'
     )
 
@@ -34,6 +35,7 @@ class RecreateEnvironment(Operator):
             ('Create Fog', 'Create Fog', 'l'), 
             ('Recreate Fog', 'Recreate Fog', '')],
         name="create_fog",
+        description="Options for reusing imported fog assets or reimporting them",
         default='None'
     )
     
@@ -42,13 +44,12 @@ class RecreateEnvironment(Operator):
             ('Create Clouds', 'Create Clouds', ''), 
             ('Recreate Clouds', 'Recreate Clouds', '')],
         name="create_clouds",
+        description="Options for reusing imported cloud assets or reimporting them",
         default='None'
     )
 
     def execute(self, context):
-
         Materials.recreate_env(self)
-
         return {'FINISHED'}
         
     def invoke(self, context, event):
@@ -77,6 +78,7 @@ class RecreateEnvironment(Operator):
 class RemoveAttributeOperator(Operator):
     bl_idname = "special.remove_attribute"
     bl_label = "Remove Attribute"
+    bl_description = "Removes a Specified Attribute from the Scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     attribute: bpy.props.StringProperty()
@@ -108,6 +110,7 @@ class RemoveAttributeOperator(Operator):
 class FixWorldOperator(Operator):
     bl_idname = "world.fix_world"
     bl_label = "Fix World"
+    bl_description = "Fixes the World's Problems After Import"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -117,6 +120,7 @@ class FixWorldOperator(Operator):
 class ResourcePackToggleOperator(Operator):
     bl_idname = "resource_pack.toggle"
     bl_label = "Toggle Resource Pack"
+    bl_description = "Toggles the Enabled State of a Resource Pack"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -133,6 +137,7 @@ class ResourcePackToggleOperator(Operator):
 class MoveResourcePackUp(Operator):
     bl_idname = "resource_pack.move_up"
     bl_label = "Move Resource Pack Up"
+    bl_description = "Moves the Selected Resource Rack Up in the Priority List"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -150,6 +155,7 @@ class MoveResourcePackUp(Operator):
 class MoveResourcePackDown(Operator):
     bl_idname = "resource_pack.move_down"
     bl_label = "Move Resource Pack Down"
+    bl_description = "Moves the Selected Resource Pack Down in the Priority List"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
@@ -167,20 +173,54 @@ class MoveResourcePackDown(Operator):
 class RemoveResourcePack(Operator):
     bl_idname = "resource_pack.remove"
     bl_label = "Remove Resource Pack"
+    bl_description = "Removes a Resource Pack from the List"
     bl_options = {'REGISTER', 'UNDO'}
 
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
         resource_packs = get_resource_packs()
-        if self.pack_name in resource_packs:
+        is_default = resource_packs.get(self.pack_name, {}).get("is_default", False)
+        if self.pack_name not in resource_packs:
+            return {'CANCELLED'}
+
+        if is_default:
+            pack_path = resource_packs.get(self.pack_name, {}).get("path", "")
+            try:
+                if os.path.isdir(pack_path):
+                    shutil.rmtree(pack_path)
+                else:
+                    os.remove(pack_path)
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to delete pack: {e}")
+                return {'CANCELLED'}
+            
+            resource_packs_directory = get_resource_path()
+            packs_info_path = os.path.join(resource_packs_directory, "packs_info.json")
+            
+            try:
+                with open(packs_info_path, "r+", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if self.pack_name in data:
+                        del data[self.pack_name]
+                        f.seek(0)
+                        json.dump(data, f, indent=4)
+                        f.truncate()
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to update packs_info.json: {e}")
+                return {'CANCELLED'}
+        
+        else:
             del resource_packs[self.pack_name]
-            set_resource_packs(resource_packs)
+            
+        set_resource_packs(resource_packs)
+            
         return {'FINISHED'}
 
 class UpdateDefaultPack(Operator):
     bl_idname = "resource_pack.update_default_pack"
-    bl_label = "Reload Default Packs"
+    bl_label = "Reload Packs List"
+    bl_description = "Reloads the Resource Packs List"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -190,6 +230,7 @@ class UpdateDefaultPack(Operator):
 class AddResourcePack(Operator):
     bl_idname = "resource_pack.add"
     bl_label = "Add Resource Pack"
+    bl_description = "Adds a New Resource Pack to the List"
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
@@ -313,6 +354,7 @@ class AddResourcePack(Operator):
 class ApplyResourcePack(Operator):
     bl_idname = "resource_pack.apply"
     bl_label = "Apply Resource Packs"
+    bl_description = "Applies Enabled Resource Packs in a Specified Order"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -322,6 +364,7 @@ class ApplyResourcePack(Operator):
 class CreateEnvOperator(Operator):
     bl_idname = "env.create_env"
     bl_label = "Create Environment"
+    bl_description = "Creates a New Environment"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -331,6 +374,7 @@ class CreateEnvOperator(Operator):
 class UpgradeMaterialsOperator(Operator):
     bl_idname = "materials.replace_materials"
     bl_label = "Upgrade Materials"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -340,6 +384,7 @@ class UpgradeMaterialsOperator(Operator):
 class FixMaterialsOperator(Operator):
     bl_idname = "materials.fix_materials"
     bl_label = "Fix Materials"
+    bl_description = "Fixes Materials with Maximum Compatibility"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -349,6 +394,7 @@ class FixMaterialsOperator(Operator):
 class SwapTexturesOperator(Operator):
     bl_idname = "materials.swap_textures"
     bl_label = "Swap Textures"
+    bl_description = "Swapes Textures with Maximum Compatibility"
     bl_options = {'REGISTER', 'UNDO'}
     
     filepath: StringProperty(subtype="DIR_PATH")
@@ -369,6 +415,7 @@ class SwapTexturesOperator(Operator):
 class OpenConsoleOperator(Operator):
     bl_idname = "special.open_console"
     bl_label = "Open Console"
+    bl_description = "Toggles Blender System Console"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -381,6 +428,7 @@ class OpenConsoleOperator(Operator):
 class CopyToClipboardOperator(Operator):
     bl_idname = "special.copy_to_clipboard"
     bl_label = "Copy to Clipboard"
+    bl_description = "Copies the Text to your Clipboard"
     bl_options = {'REGISTER', 'UNDO'}
     
     text: StringProperty()
@@ -391,9 +439,11 @@ class CopyToClipboardOperator(Operator):
         except RuntimeError:
             return {'CANCELLED'}
         return {'FINISHED'}
+
 class SetProceduralPBROperator(Operator):
     bl_idname = "ppbr.setproceduralpbr"
     bl_label = "Set Procedural PBR"
+    bl_description = "Applies Procedural PBR"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -403,6 +453,7 @@ class SetProceduralPBROperator(Operator):
 class OptimizeOperator(Operator):
     bl_idname = "optimization.optimization"
     bl_label = "Optimize"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -412,6 +463,7 @@ class OptimizeOperator(Operator):
 class SetRenderSettingsOperator(Operator):
     bl_idname = "utils.setrendersettings"
     bl_label = "Set Render Settings"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -422,6 +474,7 @@ class SetRenderSettingsOperator(Operator):
 class AssingVertexGroupOperator(Operator):
     bl_idname = "utils.assingvertexgroup"
     bl_label = "Assing Vertex Group"
+    bl_description = "Deprecated Feature"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -431,6 +484,7 @@ class AssingVertexGroupOperator(Operator):
 class ResetPropertiesOperator(Operator):
     bl_idname = "assets.reset_properties"
     bl_label = "Reset Properties"
+    bl_description = "Resets Propreties to their Default Values"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -460,6 +514,7 @@ class ResetPropertiesOperator(Operator):
 class SavePropertiesOperator(Operator):
     bl_idname = "assets.save_properties"
     bl_label = "Save Properties"
+    bl_description = "Overwrites the Asset's Properties Default Values"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -490,98 +545,88 @@ class SavePropertiesOperator(Operator):
             else:
                 Call_AS("n00", error)
             return {'CANCELLED'}
-    
-class RemoveAsset(Operator):
-    bl_idname = "assets.remove_asset"
-    bl_label = "Add Asset"
-    bl_options = {'REGISTER', 'UNDO'}
-    
-    def execute(self, context):
-        try:
-            NotImplemented
-            return {'FINISHED'}
-        
-        except Exception as error:
-            if not os.path.isfile(json_file_path):
-                Call_AS("e03", error, json_file_path)
-            else:
-                Call_AS("n00", error)
-            return {'CANCELLED'}
 
 class AddAsset(Operator):
     bl_idname = "assets.add_asset"
     bl_label = "Add Asset"
+    bl_description = "Addes a MiBlend Ready Asset to the list"
     bl_options = {'REGISTER', 'UNDO'}
     
-    filepath: bpy.props.StringProperty(subtype="DIR_PATH")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(
+        default="*.zip;*.json",
+        options={'HIDDEN'},
+    )
+    
+    filter_folder: bpy.props.BoolProperty(default=True, options={'HIDDEN'})
+    filter_text: bpy.props.BoolProperty(default=True, options={'HIDDEN'})
 
     def execute(self, context):
         path = self.filepath
         json_file_path = None
-        asset_type = 'Presistent'
+        is_asset_persistent = True
 
         if path.endswith('.json'):
-            asset_type = 'Scene Only'
+            is_asset_persistent = False
             json_file_path = path
+            
         elif path.endswith('.zip'):
             extract_path = os.path.join(bpy.app.tempdir, "extracted_asset")
 
             if os.path.exists(extract_path):
                 shutil.rmtree(extract_path)
             os.makedirs(extract_path, exist_ok=True)
-
-            if path.endswith('.zip'):
-                with zipfile.ZipFile(path, 'r') as zip_ref:
-                    zip_ref.extractall(extract_path)
-                dprint(f"ZIP file extracted to {extract_path}", is_deep=True, zone="uas")
-            else:
-                dprint("The provided path is neither a directory nor a ZIP file.", is_deep=True, zone="uas")
-                return {'CANCELLED'}
-        else:
-            dprint(f"Unknown File {os.path.basename(path)}", is_deep=True, zone="uas")
             
-        if asset_type == "Presistent":
+            with zipfile.ZipFile(path, 'r') as zip_ref:
+                zip_ref.extractall(extract_path)
+                
+            dprint(f"ZIP file extracted to {extract_path}", is_deep=True, zone="uas")
+            
             for root, dirs, files in os.walk(extract_path):
                 for file in files:
                     if file.endswith('.json'):
                         json_file_path = os.path.join(root, file)
                         break
-                if json_file_path:
-                    break
-
-        if os.path.isfile(json_file_path):
-            with open(json_file_path, 'r') as f:
-                asset_data = json.load(f)
-
-            file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
-            
-            if asset_type == 'Scene Only':
-                temp_assets_path = bpy.context.scene.get("mib_options").get("temp_assets_paths")
-    
-                temp_assets_path_list = list(temp_assets_path)
-                temp_assets_path_list.append(os.path.dirname(json_file_path))
-                
-                bpy.context.scene["mib_options"]["temp_assets_paths"] = temp_assets_path_list
-                dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
-
-            elif file_path_in_json:
-                destination_path = os.path.join(assets_directory, file_path_in_json)
-                os.makedirs(destination_path, exist_ok=True)
-
-                for item in os.listdir(extract_path):
-                    src_path = os.path.join(extract_path, item)
-                    dst_path = os.path.join(destination_path, item)
-
-                    if os.path.isdir(src_path):
-                        shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
-                    else:
-                        shutil.copy2(src_path, dst_path)
-
-                dprint(f"Persistent asset files successfully copied to {destination_path}")
-            else:
-                dprint("File_path not specified in the JSON file")
         else:
+            dprint("The provided path is neither a .json nor a .zip file.", is_deep=True, zone="uas")
+            return {'CANCELLED'}
+
+        if not os.path.isfile(json_file_path):
             dprint("No .json file found in the extracted content")
+            return {'CANCELLED'}
+            
+        with open(json_file_path, 'r') as f:
+            asset_data = json.load(f)
+
+        file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
+        
+        if not file_path_in_json:
+            dprint("File_path not specified in the JSON file")
+            return {'CANCELLED'}
+
+        if is_asset_persistent:
+            destination_path = os.path.join(assets_directory, file_path_in_json)
+            os.makedirs(destination_path, exist_ok=True)
+
+            for item in os.listdir(extract_path):
+                src_path = os.path.join(extract_path, item)
+                dst_path = os.path.join(destination_path, item)
+
+                if os.path.isdir(src_path):
+                    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(src_path, dst_path)
+
+            dprint(f"Persistent asset files successfully copied to {destination_path}")
+
+        else:
+            temp_assets_path = bpy.context.scene.get("mib_options").get("temp_assets_paths")
+
+            temp_assets_path_list = list(temp_assets_path)
+            temp_assets_path_list.append(os.path.dirname(json_file_path))
+            
+            bpy.context.scene["mib_options"]["temp_assets_paths"] = temp_assets_path_list
+            dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
 
         update_assets()
         
@@ -591,115 +636,35 @@ class AddAsset(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class CreateAsset(Operator):
-    bl_idname = "assets.create_asset"
-    bl_label = "Create Asset"
+class RemoveAsset(Operator):
+    bl_idname = "assets.remove_asset"
+    bl_label = "Removes Temporal Asset from the List"
     bl_options = {'REGISTER', 'UNDO'}
-
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
-    asset_name: bpy.props.StringProperty(name="Asset Name", default="NewAsset")
-
-    asset_type: bpy.props.EnumProperty(
-        name="Asset Type",
-        items=[
-            ('COLLECTION', "Collection", "Export a collection"),
-            ('NODE_GROUP', "Node Group", "Export a node group"),
-            ('MATERIAL', "Material", "Export a material")
-        ],
-        default='COLLECTION',
-        update=lambda self, ctx: self.update_asset_list(ctx)
-    )
-
-    # Заглушка для EnumProperty
-    asset_choice: bpy.props.EnumProperty(name="Asset Choice", items=lambda self, ctx: [("NONE", "None Available", "No assets found")])
-
-    def update_asset_list(self, context):
-        """Обновляет список доступных коллекций, нодов или материалов"""
-        if self.asset_type == 'COLLECTION':
-            items = [(coll.name, coll.name, "") for coll in bpy.data.collections]
-        elif self.asset_type == 'NODE_GROUP':
-            items = [(ng.name, ng.name, "") for ng in bpy.data.node_groups]
-        elif self.asset_type == 'MATERIAL':
-            items = [(mat.name, mat.name, "") for mat in bpy.data.materials]
-        else:
-            items = []
-
-        if not items:
-            items = [("NONE", "None Available", "No assets found")]
-
-        # Пересоздаём EnumProperty
-        def items_callback(self, context):
-            return items
-
-        if "asset_choice" in self.__annotations__:
-            del self.__annotations__["asset_choice"]  # Удаляем аннотацию
-
-        self.__annotations__["asset_choice"] = bpy.props.EnumProperty(
-            name="Asset Choice",
-            description="Choose an asset",
-            items=items_callback
-        )
-
-        # Присваиваем первый доступный элемент
-        self.asset_choice = items[0][0]
-
+   
     def execute(self, context):
-        if not self.filepath.endswith(".blend"):
-            self.report({'ERROR'}, "Please select a .blend file")
+        asset_props = context.scene.miblend_properties.assets_properties
+        asset_items = asset_props.asset_items
+        current_asset_index = asset_props.asset_index
+        
+        if current_asset_index < 0 or current_asset_index >= len(asset_items):
             return {'CANCELLED'}
-
-        if self.asset_choice == "NONE":
-            self.report({'ERROR'}, f"No {self.asset_type.lower()} found to export.")
-            return {'CANCELLED'}
-
-        # Директория хранения ассетов
-        assets_root = bpy.context.preferences.addons[__name__].preferences.assets_path  # Указать путь
-        asset_folder = os.path.join(assets_root, "Rigs", self.asset_name)
-
-        if os.path.exists(asset_folder):
-            shutil.rmtree(asset_folder)
-        os.makedirs(asset_folder, exist_ok=True)
-
-        # Копирование .blend файла
-        blend_dst_path = os.path.join(asset_folder, f"{self.asset_name}.blend")
-        shutil.copy2(self.filepath, blend_dst_path)
-
-        # Создание JSON файла
-        json_data = {
-            "Format_version": "10",
-            "Asset_name": self.asset_name,
-            "Author": "Aspirata",
-            "File_path": f"Rigs\\{self.asset_name}\\{self.asset_name}",
-            "Collection_name": self.asset_choice if self.asset_type == "COLLECTION" else "",
-            "Node_group": self.asset_choice if self.asset_type == "NODE_GROUP" else "",
-            "Material": self.asset_choice if self.asset_type == "MATERIAL" else "",
-            "Tags": ["Rig", "Simple"] if self.asset_type == "COLLECTION" else ["NodeGroup"] if self.asset_type == "NODE_GROUP" else ["Material"]
-        }
-
-        json_path = os.path.join(asset_folder, f"{self.asset_name}.json")
-        with open(json_path, 'w') as json_file:
-            json.dump(json_data, json_file, indent=4)
-
-        self.report({'INFO'}, f"Asset '{self.asset_name}' created successfully")
+        
+        asset_dir = os.path.dirname(asset_items[current_asset_index]["File_path"])
+        temp_assets_paths = context.scene["mib_options"]["temp_assets_paths"]
+        temp_assets_paths_list = list(temp_assets_paths)
+        
+        if asset_dir in temp_assets_paths:
+            temp_assets_paths_list.remove(asset_dir)
+            
+        context.scene["mib_options"]["temp_assets_paths"] = temp_assets_paths_list
+        
+        update_assets()
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.update_asset_list(context)
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "asset_name")
-        layout.prop(self, "asset_type")
-        layout.prop(self, "asset_choice")
-
-    def check(self, context):
-        return True
 
 class ImportAssetOperator(Operator):
     bl_idname = "assets.import_asset"
     bl_label = "Import Asset"
+    bl_description = "Appends/Executes Selected Asset to the Scene"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -721,6 +686,7 @@ class ImportAssetOperator(Operator):
 class ManualAssetsUpdateOperator(Operator):
     bl_idname = "assets.update_assets"
     bl_label = "Reload Assets List"
+    bl_description = "Reloads Assets List"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -730,6 +696,7 @@ class ManualAssetsUpdateOperator(Operator):
 class ClearIgnoredCodesOperator(Operator):
     bl_idname = "debug.clear_ignored_codes"
     bl_label = "Clear Ignored Codes"
+    bl_description = "Cleares the List of Ignored Errors and Warnings"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -739,6 +706,7 @@ class ClearIgnoredCodesOperator(Operator):
 class SavePreferencesOperator(Operator):
     bl_idname = "preferences.save_preferences"
     bl_label = "Save Preferences"
+    bl_description = "Saves Current Preferencies to settings_override.json"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -782,6 +750,7 @@ class SavePreferencesOperator(Operator):
 class ResetPreferencesOperator(Operator):
     bl_idname = "preferences.reset_preferences"
     bl_label = "Reset Preferences"
+    bl_description = "Resets MiBlend Preferencies to their Default Values"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -801,6 +770,7 @@ class ResetPreferencesOperator(Operator):
 class TriggerASErrorOperator(Operator):
     bl_idname = "debug.trigger_as_error"
     bl_label = "Trigger AS Error"
+    bl_description = "Triggers e00"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -815,6 +785,7 @@ class TriggerASErrorOperator(Operator):
 class OpenMiBlendFolder(Operator):
     bl_idname = "debug.open_miblend_folder"
     bl_label = "Open MiBlend Folder"
+    bl_description = "Opens MiBlend Folder in your File Explorer"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

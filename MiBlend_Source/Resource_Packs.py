@@ -1,12 +1,12 @@
 from .MIB_API import *
-from .Data import *
 from .Utils.Absolute_Solver import Call_AS
-import shutil, sys, re, http.client
+import bpy, os, json, zipfile, shutil, re, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
+import platform
 
-def get_resource_packs() -> list:
+def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
         return bpy.context.scene["resource_packs"]
     except Exception as error:
@@ -21,7 +21,7 @@ def set_resource_packs(resource_packs):
         print(f"{pack}, {pack_info['path']}, {pack_info['type']}")
 
 Launchers = {
-    "Windows":{
+    "Windows": {
         "Mojang": ".minecraft\\versions",
         "Prism Launcher": "PrismLauncher\\libraries\\com\\mojang\\minecraft",
         "New_Modrinth": "ModrinthApp\\meta\\versions",
@@ -31,30 +31,43 @@ Launchers = {
 
     "Linux": {
         "Mojang": "Unknown",
-        "Prism Launcher": "Unknown",
+        "Prism Launcher": ".local/share/PrismLauncher/libraries/com/mojang/minecraft",
         "New_Modrinth": ".local/share/ModrinthApp/meta/versions",
+        "Old_Modrinth": "Unknown",
+        "TL Legacy": "Unknown",
+    },
+
+    "Darwin": {
+        "Mojang": "Library/Application Support/minecraft/versions",
+        "Prism Launcher": "Unknown",
+        "New_Modrinth": "Library/Application Support/ModrinthApp/meta/versions",
         "Old_Modrinth": "Unknown",
         "TL Legacy": "Unknown",
     }
 }
-            
+
 def find_mc() -> tuple[str, str]:
     versions = {}
     Preferences = bpy.context.preferences.addons[__package__].preferences
-    current_os = "Linux" if sys.platform.startswith('linux') else "Windows"
-    os_env = os.getenv("HOME") if sys.platform.startswith('linux') else os.getenv('APPDATA')
+    current_os = platform.system()
+    os_env = os.getenv('APPDATA') if current_os == "Windows" else os.path.expanduser("~")
 
     for launcher, path in Launchers.get(current_os).items():
-        if path == "Unknown":
-            continue
+        if path == "Unknown" and current_os != "Windows":
+            os_apps_dir = "Library/Application Support" if current_os == "Darwin" else ".local/share"
+            guessed_path = os.path.join(os_env, os_apps_dir, Launchers.get("Windows").get(launcher))
+            if not os.path.exists(guessed_path):
+                continue
+            path = guessed_path
 
         folders = Preferences.mc_instances_path if Preferences.mc_instances_path else os.path.join(os_env, path)
         if not os.path.isdir(folders):
             continue
 
         for folder in os.listdir(folders):
-            instance_path = None
-            if (version := mc_version_formatter(folder)) and os.path.isfile(instance_path := os.path.join(folders, folder, f"{folder}.jar")):
+            instance_path = os.path.join(folders, folder, f"{folder}.jar")
+            version = mc_version_formatter(folder)
+            if version and os.path.isfile(instance_path):
                 versions[version] = (folder, os.path.join(os_env, path))
                 dprint(f"{instance_path} valid", is_deep=True, zone="rp")
             else:
@@ -65,7 +78,7 @@ def find_mc() -> tuple[str, str]:
         latest_file, latest_path = versions[latest_version]
         return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
     
-    return None, None
+    return "", ""
 
 def update_pack(pack: str, connection=None):
     resource_packs_directory = get_resource_path()
@@ -129,12 +142,10 @@ def update_pack(pack: str, connection=None):
             
             with open(os.path.join(resource_packs_directory, "packs_info.json"), "r+") as f:
                 data = json.load(f)
-                data[pack] = {
+                data[pack].update({
                     "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
-                    "pack_version": latest_pack_info[1],
-                    "type": type_,
-                    "link": link
-                }
+                    "pack_version": latest_pack_info[1]
+                })
                 f.seek(0)
                 json.dump(data, f, indent=4)
                 f.truncate()
@@ -167,7 +178,7 @@ def update_default_pack():
     if version is not None and path is not None:
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
-        resource_packs[default_pack] = {"path": path, "type": "Texture", "enabled": True, "is_default": True}
+        resource_packs[default_pack] = {"path": path, "type": "Texture", "enabled": True, "is_default": True, "is_built_in": True}
         dprint(resource_packs[default_pack]["path"])
     else:
         print("MC instance not found")
@@ -188,7 +199,8 @@ def update_default_pack():
                     "path": os.path.join(resource_packs_directory, pack),
                     "type": data[pack]["type"],
                     "enabled": True,
-                    "is_default": False
+                    "is_default": False,
+                    "is_built-in": False
                 }
             
             if Preferences.update_packs:
@@ -197,11 +209,13 @@ def update_default_pack():
             default_pack = pack
             default_path = os.path.join(resource_packs_directory, default_pack)
             default_type = get_pack_info_properties(default_pack).get("type", "Texture & PBR")
+            is_built_in = get_pack_info_properties(default_pack).get("is_built_in", False)
             resource_packs[default_pack] = {
                 "path": default_path,
                 "type": default_type,
                 "enabled": False,
-                "is_default": True
+                "is_default": True,
+                "is_built_in": is_built_in
             }
         
         if Preferences.update_packs:
@@ -215,7 +229,7 @@ def apply_resources():
     resource_packs = get_resource_packs()
     r_props = bpy.context.scene.miblend_properties.resource_properties
 
-    def fast_find_image(textures_paths: list, texture_name: str) -> Optional[str]:
+    def fast_find_image(textures_paths: list, texture_name: str) -> str | None:
         for texture_path in filter(None, textures_paths):
             dir_path = os.path.dirname(texture_path)
             predicted_texture = os.path.join(dir_path, texture_name)
@@ -223,7 +237,7 @@ def apply_resources():
                 return predicted_texture
         return None
     
-    def find_image(image_name: str, root_folder: str, obj_type: str = "unknown", entity_name: str = "") -> Optional[str]:
+    def find_image(image_name: str, root_folder: str, obj_type: str = "unknown", entity_name: str = "") -> str | None:
 
         if r_props.combine_duplicates:
             image_name = format_duplicate_name(image_name)
@@ -280,7 +294,7 @@ def apply_resources():
                             Call_AS("n00", traceback.format_exc())
         return None
     
-    def zip_unpacker(root_folder: str, image_name: str, obj_type: str = "Unknown", file=None, entity_name: str = "") -> Optional[str]:
+    def zip_unpacker(root_folder: str, image_name: str, obj_type: str = "Unknown", file=None, entity_name: str = "") -> str | None:
         resource_packs_directory = get_resource_path()
         extract_path = os.path.join(resource_packs_directory, os.path.splitext(file if file is not None else os.path.basename(root_folder))[0])
         with zipfile.ZipFile(root_folder, 'r') as zip_ref:
@@ -385,31 +399,32 @@ def apply_resources():
         Users = find_texture_users(image_texture)
 
         new_image_texture = os.path.basename(new_image_path)
-        if texture_node is not None:
+        if texture_node:
             if not texture_node.image:
                 if image_texture in bpy.data.images:
                     texture_node.image = bpy.data.images[new_image_texture]
                 else:
                     texture_node.image = bpy.data.images.load(new_image_path)
 
-        if Users:
+        if not Users:
+            return
+        
+        if new_image_texture in bpy.data.images:
+            user_texture = bpy.data.images[new_image_texture]
+        else:
+            bpy.data.images.load(new_image_path)
+            user_texture = bpy.data.images[new_image_texture]
 
-            if new_image_texture in bpy.data.images:
-                user_texture = bpy.data.images[new_image_texture]
-            else:
-                bpy.data.images.load(new_image_path)
-                user_texture = bpy.data.images[new_image_texture]
-
-            if colorspace is not None:
-                for user in Users:
-                    user.image = user_texture
-                    try:
-                        user.image.colorspace_settings.name = colorspace
-                    except:
-                        pass
-            else:
-                for user in Users:
-                    user.image = user_texture
+        if colorspace is not None:
+            for user in Users:
+                user.image = user_texture
+                try:
+                    user.image.colorspace_settings.name = colorspace
+                except:
+                    pass
+        else:
+            for user in Users:
+                user.image = user_texture
 
     def animate_texture(texture_node, new_image_texture_path, ITexture_Animator, Current_node_tree, image_path=None, object: object=None):
         Texture_Animator = None
@@ -549,7 +564,7 @@ def apply_resources():
                 Texture_Animator.inputs["Interpolate"].default_value = False
                 Texture_Animator.inputs["Randomize Speed"].default_value = r_props.randomize_speed
         else:
-            if ITexture_Animator is not None:
+            if ITexture_Animator:
                 texture_node = material.node_tree.nodes.new(type='ShaderNodeTexImage')
                 texture_node.location = ITexture_Animator.location
                 texture_node.image = image_texture

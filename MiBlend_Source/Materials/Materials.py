@@ -1,6 +1,6 @@
+import bpy, os, zipfile, traceback
 from ..MIB_API import *
 from ..Data import *
-from ..Resource_Packs import *
 from ..Utils.Absolute_Solver import Call_AS
 
 @ Perf_Time
@@ -128,15 +128,6 @@ def fix_world():
             continue
         elif not is_mesh(selected_object):
             continue
-
-        if Preferences.experimental_features and WProperties.remove_doubles:
-            bpy.ops.object.editmode_toggle()
-            
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.edge_split(type='VERT')
-            bpy.ops.mesh.remove_doubles()
-
-            bpy.ops.object.editmode_toggle()
         
         exporter = detect_world_exporter(selected_object)
 
@@ -145,6 +136,19 @@ def fix_world():
             continue
 
         selected_object["MiBlend ID"] = "World"
+
+        if Preferences.experimental_features:
+            if WProperties.remove_doubles:
+                bpy.ops.object.editmode_toggle()
+                
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.edge_split(type='VERT')
+                bpy.ops.mesh.remove_doubles()
+
+                bpy.ops.object.editmode_toggle()
+            
+            if WProperties.force_shade_flat:
+                bpy.ops.object.shade_flat()
 
         for slot, material in enumerate(selected_object.data.materials):
             if material is None or not material.use_nodes:
@@ -162,7 +166,7 @@ def fix_world():
 
             material.blend_method = 'HASHED'
             
-            if bpy.app.version < (4, 3, 0):
+            if blender_version("< 4.3.0"):
                 material.shadow_method = 'HASHED'
 
             # Delete Useless Textres
@@ -307,8 +311,8 @@ def fix_world():
             elif auvf_node:
                 material.node_tree.nodes.remove(auvf_node)
             
-            # Implement is_world() check
-            #selected_object["MiBlend ID"] = "World"
+            # Implement is_world() check | 05.10.25 Why tho ?
+            # selected_object["MiBlend ID"] = "World"
 
 @Perf_Time
 def recreate_env(self):
@@ -323,7 +327,7 @@ def recreate_env(self):
 
         for node in world_material.nodes:
             if node.type == 'GROUP' and "MiBlend Sky" in node.node_tree.name:
-                if bpy.app.version >= (4, 0, 0):
+                if blender_version(">= 4.0.0"):
                     for socket in node.inputs:
                         try:
                             for i, vector_value in enumerate(socket.default_value, 1):
@@ -412,10 +416,7 @@ def recreate_env(self):
 def create_env(mode=None):
 
     def clouds_file_comp():
-        if bpy.app.version >= (4, 0, 0):
-            return "4.0"
-        else:
-            return "3.6"
+        return "4.0" if blender_version(">= 4.0.0") else "3.6"
     
     scene = bpy.context.scene
     MIB_env_collection = bpy.data.collections.get("MiBlend Environment", None)
@@ -676,10 +677,10 @@ def setproceduralpbr():
                         material.node_tree.links.new(bump_node.outputs['Normal'], PBSDF.inputs['Normal'])
 
                     bump_node.inputs[0].default_value = PProperties.bump_strength
-                    if bpy.app.version >= (4, 4, 1):
+                    if blender_version(">= 4.4.1"):
                         bump_node.inputs["Filter Width"].default_value = 1.0
                     
-                    if bpy.app.version >= (4, 5, 0):
+                    if blender_version(">= 4.5.0"):
                         bump_node.inputs["Distance"].default_value = 1.0
 
                 elif image_texture_node and image:
@@ -735,10 +736,10 @@ def setproceduralpbr():
                         material.node_tree.links.new(vector_connection, PNormals.inputs['Vector'])
 
             elif PProperties.revert_normals:   
-                if bump_node is not None:
+                if bump_node:
                     material.node_tree.nodes.remove(bump_node)
                 
-                if PNormals is not None:
+                if PNormals:
                     material.node_tree.nodes.remove(PNormals)
 
             # Change PBSDF Settings                                
@@ -755,7 +756,7 @@ def setproceduralpbr():
                 else:
                     RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
 
-                if bpy.app.version >= (4, 0, 0):
+                if blender_version(">= 4.0.0"):
                     PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
                     PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
                 else:

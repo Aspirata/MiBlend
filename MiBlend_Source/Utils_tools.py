@@ -1,4 +1,5 @@
-from .MIB_API import *
+import bpy
+from .Data import Render_Settings
 
 def VertexRiggingTool(vertex_group_name=None):
     selected_objects = bpy.context.selected_objects

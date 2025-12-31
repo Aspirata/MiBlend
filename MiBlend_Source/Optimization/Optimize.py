@@ -1,5 +1,4 @@
-from ..Data import *
-from ..MIB_API import *
+import bpy, os
 
 def Camera_Culling(obj, OProperties, geonodes_modifier):
 

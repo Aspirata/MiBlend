@@ -1,5 +1,4 @@
 import bpy
-from ..MIB_API import * 
 from ..Resource_Packs import update_default_pack
 from ..Assets import update_assets
 from bpy.types import Operator

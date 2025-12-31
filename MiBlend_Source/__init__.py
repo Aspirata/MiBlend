@@ -1,6 +1,7 @@
-from .Data import *
+import bpy, os
 from .Preferences import MiBlendPreferences
-from .MIB_API import *
+from .MIB_API import dprint
+from .Data import materials_folder
 from .Assets import update_assets
 from .Utils.Absolute_Solver import *
 from .Resource_Packs import update_default_pack
@@ -13,7 +14,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
-    "version": (0, 7, 0),
+    "version": (0, 7, 1),
     "blender": (3, 6, 0),
     "doc_url": "https://docs.page/Aspirata/MiBlend",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
@@ -25,7 +26,7 @@ def init_on_start():
     try:
         if not bpy.context.scene.get("resource_packs", None):
             bpy.context.scene["resource_packs"] = {}
-            update_default_pack()
+        update_default_pack()
 
         if not bpy.context.scene.get("mib_options", None):
             bpy.context.scene["mib_options"] = {}
@@ -73,15 +74,15 @@ def init_on_start():
         Call_AS("n00", traceback.format_exc())
 
 panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
-properties = [WorldProperties, MaterialsProperties, ResourcePackProperties, CreateEnvProperties,
-    PPBRProperties, AssetTagItem, AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
+properties = [WorldProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, AssetTagItem, 
+            AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
 ]
 special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel, RecreateEnvironment]
 
 operators = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
-    MoveResourcePackUp, MoveResourcePackDown,RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
-    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, CreateAsset, ImportAssetOperator, SavePropertiesOperator,
+    MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
+    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator, SavePropertiesOperator,
     ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, SavePreferencesOperator, ResetPreferencesOperator
 ]
 
@@ -90,56 +91,30 @@ deprecated_classes = [OptimizationPanel, OptimizeOperator, UtilsPanel, SetRender
 
 classes = properties + special_classes + operators + panels + debug_classes + deprecated_classes
 
+cls_register, cls_unregister = bpy.utils.register_classes_factory(classes)
+
 @persistent
 def on_scene_load(dummy):
     bpy.app.timers.register(init_on_start, first_interval=0.1)
 
 def register():
+    cls_register()
+    
+    bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
+    
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
-   
-    # Safe registration of the classes
-    for cls in classes:
-        try:
-            # Attempt to unregister if class already exists
-            if hasattr(bpy.types, cls.__name__):
-                try:
-                    bpy.utils.unregister_class(cls)
-                except (ValueError, RuntimeError):
-                    # Class might be registered by another addon
-                    pass
-           
-            # Register class
-            bpy.utils.register_class(cls)
-           
-        except ValueError as e:
-            dprint(f"Error registering class {cls.__name__}: {e}")
-            # Logic for handling specific errors can be added here
-            continue
-
-    # Scene properties registration
-    try:
-        bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
-    except Exception as e:
-        dprint(f"Error registering scene properties: {e}")
-    
+        
     bpy.app.timers.register(init_on_start, first_interval=0.4)
 
 def unregister():
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
-       
-    # Remove scene properties
+
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
-   
-    for cls in reversed(classes):
-        try:
-            if hasattr(bpy.types, cls.__name__):
-                bpy.utils.unregister_class(cls)
-        except (ValueError, RuntimeError) as e:
-            dprint(f"Error unregistering class {cls.__name__}: {e}")
-            continue
+
+    cls_unregister()
 
 if __name__ == "__main__":
     register()

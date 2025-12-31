@@ -1,9 +1,4 @@
-import bpy
 import os
-import json
-import zipfile
-import traceback
-from bpy.props import (IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty, PointerProperty)
 
 main_directory = os.path.dirname(os.path.realpath(__file__))
 materials_folder = os.path.join(main_directory, "Materials")
@@ -15,8 +10,6 @@ utils_directory = os.path.join(main_directory, "Utils")
 clouds_node_tree_name = "Clouds Generator 2"
 fog_node_tree_name = "Fog"
 world_material_name = "MiBlend World"
-
-Big_Button_Scale = 1.4
 
 Render_Settings = {
     
