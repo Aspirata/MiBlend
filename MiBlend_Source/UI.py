@@ -47,17 +47,17 @@ class WorldAndMaterialsPanel(Panel):
             row = box.row()
             row.prop(WProperties, "remove_doubles")
 
-            row = box.row()
-            row.prop(WProperties, "force_shade_flat")
-
         row = box.row()
         row.prop(WProperties, "advanced_settings", toggle=True, icon=("TRIA_DOWN" if WProperties.advanced_settings else "TRIA_RIGHT"))
 
         if WProperties.advanced_settings:
-
             sbox = box.box()
+
             row = sbox.row()
             row.prop(WProperties, "backface_culling")
+
+            row = box.row()
+            row.prop(WProperties, "force_shade_flat")
 
             row = sbox.row()
             row.prop(WProperties, "delete_useless_textures")

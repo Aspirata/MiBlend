@@ -736,10 +736,10 @@ def setproceduralpbr():
                         material.node_tree.links.new(vector_connection, PNormals.inputs['Vector'])
 
             elif PProperties.revert_normals:   
-                if bump_node is not None:
+                if bump_node:
                     material.node_tree.nodes.remove(bump_node)
                 
-                if PNormals is not None:
+                if PNormals:
                     material.node_tree.nodes.remove(PNormals)
 
             # Change PBSDF Settings                                
