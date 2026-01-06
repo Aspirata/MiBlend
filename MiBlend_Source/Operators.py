@@ -1,15 +1,16 @@
 import bpy, os, json, shutil, platform, subprocess
 from typing import Union
 from pathlib import Path
+from bpy.types import Operator
+from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty
 from .Materials import Materials
 from .Resource_Packs import apply_resources, get_resource_packs, set_resource_packs, get_resource_path, update_default_pack
 from .Optimization import Optimize
 from .Utils_tools import *
-from bpy.types import Operator
-from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty
 from .Assets import *
 from .Utils.Absolute_Solver import Call_AS
 from .Data import main_directory
+from .MIB_API import get_selected_asset
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
@@ -509,6 +510,36 @@ class SavePropertiesOperator(Operator):
                 json.dump(asset_data, json_file, indent=4)
             
             self.report({'INFO'}, f"Properties saved to {json_file_path}")
+            return {'FINISHED'}
+        
+        except Exception as error:
+            if not os.path.isfile(json_file_path):
+                Call_AS("e03", error, json_file_path)
+            else:
+                Call_AS("n00", error)
+            return {'CANCELLED'}
+
+class ResetPropertiesOperator(Operator):
+    bl_idname = "assets.reset_properties"
+    bl_label = "Reset Properties"
+    bl_description = "Resets Propreties to their Default Values"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        try:
+            current_asset = get_selected_asset()
+
+            properties = {key: value for key, value in current_asset.items() if '_property' in key}
+
+            file_path = current_asset.get("File_path", "")
+            json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
+            
+            with open(json_file_path, 'r') as json_file:
+                asset_data = json.load(json_file)
+
+            for key, value in properties.items():
+                if key in asset_data:
+                    current_asset[key] = asset_data.get(key, value)
             return {'FINISHED'}
         
         except Exception as error:
