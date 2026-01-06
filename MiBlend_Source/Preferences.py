@@ -1,32 +1,41 @@
-import bpy, sys
+import bpy, sys, json
+from typing import Union
+from pathlib import Path
 from bpy.types import AddonPreferences
-from .MIB_API import blender_version, override_setting
+from .MIB_API import blender_version, main_directory
 from bpy.props import IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty
 
 class MiBlendPreferences(AddonPreferences):
     bl_idname = __package__
 
+    @staticmethod
+    def override_preference(setting_name: str, default_value: Union[str, bool, int, float]) -> Union[str, bool, int, float]:
+        settings_override_path = Path(main_directory).parent / "miblend_preferences_override.json"
+        if settings_override_path.exists():
+            return json.loads(settings_override_path.read_text()).get(setting_name, default_value)
+        return default_value
+
     transparent_ui: BoolProperty(
         name="Transparent UI",
         description="Toggles Transparent GUI",
-        default=override_setting("transparent_ui", False),
+        default=override_preference("transparent_ui", False),
     )
 
     show_warnings: BoolProperty(
         name="Show Warnings",
         description="Display Warning Messages with Absolute Solver",
-        default=override_setting("show_warnings", True)
+        default=override_preference("show_warnings", True)
     )
 
     enable_deprecated_features: BoolProperty(
         name="Enable Deprecated Features",
-        default=override_setting("enable_deprecated_features", False)
+        default=override_preference("enable_deprecated_features", False)
     )
 
     experimental_features: BoolProperty(
         name="Experimental Features",
         description="Enable Unfinished or Highly Experimental Tools. May be Unstable !",
-        default=override_setting("experimental_features", False)
+        default=override_preference("experimental_features", False)
     )
 
     mc_instances_path: StringProperty(
@@ -35,6 +44,7 @@ class MiBlendPreferences(AddonPreferences):
         subtype="DIR_PATH"
     )
 
+    @staticmethod
     def emissiondetectionfix():
         return 'Manual' if blender_version("3.6.x") else 'Combined'
 
@@ -44,98 +54,98 @@ class MiBlendPreferences(AddonPreferences):
             ('Manual', 'Manual', 'Uses a Pre-defined List of Emissive Blocks (legacy method, recommended for Blender 3.6)')],
         name="emissiondetection",
         description="Method Used to Detect Which Blocks Should Emit Light",
-        default=override_setting("emissiondetection", emissiondetectionfix())
+        default=override_preference("emissiondetection", emissiondetectionfix())
     )
 
     update_packs: BoolProperty(
         name="Update Packs",
         description="Download and Update Built-in Resource Packs on Resource Packs List Reload (requires internet)",
-        default=override_setting("update_packs", True)
+        default=override_preference("update_packs", True)
     )
 
     dev_tools: BoolProperty(
         name="Dev Tools",
         description="Show Advanced Developer and Debugging Options",
-        default=override_setting("dev_tools", False)
+        default=override_preference("dev_tools", False)
     )
 
     dprint: BoolProperty(
         name="dprint",
         description="Print Debug Information About the Add-on's Work to the System Console",
-        default=override_setting("dprint", True)
+        default=override_preference("dprint", True)
     )
 
     debug_panel: BoolProperty(
         name="Enable Debug Panel",
         description="Enable a Special 'MiBlend Debug' panel",
-        default=override_setting("enable_debug_panel", False)
+        default=override_preference("debug_panel", False)
     )
 
     deep_debug: BoolProperty(
         name="Deep Debug",
         description="Enable Deep Debug Information",
-        default=override_setting("deep_debug", False)
+        default=override_preference("deep_debug", False)
     )
 
     rp_debug_mode: BoolProperty(
         name="Resource Packs Debug Mode",
         description="Enable Debug Information Printing in Resource Packs Functions",
-        default=override_setting("rp_debug_mode", False)
+        default=override_preference("rp_debug_mode", False)
     )
 
     fw_debug_mode: BoolProperty(
         name="Fix World Debug Mode",
         description="Enable Debug Information Printing in the Fix Word Function",
-        default=override_setting("fw_debug_mode", False)
+        default=override_preference("fw_debug_mode", False)
     )
 
     fm_debug_mode: BoolProperty(
         name="Fix Materials Debug Mode",
         description="Enable Debug Information Printing in the Fix Materials Function",
-        default=override_setting("fm_debug_mode", False)
+        default=override_preference("fm_debug_mode", False)
     )
 
     ui_debug_mode: BoolProperty(
         name="UI Debug Mode",
         description="Enable Debug Information Printing in UI Functions",
-        default=override_setting("ui_debug_mode", False)
+        default=override_preference("ui_debug_mode", False)
     )
 
     perf_time: BoolProperty(
         name="Perf_Time",
         description="Print Execution Time of Major Operations",
-        default=override_setting("perf_time", False)
+        default=override_preference("perf_time", False)
     )
 
     debug_tools: BoolProperty(
         name="Debug Tools",
         description="Enable Extra Debugging Operators and Tools",
-        default=override_setting("debug_tools", False)
+        default=override_preference("debug_tools", False)
     )
 
     uas_debug_mode: BoolProperty(
         name="UAS v2 Debug Mode",
         description="Enable Debug Information Printing in UAS v2 Functions",
-        default=override_setting("uas_debug_mode", False)
+        default=override_preference("uas_debug_mode", False)
     )
 
     open_console_on_start: BoolProperty(
         name="Open Console On Start",
         description="Deprecated Feature",
-        default=override_setting("open_console_on_start", False)
+        default=override_preference("open_console_on_start", False)
     )
 
     dev_packs_path: StringProperty(
         name="Dev Resource Packs Folder",
         description="Path to Your Local Resource Packs (Overrides Built-in Ones, Usefull When Using Custom Build of MiBlend)",
         subtype="DIR_PATH",
-        default=override_setting("dev_packs_path", "")
+        default=override_preference("dev_packs_path", "")
     )
 
     enable_custom_packs_path: BoolProperty(
         name="Enable Resource Packs Folder",
         description="Enables Using of Dev Resource Packs Folder",
-        default=override_setting("enable_custom_packs_path", False)
+        default=override_preference("enable_custom_packs_path", False)
     )
 
     def draw(self, context):
@@ -188,11 +198,9 @@ class MiBlendPreferences(AddonPreferences):
 
         row = box.row()
         row.prop(self, "mc_instances_path")
-        
-        if self.experimental_features: # Settings override shoud be remade, default values should be applied after registering the props
-            row = box.row()
-            row.operator("preferences.save_preferences")
-            row.operator("preferences.reset_preferences")
+
+        row = box.row()
+        row.operator("preferences.save_preferences")
 
         box = layout.box()
         row = box.row()

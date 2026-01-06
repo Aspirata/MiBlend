@@ -14,7 +14,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "MiBlend",
     "author": "Aspirata",
-    "version": (0, 7, 1),
+    "version": (0, 7, 2),
     "blender": (3, 6, 0),
     "doc_url": "https://docs.page/Aspirata/MiBlend",
     "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
@@ -57,6 +57,7 @@ def init_on_start():
                 Call_AS("w04", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
                 dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
 
+        # Pre-0.7.0 properties cleanup
         for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties"]:
             if hasattr(bpy.context.scene, prop):
                 delattr(bpy.context.scene, prop)
@@ -77,13 +78,14 @@ panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
 properties = [WorldProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, AssetTagItem, 
             AssetsProperties, UtilsProperties, OptimizationProperties, AbsoluteSolverProperties, MiBlendProperties
 ]
+
 special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel, RecreateEnvironment]
 
 operators = [
     RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
     MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
     FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, SavePreferencesOperator, ResetPreferencesOperator
+    ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, SavePreferencesOperator, ResetPreferencesOperator
 ]
 
 debug_classes = [DebugPanel, TriggerASErrorOperator, OpenMiBlendFolder]

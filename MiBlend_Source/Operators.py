@@ -1,4 +1,6 @@
 import bpy, os, json, shutil, platform, subprocess
+from typing import Union
+from pathlib import Path
 from .Materials import Materials
 from .Resource_Packs import apply_resources, get_resource_packs, set_resource_packs, get_resource_path, update_default_pack
 from .Optimization import Optimize
@@ -481,36 +483,6 @@ class AssingVertexGroupOperator(Operator):
         VertexRiggingTool()
         return {'FINISHED'}
 
-class ResetPropertiesOperator(Operator):
-    bl_idname = "assets.reset_properties"
-    bl_label = "Reset Properties"
-    bl_description = "Resets Propreties to their Default Values"
-    bl_options = {'REGISTER', 'UNDO'}
-    
-    def execute(self, context):
-        try:
-            current_asset = get_selected_asset()
-
-            properties = {key: value for key, value in current_asset.items() if '_property' in key}
-
-            file_path = current_asset.get("File_path", "")
-            json_file_path = file_path.replace(os.path.splitext(file_path)[-1], ".json")
-            
-            with open(json_file_path, 'r') as json_file:
-                asset_data = json.load(json_file)
-
-            for key, value in properties.items():
-                if key in asset_data:
-                    current_asset[key] = asset_data.get(key, value)
-            return {'FINISHED'}
-        
-        except Exception as error:
-            if not os.path.isfile(json_file_path):
-                Call_AS("e03", error, json_file_path)
-            else:
-                Call_AS("n00", error)
-            return {'CANCELLED'}
-
 class SavePropertiesOperator(Operator):
     bl_idname = "assets.save_properties"
     bl_label = "Save Properties"
@@ -706,45 +678,48 @@ class ClearIgnoredCodesOperator(Operator):
 class SavePreferencesOperator(Operator):
     bl_idname = "preferences.save_preferences"
     bl_label = "Save Preferences"
-    bl_description = "Saves Current Preferencies to settings_override.json"
+    bl_description = "Saves Current Preferences to miblend_preferences_override.json"
     bl_options = {'REGISTER', 'UNDO'}
-
+    
     def execute(self, context):
         addon_prefs = context.preferences.addons[__package__].preferences
         prefs_to_save: dict[str, Union[str, bool, int, float]] = {}
-        settings_override_path = os.path.join(os.path.dirname(main_directory), "settings_override.json")
+        
+        settings_override_path = Path(main_directory).parent / "miblend_preferences_override.json"
+        
         system_props = {
             'rna_type', 'name', 'bl_idname', 'bl_label', 'bl_description', 
             'bl_options', 'bl_context', 'bl_region_type', 'bl_space_type'
         }
         
+        existing_overrides = {}
+        if settings_override_path.exists():
+            try:
+                with open(settings_override_path, "r", encoding="utf-8") as file:
+                    existing_overrides = json.load(file)
+            except (json.JSONDecodeError, OSError) as e:
+                self.report({'WARNING'}, f"Could not read existing settings: {e}")
+        
         for prop_id, prop in type(addon_prefs).bl_rna.properties.items():
             if prop_id in system_props or prop_id.startswith('_'):
                 continue
-
-            default_value = prop.default
-            current_value = getattr(addon_prefs, prop_id)
             
-            if current_value == default_value:
+            try:
+                current_value = getattr(addon_prefs, prop_id)
+                default_value = prop.default
+                print(current_value, default_value)
+                
+                if current_value != default_value or current_value == existing_overrides.get(prop_id, None):
+                    prefs_to_save[prop_id] = current_value
+                elif prop_id in existing_overrides:
+                    continue
+            except AttributeError:
                 continue
-            
-            prefs_to_save[prop_id] = current_value
-        
-        if not prefs_to_save and os.path.exists(settings_override_path):
-            os.remove(settings_override_path)
-            self.report({'INFO'}, "Settings reset to defaults")
-        
-        elif not prefs_to_save:
-            self.report({'INFO'}, f"Saved 0 preferences")
-            return {'CANCELLED'}
-        
-        os.makedirs(os.path.dirname(settings_override_path), exist_ok=True)
-        
+
         with open(settings_override_path, "w", encoding="utf-8") as file:
             json.dump(prefs_to_save, file, indent=2, ensure_ascii=False)
         
         self.report({'INFO'}, f"Saved {len(prefs_to_save)} preference(s)")
-
         return {'FINISHED'}
 
 class ResetPreferencesOperator(Operator):
