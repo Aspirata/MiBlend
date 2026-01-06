@@ -1,10 +1,9 @@
 from .MIB_API import *
 from .Utils.Absolute_Solver import Call_AS
-import bpy, os, json, zipfile, shutil, re, http.client
+import bpy, os, json, zipfile, shutil, re, platform, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
-import platform
 
 def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
@@ -881,9 +880,9 @@ def apply_resources():
             else:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "Texture" not in Type:
+                    if not enabled or "Texture" not in Type or not os.path.exists(path):
                         continue
-                    
+
                     new_image_path = find_image(image_texture, path, obj_type, material.name)
 
                     if new_image_path is not None and os.path.isfile(new_image_path):
@@ -898,7 +897,7 @@ def apply_resources():
             if r_props.use_n and r_props.use_additional_textures:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "PBR" not in Type:
+                    if not enabled or "PBR" not in Type or not os.path.exists(path):
                         continue
 
                     if normal_texture_node is None:
@@ -935,7 +934,7 @@ def apply_resources():
             if r_props.use_s and r_props.use_additional_textures:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "PBR" not in Type:
+                    if not enabled or "PBR" not in Type or not os.path.exists(path):
                         continue
 
                     if specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
@@ -961,7 +960,7 @@ def apply_resources():
             if r_props.use_e and r_props.use_additional_textures:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "PBR" not in Type:
+                    if not enabled or "PBR" not in Type or not os.path.exists(path):
                         continue
                         
                     if emission_texture_node is None:
