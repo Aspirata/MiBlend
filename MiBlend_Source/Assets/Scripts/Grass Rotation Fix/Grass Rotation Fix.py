@@ -1,5 +1,4 @@
-import bpy
-import bmesh
+import bpy, bmesh
 from mathutils import Vector, Matrix
 from math import atan2, radians, degrees
 

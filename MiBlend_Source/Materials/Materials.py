@@ -269,8 +269,8 @@ def fix_world():
                 elif "redstone" in texture_parts:
                     lbcf_node.inputs["Mode"].default_value = 4
                 
-                lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
-                lbcf_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lbcf_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
+                lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0)
+                lbcf_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lbcf_node.inputs["Foliage Color"].default_value)[:3]) + (1.0)
 
             elif lbcf_node:
                 material.node_tree.links.new(GetConnectedSocketTo(0, lbcf_node), PBSDF.inputs["Base Color"])
