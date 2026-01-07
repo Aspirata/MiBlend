@@ -65,18 +65,26 @@ def find_mc() -> tuple[str, str]:
             continue
 
         for folder in os.listdir(folders):
+            instance_dir = os.path.join(folders, folder)
+            if not os.path.isdir(instance_dir):
+                continue
+
             instance_path = os.path.join(folders, folder, f"{folder}.jar")
-            version = mc_version_formatter(folder)
-            if version and os.path.isfile(instance_path):
-                versions[version] = (folder, os.path.join(os_env, path))
-                dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-            else:
-                dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
+
+            jar_file = next((f for f in os.listdir(instance_dir) if f.endswith('.jar')), None)
+            if jar_file:
+                instance_path = os.path.join(instance_dir, jar_file)
+                version = mc_version_formatter(folder)
+                if version and os.path.isfile(instance_path):
+                    versions[version] = (jar_file, instance_dir)
+                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
+                else:
+                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
     if versions:
         latest_version = max(versions, key=lambda x: LooseVersion(x))
         latest_file, latest_path = versions[latest_version]
-        return latest_version, os.path.join(latest_path, latest_file, f"{latest_file}.jar")
+        return latest_version, os.path.join(instance_dir, jar_file)
     
     return "", ""
 

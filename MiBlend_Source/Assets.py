@@ -1,7 +1,7 @@
 import bpy, os, json, traceback
-from .MIB_API import get_selected_asset, dprint, is_mesh, create_node_group, blender_version
+from . import Data, MIB_API
+from .MIB_API import dprint, is_mesh, create_node_group
 from .Utils.Absolute_Solver import Call_AS
-from .Data import assets_directory
 
 def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name", "")
@@ -60,9 +60,17 @@ def append_collection(asset_name, asset_collection, asset_path):
             obj.pose.bones[root_bone.name].matrix.translation = cursor_location
 
 def run_python_script(name, path):
-    properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
+    properties = {key.replace('_property', ''): value for key, value in MIB_API.get_selected_asset().items() if 'property' in key}
+    context = {}
 
-    context = globals().copy()
+    context.update({name: getattr(Data, name) 
+                    for name in dir(Data) 
+                    if not name.startswith('_')})
+
+    context.update({name: getattr(MIB_API, name) 
+                    for name in dir(MIB_API) 
+                    if not name.startswith('_')})
+
     context["properties"] = properties
 
     with open(path, 'r') as file:
@@ -227,7 +235,7 @@ def update_assets():
     items.clear()
     assets_list = []
 
-    directories_to_scan = [assets_directory]
+    directories_to_scan = [Data.assets_directory]
 
     temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", [])
     temp_assets_path_list = list(temp_assets_paths)

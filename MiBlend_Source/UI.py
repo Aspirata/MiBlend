@@ -56,7 +56,7 @@ class WorldAndMaterialsPanel(Panel):
             row = sbox.row()
             row.prop(WProperties, "backface_culling")
 
-            row = box.row()
+            row = sbox.row()
             row.prop(WProperties, "force_shade_flat")
 
             row = sbox.row()

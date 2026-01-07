@@ -8,6 +8,7 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, 
 from .Assets import *
 from .Utils.Absolute_Solver import Call_AS
 from .Data import main_directory
+from .MIB_API import get_selected_asset
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
