@@ -43,276 +43,249 @@ def replace_materials():
                     selected_object.data.materials[slot] = appended_material
                     break
 
-# Fix World
+class FixWorld():
+    def __init__(self):
+        self.is_experimental_features_enabled = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.experimental_features
+        self.is_show_warnings_enabled = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings
+        self.world_properties = bpy.context.scene.miblend_properties.world_properties
 
-# Scan the material for image texture node duplicates > if nothing is connected to the vector input then delete and restore connections else don't touch
-def DeleteUselessTextures(material):
-    texture_nodes = [node for node in material.node_tree.nodes if node.type == "TEX_IMAGE"]
-    image_to_nodes = {}
+    def get_all_linked_nodes(self, node, visited=None):
+        if not visited:
+            visited = set()
+        
+        if node in visited:
+            return visited
+        
+        visited.add(node)
+        
+        for input_socket in node.inputs:
+            if not input_socket.is_linked:
+                continue
+                
+            for link in input_socket.links:
+                self.get_all_linked_nodes(link.from_node, visited)
+        
+        return visited
 
-    for node in texture_nodes:
-        image = node.image
-        if image is not None:
-            if image in image_to_nodes:
-                image_to_nodes[image].append(node)
-            else:
-                image_to_nodes[image] = [node]
-        else:
-            material.node_tree.nodes.remove(node)
+    def get_linked_nodes(self, node, input_name):
+        if input_name not in node.inputs or not node.inputs[input_name].is_linked:
+            return []
+        
+        linked_nodes = []
+        for link in node.inputs[input_name].links:
+            linked_nodes.append(link.from_node)
+            linked_nodes.extend(self.get_all_linked_nodes(link.from_node))
+        
+        return linked_nodes
 
+    @staticmethod
     def get_node_suffix_number(node_name):
-        parts = node_name.split(".")
+        parts = node_name.rsplit(".", 1)
         if len(parts) > 1 and parts[-1].isdigit():
             return int(parts[-1])
         return 0
 
-    for image, nodes in image_to_nodes.items():
-        if len(nodes) > 1:
-            nodes.sort(key=lambda node: ('.' in node.name, get_node_suffix_number(node.name)))
+    def apply_combine_texture_nodes_duplicates(self, current_material):
+        texture_nodes = [node for node in current_material.node_tree.nodes if node.type == "TEX_IMAGE"]
+        
+        if not texture_nodes:
+            return
+        
+        image_to_nodes = {}
+        for node in texture_nodes:
+            if node.image:
+                if node.image not in image_to_nodes:
+                    image_to_nodes[node.image] = []
+                image_to_nodes[node.image].append(node)
+            else:
+                current_material.node_tree.nodes.remove(node)
+        
+        for image, nodes in image_to_nodes.items():
+            if len(nodes) < 2:
+                continue
+
+            nodes.sort(key=lambda node: ('.' in node.name, self.get_node_suffix_number(node.name)))
             
             node_to_keep = nodes[0]
             nodes_to_remove = nodes[1:]
-
+            
             for node in nodes_to_remove:
-                if any(input.links for input in node.inputs):
+                if any(input.is_linked for input in node.inputs):
                     continue
                 
-                output_number = -1
-                for output in node.outputs:
-                    output_number += 1
+                for output_idx, output in enumerate(node.outputs):
+                    if not output.links:
+                        continue
+                        
                     for link in output.links:
-                        material.node_tree.links.new(node_to_keep.outputs[output_number], link.to_socket)
+                        current_material.node_tree.links.new(node_to_keep.outputs[output_idx], link.to_socket)
                 
-                material.node_tree.nodes.remove(node)
-
-def get_linked_nodes(node, input_name):
-    linked_nodes = []
-    if input_name in node.inputs and node.inputs[input_name].is_linked:
-        for link in node.inputs[input_name].links:
-            linked_nodes.append(link.from_node)
-            linked_nodes.extend(get_all_linked_nodes(link.from_node))
-    return linked_nodes
-
-def get_all_linked_nodes(node):
-    linked_nodes = []
-    for input_name, input_socket in node.inputs.items():
-        if input_socket.is_linked:
-            for link in input_socket.links:
-                linked_nodes.append(link.from_node)
-                linked_nodes.extend(get_all_linked_nodes(link.from_node))
-    return linked_nodes
-
-def traverse_nodes(node, input_name, visited=None):
-    if visited is None:
-        visited = set()
+                current_material.node_tree.nodes.remove(node)
     
-    if node in visited:
-        return visited
+    @staticmethod
+    def find_node_by_type(node_type, material):
+        return next((node for node in material.node_tree.nodes if node.type == node_type), None)
     
-    visited.add(node)
-    
-    linked_nodes = get_linked_nodes(node, input_name)
-    for linked_node in linked_nodes:
-        traverse_nodes(linked_node, input_name, visited)
-    
-    return visited
+    @staticmethod
+    def find_nodes_group_by_name(group_name, material):
+        return next((node for node in material.node_tree.nodes if node.type == "GROUP" and group_name in node.node_tree.name), None)
 
-@ Perf_Time
-def fix_world():
-    Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
-    WProperties = bpy.context.scene.miblend_properties.world_properties
-
-    for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01") and Preferences.show_warnings:
-            Call_AS("w01", data=selected_object)
-            continue
-        elif not is_mesh(selected_object):
-            continue
-        
-        exporter = detect_world_exporter(selected_object)
-
-        if exporter == "unknown":
-            Call_AS("w03")
-            continue
-
-        selected_object["MiBlend ID"] = "World"
-
-        if Preferences.experimental_features:
-            if WProperties.remove_doubles:
-                bpy.ops.object.editmode_toggle()
-                
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.mesh.edge_split(type='VERT')
-                bpy.ops.mesh.remove_doubles()
-
-                bpy.ops.object.editmode_toggle()
-            
-            if WProperties.force_shade_flat:
-                bpy.ops.object.shade_flat()
-
-        for slot, material in enumerate(selected_object.data.materials):
-            if material is None or not material.use_nodes:
+    @ Perf_Time
+    def fix_world(self):
+        for current_object in bpy.context.selected_objects:
+            if not current_object.type == 'MESH':
+                if not is_code_ignored("w01") and self.is_show_warnings_enabled:
+                    Call_AS("w01", data=current_object)
                 continue
 
-            dprint(f"Material: {material.name}", is_deep=True, zone="fw")
+            current_world_exporter = detect_world_exporter(current_object)
 
-            PBSDF = None
-            image_texture_node = None
-            lbcf_node = None
-            bfc_node = None
-            Texture_Animator = None
-            auvf_node = None
-            WProperties = bpy.context.scene.miblend_properties.world_properties
+            if current_world_exporter == "unknown" and not is_code_ignored("w03") and self.is_show_warnings_enabled:
+                Call_AS("w03")
+                continue
 
-            material.blend_method = 'HASHED'
-            
-            if blender_version("< 4.3.0"):
-                material.shadow_method = 'HASHED'
+            current_object["MiBlend ID"] = "World"
 
-            # Delete Useless Textres
-            if WProperties.delete_useless_textures:
-                DeleteUselessTextures(material)
+            self.apply_force_shading_flat()
+            self.apply_remove_doubles()
 
-            for node in material.node_tree.nodes:
-                if node.type == "TEX_IMAGE":
-                    if node.image:
-                        if node.image.name.replace(".png", "").endswith("_y") and exporter == "mineways":
+            for current_material in current_object.data.materials:
+                if not current_material:
+                    continue
+
+                # Remove after Blender 5.x support ends
+                if bpy.app.version < (5, 0, 0) and not current_material.use_nodes:
+                    continue
+
+                dprint(f"Material: {current_material.name}", is_deep=True, zone="fw")
+
+                current_material.blend_method = 'HASHED'
+                
+                if bpy.app.version < (4, 3, 0):
+                    current_material.shadow_method = 'HASHED'
+
+                self.apply_combine_texture_nodes_duplicates(current_material)
+
+                image_texture_nodes_list = [node for node in current_material.node_tree.nodes if node.type == "TEX_IMAGE"]
+                for node in image_texture_nodes_list:
+                    if current_world_exporter == "mineways" and node.image:
+                        if node.image.name.replace(".png", "").endswith("_y"):
                             node.image.name = node.image.name.replace("_y", "", 1)
                         elif node.image.name.replace(".png", "").endswith("_a"):
-                            material.node_tree.nodes.remove(node)
+                            current_material.node_tree.nodes.remove(node)
+                            continue
                     node.interpolation = "Closest"
-                if node.type == "BSDF_PRINCIPLED":
-                    PBSDF = node
-                    image_texture_node = detect_texture_node(PBSDF)
-                    image = detect_image_texture(PBSDF)
+
+                pbsdf_node = self.find_node_by_type("BSDF_PRINCIPLED", current_material)
+                image_texture_node = detect_texture_node(pbsdf_node)
+                image = detect_image_texture(pbsdf_node)
+
+                if not image_texture_node or not pbsdf_node:
+                    continue
+
+                if not GetConnectedSocketTo("Alpha", pbsdf_node):
+                    current_material.node_tree.links.new(image_texture_node.outputs["Alpha"], pbsdf_node.inputs["Alpha"])
                 
-                if node.type == "GROUP":
-                    if "Backface Culling" in node.node_tree.name:
-                        bfc_node = node
-                    
-                    elif "Lazy Biome Color Fix" == node.node_tree.name:
-                        lbcf_node = node
-                    
-                    elif "Animated UV Fix" in node.node_tree.name:
-                        auvf_node = node
-                    
-                    elif "Texture Animator" in node.node_tree.name or "Animated;" in node.node_tree.name:
-                        Texture_Animator = node
-                        
-            if not image_texture_node or not PBSDF:
-                continue
+                # Emission
+                if EmissionMode(pbsdf_node, image.name):
+                    if not GetConnectedSocketTo(PBSDF_compability("Emission Color"), pbsdf_node):
+                        current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), pbsdf_node.inputs[PBSDF_compability("Emission Color")])
 
-            if GetConnectedSocketTo("Alpha", PBSDF) is None:
-                material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
-            
-            # Emission
-            if EmissionMode(PBSDF, image.name):
-                if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
-                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
-
-                if (EmissionMode(PBSDF, image.name) == 1 or EmissionMode(PBSDF, image.name) == 3) and PBSDF.inputs["Emission Strength"].default_value == 0:
-                    PBSDF.inputs["Emission Strength"].default_value = 1
-
-            # Backface Culling
-            alpha_connection = GetConnectedSocketTo("Alpha", PBSDF)
-            if WProperties.backface_culling and name_in(Backface_Culling_Materials, material.name)[0]:
-                material.use_backface_culling = True
-
-                if bfc_node is None:
-                    bfc_node = create_node_group(material, "Backface Culling", (PBSDF.location.x - 170, PBSDF.location.y - 110))
-
-                if alpha_connection and alpha_connection.node != bfc_node:
-                    material.node_tree.links.new(alpha_connection, bfc_node.inputs[0])
-                        
-                material.node_tree.links.new(bfc_node.outputs[0], PBSDF.inputs["Alpha"])
-                    
-            elif bfc_node:
-                material.use_backface_culling = False
-                material.node_tree.links.new(GetConnectedSocketTo(0, bfc_node), PBSDF.inputs["Alpha"])
-                material.node_tree.nodes.remove(bfc_node)
-            
-            # Lazy Biome Color Fix
-            base_color_connection = GetConnectedSocketTo("Base Color", PBSDF)
-            if WProperties.lazy_biome_fix and is_gray(image.name):
-                texture_parts = format_texture_name(image.name)
-
-                if lbcf_node is None:
-                    lbcf_node = create_node_group(material, "Lazy Biome Color Fix", (PBSDF.location.x - 170, PBSDF.location.y - 20))
-
-                if base_color_connection and base_color_connection.node != lbcf_node:
-                    material.node_tree.links.new(base_color_connection, lbcf_node.inputs["Texture"])
-
-                material.node_tree.links.new(lbcf_node.outputs[0], PBSDF.inputs["Base Color"])
-
-                # Simple Biomes Support
-                if "fern" in texture_parts or "spruce" in texture_parts:
-                    biome = "Taiga"
-                elif "dark" in texture_parts:
-                    biome = "Dark Forest"
-                elif "mangrove" in texture_parts:
-                    biome = "Mangrove"
-                elif "jungle" in texture_parts:
-                    biome = "Jungle"
-                elif "acacia" in texture_parts:
-                    biome = "Savanna"
-                elif "birch" in texture_parts:
-                    biome = "Birch"
-                else:
-                    biome = "Forest"
-
-                if "grass" in texture_parts:
-                    lbcf_node.inputs["Mode"].default_value = 2
-
-                elif "water" in texture_parts:
-                    lbcf_node.inputs["Mode"].default_value = 3
-
-                elif "redstone" in texture_parts:
-                    lbcf_node.inputs["Mode"].default_value = 4
+                    if (EmissionMode(pbsdf_node, image.name) == 1 or EmissionMode(pbsdf_node, image.name) == 3) and pbsdf_node.inputs["Emission Strength"].default_value == 0:
+                        pbsdf_node.inputs["Emission Strength"].default_value = 1
                 
-                lbcf_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lbcf_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
-                lbcf_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lbcf_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
+                self.apply_backface_culling(current_material, pbsdf_node)
+                self.apply_lazy_biome_color_fix(current_material, pbsdf_node, image)
+                self.apply_animated_texture_fix(current_material, pbsdf_node, image_texture_node, image)
+    
+    def apply_force_shading_flat(self):
+        if not self.world_properties.force_shade_flat or not self.is_experimental_features_enabled:
+            return
 
-            elif lbcf_node:
-                material.node_tree.links.new(GetConnectedSocketTo(0, lbcf_node), PBSDF.inputs["Base Color"])
-                material.node_tree.nodes.remove(lbcf_node)
+        bpy.ops.object.shade_flat()
+    
+    def apply_remove_doubles(self):
+        if not self.world_properties.remove_doubles or not self.is_experimental_features_enabled:
+            return
 
-            # Animated UV Fix
-            if image_texture_node.type == "GROUP":
-                continue
-            else:
-                vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
-            
-            if image.size[0] == 0:
-                continue
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.edge_split(type='VERT')
+        bpy.ops.mesh.remove_doubles()
+        bpy.ops.object.editmode_toggle()
+    
+    def apply_backface_culling(self, current_material, pbsdf_node):
+        if not self.world_properties.backface_culling or not name_in(Backface_Culling_Materials, current_material.name)[0]:
+            current_material.use_backface_culling = False
+            backface_culling_node = self.find_nodes_group_by_name("Backface Culling", current_material)
+            dissolve_node(current_material, backface_culling_node)
+            return
 
+        current_material.use_backface_culling = True
+        backface_culling_node = create_node_group(current_material, "Backface Culling", (pbsdf_node.location.x - 170, pbsdf_node.location.y - 110), exists_check = True)
+        inject_node(current_material, backface_culling_node, pbsdf_node, "Alpha")
+    
+    def apply_lazy_biome_color_fix(self, current_material, pbsdf_node, image):
+        if not self.world_properties.lazy_biome_fix or not is_gray(image.name):
+            lazy_biome_fix_node = self.find_nodes_group_by_name("Lazy Biome Color Fix", current_material)
+            dissolve_node(current_material, lazy_biome_fix_node)
+            return
+
+        lazy_biome_fix_node = create_node_group(current_material, "Lazy Biome Color Fix", (pbsdf_node.location.x - 170, pbsdf_node.location.y - 20), exists_check = True)
+        inject_node(current_material, lazy_biome_fix_node, pbsdf_node, "Base Color")
+        
+        texture_parts = format_texture_name(image.name)
+        if "fern" in texture_parts or "spruce" in texture_parts:
+            biome = "Taiga"
+        elif "dark" in texture_parts:
+            biome = "Dark Forest"
+        elif "mangrove" in texture_parts:
+            biome = "Mangrove"
+        elif "jungle" in texture_parts:
+            biome = "Jungle"
+        elif "acacia" in texture_parts:
+            biome = "Savanna"
+        elif "birch" in texture_parts:
+            biome = "Birch"
+        else:
+            biome = "Forest"
+
+        if "grass" in texture_parts:
+            lazy_biome_fix_node.inputs["Mode"].default_value = 2
+
+        elif "water" in texture_parts:
+            lazy_biome_fix_node.inputs["Mode"].default_value = 3
+
+        elif "redstone" in texture_parts:
+            lazy_biome_fix_node.inputs["Mode"].default_value = 4
+
+        lazy_biome_fix_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
+        lazy_biome_fix_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lazy_biome_fix_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
+    
+    def apply_animated_texture_fix(self, current_material, pbsdf_node, image_texture_node, image):
+        if image_texture_node.type == "GROUP" or image.size[0] == 0:
+            return
+
+        if name_in(["lava flow"], image.name, True)[0]:
+            frames = int(image.size[1] / image.size[0])*2
+            x_divider = 2.0
+        else:
+            frames = int(image.size[1] / image.size[0])
             x_divider = 1.0
-            frames = 1
+        
+        if not self.world_properties.animated_uv_fix or frames == 1:
+            animated_uv_fix_node = self.find_nodes_group_by_name("Animated UV Fix", current_material)
+            dissolve_node(current_material, animated_uv_fix_node)
+            return
 
-            if name_in(["lava flow"], image.name, True)[0]:
-                frames = int(image.size[1] / image.size[0])*2
-                x_divider = 2.0
-            else:
-                frames = int(image.size[1] / image.size[0])
-            
-            if WProperties.animated_uv_fix and frames > 1:
-                if Texture_Animator is not None:
-                    material.node_tree.nodes.remove(Texture_Animator)
+        texture_animator_node = self.find_nodes_group_by_name("Texture Animator", current_material)
+        dissolve_node(current_material, texture_animator_node)
 
-                if auvf_node is None:
-                    auvf_node = create_node_group(material, "Animated UV Fix", (image_texture_node.location.x - 200, image_texture_node.location.y - 220))
+        animated_uv_fix_node = create_node_group(current_material, "Animated UV Fix", (image_texture_node.location.x - 200, image_texture_node.location.y - 220), exists_check = True)
+        inject_node(current_material, animated_uv_fix_node, image_texture_node, "Vector")
 
-                if vector_connection and vector_connection.node != auvf_node:
-                    material.node_tree.links.new(vector_connection, auvf_node.inputs["Vector"])
-
-                auvf_node.inputs["Frames"].default_value = frames
-                auvf_node.inputs["X Divider"].default_value = x_divider
-                material.node_tree.links.new(auvf_node.outputs["Fixed UV"], image_texture_node.inputs["Vector"])
-
-            elif auvf_node:
-                material.node_tree.nodes.remove(auvf_node)
-            
-            # Implement is_world() check | 05.10.25 Why tho ?
-            # selected_object["MiBlend ID"] = "World"
+        animated_uv_fix_node.inputs["Frames"].default_value = frames
+        animated_uv_fix_node.inputs["X Divider"].default_value = x_divider
 
 @Perf_Time
 def recreate_env(self):
@@ -604,10 +577,8 @@ def swap_textures(folder_path):
                         node.image = bpy.data.images.load(new_image_path)
 
 # Set Procedural PBR
-
 @ Perf_Time
 def setproceduralpbr():
-
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
         
     for selected_object in bpy.context.selected_objects:

@@ -26,6 +26,34 @@ def is_unix_system() -> bool:
 def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]) -> Union[int, float]:
     return max(min_value, min(value, max_value))
 
+def dissolve_node(material, node, input_index=0):
+    if not node:
+        return
+    
+    node_tree = material.node_tree
+    
+    all_output_links = []
+    for output_socket in node.outputs:
+        all_output_links.extend(list(output_socket.links))
+    
+    source_socket = None
+    if input_index < len(node.inputs) and node.inputs[input_index].is_linked:
+        source_socket = node.inputs[input_index].links[0].from_socket
+    
+    if source_socket:
+        for link in all_output_links:
+            node_tree.links.new(source_socket, link.to_socket)
+    
+    node_tree.nodes.remove(node)
+
+def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input_index: int = 0, node_to_inject_output_index: int = 0):
+    node_tree = material.node_tree
+    target_node_input_connection = GetConnectedSocketTo(target_node_input_index, target_node)
+    if target_node_input_connection == node_to_inject:
+        return
+    material.node_tree.links.new(target_node_input_connection, node_to_inject.inputs[node_to_inject_output_index])
+
+# deprecated | 13.01.2026
 def is_mesh(object: object) -> bool:
     return object.type == "MESH"
 

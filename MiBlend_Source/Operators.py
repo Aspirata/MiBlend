@@ -117,7 +117,7 @@ class FixWorldOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        Materials.fix_world()
+        Materials.FixWorld().fix_world()
         return {'FINISHED'}
     
 class ResourcePackToggleOperator(Operator):
