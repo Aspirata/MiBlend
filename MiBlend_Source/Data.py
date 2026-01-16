@@ -119,7 +119,7 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 #
 
 gray_blocks = {
-    "vegetation" : ["grass ; side snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
+    "vegetation" : ["grass ; snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
     "redstone" : ["redstone ; torch", "dust"],
     "water" : ["water"]
 }

@@ -46,12 +46,14 @@ def dissolve_node(material, node, input_index=0):
     
     node_tree.nodes.remove(node)
 
-def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input_index: int = 0, node_to_inject_output_index: int = 0):
-    node_tree = material.node_tree
-    target_node_input_connection = GetConnectedSocketTo(target_node_input_index, target_node)
-    if target_node_input_connection == node_to_inject:
-        return
-    material.node_tree.links.new(target_node_input_connection, node_to_inject.inputs[node_to_inject_output_index])
+def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input: int | str = 0, node_to_inject_output: int | str = 0):
+    target_node_input_connection = GetConnectedSocketTo(target_node_input, target_node)
+    if target_node_input_connection:
+        if target_node_input_connection.node == node_to_inject:
+            return
+        material.node_tree.links.new(target_node_input_connection, node_to_inject.inputs[node_to_inject_output])
+
+    material.node_tree.links.new(node_to_inject.outputs[node_to_inject_output], target_node.inputs[target_node_input])
 
 # deprecated | 13.01.2026
 def is_mesh(object: object) -> bool:

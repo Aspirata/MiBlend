@@ -195,24 +195,28 @@ class FixWorld():
                         pbsdf_node.inputs["Emission Strength"].default_value = 1
                 
                 self.apply_backface_culling(current_material, pbsdf_node)
-                self.apply_lazy_biome_color_fix(current_material, pbsdf_node, image)
+                self.apply_lazy_biome_color_fix(current_material, pbsdf_node, image_texture_node, image)
                 self.apply_animated_texture_fix(current_material, pbsdf_node, image_texture_node, image)
     
     def apply_force_shading_flat(self):
         if not self.world_properties.force_shade_flat or not self.is_experimental_features_enabled:
             return
 
+        current_mode = bpy.context.object.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.shade_flat()
+        bpy.ops.object.mode_set(mode=current_mode)
     
     def apply_remove_doubles(self):
         if not self.world_properties.remove_doubles or not self.is_experimental_features_enabled:
             return
 
-        bpy.ops.object.editmode_toggle()
+        current_mode = bpy.context.object.mode
+        bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.edge_split(type='VERT')
         bpy.ops.mesh.remove_doubles()
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.mode_set(mode=current_mode)
     
     def apply_backface_culling(self, current_material, pbsdf_node):
         if not self.world_properties.backface_culling or not name_in(Backface_Culling_Materials, current_material.name)[0]:
@@ -225,16 +229,21 @@ class FixWorld():
         backface_culling_node = create_node_group(current_material, "Backface Culling", (pbsdf_node.location.x - 170, pbsdf_node.location.y - 110), exists_check = True)
         inject_node(current_material, backface_culling_node, pbsdf_node, "Alpha")
     
-    def apply_lazy_biome_color_fix(self, current_material, pbsdf_node, image):
+    def apply_lazy_biome_color_fix(self, current_material, pbsdf_node, image_texture_node, image):
+        texture_parts = format_texture_name(image.name)
+
+        # Remove in v0.8
+        use_legacy_mode = any(i for i in ["grass", "block", "side"] if i not in texture_parts)
+        lazy_biome_color_fix_node_name = "Lazy Biome Color Fix" if use_legacy_mode else "Lazy Biome Color Fix v2"
+
         if not self.world_properties.lazy_biome_fix or not is_gray(image.name):
-            lazy_biome_fix_node = self.find_nodes_group_by_name("Lazy Biome Color Fix", current_material)
+            lazy_biome_fix_node = self.find_nodes_group_by_name(lazy_biome_color_fix_node_name, current_material)
             dissolve_node(current_material, lazy_biome_fix_node)
             return
 
-        lazy_biome_fix_node = create_node_group(current_material, "Lazy Biome Color Fix", (pbsdf_node.location.x - 170, pbsdf_node.location.y - 20), exists_check = True)
+        lazy_biome_fix_node = create_node_group(current_material, lazy_biome_color_fix_node_name, (pbsdf_node.location.x - 170, pbsdf_node.location.y - 20), exists_check = True)
         inject_node(current_material, lazy_biome_fix_node, pbsdf_node, "Base Color")
         
-        texture_parts = format_texture_name(image.name)
         if "fern" in texture_parts or "spruce" in texture_parts:
             biome = "Taiga"
         elif "dark" in texture_parts:
@@ -250,6 +259,13 @@ class FixWorld():
         else:
             biome = "Forest"
 
+        # Remove in v0.8
+        if not use_legacy_mode:
+            lazy_biome_fix_node.inputs["Mode"].default_value = 2
+            lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Biome Color"].default_value)[:3]) + (1.0,)
+            # make the node active for proper workbench render
+            return
+            
         if "grass" in texture_parts:
             lazy_biome_fix_node.inputs["Mode"].default_value = 2
 
@@ -261,7 +277,9 @@ class FixWorld():
 
         lazy_biome_fix_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
         lazy_biome_fix_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lazy_biome_fix_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
-    
+
+        # make the node active for proper workbench render
+
     def apply_animated_texture_fix(self, current_material, pbsdf_node, image_texture_node, image):
         if image_texture_node.type == "GROUP" or image.size[0] == 0:
             return
