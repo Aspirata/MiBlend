@@ -263,7 +263,7 @@ class FixWorld():
         if not use_legacy_mode:
             lazy_biome_fix_node.inputs["Mode"].default_value = 2
             lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Biome Color"].default_value)[:3]) + (1.0,)
-            # make the node active for proper workbench render
+            current_material.node_tree.nodes.active = image_texture_node
             return
             
         if "grass" in texture_parts:
@@ -278,7 +278,7 @@ class FixWorld():
         lazy_biome_fix_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
         lazy_biome_fix_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lazy_biome_fix_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
 
-        # make the node active for proper workbench render
+        current_material.node_tree.nodes.active = image_texture_node
 
     def apply_animated_texture_fix(self, current_material, pbsdf_node, image_texture_node, image):
         if image_texture_node.type == "GROUP" or image.size[0] == 0:
