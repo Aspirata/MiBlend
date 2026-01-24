@@ -26,6 +26,17 @@ MiBlend создан, чтобы:
 - устранить недостатки Mcprep
 - предоставить удобные инструменты для быстрого и качественного создания сцен
 
+## Roadmap до релиза
+
+Основные компоненты MiBlend, которые планируется завершить перед релизом:
+
+- [x] World Panel
+- [ ] Procedural PBR Panel
+- [ ] Environment Panel
+- [ ] Assets
+- [ ] Materials Panel
+- [ ] Resource Packs Panel
+
 ## 📖 Документация
 
 Подробнее о MiBlend читайте на официальной [вики](https://docs.page/Aspirata/MiBlend).
