@@ -803,6 +803,7 @@ def apply_resources():
             
             PBSDF = None
             image_texture_node = None
+            additional_texture_nodes = []
             image_path = None
             normal_texture_node = None
             normal_map_node = None
@@ -825,7 +826,6 @@ def apply_resources():
             nodes_list = get_nodes_list(material, True)
 
             for node in nodes_list:
-
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node
 
@@ -857,10 +857,22 @@ def apply_resources():
                     elif re.search(r'_e$', image_name):
                         emission_texture_node = node
                     else:
-                        image_texture_node = node
-                        image_texture = image_texture_node.image.name
+                        additional_texture_nodes.append(node)
+            
+            if ITexture_Animator:
+                image_texture_node = None
+            else:
+                image_texture_node = detect_texture_node(PBSDF)
+                
+                if image_texture_node:
+                    if image_texture_node in additional_texture_nodes:
+                        additional_texture_nodes.remove(image_texture_node)
+                    image_texture = image_texture_node.image.name
+                else:
+                    image_texture_node = None
+                    image_texture = None
 
-            if image_texture is None or image_texture_node is None:
+            if image_texture is None or (image_texture_node is None and ITexture_Animator is None):
                 dprint(f"{material} skipped, image or image node not found", is_deep=True, zone="rp")
                 continue
 
@@ -886,11 +898,16 @@ def apply_resources():
                     new_image_path = find_image(image_texture, path, obj_type, material.name)
 
                     if new_image_path is not None and os.path.isfile(new_image_path):
-                            
                         update_texture(new_image_path, image_texture)
-                        
                         animate_texture(image_texture_node, new_image_path, ITexture_Animator, Current_node_tree, object=selected_object)
                         image_path = new_image_path
+                        
+                        for additional_node in additional_texture_nodes:
+                            additional_texture_name = additional_node.image.name
+                            additional_path = find_image(additional_texture_name, path, obj_type, material.name)
+                            if additional_path is not None and os.path.isfile(additional_path):
+                                update_texture(additional_path, additional_texture_name)
+                        
                         break
 
             # Normal Texture Update

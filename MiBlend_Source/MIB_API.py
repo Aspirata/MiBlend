@@ -338,7 +338,6 @@ def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
     return bool(result)
 
 def detect_texture_node(PBSDF: object) -> object:
-
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
         for input_name, input_socket in PBSDF.inputs.items():
