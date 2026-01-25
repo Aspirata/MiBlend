@@ -2,7 +2,8 @@
 
 # MiBlend
 
-![GitHub downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)](https://github.com/Aspirata/MiBlend/releases)
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Kf4VsZQz22)
 
 > [!CAUTION]
 > **MiBlend** находится на стадии **бета-тестирования**. Возможны ошибки и частые изменения в ходе разработки.
@@ -46,7 +47,7 @@ MiBlend создан, чтобы:
 ## 🎬 Видеообзор
 
 **Отдельное спасибо [woodplank](https://www.youtube.com/@woodplank)** за обзор MiBlend!  
-Обратите внимание: ролик снят по версии **v0.4.0 M2** и **частично устарел**.
+Обратите внимание: ролик снят по версии **v0.4.0 M2** и **устарел**.
 
 ▶️ [Смотреть на YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
 
