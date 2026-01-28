@@ -2,7 +2,7 @@
     "Format_version": "10",
     "Asset_name": "Story Mode Character Rig",
     "Author": "Faizek, Aspirata",
-    "Blender_version": ">= 4.1.0",
+    "Blender_version": ">= 4.2.0",
     "File_path": "Rigs\\Story Mode Rig\\Story Mode Rig",
     "Collection_name": "Story Mode Character",
     "Tags": ["Rig", "Story Mode"]
