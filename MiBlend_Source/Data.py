@@ -151,17 +151,6 @@ Emissive_Materials = {
             "Blue": 0
         }
     },
-    "powered rail on": {
-        "Procedural Emission": {
-            "Red": 0,
-            "Blue": 0,
-            "From Min": 0.0,
-            "From Max": 0.0
-        },
-        "Procedural Animation": {
-            "Speed": 0.4
-        }
-    },
     "creaking heart active": {},
     "firefly bush": {
         "Procedural Emission": {

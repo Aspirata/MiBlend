@@ -1,29 +1,29 @@
 import bpy, os, json, time, sys, re, traceback
 from .Data import main_directory, nodes_file, Emissive_Materials, gray_blocks
 from .Utils.Absolute_Solver import Call_AS
-from typing import Union
 
 def PBSDF_compability(Input: str) -> str:
-    if bpy.app.version < (4, 0, 0):
-        return {
-            "Subsurface Weight": "Subsurface",
-            "Subsurface Radius": "Subsurface Color",
+    if bpy.app.version >= (4, 0, 0):
+        return Input
+    return {
+        "Subsurface Weight": "Subsurface",
+        "Subsurface Radius": "Subsurface Color",
 
-            "Specular IOR Level": "Specular",
+        "Specular IOR Level": "Specular",
 
-            "Transmission Weight": "Transmission",
+        "Transmission Weight": "Transmission",
 
-            "Coat Weight": "Coat",
-            "Sheen Weight": "Sheen",
+        "Coat Weight": "Coat",
+        "Sheen Weight": "Sheen",
 
-            "Emission Color": "Emission",
-        }.get(Input, Input)
-    return Input
+        "Emission Color": "Emission",
+    }.get(Input, Input)
+    
 
 def is_unix_system() -> bool:
     return "linux" in sys.platform or "darwin" in sys.platform
 
-def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]) -> Union[int, float]:
+def clamp(min_value: int | float, value: int | float, max_value: int | float) -> int | float:
     return max(min_value, min(value, max_value))
 
 def dissolve_node(material, node, input_index=0):
@@ -72,14 +72,14 @@ def get_selected_asset() -> dict:
             Call_AS("n00", traceback.format_exc())
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
-def mc_version_formatter(version_name: str) -> str | None:
+def mc_version_formatter(version_name: str) -> str:
     try:
         version_parts = re.split(r'[ -]', version_name)
         for part in version_parts:
-            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
+            if not any(char.isalpha() for char in part) and re.match(r'^\d{1,2}\.\d{1,2}(?:\.\d{1,2})?$', part):
                 return part
-        return None
-    except Exception as error:
+        return ""
+    except:
         Call_AS("n00", traceback.format_exc())
 
 # Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
@@ -126,7 +126,7 @@ def get_resource_path() -> str:
     
     return resource_packs_directory
 
-def get_pack_info_properties(pack: str =None) -> dict:
+def get_pack_info_properties(pack_name: str = "") -> dict:
     resource_packs_directory = get_resource_path()
     if not os.path.exists(resource_packs_directory):
         return {}
@@ -134,11 +134,10 @@ def get_pack_info_properties(pack: str =None) -> dict:
     with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
         data = json.load(file)
         
-        if pack is None:
+        if not pack_name:
             return data.keys()
         
-        return data.get(pack, {})
-    return pack_info
+        return data.get(pack_name, {})
 
 def is_code_ignored(code: str) -> bool:
     return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()
@@ -557,7 +556,7 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
     except Exception as error:
         Call_AS("n00", error)
 
-def GetConnectedSocketTo(input: Union[str, int], node: object) -> object | None:
+def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
     try:
         if isinstance(input, int):
             if input >= len(node.inputs):

@@ -1,4 +1,4 @@
-import bpy, os, json, shutil, platform, subprocess
+import bpy, os, json, shutil, platform, subprocess, traceback
 from typing import Union
 from pathlib import Path
 from bpy.types import Operator
