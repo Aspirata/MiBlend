@@ -1,9 +1,9 @@
-from .MIB_API import *
-from .Utils.Absolute_Solver import Call_AS
 import bpy, os, json, zipfile, shutil, re, platform, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
+from .MIB_API import *
+from .Utils.Absolute_Solver import Call_AS
 
 def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
@@ -68,17 +68,17 @@ def find_mc() -> tuple[str, str]:
             if not os.path.isdir(instance_dir):
                 continue
 
-            instance_path = os.path.join(folders, folder, f"{folder}.jar")
-
             jar_file = next((f for f in os.listdir(instance_dir) if f.endswith('.jar')), None)
-            if jar_file:
-                instance_path = os.path.join(instance_dir, jar_file)
-                version = mc_version_formatter(folder)
-                if version and os.path.isfile(instance_path):
-                    versions[version] = (jar_file, instance_dir)
-                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-                else:
-                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
+            if not jar_file:
+                continue
+
+            instance_path = os.path.join(instance_dir, jar_file)
+            version = mc_version_formatter(folder)
+            if version and os.path.isfile(instance_path):
+                versions[version] = (jar_file, instance_dir)
+                dprint(f"{instance_path} valid", is_deep=True, zone="rp")
+            else:
+                dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
     if versions:
         latest_version = max(versions, key=lambda x: LooseVersion(x))
@@ -96,7 +96,6 @@ def update_pack(pack: str, connection=None):
             pack_data = data.get(pack, {})
             pack_info = (pack_data.get("mc_version", "Unknown"), pack_data.get("pack_version", "Unknown"))
             link = pack_data.get("link")
-            type_ = pack_data.get("type", "Texture & PBR")
         
         if not link or "modrinth" not in link:
             return None
