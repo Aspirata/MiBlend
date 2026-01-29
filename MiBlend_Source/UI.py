@@ -1,4 +1,4 @@
-import bpy, os
+import bpy, os, traceback
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
 from .MIB_API import get_resource_path, get_pack_info_properties, blender_version
@@ -18,7 +18,6 @@ class WorldAndMaterialsPanel(Panel):
 
         scene = bpy.context.scene
 
-        global WProperties
         WProperties = scene.miblend_properties.world_properties
 
         global Preferences
@@ -43,9 +42,11 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
-        if Preferences.experimental_features:
-            row = box.row()
-            row.prop(WProperties, "remove_doubles")
+        row = box.row()
+        row.prop(WProperties, "remove_doubles")
+
+        row = box.row()
+        row.prop(WProperties, "force_shade_flat")
 
         row = box.row()
         row.prop(WProperties, "advanced_settings", toggle=True, icon=("TRIA_DOWN" if WProperties.advanced_settings else "TRIA_RIGHT"))
@@ -55,9 +56,6 @@ class WorldAndMaterialsPanel(Panel):
 
             row = sbox.row()
             row.prop(WProperties, "backface_culling")
-
-            row = sbox.row()
-            row.prop(WProperties, "force_shade_flat")
 
             row = sbox.row()
             row.prop(WProperties, "delete_useless_textures")
@@ -78,9 +76,9 @@ class WorldAndMaterialsPanel(Panel):
         #row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
             try:
-                resource_packs = get_resource_packs()
+                resource_packs: dict = get_resource_packs()
             except:
-                resource_packs = None
+                resource_packs = {}
 
             if not resource_packs:
                 row = sbox.row()

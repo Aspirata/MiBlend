@@ -199,7 +199,7 @@ class FixWorld():
                 self.apply_animated_texture_fix(current_material, pbsdf_node, image_texture_node, image)
     
     def apply_force_shading_flat(self):
-        if not self.world_properties.force_shade_flat or not self.is_experimental_features_enabled:
+        if not self.world_properties.force_shade_flat:
             return
 
         current_mode = bpy.context.object.mode
@@ -208,7 +208,7 @@ class FixWorld():
         bpy.ops.object.mode_set(mode=current_mode)
     
     def apply_remove_doubles(self):
-        if not self.world_properties.remove_doubles or not self.is_experimental_features_enabled:
+        if not self.world_properties.remove_doubles:
             return
 
         current_mode = bpy.context.object.mode
