@@ -62,7 +62,7 @@ def find_mc() -> tuple[str, str]:
         folders = Preferences.mc_instances_path if Preferences.mc_instances_path else os.path.join(os_env, path)
         if not os.path.isdir(folders):
             continue
-
+        
         for folder in os.listdir(folders):
             instance_dir = os.path.join(folders, folder)
             if not os.path.isdir(instance_dir):
@@ -83,7 +83,7 @@ def find_mc() -> tuple[str, str]:
     if versions:
         latest_version = max(versions, key=lambda x: LooseVersion(x))
         latest_file, latest_path = versions[latest_version]
-        return latest_version, os.path.join(instance_dir, jar_file)
+        return latest_version, latest_path
     
     return "", ""
 

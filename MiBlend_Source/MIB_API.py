@@ -75,6 +75,9 @@ def get_selected_asset() -> dict:
 def mc_version_formatter(version_name: str) -> str:
     try:
         version_parts = re.split(r'[ -]', version_name)
+        if "snapshot" in version_parts:
+            return ""
+
         for part in version_parts:
             if not any(char.isalpha() for char in part) and re.match(r'^\d{1,2}\.\d{1,2}(?:\.\d{1,2})?$', part):
                 return part
@@ -131,13 +134,22 @@ def get_pack_info_properties(pack_name: str = "") -> dict:
     if not os.path.exists(resource_packs_directory):
         return {}
     
-    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
-        data = json.load(file)
-        
-        if not pack_name:
-            return data.keys()
-        
-        return data.get(pack_name, {})
+    packs_info_path = os.path.join(resource_packs_directory, "packs_info.json")
+    try:
+        with open(packs_info_path, "r") as file:
+            data = json.load(file)
+            
+            if not pack_name:
+                return data.keys()
+            
+            return data.get(pack_name, {})
+    except FileNotFoundError:
+        with open(packs_info_path, "w") as file:
+            json.dump({}, file)
+        return {}
+    except:
+        Call_AS("n00", traceback.format_exc())
+        return {}
 
 def is_code_ignored(code: str) -> bool:
     return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()
