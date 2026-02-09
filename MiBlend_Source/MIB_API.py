@@ -26,32 +26,32 @@ def is_unix_system() -> bool:
 def clamp(min_value: int | float, value: int | float, max_value: int | float) -> int | float:
     return max(min_value, min(value, max_value))
 
-def dissolve_node(material, node, input_index=0):
-    if not node:
+def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str = 0):
+    if not node_to_dissolve:
         return
     
     node_tree = material.node_tree
     
     all_output_links = []
-    for output_socket in node.outputs:
+    for output_socket in node_to_dissolve.outputs:
         all_output_links.extend(list(output_socket.links))
     
     source_socket = None
-    if input_index < len(node.inputs) and node.inputs[input_index].is_linked:
-        source_socket = node.inputs[input_index].links[0].from_socket
+    if node_to_dissolve.inputs[node_to_dissolve_input].is_linked:
+        source_socket = node_to_dissolve.inputs[node_to_dissolve_input].links[0].from_socket
     
     if source_socket:
         for link in all_output_links:
             node_tree.links.new(source_socket, link.to_socket)
     
-    node_tree.nodes.remove(node)
+    node_tree.nodes.remove(node_to_dissolve)
 
-def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input: int | str = 0, node_to_inject_output: int | str = 0):
+def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input: int | str = 0, node_to_inject_input: int | str = 0, node_to_inject_output: int | str = 0):
     target_node_input_connection = GetConnectedSocketTo(target_node_input, target_node)
     if target_node_input_connection:
         if target_node_input_connection.node == node_to_inject:
             return
-        material.node_tree.links.new(target_node_input_connection, node_to_inject.inputs[node_to_inject_output])
+        material.node_tree.links.new(target_node_input_connection, node_to_inject.inputs[node_to_inject_input])
 
     material.node_tree.links.new(node_to_inject.outputs[node_to_inject_output], target_node.inputs[target_node_input])
 
