@@ -31,7 +31,7 @@ MiBlend создан, чтобы:
 
 Основные компоненты MiBlend, которые планируется завершить перед релизом:
 
-- [x] World Panel
+- [ ] World Panel
 - [ ] Procedural PBR Panel
 - [ ] Environment Panel
 - [ ] Assets

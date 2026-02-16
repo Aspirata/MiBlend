@@ -130,7 +130,7 @@ class FixWorld():
     def find_nodes_group_by_name(group_name, material):
         return next((node for node in material.node_tree.nodes if node.type == "GROUP" and group_name in node.node_tree.name), None)
 
-    @ Perf_Time
+    @Perf_Time
     def fix_world(self):
         for current_object in bpy.context.selected_objects:
             if not current_object.type == 'MESH':
@@ -153,7 +153,7 @@ class FixWorld():
                 if not current_material:
                     continue
 
-                # Remove after Blender 5.x support ends
+                # Remove after Blender 4.x support ends
                 if bpy.app.version < (5, 0, 0) and not current_material.use_nodes:
                     continue
 
