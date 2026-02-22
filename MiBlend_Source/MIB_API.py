@@ -467,20 +467,17 @@ def detect_world_exporter(world_obj: object) -> str:
     dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
     return exporter
 
-def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
+def separate_mesh_by_material(obj: object, material: object = None) -> object:
     try:
         obj_name = obj.name if obj.name.split('__')[0] else "World" + obj.name
         new_obj = None
 
-        # Ensure we're in object mode
-        if bpy.context.object.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # Early return if separation not needed
         if len(obj.material_slots) <= 1 or not obj.material_slots:
             return obj
 
-        # Setup selection
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
@@ -498,7 +495,6 @@ def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
             collection.objects.link(obj)
 
         if material:
-            # Separate specific material
             for i, mat in enumerate(obj.data.materials):
                 if mat == material:
                     bpy.context.object.active_material_index = i
@@ -512,19 +508,18 @@ def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
             # Find separated object
             new_obj = next((o for o in bpy.context.selected_objects if o != obj), None)
             if new_obj:
-                # Clean up original object
+                # Clean up and rename original object
                 bpy.context.view_layer.objects.active = obj
                 if not obj.name.startswith("Main | "):
                     obj.name = f"Main | {obj_name}"
                 bpy.ops.object.material_slot_remove()
 
-                # Setup new object
+                # Clean up and rename new object
                 bpy.context.view_layer.objects.active = new_obj
                 bpy.ops.object.material_slot_remove_unused()
                 new_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
 
         else:
-            # Separate all materials
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.separate(type="MATERIAL")
             bpy.ops.object.mode_set(mode='OBJECT')
@@ -537,11 +532,10 @@ def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
 
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.view_layer.update()
-        
         return new_obj
 
-    except Exception as error:
-        Call_AS("n00", str(error))
+    except Exception:
+        Call_AS("n00", traceback.format_exc())
         return None
 
 def Perf_Time(func):

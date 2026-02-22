@@ -29,7 +29,7 @@ def append_asset(asset_data):
         elif asset_type == "Material":
             append_material(asset_data)
         
-    except:
+    except Exception:
         Call_AS("e05", traceback.format_exc(), asset_name)
 
 def append_collection(asset_name, asset_collection, asset_path):
