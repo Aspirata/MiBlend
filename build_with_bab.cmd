@@ -1,3 +1,3 @@
 @echo off
-pip install bpy-addon-build psutil colorama
-python "scripts/build_universal.py"
+pip install bpy-addon-build psutil colorama || pause
+python "scripts/build_universal.py" || pause
