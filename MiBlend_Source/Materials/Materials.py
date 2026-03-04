@@ -208,7 +208,7 @@ class FixWorld():
         bpy.ops.object.mode_set(mode=current_mode)
     
     def apply_remove_doubles(self):
-        if not self.world_properties.remove_doubles:
+        if not self.world_properties.remove_doubles or not self.is_experimental_features_enabled:
             return
 
         current_mode = bpy.context.object.mode

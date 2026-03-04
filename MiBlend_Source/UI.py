@@ -42,8 +42,10 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
-        row = box.row()
-        row.prop(WProperties, "remove_doubles")
+        # Remove in v0.8
+        if Preferences.experimental_features:
+            row = box.row()
+            row.prop(WProperties, "remove_doubles")
 
         row = box.row()
         row.prop(WProperties, "force_shade_flat")
@@ -53,7 +55,6 @@ class WorldAndMaterialsPanel(Panel):
 
         if WProperties.advanced_settings:
             sbox = box.box()
-
             row = sbox.row()
             row.prop(WProperties, "backface_culling")
 
