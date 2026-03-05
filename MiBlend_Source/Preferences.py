@@ -1,4 +1,4 @@
-import bpy, sys, json
+import bpy, json, platform
 from typing import Union
 from pathlib import Path
 from bpy.types import AddonPreferences
@@ -243,7 +243,7 @@ class MiBlendPreferences(AddonPreferences):
             row = box.row()
             row.prop(self, "perf_time", toggle=True)
 
-            if not sys.platform.startswith('linux'):
+            if platform.system() == "Windows":
                 row = box.row()
                 row.prop(self, "open_console_on_start", toggle=True)
 

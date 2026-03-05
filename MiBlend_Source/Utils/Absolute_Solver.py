@@ -1,4 +1,4 @@
-import bpy, os, time, json, traceback
+import bpy, os, time, json, traceback, platform
 from ..Data import utils_directory
 
 
@@ -130,8 +130,10 @@ class AbsoluteSolverPanel(bpy.types.Operator):
 
             if error["Tech_Things"]:
                 sbox = box.box()
-                row = sbox.row()
-                row.operator("special.open_console")
+                
+                if platform.system() == "Windows":
+                    row = sbox.row()
+                    row.operator("special.open_console")
 
                 row = sbox.row()
                 copy_to_clipboard = row.operator("special.copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))

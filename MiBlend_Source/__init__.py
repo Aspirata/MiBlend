@@ -1,4 +1,4 @@
-import bpy, os
+import bpy, os, sys, platform
 from .Preferences import MiBlendPreferences
 from .MIB_API import dprint
 from .Data import materials_folder
@@ -69,7 +69,7 @@ def init_on_start():
 
         update_assets()
 
-        if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and not sys.platform.startswith('linux'):
+        if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and platform.platform() == "Windows":
             bpy.ops.wm.console_toggle()
     except:
         Call_AS("n00", traceback.format_exc())

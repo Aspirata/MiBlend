@@ -38,7 +38,7 @@ Launchers = {
 
     "Darwin": {
         "Mojang": "Library/Application Support/minecraft/versions",
-        "Prism Launcher": "Unknown",
+        "Prism Launcher": "Library/Application Support/PrismLauncher/libraries/com/mojang/minecraft",
         "New_Modrinth": "Library/Application Support/ModrinthApp/meta/versions",
         "Old_Modrinth": "Unknown",
         "TL Legacy": "Unknown",
@@ -54,9 +54,12 @@ def find_mc() -> tuple[str, str]:
     for launcher, path in Launchers.get(current_os).items():
         if path == "Unknown" and current_os != "Windows":
             os_apps_dir = "Library/Application Support" if current_os == "Darwin" else ".local/share"
-            guessed_path = os.path.join(os_env, os_apps_dir, Launchers.get("Windows").get(launcher))
+            guessed_path = os.path.join(os_env, os_apps_dir, Launchers.get("Windows").get(launcher).replace("\\", "/"))
+            print(f"Guessing {guessed_path}...")
             if not os.path.exists(guessed_path):
+                print(f"Cannot find {guessed_path}")
                 continue
+            print(f"Using {guessed_path}")
             path = guessed_path
 
         folders = Preferences.mc_instances_path if Preferences.mc_instances_path else os.path.join(os_env, path)
