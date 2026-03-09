@@ -43,7 +43,7 @@ def replace_materials():
                     selected_object.data.materials[slot] = appended_material
                     break
 
-class FixWorld():
+class FixWorld:
     def __init__(self):
         self.is_experimental_features_enabled = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.experimental_features
         self.is_show_warnings_enabled = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings
