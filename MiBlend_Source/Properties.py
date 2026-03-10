@@ -38,9 +38,10 @@ class WorldProperties(PropertyGroup):
         default=True
     )
 
+    # change to combine_texture_nodes_duplicates in v0.8 | 13.01.2026
     delete_useless_textures: BoolProperty(
-        name="Cleanup Texture Duplicates",
-        description="Merges Texture Nodes Duplicates",
+        name="Combine Texture Nodes Duplicates",
+        description="Combines Texture Nodes Duplicates",
         default=True
     )
 

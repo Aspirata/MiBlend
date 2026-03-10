@@ -1,0 +1,14 @@
+{
+    "Format_version": "10",
+    "Asset_name": "Alpha Faces Deleter",
+    "Blender_version": ">= 4.4.0",
+    "Author": "Anonim4k, Aspirata",
+    "File_path": "Nodes\\Geo Nodes\\Alpha Faces Deleter\\Alpha Faces Deleter",
+    "Node_name": "Alpha Faces Deleter",
+    "Solidify_property": true,
+    "Solidify Thickness_property": 0.05,
+    "Auto Detect Subdivision_property": false,
+    "Subdivision_property": 0,
+    "Append_mode": "Every Selected",
+    "Tags": ["Geo Node", "Node"]
+}

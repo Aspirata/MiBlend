@@ -1,31 +1,61 @@
 import bpy, os, json, time, sys, re, traceback
 from .Data import main_directory, nodes_file, Emissive_Materials, gray_blocks
 from .Utils.Absolute_Solver import Call_AS
-from typing import Union
 
 def PBSDF_compability(Input: str) -> str:
-    if bpy.app.version < (4, 0, 0):
-        return {
-            "Subsurface Weight": "Subsurface",
-            "Subsurface Radius": "Subsurface Color",
+    if bpy.app.version >= (4, 0, 0):
+        return Input
+    return {
+        "Subsurface Weight": "Subsurface",
+        "Subsurface Radius": "Subsurface Color",
 
-            "Specular IOR Level": "Specular",
+        "Specular IOR Level": "Specular",
 
-            "Transmission Weight": "Transmission",
+        "Transmission Weight": "Transmission",
 
-            "Coat Weight": "Coat",
-            "Sheen Weight": "Sheen",
+        "Coat Weight": "Coat",
+        "Sheen Weight": "Sheen",
 
-            "Emission Color": "Emission",
-        }.get(Input, Input)
-    return Input
+        "Emission Color": "Emission",
+    }.get(Input, Input)
+    
 
 def is_unix_system() -> bool:
     return "linux" in sys.platform or "darwin" in sys.platform
 
-def clamp(min_value: Union[int, float], value: Union[int, float], max_value: Union[int, float]) -> Union[int, float]:
+def clamp(min_value: int | float, value: int | float, max_value: int | float) -> int | float:
     return max(min_value, min(value, max_value))
 
+def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str = 0):
+    if not node_to_dissolve:
+        return
+    
+    node_tree = material.node_tree
+    
+    all_output_links = []
+    for output_socket in node_to_dissolve.outputs:
+        all_output_links.extend(list(output_socket.links))
+    
+    source_socket = None
+    if node_to_dissolve.inputs[node_to_dissolve_input].is_linked:
+        source_socket = node_to_dissolve.inputs[node_to_dissolve_input].links[0].from_socket
+    
+    if source_socket:
+        for link in all_output_links:
+            node_tree.links.new(source_socket, link.to_socket)
+    
+    node_tree.nodes.remove(node_to_dissolve)
+
+def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input: int | str = 0, node_to_inject_input: int | str = 0, node_to_inject_output: int | str = 0):
+    target_node_input_connection = GetConnectedSocketTo(target_node_input, target_node)
+    if target_node_input_connection:
+        if target_node_input_connection.node == node_to_inject:
+            return
+        material.node_tree.links.new(target_node_input_connection, node_to_inject.inputs[node_to_inject_input])
+
+    material.node_tree.links.new(node_to_inject.outputs[node_to_inject_output], target_node.inputs[target_node_input])
+
+# deprecated | 13.01.2026
 def is_mesh(object: object) -> bool:
     return object.type == "MESH"
 
@@ -42,14 +72,17 @@ def get_selected_asset() -> dict:
             Call_AS("n00", traceback.format_exc())
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
-def mc_version_formatter(version_name: str) -> str | None:
+def mc_version_formatter(version_name: str) -> str:
     try:
         version_parts = re.split(r'[ -]', version_name)
+        if "snapshot" in version_parts:
+            return ""
+
         for part in version_parts:
-            if not any(char.isalpha() for char in part) and re.match(r'^\d{1}\.\d{1,2}(?:\.\d{1,2})?$', part):
+            if not any(char.isalpha() for char in part) and re.match(r'^\d{1,2}\.\d{1,2}(?:\.\d{1,2})?$', part):
                 return part
-        return None
-    except Exception as error:
+        return ""
+    except:
         Call_AS("n00", traceback.format_exc())
 
 # Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
@@ -96,28 +129,27 @@ def get_resource_path() -> str:
     
     return resource_packs_directory
 
-def override_setting(setting_name: str, default_value: Union[str, bool, int, float]) -> Union[str, bool, int, float]:
-    settings_override_path = os.path.join(os.path.dirname(main_directory), "settings_override.json")
-    if os.path.exists(settings_override_path):
-        with open(settings_override_path, "r") as file:
-            data = json.load(file)
-            return data.get(setting_name, default_value)
-    
-    return default_value
-
-def get_pack_info_properties(pack: str =None) -> dict:
+def get_pack_info_properties(pack_name: str = "") -> dict:
     resource_packs_directory = get_resource_path()
     if not os.path.exists(resource_packs_directory):
         return {}
     
-    with open(os.path.join(resource_packs_directory, "packs_info.json"), "r") as file:
-        data = json.load(file)
-        
-        if pack is None:
-            return data.keys()
-        
-        return data.get(pack, {})
-    return pack_info
+    packs_info_path = os.path.join(resource_packs_directory, "packs_info.json")
+    try:
+        with open(packs_info_path, "r") as file:
+            data = json.load(file)
+            
+            if not pack_name:
+                return data.keys()
+            
+            return data.get(pack_name, {})
+    except FileNotFoundError:
+        with open(packs_info_path, "w") as file:
+            json.dump({}, file)
+        return {}
+    except:
+        Call_AS("n00", traceback.format_exc())
+        return {}
 
 def is_code_ignored(code: str) -> bool:
     return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()
@@ -317,7 +349,6 @@ def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
     return bool(result)
 
 def detect_texture_node(PBSDF: object) -> object:
-
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
         for input_name, input_socket in PBSDF.inputs.items():
@@ -436,20 +467,17 @@ def detect_world_exporter(world_obj: object) -> str:
     dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
     return exporter
 
-def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
+def separate_mesh_by_material(obj: object, material: object = None) -> object:
     try:
         obj_name = obj.name if obj.name.split('__')[0] else "World" + obj.name
         new_obj = None
 
-        # Ensure we're in object mode
-        if bpy.context.object.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # Early return if separation not needed
         if len(obj.material_slots) <= 1 or not obj.material_slots:
             return obj
 
-        # Setup selection
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
@@ -467,7 +495,6 @@ def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
             collection.objects.link(obj)
 
         if material:
-            # Separate specific material
             for i, mat in enumerate(obj.data.materials):
                 if mat == material:
                     bpy.context.object.active_material_index = i
@@ -481,19 +508,18 @@ def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
             # Find separated object
             new_obj = next((o for o in bpy.context.selected_objects if o != obj), None)
             if new_obj:
-                # Clean up original object
+                # Clean up and rename original object
                 bpy.context.view_layer.objects.active = obj
                 if not obj.name.startswith("Main | "):
                     obj.name = f"Main | {obj_name}"
                 bpy.ops.object.material_slot_remove()
 
-                # Setup new object
+                # Clean up and rename new object
                 bpy.context.view_layer.objects.active = new_obj
                 bpy.ops.object.material_slot_remove_unused()
                 new_obj.name = f"{material.name} | {obj_name.replace('Main | ', '')}"
 
         else:
-            # Separate all materials
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.separate(type="MATERIAL")
             bpy.ops.object.mode_set(mode='OBJECT')
@@ -506,11 +532,10 @@ def SeparateMeshByMaterial(obj: object, material: object = None) -> object:
 
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.view_layer.update()
-        
         return new_obj
 
-    except Exception as error:
-        Call_AS("n00", str(error))
+    except Exception:
+        Call_AS("n00", traceback.format_exc())
         return None
 
 def Perf_Time(func):
@@ -537,7 +562,7 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
     except Exception as error:
         Call_AS("n00", error)
 
-def GetConnectedSocketTo(input: Union[str, int], node: object) -> object | None:
+def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
     try:
         if isinstance(input, int):
             if input >= len(node.inputs):

@@ -2,7 +2,8 @@
 
 # MiBlend
 
-![GitHub downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)](https://github.com/Aspirata/MiBlend/releases)
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Kf4VsZQz22)
 
 > [!CAUTION]
 > **MiBlend** находится на стадии **бета-тестирования**. Возможны ошибки и частые изменения в ходе разработки.
@@ -26,6 +27,17 @@ MiBlend создан, чтобы:
 - устранить недостатки Mcprep
 - предоставить удобные инструменты для быстрого и качественного создания сцен
 
+## Roadmap до релиза
+
+Основные компоненты MiBlend, которые планируется завершить перед релизом:
+
+- [ ] World Panel
+- [ ] Procedural PBR Panel
+- [ ] Environment Panel
+- [ ] Assets
+- [ ] Materials Panel
+- [ ] Resource Packs Panel
+
 ## 📖 Документация
 
 Подробнее о MiBlend читайте на официальной [вики](https://docs.page/Aspirata/MiBlend).
@@ -35,7 +47,7 @@ MiBlend создан, чтобы:
 ## 🎬 Видеообзор
 
 **Отдельное спасибо [woodplank](https://www.youtube.com/@woodplank)** за обзор MiBlend!  
-Обратите внимание: ролик снят по версии **v0.4.0 M2** и **частично устарел**.
+Обратите внимание: ролик снят по версии **v0.4.0 M2** и **устарел**.
 
 ▶️ [Смотреть на YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
 
@@ -52,7 +64,7 @@ MiBlend создан, чтобы:
 ## 👥 Контрибуторы
 
 ### `ANONIM4IK (geo nodes fanboy)`  
-Alpha Selector, помощь с обновлением списков в Data.py, общая поддержка разработки  
+Alpha Selector, Alpha Faces Deleter, помощь с обновлением списков в Data.py, общая поддержка разработки  
 🔗 [X (Twitter)](https://x.com/ANONIM4IK3327?t=BAdb71fMQMT3UQj7Y7HL7Q&s=09) | [Hipolink](https://t.co/1nE0NRJUPV)
 
 ### `zipi.zip`  

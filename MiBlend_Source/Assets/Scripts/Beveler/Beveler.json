@@ -3,8 +3,9 @@
     "Author": "Aspirata",
     "Asset_name": "Beveler",
     "File_path": "Scripts\\Beveler\\Beveler",
+    "Fix UV_property": true,
     "Use Node_property": false,
-    "Amount_property": 0.01,
-    "Segments_property": 4,
+    "Amount/Radius_property": 0.01,
+    "Segments/Samples_property": 4,
     "Tags": ["Script"]
 }

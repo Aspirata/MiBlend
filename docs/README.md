@@ -2,7 +2,8 @@
 
 # MiBlend
 
-![GitHub downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)](https://github.com/Aspirata/MiBlend/releases)
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Kf4VsZQz22)
 
 > [!CAUTION]
 > **MiBlend** is currently in **beta**, so expect bugs and frequent changes during development.
@@ -25,6 +26,17 @@ MiBlend was created to:
 - fix shortcomings of Mcprep
 - provide convenient tools for fast and high-quality scene creation
 
+## Roadmap to Release
+
+The main MiBlend components planned to be completed before release:
+
+- [ ] World Panel
+- [ ] Procedural PBR Panel
+- [ ] Environment Panel
+- [ ] Assets
+- [ ] Materials Panel
+- [ ] Resource Packs Panel
+
 ## 📖 Documentation
 
 Learn more about MiBlend on the official [Wiki](https://docs.page/Aspirata/MiBlend).
@@ -34,7 +46,7 @@ Learn more about MiBlend on the official [Wiki](https://docs.page/Aspirata/MiBle
 ## 🎬 Video Showcase
 
 **Special thanks to [woodplank](https://www.youtube.com/@woodplank)** for the MiBlend video!  
-Note: the video covers **v0.4.0 M2** and is **partially outdated**.
+Note: the video covers **v0.4.0 M2** and is **outdated**.
 
 ▶️ [Watch on YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
 
@@ -51,7 +63,7 @@ If you want to help develop MiBlend — whether it’s **rigging**, **scripting*
 ## 👥 Contributors
 
 ### `ANONIM4IK (geo nodes fanboy)`  
-Alpha Selector, help with updating `Data.py` lists, general development support  
+Alpha Selector, Alpha Faces Deleter, help with updating `Data.py` lists, general development support  
 🔗 [X (Twitter)](https://x.com/ANONIM4IK3327?t=BAdb71fMQMT3UQj7Y7HL7Q&s=09) | [Hipolink](https://t.co/1nE0NRJUPV)
 
 ### `zipi.zip`  

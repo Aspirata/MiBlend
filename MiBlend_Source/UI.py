@@ -1,4 +1,4 @@
-import bpy, os
+import bpy, os, traceback
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
 from .MIB_API import get_resource_path, get_pack_info_properties, blender_version
@@ -18,7 +18,6 @@ class WorldAndMaterialsPanel(Panel):
 
         scene = bpy.context.scene
 
-        global WProperties
         WProperties = scene.miblend_properties.world_properties
 
         global Preferences
@@ -43,21 +42,21 @@ class WorldAndMaterialsPanel(Panel):
         row = box.row()
         row.prop(WProperties, "lazy_biome_fix")
 
+        # Remove in v0.8
         if Preferences.experimental_features:
             row = box.row()
             row.prop(WProperties, "remove_doubles")
+
+        row = box.row()
+        row.prop(WProperties, "force_shade_flat")
 
         row = box.row()
         row.prop(WProperties, "advanced_settings", toggle=True, icon=("TRIA_DOWN" if WProperties.advanced_settings else "TRIA_RIGHT"))
 
         if WProperties.advanced_settings:
             sbox = box.box()
-
             row = sbox.row()
             row.prop(WProperties, "backface_culling")
-
-            row = sbox.row()
-            row.prop(WProperties, "force_shade_flat")
 
             row = sbox.row()
             row.prop(WProperties, "delete_useless_textures")
@@ -78,9 +77,9 @@ class WorldAndMaterialsPanel(Panel):
         #row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
         if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
             try:
-                resource_packs = get_resource_packs()
+                resource_packs: dict = get_resource_packs()
             except:
-                resource_packs = None
+                resource_packs = {}
 
             if not resource_packs:
                 row = sbox.row()
@@ -93,9 +92,12 @@ class WorldAndMaterialsPanel(Panel):
                 for pack, pack_info in resource_packs.items():
                     row = tbox.row()
 
-                    icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
-                    toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
-                    toggle_op.pack_name = pack
+                    if os.path.exists(pack_info.get("path", "")):
+                        icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
+                        toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
+                        toggle_op.pack_name = pack
+                    else:
+                        row.label(text="", icon='ERROR')
 
                     pack_info_props = get_pack_info_properties(pack)
                     mc_version = pack_info_props.get('mc_version', '')
@@ -113,11 +115,12 @@ class WorldAndMaterialsPanel(Panel):
                         remove = buttons_row.operator("resource_pack.remove", text="", icon='X')
                         remove.pack_name = pack
                     
-                    move_up = buttons_row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
-                    move_up.pack_name = pack
+                    if os.path.exists(pack_info.get("path", "")):
+                        move_up = buttons_row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
+                        move_up.pack_name = pack
 
-                    move_down = buttons_row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
-                    move_down.pack_name = pack
+                        move_down = buttons_row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
+                        move_down.pack_name = pack
             
             row = sbox.row()
             row.operator("resource_pack.add", text="", icon='ADD')

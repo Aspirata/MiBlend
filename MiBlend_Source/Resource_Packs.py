@@ -1,10 +1,9 @@
-from .MIB_API import *
-from .Utils.Absolute_Solver import Call_AS
-import bpy, os, json, zipfile, shutil, re, http.client
+import bpy, os, json, zipfile, shutil, re, platform, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
-import platform
+from .MIB_API import *
+from .Utils.Absolute_Solver import Call_AS
 
 def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
@@ -39,7 +38,7 @@ Launchers = {
 
     "Darwin": {
         "Mojang": "Library/Application Support/minecraft/versions",
-        "Prism Launcher": "Unknown",
+        "Prism Launcher": "Library/Application Support/PrismLauncher/libraries/com/mojang/minecraft",
         "New_Modrinth": "Library/Application Support/ModrinthApp/meta/versions",
         "Old_Modrinth": "Unknown",
         "TL Legacy": "Unknown",
@@ -55,36 +54,39 @@ def find_mc() -> tuple[str, str]:
     for launcher, path in Launchers.get(current_os).items():
         if path == "Unknown" and current_os != "Windows":
             os_apps_dir = "Library/Application Support" if current_os == "Darwin" else ".local/share"
-            guessed_path = os.path.join(os_env, os_apps_dir, Launchers.get("Windows").get(launcher))
+            guessed_path = os.path.join(os_env, os_apps_dir, Launchers.get("Windows").get(launcher).replace("\\", "/"))
+            print(f"Guessing {guessed_path}...")
             if not os.path.exists(guessed_path):
+                print(f"Cannot find {guessed_path}")
                 continue
+            print(f"Using {guessed_path}")
             path = guessed_path
 
         folders = Preferences.mc_instances_path if Preferences.mc_instances_path else os.path.join(os_env, path)
         if not os.path.isdir(folders):
             continue
-
+        
         for folder in os.listdir(folders):
             instance_dir = os.path.join(folders, folder)
             if not os.path.isdir(instance_dir):
                 continue
 
-            instance_path = os.path.join(folders, folder, f"{folder}.jar")
-
             jar_file = next((f for f in os.listdir(instance_dir) if f.endswith('.jar')), None)
-            if jar_file:
-                instance_path = os.path.join(instance_dir, jar_file)
-                version = mc_version_formatter(folder)
-                if version and os.path.isfile(instance_path):
-                    versions[version] = (jar_file, instance_dir)
-                    dprint(f"{instance_path} valid", is_deep=True, zone="rp")
-                else:
-                    dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
+            if not jar_file:
+                continue
+
+            instance_path = os.path.join(instance_dir, jar_file)
+            version = mc_version_formatter(folder)
+            if version and os.path.isfile(instance_path):
+                versions[version] = (jar_file, instance_dir)
+                dprint(f"{instance_path} valid", is_deep=True, zone="rp")
+            else:
+                dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
     if versions:
         latest_version = max(versions, key=lambda x: LooseVersion(x))
         latest_file, latest_path = versions[latest_version]
-        return latest_version, os.path.join(instance_dir, jar_file)
+        return latest_version, latest_path
     
     return "", ""
 
@@ -97,7 +99,6 @@ def update_pack(pack: str, connection=None):
             pack_data = data.get(pack, {})
             pack_info = (pack_data.get("mc_version", "Unknown"), pack_data.get("pack_version", "Unknown"))
             link = pack_data.get("link")
-            type_ = pack_data.get("type", "Texture & PBR")
         
         if not link or "modrinth" not in link:
             return None
@@ -183,7 +184,7 @@ def update_default_pack():
         del resource_packs[pack]
     
     version, path = find_mc()
-    if version is not None and path is not None:
+    if version and path:
         default_pack = f"Minecraft {version}"
         default_path = os.path.join(resource_packs_directory, default_pack)
         resource_packs[default_pack] = {"path": path, "type": "Texture", "enabled": True, "is_default": True, "is_built_in": True}
@@ -804,6 +805,7 @@ def apply_resources():
             
             PBSDF = None
             image_texture_node = None
+            additional_texture_nodes = []
             image_path = None
             normal_texture_node = None
             normal_map_node = None
@@ -826,7 +828,6 @@ def apply_resources():
             nodes_list = get_nodes_list(material, True)
 
             for node in nodes_list:
-
                 if node.type == "BSDF_PRINCIPLED":
                     PBSDF = node
 
@@ -858,10 +859,22 @@ def apply_resources():
                     elif re.search(r'_e$', image_name):
                         emission_texture_node = node
                     else:
-                        image_texture_node = node
-                        image_texture = image_texture_node.image.name
+                        additional_texture_nodes.append(node)
+            
+            if ITexture_Animator:
+                image_texture_node = None
+            else:
+                image_texture_node = detect_texture_node(PBSDF)
+                
+                if image_texture_node:
+                    if image_texture_node in additional_texture_nodes:
+                        additional_texture_nodes.remove(image_texture_node)
+                    image_texture = image_texture_node.image.name
+                else:
+                    image_texture_node = None
+                    image_texture = None
 
-            if image_texture is None or image_texture_node is None:
+            if image_texture is None or (image_texture_node is None and ITexture_Animator is None):
                 dprint(f"{material} skipped, image or image node not found", is_deep=True, zone="rp")
                 continue
 
@@ -881,24 +894,29 @@ def apply_resources():
             else:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "Texture" not in Type:
+                    if not enabled or "Texture" not in Type or not os.path.exists(path):
                         continue
-                    
+
                     new_image_path = find_image(image_texture, path, obj_type, material.name)
 
                     if new_image_path is not None and os.path.isfile(new_image_path):
-                            
                         update_texture(new_image_path, image_texture)
-                        
                         animate_texture(image_texture_node, new_image_path, ITexture_Animator, Current_node_tree, object=selected_object)
                         image_path = new_image_path
+                        
+                        for additional_node in additional_texture_nodes:
+                            additional_texture_name = additional_node.image.name
+                            additional_path = find_image(additional_texture_name, path, obj_type, material.name)
+                            if additional_path is not None and os.path.isfile(additional_path):
+                                update_texture(additional_path, additional_texture_name)
+                        
                         break
 
             # Normal Texture Update
             if r_props.use_n and r_props.use_additional_textures:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "PBR" not in Type:
+                    if not enabled or "PBR" not in Type or not os.path.exists(path):
                         continue
 
                     if normal_texture_node is None:
@@ -935,7 +953,7 @@ def apply_resources():
             if r_props.use_s and r_props.use_additional_textures:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "PBR" not in Type:
+                    if not enabled or "PBR" not in Type or not os.path.exists(path):
                         continue
 
                     if specular_texture_change(path, specular_texture_node, LabPBR_s, new_normal_image_path, PBSDF, image_texture_node, image_texture, new_image_path, image_path):
@@ -961,7 +979,7 @@ def apply_resources():
             if r_props.use_e and r_props.use_additional_textures:
                 for pack, pack_info in resource_packs.items():
                     path, Type, enabled = pack_info["path"], pack_info["type"], pack_info["enabled"]
-                    if not enabled or "PBR" not in Type:
+                    if not enabled or "PBR" not in Type or not os.path.exists(path):
                         continue
                         
                     if emission_texture_node is None:

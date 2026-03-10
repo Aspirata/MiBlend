@@ -1,4 +1,5 @@
 import bpy
+
 mode = properties.get("Only Selected Objects", False)
 overblur = clamp(0.0, properties.get("Overblur", 20.0), 100.0)
 world_jitter = properties.get("World Jitter", False)

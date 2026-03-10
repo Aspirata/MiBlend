@@ -119,7 +119,7 @@ Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concr
 #
 
 gray_blocks = {
-    "vegetation" : ["grass ; side snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
+    "vegetation" : ["grass ; snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
     "redstone" : ["redstone ; torch", "dust"],
     "water" : ["water"]
 }
@@ -149,17 +149,6 @@ Emissive_Materials = {
         "Procedural Emission": {
             "Green": 0,
             "Blue": 0
-        }
-    },
-    "powered rail on": {
-        "Procedural Emission": {
-            "Red": 0,
-            "Blue": 0,
-            "From Min": 0.0,
-            "From Max": 0.0
-        },
-        "Procedural Animation": {
-            "Speed": 0.4
         }
     },
     "creaking heart active": {},

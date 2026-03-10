@@ -1,6 +1,15 @@
-import bpy, os, time, json, traceback
+import bpy, os, time, json, traceback, platform
 from ..Data import utils_directory
-from ..Utils.Translator import translate
+
+
+def translate(untranslated_string: str) -> str:
+    current_language = bpy.app.translations.locale
+
+    with open(os.path.join(utils_directory, "languages", f"{current_language}.json"), "r") as file:
+        translations_dict: dict[str, str] = json.load(file)
+
+    return translations_dict.get(untranslated_string, untranslated_string)
+
 
 def Call_AS(code: str, tech_things: str = "", data: str = ""):
     Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
@@ -65,6 +74,7 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
         Call_AS.last_call_time = current_time
         Call_AS.is_processing = False
 
+
 class AbsoluteSolverPanel(bpy.types.Operator):
     bl_label = "Absolute Solver"
     bl_idname = "special.absolute_solver"
@@ -120,8 +130,10 @@ class AbsoluteSolverPanel(bpy.types.Operator):
 
             if error["Tech_Things"]:
                 sbox = box.box()
-                row = sbox.row()
-                row.operator("special.open_console")
+                
+                if platform.system() == "Windows":
+                    row = sbox.row()
+                    row.operator("special.open_console")
 
                 row = sbox.row()
                 copy_to_clipboard = row.operator("special.copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
@@ -139,6 +151,7 @@ class AbsoluteSolverPanel(bpy.types.Operator):
 
     def execute(self, context):
         return {'FINISHED'}
+
 
 class AbsoluteSolverIgnore(bpy.types.Operator):
     bl_idname = "special.as_ignore"

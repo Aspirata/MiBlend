@@ -25,7 +25,7 @@ def VertexRiggingTool(vertex_group_name=None):
                     if modifier.type == 'LATTICE':
                         lattice_modifier = modifier
 
-                if lattice_modifier == None:
+                if not lattice_modifier:
                     lattice_modifier =  obj.modifiers.new(type='LATTICE', name="Lattice")
                 
                 lattice_modifier.object = bpy.context.scene.miblend_properties.utils_properties.lattice
@@ -39,7 +39,7 @@ def VertexRiggingTool(vertex_group_name=None):
                     if modifier.type == 'ARMATURE':
                         armature_modifier = modifier
 
-                if armature_modifier == None:
+                if not armature_modifier:
                     armature_modifier =  obj.modifiers.new(type='ARMATURE', name="Armature")
 
                 armature_modifier.object = bpy.context.scene.miblend_properties.utils_properties.armature
