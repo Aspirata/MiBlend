@@ -21,20 +21,12 @@
           "group": "ℹ️ Information",
           "pages": [
             {
-              "title": "🎉 Latest Update",
-              "href": "/en/last-update"
-            },
-            {
               "title": "❓ FAQ",
               "href": "/en/faq"
             },
             {
               "title": "💡 About MiBlend",
               "href": "/en/about"
-            },
-            {
-              "title": "🚀 Getting Started",
-              "href": "/en/getting-started"
             }
           ]
         },
@@ -80,10 +72,6 @@
           "group": "🤓 Developer Zone",
           "pages": [
             {
-              "title": "📖 UASv2 Documentation",
-              "href": "./en/genius-zone/uas-v2-docs"
-            },
-            {
               "title": "🔨 Branch Installation",
               "href": "./en/genius-zone/how-to-build"
             },
@@ -110,20 +98,12 @@
           "group": "ℹ️ Информация",
           "pages": [
             {
-              "title": "🎉 Последнее обновление",
-              "href": "/ru/last-update"
-            },
-            {
               "title": "❓ Частые вопросы (ЧАВО)",
               "href": "/ru/faq"
             },
             {
               "title": "💡 О MiBlend",
               "href": "/ru/about"
-            },
-            {
-              "title": "🚀 Начало работы",
-              "href": "/ru/getting-started"
             }
           ]
         },
@@ -169,11 +149,7 @@
           "group": "🤓 Зона для Гениев",
           "pages": [
             {
-              "title": "📖 Документация по UASv2",
-              "href": "./ru/genius-zone/uas-v2-docs"
-            },
-            {
-              "title": "🔨 Установка из бранча",
+              "title": "🔨 Установка бранча",
               "href": "./ru/genius-zone/how-to-build"
             },
             {
