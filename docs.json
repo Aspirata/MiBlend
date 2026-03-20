@@ -1,0 +1,168 @@
+{
+  "name": "MiBlend Wiki",
+  "sidebar": [
+    {
+      "group": "Main",
+      "pages": [
+        {
+          "title": "Welcome",
+          "href": "/"
+        }
+      ]
+    },
+    {
+      "group": "English",
+      "pages": [
+        {
+          "title": "🏠 Home Page",
+          "href": "/en/home"
+        },
+        {
+          "group": "ℹ️ Information",
+          "pages": [
+            {
+              "title": "❓ FAQ",
+              "href": "/en/faq"
+            },
+            {
+              "title": "💡 About MiBlend",
+              "href": "/en/about"
+            }
+          ]
+        },
+        {
+          "group": "🔗 Community & Resources",
+          "pages": [
+            {
+              "title": "GitHub",
+              "icon": "github",
+              "href": "https://github.com/Aspirata/MiBlend"
+            },
+            {
+              "title": "Discord",
+              "icon": "discord",
+              "href": "https://discord.gg/ahHRywSFH4"
+            },
+            {
+              "title": "YouTube",
+              "icon": "youtube",
+              "href": "https://www.youtube.com/@Aspirata1421"
+            },
+            {
+              "title": "Boosty",
+              "icon": "hand-holding-dollar",
+              "href": "https://boosty.to/aspirata_mc"
+            }
+          ]
+        },
+        {
+          "group": "🎨 MiBlend Panels Overview",
+          "pages": [
+            {
+              "title": "🌍 World & Materials",
+              "href": "./en/panels/world-materials-panel"
+            },
+            {
+              "title": "📦 Assets",
+              "href": "./en/panels/assets-panel"
+            }
+          ]
+        },
+        {
+          "group": "🤓 Developer Zone",
+          "pages": [
+            {
+              "title": "🔨 Branch Installation",
+              "href": "./en/genius-zone/how-to-build"
+            },
+            {
+              "title": "🛠️ Developer Tools",
+              "href": "./en/genius-zone/dev-tools"
+            },
+            {
+              "title": "🧪 Experimental Version Installation",
+              "href": "./en/genius-zone/how-to-install-e-branch"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Русский",
+      "pages": [
+        {
+          "title": "🏠 Домашняя страница",
+          "href": "/ru/home"
+        },
+        {
+          "group": "ℹ️ Информация",
+          "pages": [
+            {
+              "title": "❓ Частые вопросы (ЧАВО)",
+              "href": "/ru/faq"
+            },
+            {
+              "title": "💡 О MiBlend",
+              "href": "/ru/about"
+            }
+          ]
+        },
+        {
+          "group": "🔗 Сообщество и Ресурсы",
+          "pages": [
+            {
+              "title": "GitHub",
+              "icon": "github",
+              "href": "https://github.com/Aspirata/MiBlend"
+            },
+            {
+              "title": "Discord",
+              "icon": "discord",
+              "href": "https://discord.gg/ahHRywSFH4"
+            },
+            {
+              "title": "YouTube",
+              "icon": "youtube",
+              "href": "https://www.youtube.com/@Aspirata1421"
+            },
+            {
+              "title": "Boosty",
+              "icon": "hand-holding-dollar",
+              "href": "https://boosty.to/aspirata_mc"
+            }
+          ]
+        },
+        {
+          "group": "🎨 Обзор Панелей MiBlend",
+          "pages": [
+            {
+              "title": "🌍 World & Materials",
+              "href": "./ru/panels/world-materials-panel"
+            },
+            {
+              "title": "📦 Assets",
+              "href": "./ru/panels/assets-panel"
+            }
+          ]
+        },
+        {
+          "group": "🤓 Зона для Гениев",
+          "pages": [
+            {
+              "title": "🔨 Установка бранча",
+              "href": "./ru/genius-zone/how-to-build"
+            },
+            {
+              "title": "🛠️ Инструменты разработчика",
+              "href": "./ru/genius-zone/dev-tools"
+            },
+            {
+              "title": "🧪 Установка эксп. версии",
+              "href": "./ru/genius-zone/how-to-install-e-branch"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

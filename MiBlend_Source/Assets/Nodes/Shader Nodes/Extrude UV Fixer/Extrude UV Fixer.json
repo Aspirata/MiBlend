@@ -1,0 +1,9 @@
+{
+    "Format_version": "10",
+    "Asset_name": "Extrude UV Fixer",
+    "Author": "Anonim4k, Aspirata",
+    "File_path": "Nodes\\Shader Nodes\\Extrude UV Fixer\\Extrude UV Fixer",
+    "Node_name": "Extrude UV Fixer",
+    "Append_mode": "Every Selected",
+    "Tags": ["Shader Node", "Node"]
+}

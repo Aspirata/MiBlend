@@ -1,0 +1,86 @@
+---
+title: About MiBlend
+description: Detailed information about MiBlend, its releases, versioning system, and compatibility.
+---
+
+---
+
+# 📌 Release Plan
+The current plan for upcoming hard updates and current progress is available in the [**GitHub Projects**](https://github.com/Aspirata/MiBlend/projects).
+If you're interested in changes planned for soft updates or more distant versions, check the [**milestones**](https://github.com/Aspirata/MiBlend/milestones).
+
+## 🔬 Experimental Builds
+All commits from the experimental branch of MiBlend are automatically [**published on GitHub**](https://github.com/Aspirata/MiBlend/actions) as ready-to-use add-ons.
+
+<Warning>
+    **Important!** These versions may contain **critical bugs** and can potentially cause serious damage to your project. They are recommended **only for testing and research purposes**. 
+    You can learn how to install experimental builds in the [guide](en/genius-zone/how-to-install-e-branch).
+</Warning>
+
+The add-on information always shows a warning about its experimental status and the build date.
+
+## 🚀 Milestones
+Development of updates is divided into milestones.
+A **Milestone** is a more stable version of an experimental build. It may still contain bugs and imperfections, but there are **significantly fewer** of them than in experimental builds.
+
+Milestones can have letter indices, for example: **Milestone 3A (M3A), Milestone 3B (M3B)** and so on. These intermediate updates do not include anything major other than bug fixes and minor improvements.
+
+---
+
+# 🔢 Version Numbering and Naming
+## 📛 Version Name Formation
+Hard updates are named after **animals** depending on their **main theme or key functionality**. 
+Soft updates are named after the species of the animal from the corresponding hard update.
+
+## 📌 Numbering System
+MiBlend versions are numbered according to the standard scheme **`x.y.z`**, where:
+* `x` — **global update** number.
+* `y` — **hard update** number that breaks compatibility with previous versions of MiBlend.
+* `z` — **soft update** number with changes that are fully compatible with previous versions of MiBlend.
+
+## 🔠 Version Indices
+Additionally, letter indices may appear in the version name, indicating the type of changes:
+* **F** (Fix) — **Bug fixes**.
+* **S** — **Minor changes**.
+
+---
+
+# 🔄 Compatibility
+## 🛠 Supported Blender Versions
+MiBlend **works with all Blender versions**, starting from the oldest **updatable LTS** (currently Blender 3.6 LTS).
+However, some functions and assets may be missing in older versions due to Blender limitations.
+
+### Supported Versions:
+* **3.6 LTS** 🟡
+* **4.0** 🟡
+* **4.1** 🟡
+* **4.2 LTS** 🟢
+* **4.3** 🟢
+* **4.4** 🟢
+* **4.5 LTS** 🟢
+* **5.0** 🟢
+* **5.1** 🟢
+* **5.2** 🟢
+
+ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Supported but with limitations**.
+
+## 🌍 World Exporter Support
+**jmc2obj** shows the best compatibility because it minimally changes textures and their names, and also provides more information for more correct operation. 
+MiEx does not require MiBlend or Mcprep as it uses .usd format.
+
+### List of Supported Exporters:
+* **Mineways** 🟡
+* **jmc2obj** 🟢
+* **MiEx** 🔴
+
+ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Partial support**, 🔴 — **Not supported**.
+
+## 🖥 Supported Operating Systems
+Development and testing are done on Windows 11 and Intel MacBook.
+
+### List of OS:
+* **Windows** 🟢
+* **MacOS** 🟢
+* **Linux** 🟡
+
+ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Possible issues**.

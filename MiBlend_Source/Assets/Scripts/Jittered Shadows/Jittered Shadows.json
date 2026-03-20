@@ -1,0 +1,11 @@
+{
+    "Format_version": "10",
+    "Blender_version": ">= 4.2.0",
+    "Asset_name": "Jittered Shadows",
+    "Author": "Aspirata",
+    "File_path": "Scripts\\Jittered Shadows\\Jittered Shadows",
+    "Only Selected Objects_property": false,
+    "World Jitter_property": true,
+    "Overblur_property": 20.0,
+    "Tags": ["Script"]
+}

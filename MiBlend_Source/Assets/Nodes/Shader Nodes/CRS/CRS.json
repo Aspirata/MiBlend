@@ -1,0 +1,9 @@
+{
+    "Format_version": "10",
+    "Asset_name": "Camera Ray Separator",
+    "Author": "Aspirata",
+    "File_path": "Nodes\\Shader Nodes\\CRS\\CRS",
+    "Node_name": "Camera Ray Separator",
+    "Append_mode": "Active Only",
+    "Tags": ["Shader Node", "Node"]
+}
