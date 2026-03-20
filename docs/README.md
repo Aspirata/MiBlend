@@ -4,6 +4,7 @@
 
 [![GitHub Downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)](https://github.com/Aspirata/MiBlend/releases)
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Kf4VsZQz22)
+[![License](https://img.shields.io/badge/License-GPLv3-orange.svg)](./LICENSE)
 
 > [!CAUTION]
 > **MiBlend** is currently in **beta**, so expect bugs and frequent changes during development.
