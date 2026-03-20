@@ -1,5 +1,4 @@
 import bpy, os, json
-from .MIB_API import blender_version
 from .Data import Render_Settings, assets_directory
 from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty, PointerProperty, CollectionProperty
@@ -410,7 +409,7 @@ class PPBRProperties(PropertyGroup):
 
     connect_texture: BoolProperty(
         name="Connect Texture To The Radius",
-        default=blender_version("< 4.0.0")
+        default=bpy.app.version < (4, 0, 0)
     )
 
     sss_weight: FloatProperty(
