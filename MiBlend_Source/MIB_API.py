@@ -591,27 +591,3 @@ def RemoveLinksFrom(sockets: object):
     except:
         for link in sockets.links:
             sockets.node.id_data.links.remove(link)
-
-def blender_version(blender_version: str) -> bool:
-    try:
-        version_parts = blender_version.split(" ")
-        if len(blender_version.split()) != 1:
-            operator = version_parts[0]
-            major, minor, patch = version_parts[1].lower().split(".")
-            version = (int(major), int(minor), int(patch))
-            return {
-                '<': bpy.app.version < version,
-                '<=': bpy.app.version <= version,
-                '>': bpy.app.version > version,
-                '>=': bpy.app.version >= version,
-                '==': bpy.app.version == version,
-            }.get(operator, False)
-        else:
-            version_parts = blender_version.lower().split(".")
-            major, minor, patch = version_parts
-            major_c = bpy.app.version[0] == int(major) if major != "x" else True
-            minor_c = bpy.app.version[1] == int(minor) if minor != "x" else True
-            patch_c = bpy.app.version[2] == int(patch) if patch != "x" else True
-            return major_c and minor_c and patch_c
-    except ValueError:
-        return False

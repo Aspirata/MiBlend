@@ -1,7 +1,7 @@
 import bpy, os, traceback
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
-from .MIB_API import get_resource_path, get_pack_info_properties, blender_version
+from .MIB_API import get_resource_path, get_pack_info_properties
 from .Data import world_material_name
 
 Big_Button_Scale = 1.4
@@ -999,6 +999,22 @@ class AssetPanel(Panel):
 
 class Assets_List_UL_(bpy.types.UIList):
 
+    def blender_version(blender_version: str) -> bool:
+        try:
+            version_parts = blender_version.split(" ")
+            operator = version_parts[0]
+            major, minor, patch = version_parts[1].lower().split(".")
+            version = (int(major), int(minor), int(patch))
+            return {
+                '<': bpy.app.version < version,
+                '<=': bpy.app.version <= version,
+                '>': bpy.app.version > version,
+                '>=': bpy.app.version >= version,
+                '==': bpy.app.version == version,
+            }.get(operator, False)
+        except ValueError:
+            return False
+
     def get_custom_icon(self, item):
         asset_type = item.get("Type", "")
         return {
@@ -1030,7 +1046,7 @@ class Assets_List_UL_(bpy.types.UIList):
             matches_name = True if not self.filter_name else self.filter_name.lower() in item.get('Asset_name').lower()
             
             # Check version compatibility 
-            matches_version = blender_version(item.get('Blender_version', "x.x.x")) or not filter_by_version
+            matches_version = self.blender_version(item.get('Blender_version', "4.2.0")) or not filter_by_version
             
             # Item passes if it matches all enabled filters
             if ((not selected_tags or matches_tags) and matches_name and matches_version):
