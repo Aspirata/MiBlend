@@ -2,7 +2,7 @@ import bpy, json, platform
 from typing import Union
 from pathlib import Path
 from bpy.types import AddonPreferences
-from .MIB_API import blender_version, main_directory
+from .MIB_API import main_directory
 from bpy.props import IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty
 
 class MiBlendPreferences(AddonPreferences):
@@ -46,7 +46,7 @@ class MiBlendPreferences(AddonPreferences):
 
     @staticmethod
     def emissiondetectionfix():
-        return 'Manual' if blender_version("3.6.x") else 'Combined'
+        return 'Manual' if bpy.app.version < (4, 0, 0) else 'Combined'
 
     emissiondetection: EnumProperty(
         items=[('Automatic', 'Automatic', 'Uses a Material-based method of Defining Emissive Blocks'), 
@@ -164,7 +164,7 @@ class MiBlendPreferences(AddonPreferences):
         row = box.row()
         row.label(text="UI:")                                                          # UI
 
-        if blender_version(">= 4.1.0"):
+        if bpy.app.version >= (4, 1, 0):
             row = box.row()
             row.prop(self, "transparent_ui")
         else:
