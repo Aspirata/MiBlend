@@ -1,4 +1,4 @@
-import bpy, os, sys, platform
+import bpy, os, platform
 from .Preferences import MiBlendPreferences
 from .MIB_API import dprint
 from .Data import materials_folder
@@ -10,17 +10,6 @@ from .Utils.AS_Solutions import *
 from .Operators import *
 from .Properties import *
 from bpy.app.handlers import persistent
-
-bl_info = {
-    "name": "MiBlend",
-    "author": "Aspirata",
-    "version": (0, 7, 2),
-    "blender": (3, 6, 0),
-    "doc_url": "https://docs.page/Aspirata/MiBlend",
-    "tracker_url": "https://github.com/Aspirata/MiBlend/issues",
-    "location": "View3D > Addons Tab",
-    "description": "A useful tool for creating minecraft content in blender",
-}
 
 def init_on_start():
     try:
