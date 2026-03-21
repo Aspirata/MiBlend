@@ -12,7 +12,8 @@ def translate(untranslated_string: str) -> str:
 
 
 def Call_AS(code: str, tech_things: str = "", data: str = ""):
-    Preferences = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+    from ..MIB_API import get_preferencies
+    Preferences = get_preferencies()
     
     if not hasattr(Call_AS, 'call_queue'):
         Call_AS.call_queue = []

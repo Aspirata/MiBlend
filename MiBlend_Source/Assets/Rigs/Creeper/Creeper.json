@@ -2,7 +2,7 @@
     "Format_version": "11",
     "Asset_name": "Creeper",
     "Author": "zipi.zip",
-    "Blender_version": "4.x.x",
+    "Blender_version": ">= 4.0.0",
     "File_path": "Rigs\\Creeper\\Creeper",
     "Collection_name": "Creeper",
     "Tags": ["Rig", "Simple"]

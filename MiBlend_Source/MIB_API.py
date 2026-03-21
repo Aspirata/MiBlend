@@ -23,8 +23,13 @@ def PBSDF_compability(Input: str) -> str:
 def is_unix_system() -> bool:
     return "linux" in sys.platform or "darwin" in sys.platform
 
+
+def get_preferencies() -> bpy.types.AddonPreferences:
+    return bpy.context.preferences.addons[__package__].preferences
+
 def clamp(min_value: int | float, value: int | float, max_value: int | float) -> int | float:
     return max(min_value, min(value, max_value))
+
 
 def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str = 0):
     if not node_to_dissolve:
@@ -46,6 +51,7 @@ def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str 
     
     node_tree.nodes.remove(node_to_dissolve)
 
+
 def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input: int | str = 0, node_to_inject_input: int | str = 0, node_to_inject_output: int | str = 0):
     target_node_input_connection = GetConnectedSocketTo(target_node_input, target_node)
     if target_node_input_connection:
@@ -55,9 +61,11 @@ def inject_node(material: str, node_to_inject: object, target_node: object, targ
 
     material.node_tree.links.new(node_to_inject.outputs[node_to_inject_output], target_node.inputs[target_node_input])
 
+
 # deprecated | 13.01.2026
 def is_mesh(object: object) -> bool:
     return object.type == "MESH"
+
 
 def get_selected_asset() -> dict:
     current_index = bpy.context.scene.miblend_properties.assets_properties.asset_index
@@ -70,6 +78,7 @@ def get_selected_asset() -> dict:
             Call_AS("e08", traceback.format_exc())
         else:
             Call_AS("n00", traceback.format_exc())
+
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
 def mc_version_formatter(version_name: str) -> str:
@@ -84,6 +93,7 @@ def mc_version_formatter(version_name: str) -> str:
         return ""
     except:
         Call_AS("n00", traceback.format_exc())
+
 
 # Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
 # Array filters: " ; " - not, " " - and
@@ -120,6 +130,7 @@ def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="
     dprint(f"Keyword: None in {name}", is_deep=True)
     return (False, None)
 
+
 def get_resource_path() -> str:
     Preferences = bpy.context.preferences.addons[__package__].preferences
     if Preferences.dev_tools and os.path.exists(Preferences.dev_packs_path) and Preferences.enable_custom_packs_path:
@@ -128,6 +139,7 @@ def get_resource_path() -> str:
         resource_packs_directory = os.path.join(main_directory, "Resource Packs")
     
     return resource_packs_directory
+
 
 def get_pack_info_properties(pack_name: str = "") -> dict:
     resource_packs_directory = get_resource_path()
@@ -154,6 +166,7 @@ def get_pack_info_properties(pack_name: str = "") -> dict:
 def is_code_ignored(code: str) -> bool:
     return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()
 
+
 def EmissionMode(PBSDF: object, texture_name: str) -> int:
 
     Preferences = bpy.context.preferences.addons[__package__].preferences
@@ -168,6 +181,7 @@ def EmissionMode(PBSDF: object, texture_name: str) -> int:
         return 3
     
     return 0
+
 
 def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file) -> object:
     # Check if modifier already exists
@@ -204,6 +218,7 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
     
     return modifier
 
+
 def get_collections(data: object = None) -> list:
     collections_list = []
 
@@ -219,6 +234,7 @@ def get_collections(data: object = None) -> list:
         add_collection(collection)
 
     return collections_list
+
 
 def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="") -> object:
     # Check for existing node group if requested
@@ -244,6 +260,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
     group_node.location = location
 
     return group_node
+
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     obj = bpy.data.objects.get(obj_name)
@@ -271,17 +288,20 @@ def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     dprint(f"{obj_name}; {mat_name} is unknown", is_deep=True, zone="rp")
     return "unknown"
 
+
 def format_texture_name(texture_name: str, split: bool =True) -> str:
     if split:
         return format_duplicate_name(texture_name).replace(".png", "").lower().replace("-", "_").split("_")
     else:
         return format_duplicate_name(texture_name).replace(".png", "").lower().replace("-", "_")
 
+
 def format_material_name(material_name: str, split: bool =True) -> str:
     if split:
         return format_duplicate_name(material_name).lower().replace("-", "_").split("_")
     else:
         return format_duplicate_name(material_name).lower().replace("-", "_")
+
 
 def find_node(place: object, type_or_node_group_name: str) -> object | None:
     nodes_list = place.node_tree.nodes
@@ -291,6 +311,7 @@ def find_node(place: object, type_or_node_group_name: str) -> object | None:
         matching_node = next((node for node in nodes_list if node.type == "GROUP" and node.node_tree.name == type_or_node_group_name), None)
     
     return matching_node
+
 
 def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool =False):
     try:
@@ -311,6 +332,7 @@ def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool
     except Exception as e:
         print(f"Debug print error: {str(e)}")
 
+
 def isduplicate(text: str, original_text: str=None) -> bool:
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
@@ -320,6 +342,7 @@ def isduplicate(text: str, original_text: str=None) -> bool:
         
         return base_text == original_text
     return False
+
 
 def format_duplicate_name(text: str, original_text: str=None) -> str:
     parts = text.split(".")
@@ -331,6 +354,7 @@ def format_duplicate_name(text: str, original_text: str=None) -> str:
         if base_text == original_text:
             return base_text
     return text
+
 
 def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
     #dprint(f'{format_material_name(name)} vegetation: {name_in(gray_blocks.get("vegetation"), name, not is_material)} \nrednstone: {name_in(gray_blocks.get("redstone"), name, not is_material)} \nwater: {name_in(gray_blocks.get("water"), name, not is_material)}', is_deep=True, zone="fw")
@@ -347,6 +371,7 @@ def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
         result = name_in(gray_blocks.get("water"), name, not is_material)[0]
     
     return bool(result)
+
 
 def detect_texture_node(PBSDF: object) -> object:
     def get_all_linked_nodes(PBSDF):
@@ -389,7 +414,8 @@ def detect_texture_node(PBSDF: object) -> object:
                 
         if n.type == "TEX_IMAGE" and n.image:
             return n
-        
+
+
 def get_nodes_list(material_or_node_group: object, is_recursive: bool =False) -> list:
     nodes_list = []
     
@@ -402,9 +428,9 @@ def get_nodes_list(material_or_node_group: object, is_recursive: bool =False) ->
             nodes_list.extend(get_nodes_list(node))
 
     return nodes_list
-        
-def detect_image_texture(PBSDF: object) -> object:
 
+
+def detect_image_texture(PBSDF: object) -> object:
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
         for input_name, input_socket in PBSDF.inputs.items():
@@ -446,6 +472,7 @@ def detect_image_texture(PBSDF: object) -> object:
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
 
+
 def detect_world_exporter(world_obj: object) -> str:
     exporter = "unknown"
 
@@ -466,6 +493,7 @@ def detect_world_exporter(world_obj: object) -> str:
     
     dprint(f"Detected {exporter} exporter for {world_obj.name}", is_deep=True)
     return exporter
+
 
 def separate_mesh_by_material(obj: object, material: object = None) -> object:
     try:
@@ -538,6 +566,7 @@ def separate_mesh_by_material(obj: object, material: object = None) -> object:
         Call_AS("n00", traceback.format_exc())
         return None
 
+
 def Perf_Time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -547,6 +576,7 @@ def Perf_Time(func):
         if elapsed_time > 0.001 and bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.perf_time:
             dprint(f"{func.__name__}() took {end_time - start_time:.4f} seconds to complete.")
     return wrapper
+
 
 def GetConnectedSocketFrom(output: str, node: object) -> list:
     try:
@@ -561,6 +591,7 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
         return [link.to_socket for link in output_socket.links]
     except Exception as error:
         Call_AS("n00", error)
+
 
 def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
     try:
@@ -582,6 +613,7 @@ def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
         return link.from_socket
     except Exception as error:
         Call_AS("n00", error)
+
 
 def RemoveLinksFrom(sockets: object):
     try:

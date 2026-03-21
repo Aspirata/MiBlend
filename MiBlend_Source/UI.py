@@ -1,7 +1,7 @@
 import bpy, os, traceback
 from bpy.types import Panel
 from .Resource_Packs import get_resource_packs
-from .MIB_API import get_resource_path, get_pack_info_properties
+from .MIB_API import get_resource_path, get_pack_info_properties, dprint
 from .Data import world_material_name
 
 Big_Button_Scale = 1.4
@@ -880,7 +880,7 @@ class AssetPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        prefs = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+        prefs = bpy.context.preferences.addons[__package__].preferences
         assets_props = bpy.context.scene.miblend_properties.assets_properties
         current_index = assets_props.asset_index
         items = assets_props.asset_items
@@ -902,6 +902,8 @@ class AssetPanel(Panel):
         row = sbox.row()
         if not assets_props.asset_items:
             row.label(text="No assets found, reload assets list", icon="ERROR")
+            row.operator("assets.update_assets", icon="FILE_REFRESH")
+            return
         else:
             row.template_list("Assets_List_UL_", "", assets_props, "asset_items", assets_props, "asset_index")
 
@@ -918,7 +920,6 @@ class AssetPanel(Panel):
         row.operator("assets.update_assets", icon="FILE_REFRESH")
 
         if current_asset and current_asset.get("has_properties", False):
-            
             properties = {key.replace('_property', ''): value for key, value in current_asset.items() if 'property' in key}
 
             sbox = box.box()
@@ -999,6 +1000,7 @@ class AssetPanel(Panel):
 
 class Assets_List_UL_(bpy.types.UIList):
 
+    @staticmethod
     def blender_version(blender_version: str) -> bool:
         try:
             version_parts = blender_version.split(" ")
@@ -1015,7 +1017,8 @@ class Assets_List_UL_(bpy.types.UIList):
         except ValueError:
             return False
 
-    def get_custom_icon(self, item):
+    @staticmethod
+    def get_custom_icon(item):
         asset_type = item.get("Type", "")
         return {
             "Rig": "ARMATURE_DATA",
@@ -1045,8 +1048,9 @@ class Assets_List_UL_(bpy.types.UIList):
             # Check if name matches filter (only if filter is not empty)
             matches_name = True if not self.filter_name else self.filter_name.lower() in item.get('Asset_name').lower()
             
-            # Check version compatibility 
-            matches_version = self.blender_version(item.get('Blender_version', "4.2.0")) or not filter_by_version
+            # Check version compatibility
+            dprint(item.get('Asset_name'), item.get('Blender_version', ">= 4.2.0"), item.get('File_path'), is_deep=True, zone="ui")
+            matches_version = self.blender_version(item.get('Blender_version', ">= 4.2.0")) or not filter_by_version
             
             # Item passes if it matches all enabled filters
             if ((not selected_tags or matches_tags) and matches_name and matches_version):
@@ -1073,7 +1077,7 @@ class DebugPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        prefs = bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences
+        prefs = bpy.context.preferences.addons[__package__].preferences
         
         if prefs.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}

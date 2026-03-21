@@ -782,7 +782,7 @@ class TriggerASErrorOperator(Operator):
     def execute(self, context):
         if "e-1" in context.scene.miblend_properties.absolute_solver_properties.ignored_codes:
             self.report({'ERROR'}, "You're ignoring this error dumbass")
-        elif not bpy.context.preferences.addons[str(__package__).split(".")[0]].preferences.show_warnings:
+        elif not bpy.context.preferences.addons[__package__].preferences.show_warnings:
             self.report({'ERROR'}, "You can't see warnings because you've disabled them dumbass")
         else:
             Call_AS("e-1")
