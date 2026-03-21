@@ -34,7 +34,7 @@ def init_on_start():
 
         old_components_dict = dict(mib_options.get("components_vesion", {}))
         new_components_dict = {
-            "MiBlend": "Butterfly",
+            "MiBlend": "Snake",
             "UAS": "v2.1.4",
         }
         

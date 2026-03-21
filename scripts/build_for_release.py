@@ -3,7 +3,7 @@ import shutil
 from typing import Optional
 
 # Constants
-MILESTONE_INDEX_LINE = 48
+MILESTONE_INDEX_LINE = 37
 
 def archive_folder(folder_name: str, output_archive_name: str, build_name: str, build_type: str) -> Optional[str]:
     """
@@ -44,7 +44,6 @@ def archive_folder(folder_name: str, output_archive_name: str, build_name: str, 
             lines = init_file.readlines()
             
             if build_type == "m":
-                lines.insert(16, f'    "warning": "This is Milestone {build_name}",\n')
                 lines.insert(MILESTONE_INDEX_LINE, f'            "Milestone": "{build_name}",\n')
             elif build_type == "i":
                 lines.insert(MILESTONE_INDEX_LINE, f'            "Index": "{build_name.capitalize()}",\n')
