@@ -35,7 +35,7 @@
         "04": 
         {
             "Name": "Legacy Component",
-            "Description": "{Data}. Some features may not work correctly.",
+            "Description": "This .blend file was made with an older verion of MiBlend. {Data}. Some features may not work correctly.",
             "Solutions": "as_solutions.fix_compatibility; "
         }
     },

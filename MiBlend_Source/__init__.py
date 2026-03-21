@@ -35,16 +35,13 @@ def init_on_start():
         old_components_dict = dict(mib_options.get("components_vesion", {}))
         new_components_dict = {
             "MiBlend": "Snake",
-            "UAS": "v2.1.4",
         }
         
-        for component, component_version in old_components_dict.items():
-            if component in ["Absolute Solver", "Index", "Milestone"]:
-                continue
-                
-            if component not in new_components_dict or component_version != new_components_dict.get(component):
-                Call_AS("w04", data=f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
-                dprint(f"Component: {component} is outdated ({component_version} -> {new_components_dict.get(component)})")
+        new_miblend_hard_version_name = new_components_dict.get("MiBlend", "Snake")
+        old_miblend_hard_version_name = old_components_dict.get("MiBlend", "")
+        if old_miblend_hard_version_name != new_miblend_hard_version_name:
+            Call_AS("w04", data=f'Component: "MiBlend" ({old_miblend_hard_version_name} -> {new_miblend_hard_version_name})')
+            dprint(f'Component: "MiBlend" ({old_miblend_hard_version_name} -> {new_miblend_hard_version_name})')
 
         # Pre-0.7.0 properties cleanup
         for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties"]:
