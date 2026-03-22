@@ -28,38 +28,42 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
         Call_AS.is_processing = True
 
         call_data = {}
+        width = 600
         try:
             with open(os.path.join(utils_directory, "absolute_solver_list.json"), "r") as file:
                 data_json = json.load(file)
                 critical_error_name = data_json.get("errors", {}).get("00", {}).get("Name", "Critical Error")
                 critical_error_description = translate(data_json.get("errors", {}).get("00", {}).get("Description", "Unknown error occurred: {Data}"))
 
-                for code, d in Call_AS.call_queue:
+                for code, Data in Call_AS.call_queue:
                     if code in call_data or code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split():
                         continue
                     
-                    type = code[0]
-                    number = str(code[1:])
+                    trigger_type = code[0]
+                    trigger_number = code[1:]
                     
-                    if type == "w":
+                    if trigger_type == "w":
                         if not Preferences.show_warnings:
                             continue
-                        name = data_json.get("warnings", {}).get(number, {}).get("Name")
-                        description = data_json.get("warnings", {}).get(number, {}).get("Description")
-                        solutions = data_json.get("warnings", {}).get(number, {}).get("Solutions", "")
-                    elif type == "e":
-                        name = data_json.get("errors", {}).get(number, {}).get("Name")
-                        description = data_json.get("errors", {}).get(number, {}).get("Description")
-                        solutions = data_json.get("errors", {}).get(number, {}).get("Solutions", "")
-                    elif type == "n":
-                        name = data_json.get("null", {}).get(number, {}).get("Name")
-                        description = data_json.get("null", {}).get(number, {}).get("Description")
+                        name = data_json.get("warnings", {}).get(trigger_number, {}).get("Name")
+                        description = data_json.get("warnings", {}).get(trigger_number, {}).get("Description")
+                        solutions = data_json.get("warnings", {}).get(trigger_number, {}).get("Solutions", "")
+                    elif trigger_type == "e":
+                        name = data_json.get("errors", {}).get(trigger_number, {}).get("Name")
+                        description = data_json.get("errors", {}).get(trigger_number).get("Description")
+                        solutions = data_json.get("errors", {}).get(trigger_number, {}).get("Solutions", "")
+                    elif trigger_type == "n":
+                        name = data_json.get("null", {}).get(trigger_number, {}).get("Name")
+                        description = data_json.get("null", {}).get(trigger_number, {}).get("Description")
                         solutions = ""
                     
                     description = translate(description)
                     
+                    if code == "w04":
+                        width = 750
+
                     if name and description:
-                        call_data[code] = f"{code}:::{name}:::{description.format(Data=d)}:::{solutions}:::{tech_things}"
+                        call_data[code] = f"{code}:::{name}:::{description.format(Data=Data)}:::{solutions}:::{tech_things}"
                     else:
                         call_data[code] = f"e00:::{critical_error_name}:::{critical_error_description.format(Data=code)}::::Code not found: {code}"
         
@@ -95,7 +99,9 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                     "Solutions": parts[3],
                     "Tech_Things": parts[4]
                 })
-        return context.window_manager.invoke_popup(self, width=600)
+
+        width = 800 if any(e["Code"] == "w04" for e in self.errors) else 600
+        return context.window_manager.invoke_popup(self, width=width)
     
     def draw(self, context):
         layout = self.layout
@@ -123,7 +129,7 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                 sbox = box.box()
                 row = sbox.row()
                 row.label(text=f"{translate('Solutions')}:")
-                for solution_operator in error["Solutions"].split("; "):
+                for solution_operator in filter(None, error["Solutions"].split("; ")):
                     row = sbox.row()
                     solution = row.operator(solution_operator)
                     if hasattr(solution, "description"):

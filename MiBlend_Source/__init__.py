@@ -40,8 +40,8 @@ def init_on_start():
         new_miblend_hard_version_name = new_components_dict.get("MiBlend", "Snake")
         old_miblend_hard_version_name = old_components_dict.get("MiBlend", "")
         if old_miblend_hard_version_name != new_miblend_hard_version_name:
-            Call_AS("w04", data=f'Component: "MiBlend" ({old_miblend_hard_version_name} -> {new_miblend_hard_version_name})')
-            dprint(f'Component: "MiBlend" ({old_miblend_hard_version_name} -> {new_miblend_hard_version_name})')
+            Call_AS("w04", data=f'"MiBlend" {old_miblend_hard_version_name} -> {new_miblend_hard_version_name}')
+            dprint(f'"MiBlend" {old_miblend_hard_version_name} -> {new_miblend_hard_version_name}')
 
         # Pre-0.7.0 properties cleanup
         for prop in ["world_properties", "resource_properties", "materials_properties", "env_properties", "ppbr_properties", "optimizationproperties", "utilsproperties", "assetsproperties"]:
