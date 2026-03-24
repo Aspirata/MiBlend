@@ -39,7 +39,7 @@ def init_on_start():
         
         new_miblend_hard_version_name = new_components_dict.get("MiBlend", "Snake")
         old_miblend_hard_version_name = old_components_dict.get("MiBlend", "")
-        if old_miblend_hard_version_name != new_miblend_hard_version_name:
+        if old_miblend_hard_version_name != "" and old_miblend_hard_version_name != new_miblend_hard_version_name:
             Call_AS("w04", data=f'"MiBlend" {old_miblend_hard_version_name} -> {new_miblend_hard_version_name}')
             dprint(f'"MiBlend" {old_miblend_hard_version_name} -> {new_miblend_hard_version_name}')
 
@@ -57,7 +57,7 @@ def init_on_start():
 
         if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and platform.platform() == "Windows":
             bpy.ops.wm.console_toggle()
-    except:
+    except Exception:
         Call_AS("n00", traceback.format_exc())
 
 panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
