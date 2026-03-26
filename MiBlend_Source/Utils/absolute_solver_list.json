@@ -16,7 +16,7 @@
         },
 
         "01": {
-            "Name": "Object Has No Materials",
+            "Name": "Object has no Materials",
             "Description": "{Data.name} does not have materials because it is an empty, lattice, light source, armature etc."
         },
 
@@ -36,7 +36,7 @@
         {
             "Name": "Legacy Component",
             "Description": "This .blend file was made with an older verion of MiBlend. {Data}. Some features may not work correctly.",
-            "Solutions": "as_solutions.fix_compatibility; "
+            "Solutions": "as_solutions.fix_compatibility; as_solutions.save_blend_file; "
         }
     },
 
@@ -65,12 +65,6 @@
             "Description": "{Data} file could not be found"
         },
 
-        "04":
-        {
-            "Name": "Dublicate",
-            "Description": "Remove or replace later in dev"
-        },
-
         "05":
         {
             "Name": "Bad Asset Import",
@@ -87,12 +81,6 @@
         {
             "Name": "Texture Not Found",
             "Description": "Can't Find Texture in {Data} material"
-        },
-
-        "08":
-        {
-            "Name": "DEPRECATED Broken Assets List",
-            "Description": "Something went wrong with the assets list (Maybe because of a legacy asset list)"
         },
         
         "09":

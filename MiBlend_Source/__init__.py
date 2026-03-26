@@ -72,7 +72,7 @@ operators = [
     MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
     FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator, 
     SavePropertiesOperator, ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator,
-    SavePreferencesOperator, ResetPreferencesOperator
+    SavePreferencesOperator, ResetPreferencesOperator, SaveBlendFile
 ]
 
 debug_classes = [DebugPanel, TriggerASErrorOperator, OpenMiBlendFolder]
