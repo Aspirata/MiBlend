@@ -83,7 +83,6 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
 class AbsoluteSolverPanel(bpy.types.Operator):
     bl_label = "Absolute Solver"
     bl_idname = "special.absolute_solver"
-    bl_options = {'REGISTER', 'UNDO'}
 
     call_data: bpy.props.StringProperty()
 

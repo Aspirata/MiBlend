@@ -6,7 +6,6 @@ from bpy.types import Operator
 class FixCompatibility(Operator):
     bl_idname = "as_solutions.fix_compatibility"
     bl_label = "Fix Compatibility"
-    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if "resource_packs" in bpy.context.scene:
