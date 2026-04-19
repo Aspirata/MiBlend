@@ -1,4 +1,5 @@
 build
-MiBlend.zip
+*.zip
+2*
 1.*
 .DS_Store

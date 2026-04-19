@@ -78,14 +78,14 @@ def find_mc() -> tuple[str, str]:
             instance_path = os.path.join(instance_dir, jar_file)
             version = mc_version_formatter(folder)
             if version and os.path.isfile(instance_path):
-                versions[version] = (jar_file, instance_dir)
+                versions[version] = (jar_file, instance_path)
                 dprint(f"{instance_path} valid", is_deep=True, zone="rp")
             else:
                 dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
     if versions:
         latest_version = max(versions, key=lambda x: LooseVersion(x))
-        latest_file, latest_path = versions[latest_version]
+        _latest_file, latest_path = versions[latest_version]
         return latest_version, latest_path
     
     return "", ""
