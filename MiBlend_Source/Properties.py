@@ -16,31 +16,9 @@ class WorldProperties(PropertyGroup):
         default=True
     )
 
-    remove_doubles: BoolProperty(
-        name="Remove Double Faces",
-        default=False
-    )
-
-    force_shade_flat: BoolProperty(
-        name="Force Shade Flat",
-        default=True
-    )
-
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
-        default=False
-    )
-
     backface_culling: BoolProperty(
         name="Backface Culling",
         description="Enables Backface Culling for blocks that needs that (glass, doors etc.)",
-        default=True
-    )
-
-    # change to combine_texture_nodes_duplicates in v0.8 | 13.01.2026
-    delete_useless_textures: BoolProperty(
-        name="Combine Texture Nodes Duplicates",
-        description="Combines Texture Nodes Duplicates",
         default=True
     )
 

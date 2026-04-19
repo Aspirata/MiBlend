@@ -48,79 +48,6 @@ class FixWorld:
         self.is_experimental_features_enabled = get_preferencies().experimental_features
         self.is_show_warnings_enabled = get_preferencies().show_warnings
         self.world_properties = bpy.context.scene.miblend_properties.world_properties
-
-    def get_all_linked_nodes(self, node, visited=None):
-        if not visited:
-            visited = set()
-        
-        if node in visited:
-            return visited
-        
-        visited.add(node)
-        
-        for input_socket in node.inputs:
-            if not input_socket.is_linked:
-                continue
-                
-            for link in input_socket.links:
-                self.get_all_linked_nodes(link.from_node, visited)
-        
-        return visited
-
-    def get_linked_nodes(self, node, input_name):
-        if input_name not in node.inputs or not node.inputs[input_name].is_linked:
-            return []
-        
-        linked_nodes = []
-        for link in node.inputs[input_name].links:
-            linked_nodes.append(link.from_node)
-            linked_nodes.extend(self.get_all_linked_nodes(link.from_node))
-        
-        return linked_nodes
-
-    @staticmethod
-    def get_node_suffix_number(node_name):
-        parts = node_name.rsplit(".", 1)
-        if len(parts) > 1 and parts[-1].isdigit():
-            return int(parts[-1])
-        return 0
-
-    def apply_combine_texture_nodes_duplicates(self, current_material):
-        texture_nodes = [node for node in current_material.node_tree.nodes if node.type == "TEX_IMAGE"]
-        
-        if not texture_nodes:
-            return
-        
-        image_to_nodes = {}
-        for node in texture_nodes:
-            if node.image:
-                if node.image not in image_to_nodes:
-                    image_to_nodes[node.image] = []
-                image_to_nodes[node.image].append(node)
-            else:
-                current_material.node_tree.nodes.remove(node)
-        
-        for image, nodes in image_to_nodes.items():
-            if len(nodes) < 2:
-                continue
-
-            nodes.sort(key=lambda node: ('.' in node.name, self.get_node_suffix_number(node.name)))
-            
-            node_to_keep = nodes[0]
-            nodes_to_remove = nodes[1:]
-            
-            for node in nodes_to_remove:
-                if any(input.is_linked for input in node.inputs):
-                    continue
-                
-                for output_idx, output in enumerate(node.outputs):
-                    if not output.links:
-                        continue
-                        
-                    for link in output.links:
-                        current_material.node_tree.links.new(node_to_keep.outputs[output_idx], link.to_socket)
-                
-                current_material.node_tree.nodes.remove(node)
     
     @staticmethod
     def find_node_by_type(node_type, material):
@@ -147,7 +74,6 @@ class FixWorld:
             current_object["MiBlend ID"] = "World"
 
             self.apply_force_shading_flat()
-            self.apply_remove_doubles()
 
             for current_material in current_object.data.materials:
                 if not current_material:
@@ -198,24 +124,83 @@ class FixWorld:
                 self.apply_lazy_biome_color_fix(current_material, pbsdf_node, image_texture_node, image)
                 self.apply_animated_texture_fix(current_material, pbsdf_node, image_texture_node, image)
     
-    def apply_force_shading_flat(self):
-        if not self.world_properties.force_shade_flat:
-            return
+    @staticmethod
+    def get_node_suffix_number(node_name):
+        parts = node_name.rsplit(".", 1)
+        if len(parts) > 1 and parts[-1].isdigit():
+            return int(parts[-1])
+        return 0
 
+    def get_all_linked_nodes(self, node, visited=None):
+        if not visited:
+            visited = set()
+        
+        if node in visited:
+            return visited
+        
+        visited.add(node)
+        
+        for input_socket in node.inputs:
+            if not input_socket.is_linked:
+                continue
+                
+            for link in input_socket.links:
+                self.get_all_linked_nodes(link.from_node, visited)
+        
+        return visited
+
+    def get_linked_nodes(self, node, input_name):
+        if input_name not in node.inputs or not node.inputs[input_name].is_linked:
+            return []
+        
+        linked_nodes = []
+        for link in node.inputs[input_name].links:
+            linked_nodes.append(link.from_node)
+            linked_nodes.extend(self.get_all_linked_nodes(link.from_node))
+        
+        return linked_nodes
+
+    def apply_combine_texture_nodes_duplicates(self, current_material):
+        texture_nodes = [node for node in current_material.node_tree.nodes if node.type == "TEX_IMAGE"]
+        
+        if not texture_nodes:
+            return
+        
+        image_to_nodes = {}
+        for node in texture_nodes:
+            if node.image:
+                if node.image not in image_to_nodes:
+                    image_to_nodes[node.image] = []
+                image_to_nodes[node.image].append(node)
+            else:
+                current_material.node_tree.nodes.remove(node)
+        
+        for image, nodes in image_to_nodes.items():
+            if len(nodes) < 2:
+                continue
+
+            nodes.sort(key=lambda node: ('.' in node.name, self.get_node_suffix_number(node.name)))
+            
+            node_to_keep = nodes[0]
+            nodes_to_remove = nodes[1:]
+            
+            for node in nodes_to_remove:
+                if any(input.is_linked for input in node.inputs):
+                    continue
+                
+                for output_idx, output in enumerate(node.outputs):
+                    if not output.links:
+                        continue
+                        
+                    for link in output.links:
+                        current_material.node_tree.links.new(node_to_keep.outputs[output_idx], link.to_socket)
+                
+                current_material.node_tree.nodes.remove(node)
+
+    def apply_force_shading_flat(self):
         current_mode = bpy.context.object.mode
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.shade_flat()
-        bpy.ops.object.mode_set(mode=current_mode)
-    
-    def apply_remove_doubles(self):
-        if not self.world_properties.remove_doubles or not self.is_experimental_features_enabled:
-            return
-
-        current_mode = bpy.context.object.mode
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.edge_split(type='VERT')
-        bpy.ops.mesh.remove_doubles()
         bpy.ops.object.mode_set(mode=current_mode)
     
     def apply_backface_culling(self, current_material, pbsdf_node):
@@ -307,7 +292,6 @@ class FixWorld:
 
 @Perf_Time
 def recreate_env(self):
-
     scene = bpy.context.scene
     world = scene.world
 
