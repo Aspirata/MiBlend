@@ -87,6 +87,13 @@
         {
             "Name": "Bad Pack File Extension",
             "Description": "Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension"
+        },
+
+        "10":
+        {
+            "Name": "MiBlend addon is installed",
+            "Description": "MiBlend v0.8+ is an extension and it won't work with previous MiBlend legacy addon versions installed",
+            "Solutions": "as_solutions.delete_miblend_addon; "
         }
     }
 }

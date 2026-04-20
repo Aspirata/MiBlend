@@ -1,4 +1,5 @@
 import bpy, os, platform
+from pathlib import Path
 from .Preferences import MiBlendPreferences
 from .MIB_API import dprint
 from .Data import materials_folder
@@ -57,6 +58,12 @@ def init_on_start():
 
         if bpy.context.preferences.addons[__package__].preferences.dev_tools and bpy.context.preferences.addons[__package__].preferences.open_console_on_start and platform.platform() == "Windows":
             bpy.ops.wm.console_toggle()
+
+        miblend_legacy_addon_folder = Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "addons" / "MiBlend_Source"
+        dprint(miblend_legacy_addon_folder, is_deep=True)
+        if miblend_legacy_addon_folder.is_dir():
+            Call_AS("e10")
+
     except Exception:
         Call_AS("n00", traceback.format_exc())
 
@@ -68,10 +75,10 @@ properties = [WorldProperties, ResourcePackProperties, CreateEnvProperties, PPBR
 special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel, RecreateEnvironment]
 
 operators = [
-    RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator, 
-    MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator, 
-    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator, 
-    SavePropertiesOperator, ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator,
+    RemoveAttributeOperator, OpenConsoleOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator,
+    MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator,
+    FixMaterialsOperator, UpgradeMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator,
+    SavePropertiesOperator, ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, DeleteMiblendAddon,
     SavePreferencesOperator, ResetPreferencesOperator, SaveBlendFile
 ]
 

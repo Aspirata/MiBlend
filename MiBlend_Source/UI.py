@@ -983,7 +983,6 @@ class AssetPanel(Panel):
         row.operator("assets.import_asset", text=import_asset_text(current_index), icon="REC")
 
 class Assets_List_UL_(bpy.types.UIList):
-
     @staticmethod
     def blender_version(blender_version: str) -> bool:
         try:

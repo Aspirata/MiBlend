@@ -58,9 +58,6 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
                         solutions = ""
                     
                     description = translate(description)
-                    
-                    if code == "w04":
-                        width = 750
 
                     if name and description:
                         call_data[code] = f"{code}:::{name}:::{description.format(Data=Data)}:::{solutions}:::{tech_things}"
@@ -99,7 +96,14 @@ class AbsoluteSolverPanel(bpy.types.Operator):
                     "Tech_Things": parts[4]
                 })
 
-        width = 800 if any(e["Code"] == "w04" for e in self.errors) else 600
+        width = 600
+        for error in self.errors:
+            error_code = error["Code"]
+            if error_code == "w04":
+                width = 800
+            elif error_code == "e10":
+                width = 700
+
         return context.window_manager.invoke_popup(self, width=width)
     
     def draw(self, context):

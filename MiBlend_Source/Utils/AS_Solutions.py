@@ -1,4 +1,5 @@
-import bpy
+import bpy, shutil
+from pathlib import Path
 from ..Resource_Packs import update_default_pack
 from ..Assets import update_assets
 from bpy.types import Operator
@@ -28,4 +29,19 @@ class SaveBlendFile(Operator):
         else:
             bpy.ops.wm.save_mainfile()
             self.report({'INFO'}, "Current file was saved")
+        return {'FINISHED'}
+
+class DeleteMiblendAddon(Operator):
+    bl_idname = "as_solutions.delete_miblend_addon"
+    bl_label = "Delete MiBlend Legacy Addon"
+
+    def execute(self, context):
+        miblend_addon_folder = Path(__file__).resolve().parent.parent.parent.parent.parent / "scripts" / "addons" / "MiBlend_Source"
+
+        if not miblend_addon_folder.is_dir():
+            self.report({'WARNING'}, "MiBlend Legacy Addon Folder not Found")
+            return {'CANCELLED'}
+
+        shutil.rmtree(miblend_addon_folder)
+        self.report({'INFO'}, "MiBlend Legacy Addon Folder was Removed")
         return {'FINISHED'}
