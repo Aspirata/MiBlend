@@ -11,31 +11,30 @@ def translate(untranslated_string: str) -> str:
     return translations_dict.get(untranslated_string, untranslated_string)
 
 
-def Call_AS(code: str, tech_things: str = "", data: str = ""):
+def trigger_absolute_solver(code: str, tech_things: str = "", data: str = ""):
     from ..MIB_API import get_preferencies
     Preferences = get_preferencies()
     
-    if not hasattr(Call_AS, 'call_queue'):
-        Call_AS.call_queue = []
-        Call_AS.last_call_time = 0
-        Call_AS.is_processing = False
+    if not hasattr(trigger_absolute_solver, 'call_queue'):
+        trigger_absolute_solver.call_queue = []
+        trigger_absolute_solver.last_call_time = 0
+        trigger_absolute_solver.is_processing = False
     
     current_time = time.time()
     
-    Call_AS.call_queue.append((code, data))
+    trigger_absolute_solver.call_queue.append((code, data))
     
-    if (current_time - Call_AS.last_call_time >= 0.1) and not Call_AS.is_processing:
-        Call_AS.is_processing = True
+    if (current_time - trigger_absolute_solver.last_call_time >= 0.1) and not trigger_absolute_solver.is_processing:
+        trigger_absolute_solver.is_processing = True
 
         call_data = {}
-        width = 600
         try:
             with open(os.path.join(utils_directory, "absolute_solver_list.json"), "r") as file:
                 data_json = json.load(file)
                 critical_error_name = data_json.get("errors", {}).get("00", {}).get("Name", "Critical Error")
                 critical_error_description = translate(data_json.get("errors", {}).get("00", {}).get("Description", "Unknown error occurred: {Data}"))
 
-                for code, Data in Call_AS.call_queue:
+                for code, Data in trigger_absolute_solver.call_queue:
                     if code in call_data or code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split():
                         continue
                     
@@ -72,9 +71,9 @@ def Call_AS(code: str, tech_things: str = "", data: str = ""):
             if 'CANCELLED' in result:
                 raise Exception("Cancelled by user")
         
-        Call_AS.call_queue.clear()
-        Call_AS.last_call_time = current_time
-        Call_AS.is_processing = False
+        trigger_absolute_solver.call_queue.clear()
+        trigger_absolute_solver.last_call_time = current_time
+        trigger_absolute_solver.is_processing = False
 
 
 class AbsoluteSolverPanel(bpy.types.Operator):

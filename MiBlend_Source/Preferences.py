@@ -1,9 +1,10 @@
-import bpy, json, platform
+import bpy, json
 from typing import Union
 from pathlib import Path
 from bpy.types import AddonPreferences
 from .MIB_API import main_directory
-from bpy.props import IntProperty, BoolProperty, FloatProperty, EnumProperty, StringProperty
+from bpy.props import BoolProperty, StringProperty
+
 
 class MiBlendPreferences(AddonPreferences):
     bl_idname = __package__
@@ -27,10 +28,10 @@ class MiBlendPreferences(AddonPreferences):
         default=override_preference("show_warnings", True)
     )
 
-    enable_deprecated_features: BoolProperty(
-        name="Enable Deprecated Features",
-        default=override_preference("enable_deprecated_features", False)
-    )
+    #enable_deprecated_features: BoolProperty(
+    #    name="Enable Deprecated Features",
+    #    default=override_preference("enable_deprecated_features", False)
+    #)
 
     experimental_features: BoolProperty(
         name="Experimental Features",
@@ -42,19 +43,6 @@ class MiBlendPreferences(AddonPreferences):
         name="Minecraft Instances Folder",
         description="Path to the Folder Containing Your Minecraft Instances (MultiMC, Prism Launcher, CurseForge, etc.)",
         subtype="DIR_PATH"
-    )
-
-    @staticmethod
-    def emissiondetectionfix():
-        return 'Manual' if bpy.app.version < (4, 0, 0) else 'Combined'
-
-    emissiondetection: EnumProperty(
-        items=[('Automatic', 'Automatic', 'Uses a Material-based method of Defining Emissive Blocks'), 
-            ('Combined', 'Combined', 'Uses both Manual and Automatic Detection (recommended for Blender 4.0+)'),
-            ('Manual', 'Manual', 'Uses a Pre-defined List of Emissive Blocks (legacy method, recommended for Blender 3.6)')],
-        name="emissiondetection",
-        description="Method Used to Detect Which Blocks Should Emit Light",
-        default=override_preference("emissiondetection", emissiondetectionfix())
     )
 
     update_packs: BoolProperty(
@@ -129,12 +117,6 @@ class MiBlendPreferences(AddonPreferences):
         default=override_preference("uas_debug_mode", False)
     )
 
-    open_console_on_start: BoolProperty(
-        name="Open Console On Start",
-        description="Deprecated Feature",
-        default=override_preference("open_console_on_start", False)
-    )
-
     dev_packs_path: StringProperty(
         name="Dev Resource Packs Folder",
         description="Path to Your Local Resource Packs (Overrides Built-in Ones, Usefull When Using Custom Build of MiBlend)",
@@ -148,6 +130,7 @@ class MiBlendPreferences(AddonPreferences):
         default=override_preference("enable_custom_packs_path", False)
     )
 
+
     def draw(self, context):
         layout = self.layout
         box = layout.box()
@@ -157,18 +140,15 @@ class MiBlendPreferences(AddonPreferences):
             for component_name, component in bpy.context.scene["mib_options"]["components_vesion"].items():
                 row = box.row()
                 row.label(text=f"{component_name}: {component}")
-        except:
+        except Exception:
             pass
 
         box = layout.box()
         row = box.row()
         row.label(text="UI:")                                                          # UI
 
-        if bpy.app.version >= (4, 1, 0):
-            row = box.row()
-            row.prop(self, "transparent_ui")
-        else:
-            self.transparent_ui = False
+        row = box.row()
+        row.prop(self, "transparent_ui")
 
         row = box.row()
         row.prop(self, "show_warnings")
@@ -178,20 +158,14 @@ class MiBlendPreferences(AddonPreferences):
         row.label(text="Algorithms:")                                                  # Algorithms
 
         row = box.row()
-        row.label(text="Emissive Blocks Detection Method:", icon="LIGHT")
-
-        row = box.row()
-        row.prop(self, "emissiondetection", text='emissiondetection', expand=True)
-
-        row = box.row()
         row.prop(self, "update_packs")
 
         box = layout.box()
         row = box.row()
         row.label(text="Other:")                                                       # Other
 
-        row = box.row()
-        row.prop(self, "enable_deprecated_features")
+        #row = box.row()
+        #row.prop(self, "enable_deprecated_features")
 
         row = box.row()
         row.prop(self, "experimental_features")
@@ -242,10 +216,6 @@ class MiBlendPreferences(AddonPreferences):
 
             row = box.row()
             row.prop(self, "perf_time", toggle=True)
-
-            if platform.system() == "Windows":
-                row = box.row()
-                row.prop(self, "open_console_on_start", toggle=True)
 
             row = box.row()
             row.prop(self, "dev_packs_path")

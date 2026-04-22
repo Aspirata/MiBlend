@@ -1,47 +1,13 @@
 import bpy, os, zipfile, traceback
-from ..MIB_API import *
-from ..Data import *
-from ..Utils.Absolute_Solver import Call_AS
+from ..MIB_API import (dprint, get_preferencies, is_code_ignored, name_in, perf_time, 
+                        detect_world_exporter, detect_texture_node, detect_image_texture, 
+                        is_emissive, format_texture_name, is_gray, GetConnectedSocketTo, 
+                        create_node_group, inject_node, dissolve_node, add_modifier, RemoveLinksFrom)
+from ..Data import (Backface_Culling_Materials, Grass_Color, Foliage_Color, fog_node_tree_name, 
+                    world_material_name, main_directory, nodes_file, clouds_node_tree_name, 
+                    Translucent_Materials, Metal, SSS_Materials, Reflective, Emissive_Materials)
+from ..Utils.Absolute_Solver import trigger_absolute_solver
 
-@ Perf_Time
-def replace_materials():
-    original_materials_list = {}
-    replaced_materials_path = os.path.join(materials_folder, "Replaced Materials.blend")
-    with bpy.data.libraries.load(replaced_materials_path, link=False) as (data_from, data_to):
-        for material_name in data_from.materials:
-            split_name = material_name.split(" | ")
-        
-            if len(split_name) > 1 and "Dev" not in split_name:
-                original_materials_list[split_name[0]] = split_name[1]
-
-    if len(original_materials_list) == 0:
-        return
-    
-    for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01") and get_preferencies().show_warnings:
-            Call_AS("w01", selected_object)
-            continue
-        
-        elif not is_mesh(selected_object):
-            continue
-
-        for slot, material in enumerate(selected_object.data.materials):
-            if material is None or not material.use_nodes:
-                continue
-
-            for material_part in format_material_name(material.name):
-                if upgraded_material := original_materials_list.get(material_part, None):
-                    if upgraded_material not in bpy.data.materials:
-                        try:
-                            with bpy.data.libraries.load(replaced_materials_path, link=False) as (data_from, data_to):
-                                data_to.materials = [f"{material_part} | {upgraded_material}"]
-                        except Exception as error:
-                            Call_AS("e03", error, replaced_materials_path)
-                            
-                    appended_material = bpy.data.materials.get(f"{material_part} | {upgraded_material}")
-                    appended_material.name = upgraded_material
-                    selected_object.data.materials[slot] = appended_material
-                    break
 
 class FixWorld:
     def __init__(self):
@@ -57,18 +23,18 @@ class FixWorld:
     def find_nodes_group_by_name(group_name, material):
         return next((node for node in material.node_tree.nodes if node.type == "GROUP" and group_name in node.node_tree.name), None)
 
-    @Perf_Time
+    @perf_time
     def fix_world(self):
         for current_object in bpy.context.selected_objects:
             if not current_object.type == 'MESH':
                 if not is_code_ignored("w01") and self.is_show_warnings_enabled:
-                    Call_AS("w01", data=current_object)
+                    trigger_absolute_solver("w01", data=current_object)
                 continue
 
             current_world_exporter = detect_world_exporter(current_object)
 
             if current_world_exporter == "unknown" and not is_code_ignored("w03") and self.is_show_warnings_enabled:
-                Call_AS("w03")
+                trigger_absolute_solver("w03")
                 continue
 
             current_object["MiBlend ID"] = "World"
@@ -113,11 +79,11 @@ class FixWorld:
                     current_material.node_tree.links.new(image_texture_node.outputs["Alpha"], pbsdf_node.inputs["Alpha"])
                 
                 # Emission
-                if EmissionMode(pbsdf_node, image.name):
-                    if not GetConnectedSocketTo(PBSDF_compability("Emission Color"), pbsdf_node):
-                        current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), pbsdf_node.inputs[PBSDF_compability("Emission Color")])
+                if is_emissive(pbsdf_node, image.name):
+                    if not GetConnectedSocketTo("Emission Color", pbsdf_node):
+                        current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
 
-                    if (EmissionMode(pbsdf_node, image.name) == 1 or EmissionMode(pbsdf_node, image.name) == 3) and pbsdf_node.inputs["Emission Strength"].default_value == 0:
+                    if pbsdf_node.inputs["Emission Strength"].default_value == 0:
                         pbsdf_node.inputs["Emission Strength"].default_value = 1
                 
                 self.apply_backface_culling(current_material, pbsdf_node)
@@ -215,18 +181,14 @@ class FixWorld:
         inject_node(current_material, backface_culling_node, pbsdf_node, "Alpha")
     
     def apply_lazy_biome_color_fix(self, current_material, pbsdf_node, image_texture_node, image):
-        texture_parts = format_texture_name(image.name)
-
-        # Remove in v0.8
-        use_legacy_mode = any(i for i in ["grass", "block", "side"] if i not in texture_parts)
-        lazy_biome_color_fix_node_name = "Lazy Biome Color Fix" if use_legacy_mode else "Lazy Biome Color Fix v2"
-
         if not self.world_properties.lazy_biome_fix or not is_gray(image.name):
-            lazy_biome_fix_node = self.find_nodes_group_by_name(lazy_biome_color_fix_node_name, current_material)
+            lazy_biome_fix_node = self.find_nodes_group_by_name("Lazy Biome Color Fix v2", current_material)
             dissolve_node(current_material, lazy_biome_fix_node)
             return
 
-        lazy_biome_fix_node = create_node_group(current_material, lazy_biome_color_fix_node_name, (pbsdf_node.location.x - 170, pbsdf_node.location.y - 20), exists_check = True)
+        texture_parts = format_texture_name(image.name)
+
+        lazy_biome_fix_node = create_node_group(current_material, "Lazy Biome Color Fix v2", (pbsdf_node.location.x - 170, pbsdf_node.location.y - 20), exists_check = True)
         inject_node(current_material, lazy_biome_fix_node, pbsdf_node, "Base Color")
         
         if "fern" in texture_parts or "spruce" in texture_parts:
@@ -244,24 +206,21 @@ class FixWorld:
         else:
             biome = "Forest"
 
-        # Remove in v0.8
-        if not use_legacy_mode:
-            lazy_biome_fix_node.inputs["Mode"].default_value = 2
+        if all(i for i in ["grass", "block", "side"] if i in texture_parts):
             lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Biome Color"].default_value)[:3]) + (1.0,)
-            current_material.node_tree.nodes.active = image_texture_node
-            return
-            
-        if "grass" in texture_parts:
             lazy_biome_fix_node.inputs["Mode"].default_value = 2
+
+        elif "grass" in texture_parts:
+            lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
 
         elif "water" in texture_parts:
-            lazy_biome_fix_node.inputs["Mode"].default_value = 3
+            lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(0.066625, 0.135633, 1.0, 1.0)
 
         elif "redstone" in texture_parts:
-            lazy_biome_fix_node.inputs["Mode"].default_value = 4
-
-        lazy_biome_fix_node.inputs["Grass Color"].default_value = tuple(Grass_Color.get(biome, lazy_biome_fix_node.inputs["Grass Color"].default_value)[:3]) + (1.0,)
-        lazy_biome_fix_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lazy_biome_fix_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
+            lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(0.665384, 0.0, 0.0, 1.0)
+        
+        else:
+            lazy_biome_fix_node.inputs["Foliage Color"].default_value = tuple(Foliage_Color.get(biome, lazy_biome_fix_node.inputs["Foliage Color"].default_value)[:3]) + (1.0,)
 
         current_material.node_tree.nodes.active = image_texture_node
 
@@ -290,7 +249,7 @@ class FixWorld:
         animated_uv_fix_node.inputs["Frames"].default_value = frames
         animated_uv_fix_node.inputs["X Divider"].default_value = x_divider
 
-@Perf_Time
+@perf_time
 def recreate_env(self):
     scene = bpy.context.scene
     world = scene.world
@@ -302,19 +261,12 @@ def recreate_env(self):
 
         for node in world_material.nodes:
             if node.type == 'GROUP' and "MiBlend Sky" in node.node_tree.name:
-                if bpy.app.version >= (4, 0, 0):
-                    for socket in node.inputs:
-                        try:
-                            for i, vector_value in enumerate(socket.default_value, 1):
-                                vector_value = group.interface.items_tree[socket.name].default_value[i]
-                        except:
-                            socket.default_value = group.interface.items_tree[socket.name].default_value
-                else:
+                for socket in node.inputs:
                     try:
                         for i, vector_value in enumerate(socket.default_value, 1):
-                            vector_value = group.inputs[socket.name].default_value[i]
-                    except:
-                            socket.default_value = group.inputs[socket.name].default_value
+                            vector_value = group.interface.items_tree[socket.name].default_value[i]
+                    except Exception:
+                        socket.default_value = group.interface.items_tree[socket.name].default_value
 
     if self.create_sky == 'Recreate Sky':
         if world == bpy.data.worlds.get(world_material_name) and bpy.data.worlds.get(world_material_name) is not None:
@@ -387,15 +339,11 @@ def recreate_env(self):
 
             bpy.context.object["MiBlend ID"] = "Clouds"
 
-@ Perf_Time
+@perf_time
 def create_env(mode=None):
-
-    def clouds_file_comp():
-        return "4.0" if bpy.app.version >= (4, 0, 0) else "3.6"
-    
     scene = bpy.context.scene
     MIB_env_collection = bpy.data.collections.get("MiBlend Environment", None)
-    clouds_path = os.path.join(main_directory, "Materials", f"Clouds Generator {clouds_file_comp()}.blend")
+    clouds_path = os.path.join(main_directory, "Materials", "Clouds Generator.blend")
     world = scene.world
     sky_exists = False
     fog_exists = False
@@ -411,14 +359,14 @@ def create_env(mode=None):
         if world_material_name in bpy.data.worlds:
             sky_exists = True
     
-    if (clouds_exists or sky_exists or fog_exists) and mode == None:
+    if (clouds_exists or sky_exists or fog_exists) and mode is None:
         bpy.ops.special.recreate_env('INVOKE_DEFAULT')
 
     else:
         # Create Sky
-        if (scene.miblend_properties.env_properties.create_sky and mode == None) or mode == "Sky":
+        if (scene.miblend_properties.env_properties.create_sky and mode is None) or mode == "Sky":
             if not os.path.exists(nodes_file):
-                Call_AS("e03", traceback.format_exc(), "Nodes.blend")
+                trigger_absolute_solver("e03", traceback.format_exc(), "Nodes.blend")
 
             if world_material_name not in bpy.data.worlds:
                 with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
@@ -429,7 +377,7 @@ def create_env(mode=None):
             bpy.context.scene.world = appended_world_material
 
         # Create Fog
-        if (scene.miblend_properties.env_properties.create_fog and mode == None) or mode == "Fog":
+        if (scene.miblend_properties.env_properties.create_fog and mode is None) or mode == "Fog":
     
             if not MIB_env_collection:
                 MIB_env_collection = bpy.data.collections.new("MiBlend Environment")
@@ -463,9 +411,9 @@ def create_env(mode=None):
             bpy.ops.object.select_all(action='DESELECT')
 
         # Create Clouds
-        if (scene.miblend_properties.env_properties.create_clouds and mode == None) or mode == "Clouds":
+        if (scene.miblend_properties.env_properties.create_clouds and mode is None) or mode == "Clouds":
             if not os.path.exists(clouds_path):
-                Call_AS("e03", traceback.format_exc(), f"Clouds Generator {clouds_file_comp()}")
+                trigger_absolute_solver("e03", traceback.format_exc(),  "Clouds Generator.blend")
 
             if clouds_node_tree_name not in bpy.data.node_groups:
                 with bpy.data.libraries.load(clouds_path, link=False) as (data_from, data_to):
@@ -501,14 +449,14 @@ def create_env(mode=None):
 
             bpy.ops.object.select_all(action='DESELECT')
 
-@ Perf_Time
+@perf_time
 def fix_materials():
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01") and get_preferencies().show_warnings:
-            Call_AS("w01", data=selected_object)
+        if selected_object.type != "MESH" and not is_code_ignored("w01") and get_preferencies().show_warnings:
+            trigger_absolute_solver("w01", data=selected_object)
             continue
         
-        elif not is_mesh(selected_object):
+        elif selected_object.type != "MESH":
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
@@ -531,7 +479,7 @@ def fix_materials():
             if image_texture_node and PBSDF:
                 material.node_tree.links.new(image_texture_node.outputs["Alpha"], PBSDF.inputs["Alpha"])
 
-@ Perf_Time
+@perf_time
 def swap_textures(folder_path):
     def find_image(image_name, root_folder):
         for dirpath, _, files in os.walk(root_folder):
@@ -559,10 +507,10 @@ def swap_textures(folder_path):
         return None
     
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01") and get_preferencies().show_warnings:
-            Call_AS("w01", selected_object)
+        if selected_object.type != "MESH" and not is_code_ignored("w01") and get_preferencies().show_warnings:
+            trigger_absolute_solver("w01", selected_object)
             continue
-        elif not is_mesh(selected_object):
+        elif selected_object.type != "MESH":
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
@@ -579,15 +527,15 @@ def swap_textures(folder_path):
                         node.image = bpy.data.images.load(new_image_path)
 
 # Set Procedural PBR
-@ Perf_Time
+@perf_time
 def setproceduralpbr():
     Preferences = get_preferencies()
         
     for selected_object in bpy.context.selected_objects:
-        if not is_mesh(selected_object) and not is_code_ignored("w01") and Preferences.show_warnings:
-            Call_AS("w01", data=selected_object)
+        if selected_object.type != "MESH" and not is_code_ignored("w01") and Preferences.show_warnings:
+            trigger_absolute_solver("w01", data=selected_object)
             continue
-        elif not is_mesh(selected_object):
+        elif selected_object.type != "MESH":
             continue
 
         for slot, material in enumerate(selected_object.data.materials):
@@ -718,32 +666,29 @@ def setproceduralpbr():
             # Change PBSDF Settings                                
             if PProperties.change_bsdf:
                 PBSDF.inputs["Roughness"].default_value = PProperties.roughness
-                PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value = PProperties.specular
+                PBSDF.inputs["Specular IOR Level"].default_value = PProperties.specular
 
             # Use SSS                            
             if PProperties.use_sss and (name_in(SSS_Materials, material.name)[0] or PProperties.sss_skip):
                 PBSDF.subsurface_method = PProperties.sss_type
 
                 if PProperties.connect_texture:
-                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
+                    material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Subsurface Radius"])
                 else:
-                    RemoveLinksFrom(PBSDF.inputs[PBSDF_compability('Subsurface Radius')])
+                    RemoveLinksFrom(PBSDF.inputs["Subsurface Radius"])
 
-                if bpy.app.version >= (4, 0, 0):
-                    PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
-                    PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
-                else:
-                    PBSDF.inputs["Subsurface"].default_value = PProperties.sss_weight
+                PBSDF.inputs["Subsurface Weight"].default_value = PProperties.sss_weight
+                PBSDF.inputs["Subsurface Scale"].default_value = PProperties.sss_scale
 
                 PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
             elif not PProperties.use_sss and PProperties.revert_sss:
-                PBSDF.inputs[PBSDF_compability("Subsurface Weight")].default_value = 0
+                PBSDF.inputs["Subsurface Weight"].default_value = 0
 
             # Use Translucency
             if PProperties.use_translucency and name_in(Translucent_Materials, material.name)[0]:
-                PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = PProperties.translucency
+                PBSDF.inputs["Transmission Weight"].default_value = PProperties.translucency
             elif not PProperties.use_translucency and PProperties.revert_translucency:
-                PBSDF.inputs[PBSDF_compability("Transmission Weight")].default_value = 0
+                PBSDF.inputs["Transmission Weight"].default_value = 0
 
             # Make Metals                            
             if PProperties.make_metal and name_in(Metal, material.name)[0]:
@@ -755,7 +700,7 @@ def setproceduralpbr():
                 PBSDF.inputs["Roughness"].default_value = PProperties.reflections_roughness
 
             # Make Better Emission and Animate Textures
-            if PProperties.procedural_emission_and_animation and base_color_connection and image and EmissionMode(PBSDF, image.name):
+            if PProperties.procedural_emission_and_animation and base_color_connection and image and is_emissive(PBSDF, image.name):
                 is_valid, item = name_in(Emissive_Materials.keys(), material.name)
 
                 if is_valid and PProperties.custom_peaa_config:
@@ -785,9 +730,9 @@ def setproceduralpbr():
                             better_animate_node.inputs["Procedural Animation"].default_value = bool(PProperties.procedural_animation and material_properties.get("Procedural Animation", False))
                             better_animate_node.inputs["Randomize"].default_value = PProperties.randomize and Procedural_Animation_Dict.get("Randomize", False)
 
-                        if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
-                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
-                        
+                        if GetConnectedSocketTo("Emission Color", PBSDF) is None:
+                            material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission Color"])
+
                         emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
                         if emit_socket and emit_socket.node != better_animate_node:
                             material.node_tree.links.new(emit_socket, better_animate_node.inputs["Multiply"])
@@ -810,9 +755,9 @@ def setproceduralpbr():
                         better_animate_node.inputs["Procedural Animation"].default_value = PProperties.procedural_animation
                         better_animate_node.inputs["Randomize"].default_value = PProperties.randomize
 
-                    if GetConnectedSocketTo(PBSDF_compability("Emission Color"), PBSDF) is None:
-                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs[PBSDF_compability("Emission Color")])
-                    
+                    if GetConnectedSocketTo("Emission Color", PBSDF) is None:
+                        material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), PBSDF.inputs["Emission Color"])
+
                     emit_socket = GetConnectedSocketTo("Emission Strength", PBSDF)
                     if emit_socket and emit_socket.node != better_animate_node:
                         material.node_tree.links.new(emit_socket, better_animate_node.inputs["Multiply"])
@@ -856,11 +801,11 @@ def setproceduralpbr():
                     pspecular_node.interpolation_type = PProperties.ps_interpolation
                     pspecular_node.inputs["From Max"].default_value = 1.0
                     pspecular_node.inputs["From Min"].default_value = 0.0
-                    pspecular_node.inputs["To Max"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value
-                    pspecular_node.inputs["To Min"].default_value = PBSDF.inputs[PBSDF_compability("Specular IOR Level")].default_value * PProperties.ps_dif
+                    pspecular_node.inputs["To Max"].default_value = PBSDF.inputs["Specular IOR Level"].default_value
+                    pspecular_node.inputs["To Min"].default_value = PBSDF.inputs["Specular IOR Level"].default_value * PProperties.ps_dif
                     
                     material.node_tree.links.new(GetConnectedSocketTo("Base Color", PBSDF), pspecular_node.inputs["Value"])
-                    material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs[PBSDF_compability("Specular IOR Level")])
+                    material.node_tree.links.new(pspecular_node.outputs[0], PBSDF.inputs["Specular IOR Level"])
                     
                 elif PProperties.ps_revert and pspecular_node is not None:
                     material.node_tree.nodes.remove(pspecular_node)

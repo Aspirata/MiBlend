@@ -1,16 +1,15 @@
-import bpy, os, json, shutil, platform, subprocess, traceback
+import bpy, os, json, shutil, platform, subprocess, traceback, zipfile
 from typing import Union
 from pathlib import Path
 from bpy.types import Operator
-from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty
+from bpy.props import BoolProperty, StringProperty, EnumProperty
 from .Materials import Materials
 from .Resource_Packs import apply_resources, get_resource_packs, set_resource_packs, get_resource_path, update_default_pack
-from .Optimization import Optimize
-from .Utils_tools import *
-from .Assets import *
-from .Utils.Absolute_Solver import Call_AS
+from .Assets import update_assets, assets_directory, append_asset
+from .Utils.Absolute_Solver import trigger_absolute_solver
 from .Data import main_directory
-from .MIB_API import get_selected_asset
+from .MIB_API import get_selected_asset, dprint
+
 
 class RecreateEnvironment(Operator):
     bl_label = "Recreate Environment"
@@ -129,7 +128,6 @@ class ResourcePackToggleOperator(Operator):
     pack_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        scene = context.scene
         resource_packs = get_resource_packs()
         if self.pack_name in resource_packs:
             resource_packs[self.pack_name]["enabled"] = not resource_packs[self.pack_name]["enabled"]
@@ -318,7 +316,7 @@ class AddResourcePack(Operator):
             if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
                 set_resource_packs(resource_packs)
             else:
-                Call_AS("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
+                trigger_absolute_solver("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
                 return {'CANCELLED'}
             
         elif self.Mode == "perm":
@@ -373,16 +371,7 @@ class CreateEnvOperator(Operator):
     def execute(self, context):
         Materials.create_env()
         return {'FINISHED'}
-        
-class UpgradeMaterialsOperator(Operator):
-    bl_idname = "materials.replace_materials"
-    bl_label = "Upgrade Materials"
-    bl_description = "Deprecated Feature"
-    bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        Materials.replace_materials()
-        return {'FINISHED'}
 
 class FixMaterialsOperator(Operator):
     bl_idname = "materials.fix_materials"
@@ -415,18 +404,6 @@ class SwapTexturesOperator(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class OpenConsoleOperator(Operator):
-    bl_idname = "special.open_console"
-    bl_label = "Open Console"
-    bl_description = "Toggles Blender System Console"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        try:
-            bpy.ops.wm.console_toggle()
-        except RuntimeError:
-            return {'CANCELLED'}
-        return {'FINISHED'}
 
 class CopyToClipboardOperator(Operator):
     bl_idname = "special.copy_to_clipboard"
@@ -451,37 +428,6 @@ class SetProceduralPBROperator(Operator):
 
     def execute(self, context):
         Materials.setproceduralpbr()
-        return {'FINISHED'}
-
-class OptimizeOperator(Operator):
-    bl_idname = "optimization.optimization"
-    bl_label = "Optimize"
-    bl_description = "Deprecated Feature"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        Optimize.Optimize()
-        return {'FINISHED'}
-    
-class SetRenderSettingsOperator(Operator):
-    bl_idname = "utils.setrendersettings"
-    bl_label = "Set Render Settings"
-    bl_description = "Deprecated Feature"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        current_preset = bpy.context.scene.miblend_properties.utils_properties.current_preset
-        SetRenderSettings(current_preset)
-        return {'FINISHED'}
-    
-class AssingVertexGroupOperator(Operator):
-    bl_idname = "utils.assingvertexgroup"
-    bl_label = "Assing Vertex Group"
-    bl_description = "Deprecated Feature"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        VertexRiggingTool()
         return {'FINISHED'}
 
 class SavePropertiesOperator(Operator):
@@ -514,9 +460,9 @@ class SavePropertiesOperator(Operator):
         
         except Exception as error:
             if not os.path.isfile(json_file_path):
-                Call_AS("e03", error, json_file_path)
+                trigger_absolute_solver("e03", error, json_file_path)
             else:
-                Call_AS("n00", error)
+                trigger_absolute_solver("n00", error)
             return {'CANCELLED'}
 
 class ResetPropertiesOperator(Operator):
@@ -544,9 +490,9 @@ class ResetPropertiesOperator(Operator):
         
         except Exception as error:
             if not os.path.isfile(json_file_path):
-                Call_AS("e03", error, json_file_path)
+                trigger_absolute_solver("e03", error, json_file_path)
             else:
-                Call_AS("n00", error)
+                trigger_absolute_solver("n00", error)
             return {'CANCELLED'}
 
 class AddAsset(Operator):
@@ -682,8 +628,8 @@ class ImportAssetOperator(Operator):
             append_asset(asset_data)
 
             return {'FINISHED'}
-        except Exception as error:
-            Call_AS("n00", traceback.format_exc())
+        except Exception:
+            trigger_absolute_solver("n00", traceback.format_exc())
             return {'CANCELLED'}
     
 class ManualAssetsUpdateOperator(Operator):
@@ -785,7 +731,7 @@ class TriggerASErrorOperator(Operator):
         elif not bpy.context.preferences.addons[__package__].preferences.show_warnings:
             self.report({'ERROR'}, "You can't see warnings because you've disabled them dumbass")
         else:
-            Call_AS("e-1")
+            trigger_absolute_solver("e-1")
         return {'FINISHED'}
 
 class OpenMiBlendFolder(Operator):

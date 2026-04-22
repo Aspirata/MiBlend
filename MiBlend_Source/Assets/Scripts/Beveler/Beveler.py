@@ -72,4 +72,4 @@ for selected_object in bpy.context.selected_objects:
         bevel_modifier = add_modifier(selected_object, "BEVEL", "Bevel")
         bevel_modifier.width = amount
         bevel_modifier.segments = segments
-        simple_scale_uv(0.999)
+        simple_scale_uv(0.99)

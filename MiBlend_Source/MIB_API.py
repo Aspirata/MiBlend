@@ -1,27 +1,6 @@
-import bpy, os, json, time, sys, re, traceback
+import bpy, os, json, time, re, traceback
 from .Data import main_directory, nodes_file, Emissive_Materials, gray_blocks
-from .Utils.Absolute_Solver import Call_AS
-
-def PBSDF_compability(Input: str) -> str:
-    if bpy.app.version >= (4, 0, 0):
-        return Input
-    return {
-        "Subsurface Weight": "Subsurface",
-        "Subsurface Radius": "Subsurface Color",
-
-        "Specular IOR Level": "Specular",
-
-        "Transmission Weight": "Transmission",
-
-        "Coat Weight": "Coat",
-        "Sheen Weight": "Sheen",
-
-        "Emission Color": "Emission",
-    }.get(Input, Input)
-    
-
-def is_unix_system() -> bool:
-    return "linux" in sys.platform or "darwin" in sys.platform
+from .Utils.Absolute_Solver import trigger_absolute_solver
 
 
 def get_preferencies() -> bpy.types.AddonPreferences:
@@ -62,22 +41,17 @@ def inject_node(material: str, node_to_inject: object, target_node: object, targ
     material.node_tree.links.new(node_to_inject.outputs[node_to_inject_output], target_node.inputs[target_node_input])
 
 
-# deprecated | 13.01.2026
-def is_mesh(object: object) -> bool:
-    return object.type == "MESH"
-
-
 def get_selected_asset() -> dict:
     current_index = bpy.context.scene.miblend_properties.assets_properties.asset_index
     items = bpy.context.scene.miblend_properties.assets_properties.asset_items
     
     try:
         return items[current_index]
-    except Exception as error:
+    except Exception:
         if current_index < 0 or current_index >= len(items):
-            Call_AS("e08", traceback.format_exc())
+            trigger_absolute_solver("e08", traceback.format_exc())
         else:
-            Call_AS("n00", traceback.format_exc())
+            trigger_absolute_solver("n00", traceback.format_exc())
 
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
@@ -91,8 +65,8 @@ def mc_version_formatter(version_name: str) -> str:
             if not any(char.isalpha() for char in part) and re.match(r'^\d{1,2}\.\d{1,2}(?:\.\d{1,2})?$', part):
                 return part
         return ""
-    except:
-        Call_AS("n00", traceback.format_exc())
+    except Exception:
+        trigger_absolute_solver("n00", traceback.format_exc())
 
 
 # Checks if material_or_texture_name in Array return (True, item in the list) else (False, None)
@@ -159,28 +133,17 @@ def get_pack_info_properties(pack_name: str = "") -> dict:
         with open(packs_info_path, "w") as file:
             json.dump({}, file)
         return {}
-    except:
-        Call_AS("n00", traceback.format_exc())
+    except Exception:
+        trigger_absolute_solver("n00", traceback.format_exc())
         return {}
+
 
 def is_code_ignored(code: str) -> bool:
     return code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split()
 
 
-def EmissionMode(PBSDF: object, texture_name: str) -> int:
-
-    Preferences = bpy.context.preferences.addons[__package__].preferences
-    
-    if Preferences.emissiondetection == 'Combined' and (PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name, True)[0]):
-        return 1
-
-    elif Preferences.emissiondetection == 'Automatic' and PBSDF.inputs["Emission Strength"].default_value != 0:
-        return 2
-    
-    elif Preferences.emissiondetection == 'Manual' and name_in(Emissive_Materials.keys(), texture_name, True)[0]:
-        return 3
-    
-    return 0
+def is_emissive(PBSDF: object, texture_name: str) -> bool:
+    return PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name, True)[0]
 
 
 def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file) -> object:
@@ -210,7 +173,7 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
                 with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
                     data_to.node_groups = [modifier_type_or_node_group]
             except Exception as error:
-                Call_AS("e03", file, error)
+                trigger_absolute_solver("e03", file, error)
 
         name = modifier_name if modifier_name else modifier_type_or_node_group
         modifier = object.modifiers.new(name, type='NODES')
@@ -249,7 +212,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
             with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
                 data_to.node_groups = [node_tree_name]
         except Exception as error:
-            Call_AS("e03", file, error)
+            trigger_absolute_solver("e03", file, error)
 
     # Create and configure new node
     group_node = place.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -264,7 +227,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
 
 def detect_obj_type(obj_name: str = "", mat_name: str = "") -> str:
     obj = bpy.data.objects.get(obj_name)
-    if obj is None or not is_mesh(obj):
+    if not obj or obj.type != "MESH":
         dprint(f"Object {obj_name} not found", is_deep=True, zone="rp")
         return "unknown"
 
@@ -321,7 +284,7 @@ def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool
         if not Preferences.dev_tools or not Preferences.dprint:
             return
         
-        if zone and zones_dict.get(zone, False) == False:
+        if zone and not zones_dict.get(zone, False):
             return
             
         if is_deep and not Preferences.deep_debug:
@@ -563,11 +526,11 @@ def separate_mesh_by_material(obj: object, material: object = None) -> object:
         return new_obj
 
     except Exception:
-        Call_AS("n00", traceback.format_exc())
+        trigger_absolute_solver("n00", traceback.format_exc())
         return None
 
 
-def Perf_Time(func):
+def perf_time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
         func(*args, **kwargs)
@@ -590,7 +553,7 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
         
         return [link.to_socket for link in output_socket.links]
     except Exception as error:
-        Call_AS("n00", error)
+        trigger_absolute_solver("n00", error)
 
 
 def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
@@ -612,7 +575,7 @@ def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
         link = input_socket.links[0]
         return link.from_socket
     except Exception as error:
-        Call_AS("n00", error)
+        trigger_absolute_solver("n00", error)
 
 
 def RemoveLinksFrom(sockets: object):
@@ -620,6 +583,6 @@ def RemoveLinksFrom(sockets: object):
         for socket in sockets:
             for link in socket.links:
                 socket.node.id_data.links.remove(link)
-    except:
+    except Exception:
         for link in sockets.links:
             sockets.node.id_data.links.remove(link)

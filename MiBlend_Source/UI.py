@@ -4,7 +4,9 @@ from .Resource_Packs import get_resource_packs
 from .MIB_API import get_resource_path, get_pack_info_properties, dprint
 from .Data import world_material_name
 
+
 Big_Button_Scale = 1.4
+
 
 class WorldAndMaterialsPanel(Panel):
     bl_label = "World & Materials"
@@ -56,55 +58,51 @@ class WorldAndMaterialsPanel(Panel):
         row.label(text="Resource Packs", icon="FILE_FOLDER")
         
         sbox = box.box()
-        #row = sbox.row()
-        #row.label(text="Resource Packs List", icon="OUTLINER")
-        #row.prop(scene.miblend_properties.resource_properties, "toggle_resource_packs_list", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.resource_properties.toggle_resource_packs_list else "TRIA_LEFT"), icon_only=True)
-        if scene.miblend_properties.resource_properties.toggle_resource_packs_list:
-            try:
-                resource_packs: dict = get_resource_packs()
-            except:
-                resource_packs = {}
+        try:
+            resource_packs: dict = get_resource_packs()
+        except Exception:
+            resource_packs = {}
 
-            if not resource_packs:
+        if not resource_packs:
+            row = sbox.row()
+            row.label(text="No resource packs found, reload default packs", icon="ERROR")
+            if not os.path.exists(get_resource_path()) and Preferences.dev_tools:
                 row = sbox.row()
-                row.label(text="No resource packs found, reload default packs", icon="ERROR")
-                if not os.path.exists(get_resource_path()) and Preferences.dev_tools:
-                    row = sbox.row()
-                    row.label(text="Dev path is not set", icon="ERROR")
-            else:
-                tbox = sbox.box()
-                for pack, pack_info in resource_packs.items():
-                    row = tbox.row()
+                row.label(text="Dev path is not set", icon="ERROR")
+        else:
+            tbox = sbox.box()
+            for pack, pack_info in resource_packs.items():
+                row = tbox.row()
 
-                    if os.path.exists(pack_info.get("path", "")):
-                        icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
-                        toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
-                        toggle_op.pack_name = pack
-                    else:
-                        row.label(text="", icon='ERROR')
+                if os.path.exists(pack_info.get("path", "")):
+                    icon = 'CHECKBOX_HLT' if pack_info["enabled"] else 'CHECKBOX_DEHLT'
+                    toggle_op = row.operator("resource_pack.toggle", text="", icon=icon)
+                    toggle_op.pack_name = pack
+                else:
+                    row.label(text="", icon='ERROR')
 
-                    pack_info_props = get_pack_info_properties(pack)
-                    mc_version = pack_info_props.get('mc_version', '')
-                    pack_type = pack_info.get('type', 'Texture & PBR')
+                pack_info_props = get_pack_info_properties(pack)
+                mc_version = pack_info_props.get('mc_version', '')
+                pack_type = pack_info.get('type', 'Texture & PBR')
+                
+                if mc_version is None:
+                    row.label(text=f"{pack} ({pack_type})")
+                else:
+                    version_text = mc_version if mc_version != 'Unknown' else ''
+                    row.label(text=f"{pack} {version_text} ({pack_type})")
                     
-                    if mc_version is None:
-                        row.label(text=f"{pack} ({pack_type})")
-                    else:
-                        version_text = mc_version if mc_version != 'Unknown' else ''
-                        row.label(text=f"{pack} {version_text} ({pack_type})")
-                        
-                    buttons_row = row.row(align=True)
+                buttons_row = row.row(align=True)
 
-                    if not pack_info.get("is_built_in", False):
-                        remove = buttons_row.operator("resource_pack.remove", text="", icon='X')
-                        remove.pack_name = pack
-                    
-                    if os.path.exists(pack_info.get("path", "")):
-                        move_up = buttons_row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
-                        move_up.pack_name = pack
+                if not pack_info.get("is_built_in", False):
+                    remove = buttons_row.operator("resource_pack.remove", text="", icon='X')
+                    remove.pack_name = pack
+                
+                if os.path.exists(pack_info.get("path", "")):
+                    move_up = buttons_row.operator("resource_pack.move_up", text="", icon='TRIA_UP')
+                    move_up.pack_name = pack
 
-                        move_down = buttons_row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
-                        move_down.pack_name = pack
+                    move_down = buttons_row.operator("resource_pack.move_down", text="", icon='TRIA_DOWN')
+                    move_down.pack_name = pack
             
             row = sbox.row()
             row.operator("resource_pack.add", text="", icon='ADD')
@@ -412,26 +410,24 @@ class WorldAndMaterialsPanel(Panel):
                     row.prop(scene.miblend_properties.env_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.miblend_properties.env_properties.geonodes_settings:
-                        if bpy.app.version >= (4, 0, 0):
+                        fbox = tbox.box()
+                        row = fbox.row()
+                        row.label(text="Layers Settings:", icon="AXIS_TOP")
+                        row.prop(scene.miblend_properties.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                        if scene.miblend_properties.env_properties.layers_settings:
 
-                            fbox = tbox.box()
                             row = fbox.row()
-                            row.label(text="Layers Settings:", icon="AXIS_TOP")
-                            row.prop(scene.miblend_properties.env_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.env_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.miblend_properties.env_properties.layers_settings:
+                            row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
 
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+                            row = fbox.row()
+                            row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
 
-                                row = fbox.row()
-                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
+                            row = fbox.row()
+                            row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
                         
                         row = tbox.row()
                         row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
@@ -467,7 +463,7 @@ class WorldAndMaterialsPanel(Panel):
                         row = tbox.row()
                         row.prop(height_transparency_multiplier_value, "default_value", text="Height Transparency Multiplier")
 
-        except:
+        except Exception:
             box = layout.box()
             row = box.row()
             row.label(text="An Error occured !", icon="ERROR")
@@ -498,11 +494,6 @@ class WorldAndMaterialsPanel(Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Materials", icon="MATERIAL_DATA")
-
-        if bpy.context.scene.get("mib_options", {}).get("is_replaced_materials", False):
-            row = box.row()
-            row.scale_y = Big_Button_Scale
-            row.operator("materials.replace_materials", text="Replace Materials")
 
         row = box.row()
         row.scale_y = Big_Button_Scale
@@ -662,19 +653,12 @@ class WorldAndMaterialsPanel(Panel):
                 row = tbox.row()
                 row.prop(scene.miblend_properties.ppbr_properties, "sss_skip")
                 row = tbox.row()
-                if bpy.app.version >= (4, 0, 0):
-                    row.prop(scene.miblend_properties.ppbr_properties, "connect_texture")
-                else:
-                    row.prop(scene.miblend_properties.ppbr_properties, "connect_texture", text="Connect Texture To The SSS Color")
+                row.prop(scene.miblend_properties.ppbr_properties, "connect_texture")
 
-                if bpy.app.version >= (4, 0, 0):
-                    row = tbox.row()
-                    row.prop(scene.miblend_properties.ppbr_properties, "sss_weight", slider=True)
-                    row = tbox.row()
-                    row.prop(scene.miblend_properties.ppbr_properties, "sss_scale", slider=True)
-                else:
-                    row = tbox.row()
-                    row.prop(scene.miblend_properties.ppbr_properties, "sss_weight", text="Subsurface", slider=True)
+                row = tbox.row()
+                row.prop(scene.miblend_properties.ppbr_properties, "sss_weight", slider=True)
+                row = tbox.row()
+                row.prop(scene.miblend_properties.ppbr_properties, "sss_scale", slider=True)
                 
                 row = tbox.row()
                 row.prop(context.scene.miblend_properties.ppbr_properties, "revert_sss")
@@ -720,129 +704,6 @@ class WorldAndMaterialsPanel(Panel):
         row.scale_y = Big_Button_Scale
         row.operator("ppbr.setproceduralpbr", text="Apply Procedural PBR", icon="CHECKMARK")
 
-class OptimizationPanel(Panel):
-    bl_label = "Optimization"
-    bl_idname = "optimization.panel"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'MiBlend'
-    
-    @classmethod
-    def poll(cls, context):
-        try:
-            prefs = context.preferences.addons[__package__].preferences
-            return prefs.enable_deprecated_features
-        except (AttributeError, KeyError):
-            return False
-
-    def draw(self, context):
-
-        layout = self.layout
-
-        if Preferences.transparent_ui:
-            self.bl_options = {'HIDE_HEADER'}
-        else:
-            self.bl_options = set()
-
-        box = layout.box()
-        row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.optimization_properties, "use_camera_culling", text="Use Camera Culling")
-        row.prop(bpy.context.scene.miblend_properties.optimization_properties, "camera_culling_settings", icon=("TRIA_DOWN" if bpy.context.scene.miblend_properties.optimization_properties.camera_culling_settings else "TRIA_LEFT"), icon_only=True)
-        # Camera Culling Settings
-        if bpy.context.scene.miblend_properties.optimization_properties.camera_culling_settings:
-            sbox = box.box()
-            row = sbox.row()
-            row.label(text="Camera Culling Type:", icon="CAMERA_DATA")
-            row = sbox.row()
-            row.prop(bpy.context.scene.miblend_properties.optimization_properties, "camera_culling_type", text='camera_culling_type', expand=True)
-            if bpy.context.scene.miblend_properties.optimization_properties.camera_culling_type == 'Raycast':
-                # Raycast Camera Culling Settings
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Culling Mode:")
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "culling_mode", expand=True, text='culling_mode')
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "culling_distance", text="Anti-Culling Distance")
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "predict_fov", text="Predict FOV")
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "merge_by_distance", text="Merge By Distance")
-                    
-                if bpy.context.scene.miblend_properties.optimization_properties.merge_by_distance:
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.miblend_properties.optimization_properties, "merge_distance", text="Merge Distance")
-
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "backface_culling", text="Backface Culling")
-
-                if bpy.context.scene.miblend_properties.optimization_properties.backface_culling:
-                    row = tbox.row()
-                    row.prop(bpy.context.scene.miblend_properties.optimization_properties, "backface_culling_distance", text="Backface Culling Distance")
-
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "scale")
-            else:
-                # Vector Camera Culling Settings
-                tbox = sbox.box()
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "backface_culling", text="Backface Culling")
-                row = tbox.row()
-                row.prop(bpy.context.scene.miblend_properties.optimization_properties, "threshold", slider=True)
-
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("optimization.optimization", text="Optimize")
-
-class UtilsPanel(Panel):
-    bl_label = "Utils"
-    bl_idname = "utils.panel"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'MiBlend'
-    
-    @classmethod
-    def poll(cls, context):
-        try:
-            prefs = context.preferences.addons[__package__].preferences
-            return prefs.enable_deprecated_features
-        except (AttributeError, KeyError):
-            return False
-
-    def draw(self, context):
-        layout = self.layout
-
-        if Preferences.transparent_ui:
-            self.bl_options = {'HIDE_HEADER'}
-        else:
-            self.bl_options = set()
-
-
-        box = layout.box()
-        row = box.row()
-        row.label(text="Rendering", icon="RESTRICT_RENDER_OFF")
-
-        row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utils_properties, "current_preset", text="Current Preset")
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("utils.setrendersettings")
-
-        box = layout.box()
-        row = box.row()
-        row.label(text="Rigging", icon="ARMATURE_DATA")
-        row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utils_properties, "armature")
-
-        row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utils_properties, "lattice")
-
-        row = box.row()
-        row.prop(bpy.context.scene.miblend_properties.utils_properties, "vertex_group_name")
-
-        row = box.row()
-        row.scale_y = Big_Button_Scale
-        row.operator("utils.assingvertexgroup")
 
 def import_asset_text(index):
     if index <= len(bpy.context.scene.miblend_properties.assets_properties.asset_items) and len(bpy.context.scene.miblend_properties.assets_properties.asset_items) > 0:

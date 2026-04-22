@@ -1,7 +1,8 @@
 import bpy, os, json
-from .Data import Render_Settings, assets_directory
+from .Data import assets_directory
 from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty, PointerProperty, CollectionProperty
+
 
 class WorldProperties(PropertyGroup):
     lazy_biome_fix: BoolProperty(
@@ -24,11 +25,6 @@ class WorldProperties(PropertyGroup):
 
 
 class ResourcePackProperties(PropertyGroup):
-    toggle_resource_packs_list: BoolProperty(
-        name="Resource Packs List",
-        default=True
-    )
-
     resource_packs_settings: BoolProperty(
         name="Advanced Settings",
         default=False
@@ -41,8 +37,8 @@ class ResourcePackProperties(PropertyGroup):
     )
 
     use_additional_textures: BoolProperty(
-        name="Use PBR Textures",            # 16.09.2024 This was renamed, but i'm too lazy to change the name in the code LoL
-        default=True                        # 24.03.2025 Change this in v0.8 Resouce Packs Rewrite
+        name="Use PBR Textures",            # 16.09.2024 This was renamed, but i'm too lazy to change the name in the code LoL | 24.03.2025 Change this in Resource Packs Rewrite Update
+        default=True
     )
 
     textures_settings: BoolProperty(
@@ -368,26 +364,17 @@ class PPBRProperties(PropertyGroup):
         default=False
     )
 
-    def sss_type_fix():
-        if bpy.app.version >= (4, 0, 0):
-            items=[('BURLEY', 'Christensen Burley', ''), 
-                ('RANDOM_WALK', 'Random Walk', ''),
-                ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')]
-        else:
-            items=[('BURLEY', 'Christensen Burley', ''), 
-                ('RANDOM_WALK', 'Random Walk', ''),
-                ('RANDOM_WALK_FIXED_RADIUS', 'Random Walk (Fixed Radius)', '')]
-        return items
-
     sss_type: EnumProperty(
-        items=sss_type_fix(),
+        items=[('BURLEY', 'Christensen Burley', ''), 
+                ('RANDOM_WALK', 'Random Walk', ''),
+                ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')],
         name="sss_type",
         default='BURLEY'
     )
 
     connect_texture: BoolProperty(
         name="Connect Texture To The Radius",
-        default=bpy.app.version < (4, 0, 0)
+        default=False
     )
 
     sss_weight: FloatProperty(
@@ -530,153 +517,6 @@ class CreateEnvProperties(PropertyGroup):
     )
 
 
-class OptimizationProperties(PropertyGroup):
-    use_camera_culling: BoolProperty(
-        name="Use Camera Culling",
-        default=True,
-        description="Enables Camera Culling"
-    )
-
-    camera_culling_settings: BoolProperty(
-        name="Camera Culling Settings",
-        default=False,
-        description=""
-    )
-
-    camera_culling_type: EnumProperty(
-        items=[('Vector', 'Vector', ''), ('Raycast', 'Raycast', '')],
-        name="camera_culling_type",
-        default='Raycast'
-    )
-
-    culling_mode: EnumProperty(
-        items=[('Simplify Faces', 'Simplify Faces', ''), ('Delete Faces', 'Delete Faces', '')],
-        name="culling_mode",
-        default='Delete Faces'
-    )
-
-    culling_distance: FloatProperty(
-        name="Anti-Culling Distance",
-        default=10.0,
-        min=0.0,
-        max=1000000.0,
-        description=""
-    )
-
-    predict_fov: BoolProperty(
-        name="Predict FOV",
-        default=False,
-        description=""
-    )
-
-    merge_by_distance: BoolProperty(
-        name="Merge By Distance",
-        default=False,
-        description=""
-    )
-
-    merge_distance: FloatProperty(
-        name="Merge Distance",
-        default=100.0,
-        min=0.0,
-        max=1000000.0,
-        description=""
-    )
-
-    threshold: FloatProperty(
-        name="Threshold",
-        default=0.8,
-        min=0.0,
-        max=1.0,
-        description=""
-    )
-
-    scale: FloatProperty(
-        name="Scale",
-        default=1,
-        min=0.0,
-        max=100.0,
-        description=""
-    )
-
-    backface_culling: BoolProperty(
-        name="Backface Culling",
-        default=True,
-        description=""
-    )
-
-    backface_culling_distance: FloatProperty(
-        name="Backface Culling Distance",
-        default=50.0,
-        min=0.0,
-        max=1000000.0,
-        description=""
-    )
-
-
-class UtilsProperties(PropertyGroup):
-    cs_settings: BoolProperty(
-        name="Contact Shadows Settings",
-        default=False,
-        description=""
-    )
-
-    cshadowsselection: EnumProperty(
-        items=[('All Light Sources', 'All Light Sources', ''), 
-               ('Only Selected Light Sources', 'Only Selected Light Sources', '')],
-        name="cshadowsselection",
-        default='All Light Sources'
-    )
-
-    distance: FloatProperty(
-        name="Distance",
-        description="",
-        default=0.2,
-        min=0.0,
-        max=100000.0
-    )
-
-    bias: FloatProperty(
-        name="Bias",
-        description="",
-        default=0.03,
-        min=0.001,
-        max=5.0
-    )
-
-    thickness: FloatProperty(
-        name="Thickness",
-        description="",
-        default=0.01,
-        min=0.0,
-        max=100.0
-    )
-
-    current_preset: EnumProperty(
-        items=[(name, name, "") for name, data in Render_Settings.items()],
-        description="Select Settings to Use",
-    )
-
-    armature: PointerProperty(
-        name="Armature",
-        description="",
-        type=bpy.types.Object,
-        poll=lambda self, obj: obj.type == 'ARMATURE'
-    )
-
-    lattice: PointerProperty(
-        name="Lattice",
-        description="",
-        type=bpy.types.Object,
-        poll=lambda self, obj: obj.type == 'LATTICE'
-    )
-
-    vertex_group_name: StringProperty(
-        name="Vertex Group Name",
-        description=""
-    )
-
-
 class AssetTagItem(PropertyGroup):
     name: StringProperty()
     enabled: BoolProperty(default=False)
@@ -736,5 +576,3 @@ class MiBlendProperties(PropertyGroup):
     ppbr_properties: PointerProperty(type=PPBRProperties)
     assets_properties: PointerProperty(type=AssetsProperties)
     absolute_solver_properties: PointerProperty(type=AbsoluteSolverProperties)
-    utils_properties: PointerProperty(type=UtilsProperties)
-    optimization_properties: PointerProperty(type=OptimizationProperties)

@@ -1,7 +1,8 @@
 import bpy, os, json, traceback
 from . import Data, MIB_API
-from .MIB_API import dprint, is_mesh, create_node_group
-from .Utils.Absolute_Solver import Call_AS
+from .MIB_API import dprint, create_node_group, get_selected_asset
+from .Data import assets_directory
+from .Utils.Absolute_Solver import trigger_absolute_solver
 
 def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name", "")
@@ -30,12 +31,12 @@ def append_asset(asset_data):
             append_material(asset_data)
         
     except Exception:
-        Call_AS("e05", traceback.format_exc(), asset_name)
+        trigger_absolute_solver("e05", traceback.format_exc(), asset_name)
 
 def append_collection(asset_name, asset_collection, asset_path):
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
         if asset_collection not in data_from.collections:
-            Call_AS("e05", data=asset_name, tech_things=f"Collection {asset_collection} not found")
+            trigger_absolute_solver("e05", data=asset_name, tech_things=f"Collection {asset_collection} not found")
             return
         
         data_to.collections = [asset_collection]
@@ -60,7 +61,7 @@ def append_collection(asset_name, asset_collection, asset_path):
             obj.pose.bones[root_bone.name].matrix.translation = cursor_location
 
 def run_python_script(name, path):
-    properties = {key.replace('_property', ''): value for key, value in MIB_API.get_selected_asset().items() if 'property' in key}
+    properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
     context = {}
 
     context.update({name: getattr(Data, name) 
@@ -91,7 +92,7 @@ def append_snode(asset_data):
     elif Append_mode == "Every Selected":
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
-            if is_mesh(selected_object):
+            if selected_object.type == "MESH":
                 for index, material in enumerate(selected_object.data.materials):
                     if material is not None and material.use_nodes:
                         nodes_list = material.node_tree.nodes
@@ -103,7 +104,7 @@ def append_snode(asset_data):
     elif Append_mode == "Active Only":
         dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
-        if active_obj and is_mesh(active_obj) and active_obj.active_material:
+        if active_obj and active_obj.type == "MESH" and active_obj.active_material:
             current_material = active_obj.active_material
             if current_material is not None and current_material.use_nodes:
                 nodes_list = current_material.node_tree.nodes
@@ -122,7 +123,7 @@ def append_cnode(asset_data):
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.node_groups = [Node_name]
         except Exception as error:
-            Call_AS("e05", error, Node_name)
+            trigger_absolute_solver("e05", error, Node_name)
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -155,7 +156,7 @@ def append_cnode(asset_data):
                 if Node_name in node.node_tree.name:
                     Node = node
 
-        if Node == None:
+        if Node is None:
             Node = tree.nodes.new('CompositorNodeGroup')
             Node.node_tree = bpy.data.node_groups[Node_name]
             Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
@@ -171,7 +172,7 @@ def append_gnode(asset_data):
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.node_groups = [Node_name]
         except Exception as error:
-            Call_AS("e05", error, Node_name)
+            trigger_absolute_solver("e05", error, Node_name)
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -218,7 +219,7 @@ def append_material(asset_data):
             with bpy.data.libraries.load(Blend_file, link=False) as (data_from, data_to):
                 data_to.materials = Material_name
         except Exception as error:
-            Call_AS("e05", error, Material_name)
+            trigger_absolute_solver("e05", error, Material_name)
     
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
@@ -235,7 +236,7 @@ def update_assets():
     items.clear()
     assets_list = []
 
-    directories_to_scan = [Data.assets_directory]
+    directories_to_scan = [assets_directory]
 
     temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", [])
     temp_assets_path_list = list(temp_assets_paths)
@@ -305,7 +306,7 @@ def update_assets():
                     assets_list.append(asset_info)
                     
                 except Exception as error:
-                    Call_AS("e06", error, asset_data.get("Asset_name"))
+                    trigger_absolute_solver("e06", error, asset_data.get("Asset_name"))
                         
     for asset in sorted(assets_list, key=lambda x: x.get("Asset_name", "")):
         item = items.add()

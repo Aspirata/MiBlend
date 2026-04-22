@@ -3,7 +3,7 @@ from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
 from .MIB_API import *
-from .Utils.Absolute_Solver import Call_AS
+from .Utils.Absolute_Solver import trigger_absolute_solver
 
 def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
@@ -170,7 +170,7 @@ def update_pack(pack: str, connection=None):
             connection.close()
         return None
 
-@Perf_Time
+@perf_time
 def update_default_pack():
     if "resource_packs" not in bpy.context.scene:
         bpy.context.scene["resource_packs"] = {}
@@ -232,7 +232,7 @@ def update_default_pack():
     
     set_resource_packs(resource_packs)
 
-@ Perf_Time
+@perf_time
 def apply_resources():
 
     resource_packs = get_resource_packs()
@@ -300,7 +300,7 @@ def apply_resources():
                         try:
                             return zip_unpacker(os.path.join(dirpath, file), image_name, obj_type, file, entity_name)
                         except zipfile.BadZipFile:
-                            Call_AS("n00", traceback.format_exc())
+                            trigger_absolute_solver("n00", traceback.format_exc())
         return None
     
     def zip_unpacker(root_folder: str, image_name: str, obj_type: str = "Unknown", file=None, entity_name: str = "") -> str | None:
@@ -714,7 +714,7 @@ def apply_resources():
                 RemoveLinksFrom(LabPBR_s.outputs["Porosity (Specular)"])
 
             if r_props.sss:
-                material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs[PBSDF_compability("Subsurface Weight")])
+                material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface Weight"])
 
                 PBSDF.inputs["Subsurface Radius"].default_value = (1,1,1)
 
@@ -725,16 +725,16 @@ def apply_resources():
             if r_props.emission:
                 try:
                     try:
-                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
+                        material.node_tree.links.new(image_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
                     except:
-                        material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
+                        material.node_tree.links.new(ITexture_Animator.outputs["Color"], PBSDF.inputs["Emission Color"])
                 except:
                     pass
             
                 material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
             else:
                 RemoveLinksFrom(LabPBR_s.outputs["Emission Strength"])
-                RemoveLinksFrom(PBSDF.inputs[PBSDF_compability("Emission Color")])
+                RemoveLinksFrom(PBSDF.inputs["Emission Color"])
 
             animate_texture(specular_texture_node, new_specular_image_path, STexture_Animator, Current_node_tree, image_path, object=selected_object)
             return new_specular_image_path
@@ -775,7 +775,7 @@ def apply_resources():
         update_texture(new_emission_image_path, emission_image_name, emission_texture_node)
 
         if r_props.use_color:
-            material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs[PBSDF_compability("Emission Color")])
+            material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
         else:
             RemoveLinksFrom(emission_texture_node.outputs["Color"])
         
@@ -789,7 +789,7 @@ def apply_resources():
 
     for selected_object in bpy.context.selected_objects:
         if not selected_object.material_slots and not is_code_ignored("w01") and bpy.context.preferences.addons[__package__].preferences.show_warnings:
-            Call_AS("w01", selected_object)
+            trigger_absolute_solver("w01", selected_object)
             continue
         
         elif not selected_object.material_slots:
@@ -800,7 +800,7 @@ def apply_resources():
                 continue
             
             if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02") and bpy.context.preferences.addons[__package__].preferences.show_warnings:
-                Call_AS("w02", data=selected_object.name)
+                trigger_absolute_solver("w02", data=selected_object.name)
                 continue
             
             PBSDF = None
