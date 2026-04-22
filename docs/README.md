@@ -7,10 +7,10 @@
 [![License](https://img.shields.io/badge/License-GPLv3-orange.svg)](./LICENSE)
 
 > [!CAUTION]
-> **MiBlend** is currently in **beta**, so expect bugs and frequent changes during development.
+> **MiBlend** is currently in **beta**, so expect bugs and major changes during development.
 
 > [!WARNING]
-> MiBlend is not actively maintained at the moment, and **major updates are unlikely**.  
+> **MiBlend** is not actively developed at the moment, and **major updates come out at my discretion — there is no schedule or pattern**.
 > More info: [Discord Announcement](https://discord.com/channels/1275706547162452039/1275861086507110453/1414264854419607612)  
 > 💬 [Join the Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
 
@@ -31,7 +31,7 @@ MiBlend was created to:
 
 The main MiBlend components planned to be completed before release:
 
-- [ ] World Panel
+- [x] World Panel
 - [ ] Procedural PBR Panel
 - [ ] Environment Panel
 - [ ] Assets
