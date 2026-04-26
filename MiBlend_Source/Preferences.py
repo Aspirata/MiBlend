@@ -42,6 +42,7 @@ class MiBlendPreferences(AddonPreferences):
     mc_instances_path: StringProperty(
         name="Minecraft Instances Folder",
         description="Path to the Folder Containing Your Minecraft Instances (MultiMC, Prism Launcher, CurseForge, etc.)",
+        default=override_preference("mc_instances_path", ""),
         subtype="DIR_PATH"
     )
 
