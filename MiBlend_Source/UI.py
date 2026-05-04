@@ -755,7 +755,7 @@ class AssetPanel(Panel):
         row = sbox.row()
         row.operator("assets.add_asset", text="", icon="ADD")
 
-        if os.path.dirname(current_asset.get("File_path", "")) in bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", []):
+        if current_asset and os.path.dirname(current_asset.get("File_path", "")) in bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", []):
             row.operator("assets.remove_asset", icon="REMOVE")
 
         if prefs.dev_tools and prefs.debug_tools:

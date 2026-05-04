@@ -16,10 +16,6 @@ class FixWorld:
         self.world_properties = bpy.context.scene.miblend_properties.world_properties
     
     @staticmethod
-    def find_node_by_type(node_type, material):
-        return next((node for node in material.node_tree.nodes if node.type == node_type), None)
-    
-    @staticmethod
     def find_nodes_group_by_name(group_name, material):
         return next((node for node in material.node_tree.nodes if node.type == "GROUP" and group_name in node.node_tree.name), None)
 
@@ -68,7 +64,7 @@ class FixWorld:
                             continue
                     node.interpolation = "Closest"
 
-                pbsdf_node = self.find_node_by_type("BSDF_PRINCIPLED", current_material)
+                pbsdf_node = next((node for node in current_material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
                 image_texture_node = detect_texture_node(pbsdf_node)
                 image = detect_image_texture(pbsdf_node)
 

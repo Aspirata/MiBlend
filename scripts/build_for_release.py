@@ -3,7 +3,7 @@ import shutil
 from typing import Optional
 
 # Constants
-MILESTONE_INDEX_LINE = 37
+MILESTONE_INDEX_LINE = 27
 
 def archive_folder(folder_name: str, output_archive_name: str, build_name: str, build_type: str) -> Optional[str]:
     """
