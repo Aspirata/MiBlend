@@ -1,8 +1,11 @@
-import bpy, os, json, traceback
-from . import Data, MIB_API
-from .MIB_API import dprint, create_node_group, get_selected_asset
-from .Data import assets_directory
-from .Utils.Absolute_Solver import trigger_absolute_solver
+import os
+import json
+import traceback
+import bpy
+from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
+from ...resources import data
+from ... import mib_utils
+
 
 def append_asset(asset_data):
     asset_name = asset_data.get("Asset_name", "")
@@ -11,7 +14,7 @@ def append_asset(asset_data):
     asset_collection = asset_data.get("Collection_name", "Root")
 
     try:
-        dprint(f"Appending asset: {asset_name} ({asset_type})")
+        mib_utils.dprint(f"Appending asset: {asset_name} ({asset_type})")
         if asset_type == "Rig" or asset_type == "Model":
             append_collection(asset_name, asset_collection, asset_path)
 
@@ -32,6 +35,7 @@ def append_asset(asset_data):
         
     except Exception:
         trigger_absolute_solver("e05", traceback.format_exc(), asset_name)
+
 
 def append_collection(asset_name, asset_collection, asset_path):
     with bpy.data.libraries.load(asset_path, link=False) as (data_from, data_to):
@@ -60,16 +64,17 @@ def append_collection(asset_name, asset_collection, asset_path):
             cursor_location = bpy.context.scene.cursor.location
             obj.pose.bones[root_bone.name].matrix.translation = cursor_location
 
+
 def run_python_script(name, path):
-    properties = {key.replace('_property', ''): value for key, value in get_selected_asset().items() if 'property' in key}
+    properties = {key.replace('_property', ''): value for key, value in mib_utils.get_selected_asset().items() if 'property' in key}
     context = {}
 
-    context.update({name: getattr(Data, name) 
-                    for name in dir(Data) 
+    context.update({name: getattr(data, name) 
+                    for name in dir(data) 
                     if not name.startswith('_')})
 
-    context.update({name: getattr(MIB_API, name) 
-                    for name in dir(MIB_API) 
+    context.update({name: getattr(mib_utils, name) 
+                    for name in dir(mib_utils) 
                     if not name.startswith('_')})
 
     context["properties"] = properties
@@ -79,6 +84,7 @@ def run_python_script(name, path):
 
     exec(script, context)
 
+
 def append_snode(asset_data):
     Node_name = asset_data.get("Node_name", "")
     Append_mode = asset_data.get("Append_mode", "Active Only")
@@ -86,11 +92,11 @@ def append_snode(asset_data):
     Script_path = asset_data.get("File_path", "").replace(".blend", ".py")
 
     if os.path.isfile(Script_path):
-        dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
         run_python_script(asset_data.get("Asset_name"), Script_path)
 
     elif Append_mode == "Every Selected":
-        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
             if selected_object.type == "MESH":
                 for index, material in enumerate(selected_object.data.materials):
@@ -99,10 +105,10 @@ def append_snode(asset_data):
                         avg_x = [node.location.x for node in nodes_list]
                         avg_y = [node.location.y for node in nodes_list]
 
-                        create_node_group(material, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
+                        mib_utils.create_node_group(material, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
 
     elif Append_mode == "Active Only":
-        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
         if active_obj and active_obj.type == "MESH" and active_obj.active_material:
             current_material = active_obj.active_material
@@ -111,7 +117,8 @@ def append_snode(asset_data):
                 avg_x = [node.location.x for node in nodes_list]
                 avg_y = [node.location.y for node in nodes_list]
 
-                create_node_group(current_material, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
+                mib_utils.create_node_group(current_material, Node_name, (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y)), Blend_file, True)
+
 
 def append_cnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
@@ -127,9 +134,9 @@ def append_cnode(asset_data):
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
     else:
-        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         avg_x = []
         avg_y = []
         scene = bpy.context.scene
@@ -161,6 +168,7 @@ def append_cnode(asset_data):
             Node.node_tree = bpy.data.node_groups[Node_name]
             Node.location = (sum(avg_x) / len(avg_x), sum(avg_y) / len(avg_y))
 
+
 def append_gnode(asset_data):
     Node_name = asset_data.get("Node_name", "")
     Append_mode = asset_data.get("Append_mode", "Active Only")
@@ -176,10 +184,10 @@ def append_gnode(asset_data):
 
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Found", is_deep=True, zone="uas")
 
     elif Append_mode == "Every Selected":
-        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
             geonodes_modifier = None
             if selected_object.type == "MESH":
@@ -194,7 +202,7 @@ def append_gnode(asset_data):
                     geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
 
     elif Append_mode == "Active Only":
-        dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
         geonodes_modifier = None
         if active_obj and active_obj.type == "MESH":
@@ -207,6 +215,7 @@ def append_gnode(asset_data):
         if geonodes_modifier is None:
             geonodes_modifier = active_obj.modifiers.new(Node_name, type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
+
 
 def append_material(asset_data):
     Append_mode = asset_data.get("Append_mode", "Active Only")
@@ -223,20 +232,21 @@ def append_material(asset_data):
     
     if os.path.isfile(Script_path):
         run_python_script(asset_data.get("Asset_name"), Script_path)
-        dprint(f"{Material_name} Script Found", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Material_name} Script Found", is_deep=True, zone="uas")
 
     elif Append_mode == "Active Only":
-        dprint(f"{Material_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
+        mib_utils.dprint(f"{Material_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
         if active_obj and active_obj.material_slots:
             active_obj.data.materials[0] = bpy.data.materials.get(Material_name)
+
 
 def update_assets():
     items = bpy.context.scene.miblend_properties.assets_properties.asset_items
     items.clear()
     assets_list = []
 
-    directories_to_scan = [assets_directory]
+    directories_to_scan = [data.assets_directory]
 
     temp_assets_paths = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", [])
     temp_assets_path_list = list(temp_assets_paths)
@@ -244,7 +254,7 @@ def update_assets():
     if len(temp_assets_path_list) > 0:
         directories_to_scan.extend(temp_assets_path_list)
 
-    dprint(f"Scanning {directories_to_scan}", is_deep=True, zone="uas")
+    mib_utils.dprint(f"Scanning {directories_to_scan}", is_deep=True, zone="uas")
 
     for directory in directories_to_scan:
         for root, dirs, files in os.walk(directory):
@@ -257,7 +267,7 @@ def update_assets():
                     with open(json_path, 'r', encoding='utf-8') as f:
                         asset_data = json.load(f)
                 except (json.JSONDecodeError, IOError) as e:
-                    dprint(f"Error reading JSON file {json_path}: {e}", is_deep=True, zone="uas")
+                    mib_utils.dprint(f"Error reading JSON file {json_path}: {e}", is_deep=True, zone="uas")
                     continue
 
                 try:
@@ -277,19 +287,19 @@ def update_assets():
 
                     if format_version != "test":
                         if not asset_name:
-                            dprint("Asset_name is not defined", is_deep=True, zone="uas")
+                            mib_utils.dprint("Asset_name is not defined", is_deep=True, zone="uas")
                             continue
                         if not asset_author:
-                            dprint("Author is not defined", is_deep=True, zone="uas")
+                            mib_utils.dprint("Author is not defined", is_deep=True, zone="uas")
                             continue
                         if not asset_tags:
-                            dprint("Tags are not defined", is_deep=True, zone="uas")
+                            mib_utils.dprint("Tags are not defined", is_deep=True, zone="uas")
                             continue
                         if not asset_file_path:
-                            dprint("File_path is not defined", is_deep=True, zone="uas")
+                            mib_utils.dprint("File_path is not defined", is_deep=True, zone="uas")
                             continue
                         if not os.path.isfile(asset_file_path):
-                            dprint(f"Cannot find the asset file: {asset_file_path}", is_deep=True, zone="uas")
+                            mib_utils.dprint(f"Cannot find the asset file: {asset_file_path}", is_deep=True, zone="uas")
                             continue
 
                     asset_info = {}

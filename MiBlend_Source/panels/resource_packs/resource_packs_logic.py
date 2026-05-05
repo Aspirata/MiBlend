@@ -2,8 +2,8 @@ import bpy, os, json, zipfile, shutil, re, platform, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
-from .MIB_API import *
-from .Utils.Absolute_Solver import trigger_absolute_solver
+from ...mib_utils import *
+from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
 
 def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
@@ -47,7 +47,7 @@ Launchers = {
 
 def find_mc() -> tuple[str, str]:
     versions = {}
-    Preferences = bpy.context.preferences.addons[__package__].preferences
+    Preferences = get_preferences()
     current_os = platform.system()
     os_env = os.getenv('APPDATA') if current_os == "Windows" else os.path.expanduser("~")
 
@@ -176,7 +176,7 @@ def update_default_pack():
         bpy.context.scene["resource_packs"] = {}
 
     resource_packs = dict(bpy.context.scene["resource_packs"])
-    Preferences = bpy.context.preferences.addons[__package__].preferences
+    Preferences = get_preferences()
     resource_packs_directory = get_resource_path()
     
     packs_to_remove = [pack for pack, pack_info in resource_packs.items() if pack_info.get("is_default", False)]
@@ -788,7 +788,7 @@ def apply_resources():
         return True
 
     for selected_object in bpy.context.selected_objects:
-        if not selected_object.material_slots and not is_code_ignored("w01") and bpy.context.preferences.addons[__package__].preferences.show_warnings:
+        if not selected_object.material_slots and not is_code_ignored("w01") and get_preferences().show_warnings:
             trigger_absolute_solver("w01", selected_object)
             continue
         
@@ -799,7 +799,7 @@ def apply_resources():
             if material is None or not material.use_nodes:
                 continue
             
-            if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02") and bpy.context.preferences.addons[__package__].preferences.show_warnings:
+            if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02") and get_preferences().show_warnings:
                 trigger_absolute_solver("w02", data=selected_object.name)
                 continue
             

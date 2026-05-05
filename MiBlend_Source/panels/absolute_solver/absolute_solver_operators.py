@@ -1,0 +1,188 @@
+import platform
+import shutil
+import bpy
+from pathlib import Path
+from bpy.types import Operator
+from bpy.props import StringProperty
+from .absolute_solver_logic import translate
+from ..assets.assets_logic import update_assets
+from ..resource_packs.resource_packs_logic import update_default_pack
+
+
+class MIBLEND_OT_absolute_solver(Operator):
+    bl_label = "Absolute Solver"
+    bl_idname = "miblend.absolute_solver"
+
+    call_data: StringProperty()
+
+    def invoke(self, context, event):
+        self.errors = []
+        for entry in self.call_data.split("|||"):
+            parts = entry.split(":::")
+            if len(parts) == 5:
+                self.errors.append({
+                    "Code": parts[0],
+                    "Name": parts[1],
+                    "Description": parts[2],
+                    "Solutions": parts[3],
+                    "Tech_Things": parts[4]
+                })
+
+        width = 600
+        for error in self.errors:
+            error_code = error["Code"]
+            if error_code == "w04":
+                width = 800
+            elif error_code == "e10":
+                width = 700
+
+        return context.window_manager.invoke_popup(self, width=width)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Absolute Solver", icon='ERROR')
+        layout.separator()
+
+        for error in self.errors:
+            box = layout.box()
+            if "e" in error["Code"]:
+                box.label(text="Error !", icon='ERROR')
+            elif "w" in error["Code"]:
+                box.label(text="Warning !", icon='WARNING_LARGE')
+
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text=f"{translate('Code')}: {error['Code']}")
+        
+            row = sbox.row()
+            row.label(text=f"{translate('Name')}: {translate(error['Name'])}")
+
+            row = sbox.row()
+            row.label(text=f"{translate('Description')}: {error['Description']}")
+
+            if error["Solutions"]:
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text=f"{translate('Solutions')}:")
+                for solution_operator in filter(None, error["Solutions"].split("; ")):
+                    row = sbox.row()
+                    solution = row.operator(solution_operator)
+                    if hasattr(solution, "description"):
+                        solution.description = error["Description"]
+
+            if error["Tech_Things"]:
+                sbox = box.box()
+                
+                if platform.system() == "Windows":
+                    row = sbox.row()
+                    row.operator("miblend.absolute_solver_open_console")
+
+                row = sbox.row()
+                copy_to_clipboard = row.operator("miblend.absolute_solver_copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
+                copy_to_clipboard.text = error["Tech_Things"]
+
+                print(f"\033[33mAbsolute Solver Report: \033[31m\n{error['Tech_Things']}\033[0m")
+            
+            row = layout.row()
+            if error["Solutions"]:
+                auto_solution = row.operator(error["Solutions"].split("; ")[0], text="Auto Solve", depress=True)
+                if hasattr(auto_solution, "description"):
+                    auto_solution.description = error["Description"]
+            ignore_operator = row.operator("miblend.absolute_solver_ignore")
+            ignore_operator.error_code = error["Code"]
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_absolute_solver_open_console(Operator):
+    bl_idname = "miblend.absolute_solver_open_console"
+    bl_label = "Open Console"
+    bl_description = "Toggles Blender System Console"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        try:
+            bpy.ops.wm.console_toggle()
+        except RuntimeError:
+            return {'CANCELLED'}
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_absolute_solver_copy_to_clipboard(Operator):
+    bl_idname = "miblend.absolute_solver_copy_to_clipboard"
+    bl_label = "Copy to Clipboard"
+    bl_description = "Copies the Text to your Clipboard"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    text: StringProperty()
+
+    def execute(self, context):
+        try:
+            bpy.context.window_manager.clipboard = self.text
+        except RuntimeError:
+            return {'CANCELLED'}
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_absolute_solver_ignore(Operator):
+    bl_idname = "miblend.absolute_solver_ignore"
+    bl_label = "Ignore"
+
+    error_code: StringProperty()
+
+    def execute(self, context):
+        as_props = context.scene.miblend_properties.absolute_solver_properties
+        ignored_list = as_props.ignored_codes.split()
+
+        if self.error_code not in ignored_list:
+            ignored_list.append(self.error_code)
+            as_props.ignored_codes = " ".join(ignored_list)
+            self.report({'INFO'}, f"{self.error_code} is being ignored now.")
+
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_fix_compatibility(Operator):
+    bl_idname = "miblend.absolute_solver_fix_compatibility"
+    bl_label = "Fix Compatibility"
+
+    def execute(self, context):
+        if "resource_packs" in bpy.context.scene:
+            bpy.context.scene["resource_packs"] = {}
+            update_default_pack()
+        
+        update_assets()
+        self.report({'INFO'}, "Resource Packs and Assets Lists were recreated")
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_save_blend_file(Operator):
+    bl_idname = "miblend.absolute_solver_save_blend_file"
+    bl_label = "Save Blend File"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if bpy.data.filepath == "":
+            bpy.ops.wm.save_homefile()
+            self.report({'INFO'}, "Default file was overwritten")
+        else:
+            bpy.ops.wm.save_mainfile()
+            self.report({'INFO'}, "Current file was saved")
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_delete_miblend_addon(Operator):
+    bl_idname = "miblend.absolute_solver_delete_miblend_addon"
+    bl_label = "Delete MiBlend Legacy Addon"
+
+    def execute(self, context):
+        miblend_addon_folder = Path(__file__).resolve().parent.parent.parent.parent.parent / "scripts" / "addons" / "MiBlend_Source"
+
+        if not miblend_addon_folder.is_dir():
+            self.report({'WARNING'}, "MiBlend Legacy Addon Folder not Found")
+            return {'CANCELLED'}
+
+        shutil.rmtree(miblend_addon_folder)
+        self.report({'INFO'}, "MiBlend Legacy Addon Folder was Removed")
+        return {'FINISHED'}

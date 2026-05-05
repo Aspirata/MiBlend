@@ -1,13 +1,26 @@
-import bpy, os, json, time, re, traceback
-from .Data import main_directory, nodes_file, Emissive_Materials, gray_blocks
-from .Utils.Absolute_Solver import trigger_absolute_solver
+import os
+import json
+import time
+import re
+import traceback
+import bpy
+from .resources.data import main_directory, nodes_file, EMISSIVE_MATERIALS, GRAY_BLOCKS
 
 
-def get_preferencies() -> bpy.types.AddonPreferences:
+def get_preferences() -> bpy.types.AddonPreferences:
     return bpy.context.preferences.addons[__package__].preferences
+
 
 def clamp(min_value: int | float, value: int | float, max_value: int | float) -> int | float:
     return max(min_value, min(value, max_value))
+
+
+def draw_toggle_button(layout, property_path, property_name: str, is_small: bool = True):
+    is_expanded = getattr(property_path, property_name)
+    collapsed_arrow_icon = 'TRIA_LEFT' if is_small else 'TRIA_RIGHT'
+    arrow_icon = 'TRIA_DOWN' if is_expanded else collapsed_arrow_icon
+
+    layout.prop(property_path, property_name, icon_only=is_small, icon=arrow_icon, toggle=True)
 
 
 def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str = 0):
@@ -42,6 +55,8 @@ def inject_node(material: str, node_to_inject: object, target_node: object, targ
 
 
 def get_selected_asset() -> dict:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     current_index = bpy.context.scene.miblend_properties.assets_properties.asset_index
     items = bpy.context.scene.miblend_properties.assets_properties.asset_items
     
@@ -56,6 +71,8 @@ def get_selected_asset() -> dict:
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
 def mc_version_formatter(version_name: str) -> str:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     try:
         version_parts = re.split(r'[ -]', version_name)
         if "snapshot" in version_parts:
@@ -106,7 +123,7 @@ def name_in(Array: list, material_or_texture_name: str, is_texture=False, mode="
 
 
 def get_resource_path() -> str:
-    Preferences = bpy.context.preferences.addons[__package__].preferences
+    Preferences = get_preferences()
     if Preferences.dev_tools and os.path.exists(Preferences.dev_packs_path) and Preferences.enable_custom_packs_path:
         resource_packs_directory = Preferences.dev_packs_path
     else:
@@ -116,6 +133,8 @@ def get_resource_path() -> str:
 
 
 def get_pack_info_properties(pack_name: str = "") -> dict:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     resource_packs_directory = get_resource_path()
     if not os.path.exists(resource_packs_directory):
         return {}
@@ -143,10 +162,12 @@ def is_code_ignored(code: str) -> bool:
 
 
 def is_emissive(PBSDF: object, texture_name: str) -> bool:
-    return PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(Emissive_Materials.keys(), texture_name, True)[0]
+    return PBSDF.inputs["Emission Strength"].default_value != 0 or name_in(EMISSIVE_MATERIALS.keys(), texture_name, True)[0]
 
 
 def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name: str ="", file: str = nodes_file) -> object:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     # Check if modifier already exists
     if modifier_name:
         existing_modifier = object.modifiers.get(modifier_name)
@@ -200,6 +221,8 @@ def get_collections(data: object = None) -> list:
 
 
 def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 0), file: str = nodes_file, exists_check: bool = False, name: str ="") -> object:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     # Check for existing node group if requested
     if exists_check:
         existing_node = next((node for node in place.node_tree.nodes if node.type == "GROUP" and node.node_tree.name == node_tree_name), None)
@@ -320,18 +343,18 @@ def format_duplicate_name(text: str, original_text: str=None) -> str:
 
 
 def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
-    #dprint(f'{format_material_name(name)} vegetation: {name_in(gray_blocks.get("vegetation"), name, not is_material)} \nrednstone: {name_in(gray_blocks.get("redstone"), name, not is_material)} \nwater: {name_in(gray_blocks.get("water"), name, not is_material)}', is_deep=True, zone="fw")
+    #dprint(f'{format_material_name(name)} vegetation: {name_in(GRAY_BLOCKS.get("vegetation"), name, not is_material)} \nrednstone: {name_in(GRAY_BLOCKS.get("redstone"), name, not is_material)} \nwater: {name_in(GRAY_BLOCKS.get("water"), name, not is_material)}', is_deep=True, zone="fw")
     result = False
     if mode == "all":
-        result = name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
-        result += name_in(gray_blocks.get("redstone"), name, not is_material)[0]
-        result += name_in(gray_blocks.get("water"), name, not is_material)[0]
+        result = name_in(GRAY_BLOCKS.get("vegetation"), name, not is_material)[0]
+        result += name_in(GRAY_BLOCKS.get("redstone"), name, not is_material)[0]
+        result += name_in(GRAY_BLOCKS.get("water"), name, not is_material)[0]
     elif mode == "vegetation":
-        result = name_in(gray_blocks.get("vegetation"), name, not is_material)[0]
+        result = name_in(GRAY_BLOCKS.get("vegetation"), name, not is_material)[0]
     elif mode == "redstone":
-        result = name_in(gray_blocks.get("redstone"), name, not is_material)[0]
+        result = name_in(GRAY_BLOCKS.get("redstone"), name, not is_material)[0]
     elif mode == "water":
-        result = name_in(gray_blocks.get("water"), name, not is_material)[0]
+        result = name_in(GRAY_BLOCKS.get("water"), name, not is_material)[0]
     
     return bool(result)
 
@@ -459,6 +482,8 @@ def detect_world_exporter(world_obj: object) -> str:
 
 
 def separate_mesh_by_material(obj: object, material: object = None) -> object:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     try:
         obj_name = obj.name if obj.name.split('__')[0] else "World" + obj.name
         new_obj = None
@@ -542,6 +567,8 @@ def perf_time(func):
 
 
 def GetConnectedSocketFrom(output: str, node: object) -> list:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
     try:
         output_socket = node.outputs.get(output)
 
@@ -557,6 +584,8 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
 
 
 def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
+    from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+    
     try:
         if isinstance(input, int):
             if input >= len(node.inputs):

@@ -1,8 +1,10 @@
-import bpy, json
+import json
+import bpy
 from typing import Union
 from pathlib import Path
 from bpy.types import AddonPreferences
-from .MIB_API import main_directory
+from .resources.data import main_directory
+from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 
 
@@ -175,7 +177,7 @@ class MiBlendPreferences(AddonPreferences):
         row.prop(self, "mc_instances_path")
 
         row = box.row()
-        row.operator("preferences.save_preferences")
+        row.operator("miblend.save_preferences")
 
         box = layout.box()
         row = box.row()
@@ -224,3 +226,72 @@ class MiBlendPreferences(AddonPreferences):
         else:
             row = box.row()
             row.label(text="Dev Tools Disabled")
+
+
+class MIBLEND_OT_save_preferences(Operator):
+    bl_idname = "miblend.save_preferences"
+    bl_label = "Save Preferences"
+    bl_description = "Saves Current Preferences to miblend_preferences_override.json"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        addon_prefs = context.preferences.addons[__package__].preferences
+        prefs_to_save: dict[str, Union[str, bool, int, float]] = {}
+        
+        settings_override_path = Path(main_directory).parent / "miblend_preferences_override.json"
+        
+        system_props = {
+            'rna_type', 'name', 'bl_idname', 'bl_label', 'bl_description', 
+            'bl_options', 'bl_context', 'bl_region_type', 'bl_space_type'
+        }
+        
+        existing_overrides = {}
+        if settings_override_path.exists():
+            try:
+                with open(settings_override_path, "r", encoding="utf-8") as file:
+                    existing_overrides = json.load(file)
+            except (json.JSONDecodeError, OSError) as e:
+                self.report({'WARNING'}, f"Could not read existing settings: {e}")
+        
+        for prop_id, prop in type(addon_prefs).bl_rna.properties.items():
+            if prop_id in system_props or prop_id.startswith('_'):
+                continue
+            
+            try:
+                current_value = getattr(addon_prefs, prop_id)
+                default_value = prop.default
+                print(current_value, default_value)
+                
+                if current_value != default_value or current_value == existing_overrides.get(prop_id, None):
+                    prefs_to_save[prop_id] = current_value
+                elif prop_id in existing_overrides:
+                    continue
+            except AttributeError:
+                continue
+
+        with open(settings_override_path, "w", encoding="utf-8") as file:
+            json.dump(prefs_to_save, file, indent=2, ensure_ascii=False)
+        
+        self.report({'INFO'}, f"Saved {len(prefs_to_save)} preference(s)")
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_reset_preferences(Operator):
+    bl_idname = "miblend.reset_preferences"
+    bl_label = "Reset Preferences"
+    bl_description = "Resets MiBlend Preferencies to their Default Values"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        addon_prefs = context.preferences.addons[__package__].preferences
+        system_props = {
+            'rna_type', 'name', 'bl_idname', 'bl_label', 'bl_description', 
+            'bl_options', 'bl_context', 'bl_region_type', 'bl_space_type'
+        }
+        
+        for prop_id, prop in type(addon_prefs).bl_rna.properties.items():
+            if prop_id in system_props or prop_id.startswith('_'):
+                continue
+            
+            setattr(addon_prefs, prop_id, prop.default)
+        return {'FINISHED'}

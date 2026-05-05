@@ -1,52 +1,19 @@
 import os
 
-main_directory = os.path.dirname(os.path.realpath(__file__))
-materials_folder = os.path.join(main_directory, "Materials")
-nodes_file = os.path.join(materials_folder, "Nodes.blend")
+
+main_directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+resources_directory = os.path.join(main_directory, "resources")
+nodes_file = os.path.join(resources_directory, "Nodes.blend")
 assets_directory = os.path.join(main_directory, "Assets")
-utils_directory = os.path.join(main_directory, "Utils")
 
-clouds_node_tree_name = "Clouds Generator 2"
-fog_node_tree_name = "Fog"
-world_material_name = "MiBlend World"
 
-Grass_Color = {
-    "Forest": (0.226964, 0.617207, 0.088656),
-    "Birch": (0.242279, 0.396756, 0.16203),
-    "Taiga": (0.25415, 0.467784, 0.250158),
-    "Dark Forest": (0.021219, 0.03434, 0.003035),
-    "Bad Land": (0.278893, 0.219526, 0.074214),
-}
-
-Foliage_Color = {
-    "Forest": (0.227161, 0.614651, 0.089036),
-    "Taiga": (0.152925, 0.366253, 0.147027),
-    "Jungle": (0.2455, 0.664272, 0.096224),
-    "Mangrove": (0.314244, 0.522575, 0.023661),
-    "Savanna": (0.618196, 0.49695, 0.081344),
-}
-
-# Materials Categories
-
-Backface_Culling_Materials = ["glass", "door", "nether portal", "redstone torch"]
-
-SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay", "wildflowers"]
-
-Translucent_Materials = ["leaves", "glass"]
-
-Metal = ["iron", "gold", "emerald", "copper ; torch", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
-
-Reflective = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
-
-#
-
-gray_blocks = {
+GRAY_BLOCKS = {
     "vegetation" : ["grass ; snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
     "redstone" : ["redstone ; torch", "dust"],
     "water" : ["water"]
 }
 
-Emissive_Materials = {
+EMISSIVE_MATERIALS = {
     "campfire log lit": {
         "Procedural Emission": {
             "From Min": 0.19,

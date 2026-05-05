@@ -1,15 +1,13 @@
 import bpy
+import traceback
 from pathlib import Path
 from bpy.app.handlers import persistent
-from .Preferences import MiBlendPreferences
-from .MIB_API import dprint
-from .Assets import update_assets
-from .Utils.Absolute_Solver import *
-from .Resource_Packs import update_default_pack
-from .UI import *
-from .Utils.AS_Solutions import *
-from .Operators import *
-from .Properties import *
+from .preferences import MiBlendPreferences, MIBLEND_OT_save_preferences
+from .mib_utils import dprint
+from .panels.assets.assets_logic import update_assets
+from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+from .panels.resource_packs.resource_packs_logic import update_default_pack
+from .panels import classes as panel_classes, MIBLEND_PG_properties
 
 def init_on_start():
     try:
@@ -53,26 +51,10 @@ def init_on_start():
     except Exception:
         trigger_absolute_solver("n00", traceback.format_exc())
 
-panels = [WorldAndMaterialsPanel, AssetPanel, Assets_List_UL_]
-properties = [WorldProperties, ResourcePackProperties, CreateEnvProperties, PPBRProperties, AssetTagItem, 
-            AssetsProperties, AbsoluteSolverProperties, MiBlendProperties
-]
 
-special_classes = [MiBlendPreferences, AbsoluteSolverIgnore, AbsoluteSolverPanel, RecreateEnvironment]
+panel_classes.extend([MiBlendPreferences, MIBLEND_OT_save_preferences])
+cls_register, cls_unregister = bpy.utils.register_classes_factory(panel_classes)
 
-operators = [
-    RemoveAttributeOperator, CopyToClipboardOperator, FixWorldOperator, SwapTexturesOperator, ResourcePackToggleOperator,
-    MoveResourcePackUp, MoveResourcePackDown, RemoveResourcePack, UpdateDefaultPack, AddResourcePack, ApplyResourcePack, CreateEnvOperator,
-    FixMaterialsOperator, SetProceduralPBROperator, AddAsset, RemoveAsset, ImportAssetOperator, SavePropertiesOperator,
-    ResetPropertiesOperator, ManualAssetsUpdateOperator, FixCompatibility, ClearIgnoredCodesOperator, DeleteMiblendAddon,
-    SavePreferencesOperator, ResetPreferencesOperator, SaveBlendFile
-]
-
-debug_classes = [DebugPanel, TriggerASErrorOperator, OpenMiBlendFolder]
-
-classes = properties + special_classes + operators + panels + debug_classes
-
-cls_register, cls_unregister = bpy.utils.register_classes_factory(classes)
 
 @persistent
 def on_scene_load(dummy):
@@ -81,7 +63,7 @@ def on_scene_load(dummy):
 def register():
     cls_register()
     
-    bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MiBlendProperties)
+    bpy.types.Scene.miblend_properties = bpy.props.PointerProperty(type=MIBLEND_PG_properties)
     
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
