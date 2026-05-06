@@ -86,7 +86,7 @@ class MIBLEND_PT_environment(Panel):
                     row = tbox.row()
                     row.prop(sky_node.inputs["Time"], "default_value", text="Time")
 
-                    if scene.render.engine == "BLENDER_EEVEE_NEXT":
+                    if scene.render.engine == "BLENDER_EEVEE" or scene.render.engine == "BLENDER_EEVEE_NEXT":
                         row = tbox.row()
                         row.prop(bpy.data.worlds[WORLD_MATERIAL_NAME], "sun_angle", text="Shadow Softness")
 
@@ -237,39 +237,75 @@ class MIBLEND_PT_environment(Panel):
                     row.prop(scene.miblend_properties.environment_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
 
                     if scene.miblend_properties.environment_properties.geonodes_settings:
-                        fbox = tbox.box()
-                        row = fbox.row()
-                        row.label(text="Layers Settings:", icon="AXIS_TOP")
-                        row.prop(scene.miblend_properties.environment_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                        if scene.miblend_properties.environment_properties.layers_settings:
-
+                        if bpy.app.version >= (5,2,0):
+                            fbox = tbox.box()
                             row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
+                            row.label(text="Layers Settings:", icon="AXIS_TOP")
+                            row.prop(scene.miblend_properties.environment_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.miblend_properties.environment_properties.layers_settings:
 
+                                row = fbox.row()
+                                row.prop(geonodes_modifier.properties.inputs.Socket_2, "value", text="Layers Count", slider=True)
+
+                                row = fbox.row()
+                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+
+                                row = fbox.row()
+                                row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=0, text="X")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=1, text="Y")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier.properties.inputs.Socket_2, "value", index=2, text="Z")
+                            
+                            row = tbox.row()
+                            row.prop(geonodes_modifier.properties.inputs.Socket_6, "value", text="Density Factor", slider=True)
+
+                            row = tbox.row()
+                            row.prop(geonodes_modifier.properties.inputs.Socket_7, "value", text="Offset Scale")
+
+                            row = tbox.row()
+                            row.prop(geonodes_modifier.properties.inputs.Socket_9, "value", text="Subdivisions")
+
+                            row = tbox.row()
+                            row.prop(geonodes_modifier.properties.inputs.Socket_19, "value", text="Seed")
+
+                            row = tbox.row()
+                            row.prop(geonodes_modifier.properties.inputs.Socket_10, "value", text="3D Clouds", toggle=True)
+                        else:
+                            fbox = tbox.box()
                             row = fbox.row()
-                            row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
+                            row.label(text="Layers Settings:", icon="AXIS_TOP")
+                            row.prop(scene.miblend_properties.environment_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
+                            if scene.miblend_properties.environment_properties.layers_settings:
 
-                            row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
-                            row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
-                            row = fbox.row()
-                            row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
-                        
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
 
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
+                                row = fbox.row()
+                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
 
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
+                                row = fbox.row()
+                                row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
+                            
+                            row = tbox.row()
+                            row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
 
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
+                            row = tbox.row()
+                            row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
 
-                        row = tbox.row()
-                        row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
+                            row = tbox.row()
+                            row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
+
+                            row = tbox.row()
+                            row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
+
+                            row = tbox.row()
+                            row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
+
                     
                     tbox = sbox.box()
                     row = tbox.row()
