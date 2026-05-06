@@ -23,23 +23,24 @@ def draw_toggle_button(layout, property_path, property_name: str, is_small: bool
     layout.prop(property_path, property_name, icon_only=is_small, icon=arrow_icon, toggle=True)
 
 
-def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str = 0):
+def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str | None = 0):
     if not node_to_dissolve:
         return
     
     node_tree = material.node_tree
     
-    all_output_links = []
-    for output_socket in node_to_dissolve.outputs:
-        all_output_links.extend(list(output_socket.links))
-    
-    source_socket = None
-    if node_to_dissolve.inputs[node_to_dissolve_input].is_linked:
-        source_socket = node_to_dissolve.inputs[node_to_dissolve_input].links[0].from_socket
-    
-    if source_socket:
-        for link in all_output_links:
-            node_tree.links.new(source_socket, link.to_socket)
+    if node_to_dissolve_input is not None:
+        all_output_links = []
+        for output_socket in node_to_dissolve.outputs:
+            all_output_links.extend(list(output_socket.links))
+        
+        source_socket = None
+        if node_to_dissolve.inputs[node_to_dissolve_input].is_linked:
+            source_socket = node_to_dissolve.inputs[node_to_dissolve_input].links[0].from_socket
+        
+        if source_socket:
+            for link in all_output_links:
+                node_tree.links.new(source_socket, link.to_socket)
     
     node_tree.nodes.remove(node_to_dissolve)
 
@@ -359,7 +360,7 @@ def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
     return bool(result)
 
 
-def detect_texture_node(PBSDF: object) -> object:
+def detect_texture_node(PBSDF: object) -> object | None:
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
         for input_name, input_socket in PBSDF.inputs.items():
@@ -400,6 +401,8 @@ def detect_texture_node(PBSDF: object) -> object:
                 
         if n.type == "TEX_IMAGE" and n.image:
             return n
+    
+    return None
 
 
 def get_nodes_list(material_or_node_group: object, is_recursive: bool =False) -> list:
@@ -416,7 +419,7 @@ def get_nodes_list(material_or_node_group: object, is_recursive: bool =False) ->
     return nodes_list
 
 
-def detect_image_texture(PBSDF: object) -> object:
+def detect_image_texture(PBSDF: object) -> object | None:
     def get_all_linked_nodes(PBSDF):
         linked_nodes = []
         for input_name, input_socket in PBSDF.inputs.items():
@@ -457,6 +460,8 @@ def detect_image_texture(PBSDF: object) -> object:
                 
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
+
+    return None
 
 
 def detect_world_exporter(world_obj: object) -> str:

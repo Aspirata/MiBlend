@@ -9,5 +9,5 @@ class MIBLEND_OT_apply_procedural_pbr(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        procedural_pbr_logic.set_procedural_pbr()
+        procedural_pbr_logic.ProceduralPBR().apply_procedural_pbr()
         return {'FINISHED'}

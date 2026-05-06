@@ -1,18 +1,32 @@
+import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.types import PropertyGroup
 
 
 class MIBLEND_PG_procedural_pbr(PropertyGroup):
     use_normals: BoolProperty(
-        name="Use Normals",
+        name="Normals",
         default=True
     )
 
+    @staticmethod
+    def define_normals_selector_items():
+        if bpy.app.version < (5, 1, 0):
+            return [
+                ('BUMP', 'Bump', ''), 
+                ('PROCEDURAL_NORMALS', 'Procedural Normals', '')
+            ]
+        else:
+            return [
+                ('BUMP', 'Bump', ''), 
+                ('PROCEDURAL_NORMALS', 'Procedural Normals', ''),
+                ('PROCEDURAL_NORMALS_V2', 'Procedural Normals V2', '')
+            ]
+
     normals_selector: EnumProperty(
-        items=[('Bump', 'Bump', ''), 
-            ('Procedural Normals', 'Procedural Normals', '')],
+        items=define_normals_selector_items(),
         name="normals_selector",
-        default='Bump'
+        default='BUMP'
     )
 
     toggle_normals_settings: BoolProperty(
@@ -31,6 +45,13 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
         default=4.0,
         min=0.0,
         max=16.0
+    )
+
+    procedural_normals_v2_size: FloatProperty(
+        name="Procedural Normals V2 Size",
+        default=1.0,
+        min=0.0,
+        max=20.0
     )
 
     pnormals_blur: FloatProperty(
@@ -68,72 +89,53 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
         max=1.0
     )
 
-    pnormals_size_x_multiplier: FloatProperty(
-        name="PNormals Size X Multiplier",
-        default=1,
-        min=-2.0,
-        max=2.0
-    )
-
-    pnormals_size_y_multiplier: FloatProperty(
-        name="PNormals Size Y Multiplier",
-        default=1,
-        min=-2.0,
-        max=2.0
-    )
-
     revert_normals: BoolProperty(
         name="Revert",
         default=True
     )
 
-    use_procedural_emission_and_animation: BoolProperty(
-        name="Procedural Emission & Animation",
+    use_procedural_emission: BoolProperty(
+        name="Emission",
         default=True
     )
 
-    toggle_procedural_emission_and_animation_settings: BoolProperty(
+    toggle_procedural_emission_settings: BoolProperty(
         default=False
     )
 
-    camera_strength: FloatProperty(
+    camera_emission_strength: FloatProperty(
         name="Camera Emission Strength",
         default=1.0
     )
 
-    non_camera_strength: FloatProperty(
+    non_camera_emission_strength: FloatProperty(
         name="Non-Camera Emission Strength",
         default=1.0
     )
 
-    use_procedural_animation: BoolProperty(
-        name="Procedural Animation",
-        default=False
-    )
-
-    randomize_animation_speed: BoolProperty(
-        name="Randomize Animation Speed",
-        description="Randomizes Animation Speed for Every Face",
+    randomize_emission_strength: BoolProperty(
+        name="Randomize Emission Strength",
+        description="Randomizes Emission Strength for Every Face",
         default=True
     )
 
-    use_custom_peaa_config: BoolProperty(
+    use_procedural_emission_custom_config: BoolProperty(
         name="Custom Config",
         description="Uses Custom Values for Specified Blocks and Items",
         default=True
     )
 
-    revert_procedural_emission_and_animation: BoolProperty(
+    revert_procedural_emission: BoolProperty(
         name="Revert",
         default=True
     )
 
-    use_procedural_specular: BoolProperty(
-        name="Procedural Specular",
+    use_procedural_specular_and_roughness: BoolProperty(
+        name="Specular & Roughness",
         default=True
     )
 
-    toggle_procedural_specular_settings: BoolProperty(
+    toggle_procedural_specular_and_roughness_settings: BoolProperty(
         default=False
     )
 
@@ -153,20 +155,6 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
         max=1.0
     )
 
-    revert_procedural_specular: BoolProperty(
-        name="Revert",
-        default=True
-    )
-
-    use_procedural_roughness: BoolProperty(
-        name="Procedural Roughness",
-        default=True
-    )
-
-    toggle_procedural_roughness_settings: BoolProperty(
-        default=False
-    )
-
     procedural_roughness_interpolation: EnumProperty(
         items=[('LINEAR', 'Linear', ''), 
             ('SMOOTHSTEP', 'Smooth Step', ''),
@@ -183,22 +171,17 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
         max=1.0
     )
 
-    revert_procedural_roughness: BoolProperty(
+    revert_procedural_specular_and_roughness: BoolProperty(
         name="Revert",
         default=True
     )
 
-    advanced_settings: BoolProperty(
-        name="Advanced Settings",
-        default=False
-    )
-
-    change_bsdf: BoolProperty(
-        name="Change PBSDF Settings",
+    use_pbsdf_tweaks: BoolProperty(
+        name="Principled BSDF Tweaks",
         default=True
     )
 
-    change_bsdf_settings: BoolProperty(
+    toggle_pbsdf_tweaks_settings: BoolProperty(
         default=False
     )
 
@@ -217,21 +200,11 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
     )
 
     use_sss: BoolProperty(
-        name="Use SSS",
+        name="Subsurface Scattering",
         default=True
     )
 
-    revert_sss: BoolProperty(
-        name="Revert",
-        default=True
-    )
-
-    sss_skip: BoolProperty(
-        name="Apply To All Materials",
-        default=False
-    )
-
-    sss_settings: BoolProperty(
+    toggle_sss_settings: BoolProperty(
         default=False
     )
 
@@ -239,37 +212,83 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
         items=[('BURLEY', 'Christensen Burley', ''), 
                 ('RANDOM_WALK', 'Random Walk', ''),
                 ('RANDOM_WALK_SKIN', 'Random Walk (Skin)', '')],
-        name="sss_type",
+        name="Type",
         default='BURLEY'
     )
 
-    connect_texture: BoolProperty(
+    use_sss_connect_texture_to_radius: BoolProperty(
         name="Connect Texture To The Radius",
         default=False
     )
 
     sss_weight: FloatProperty(
-        name="SSS Weight",
+        name="Weight",
         default=1,
         min=0.0,
         max=1.0
     )
 
     sss_scale: FloatProperty(
-        name="SSS Scale",
+        name="Scale",
         default=0.05,
         min=0.0,
         max=10.0,
         subtype='DISTANCE'
     )
 
+    revert_sss: BoolProperty(
+        name="Revert",
+        default=True
+    )
+
+    use_metallic: BoolProperty(
+        name="Metallic",
+        description="Changes Metallic for Metallic Blocks and Items (iron, gold, diamond etc.)",
+        default=True
+    )
+
+    toggle_metallic_settings: BoolProperty(
+        default=False
+    )
+
+    metallic: FloatProperty(
+        name="Metallic",
+        default=0.7,
+        min=0.0,
+        max=1.0
+    )
+
+    metallic_roughness: FloatProperty(
+        name="Roughness",
+        default=0.2,
+        min=0.0,
+        max=1.0
+    )
+
+    use_reflectiveness: BoolProperty(
+        name="Reflections",
+        description="Changes Roughness for Reflective Blocks and Items (glass, quartz, emerald, awter etc.)",
+        default=True
+    )
+
+    toggle_reflectiveness_settings: BoolProperty(
+        default=False
+    )
+
+    reflections_roughness: FloatProperty(
+        name="Roughness",
+        default=0.1,
+        min=0.0,
+        max=1.0
+    )
+
     use_translucency: BoolProperty(
-        name="Use Translucency",
+        name="Translucency",
         description="Changes Translucency for Some Blocks (leaves and glass)",
         default=True
     )
 
-    translucency_settings: BoolProperty(
+    toggle_translucency_settings: BoolProperty(
         default=False
     )
 
@@ -283,45 +302,4 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
     revert_translucency: BoolProperty(
         name="Revert",
         default=True
-    )
-
-    make_metal: BoolProperty(
-        name="Make Metal",
-        description="Changes Metallic for Metallic Blocks and Items (iron, gold, diamond etc.)",
-        default=True
-    )
-
-    metal_settings: BoolProperty(
-        default=False
-    )
-
-    metal_metallic: FloatProperty(
-        name="Metallic",
-        default=0.7,
-        min=0.0,
-        max=1.0
-    )
-
-    metal_roughness: FloatProperty(
-        name="Roughness",
-        default=0.2,
-        min=0.0,
-        max=1.0
-    )
-
-    make_reflections: BoolProperty(
-        name="Make Reflections",
-        description="Changes Roughness for Reflective Blocks and Items (glass, quartz, emerald, awter etc.)",
-        default=True
-    )
-
-    reflections_settings: BoolProperty(
-        default=False
-    )
-
-    reflections_roughness: FloatProperty(
-        name="Reflections Roughness",
-        default=0.1,
-        min=0.0,
-        max=1.0
     )

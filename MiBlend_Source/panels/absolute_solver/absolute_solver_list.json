@@ -23,20 +23,20 @@
         "02": {
             "Name": "MiBlend hasn't fixed that world",
             "Description": "MiBlend hasn't fixed {Data} that may and almost 100% will lead to problems",
-            "Solutions": "world.fix_world; "
+            "Solutions": "miblend.fix_world; "
         },
 
         "03": {
             "Name": "Selected object isn't a world",
             "Description": "You've tried to fix world that isn't a world, perhaps you should try to fix materials instead",
-            "Solutions": "materials.fix_materials; "
+            "Solutions": "miblend.materials_fix_materials; "
         },
 
         "04": 
         {
             "Name": "Legacy Component",
             "Description": "This .blend file was made with an older verion of MiBlend. {Data}. Some features may not work correctly.",
-            "Solutions": "as_solutions.fix_compatibility; as_solutions.save_blend_file; "
+            "Solutions": "miblend.fix_compatibility; miblend.save_blend_file; "
         }
     },
 
@@ -93,7 +93,7 @@
         {
             "Name": "MiBlend addon is installed",
             "Description": "MiBlend v0.8+ is an extension and it won't work with previous MiBlend legacy addon versions installed",
-            "Solutions": "as_solutions.delete_miblend_addon; "
+            "Solutions": "miblend.delete_miblend_addon; "
         }
     }
 }

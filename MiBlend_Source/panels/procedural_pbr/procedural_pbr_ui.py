@@ -1,5 +1,5 @@
 from bpy.types import Panel
-from ...mib_utils import get_preferences
+from ...mib_utils import get_preferences, draw_toggle_button
 
 
 class MIBLEND_PT_procedural_pbr(Panel):
@@ -13,6 +13,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
         layout = self.layout
         scene = context.scene
         preferences = get_preferences()
+        procedural_pbr_props = scene.miblend_properties.procedural_pbr_properties
 
         if preferences.transparent_ui:
             self.bl_options = {'HIDE_HEADER'}
@@ -24,195 +25,201 @@ class MIBLEND_PT_procedural_pbr(Panel):
         row.label(text="Procedural PBR", icon="NODE_MATERIAL")
 
         row = box.row()
-        row.prop(scene.miblend_properties.procedural_pbr_properties, "use_normals")
-        row.prop(scene.miblend_properties.procedural_pbr_properties, "toggle_normals_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.toggle_normals_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.miblend_properties.procedural_pbr_properties.toggle_normals_settings:
+        row.prop(procedural_pbr_props, "use_normals")
+        draw_toggle_button(row, procedural_pbr_props, "toggle_normals_settings")
+        if procedural_pbr_props.toggle_normals_settings:
             sbox = box.box()
             row = sbox.row()
             row.label(text="Normals Type:", icon="NORMALS_FACE")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "normals_selector", expand=True)
+            row.prop(procedural_pbr_props, "normals_selector", expand=True)
 
-            if scene.miblend_properties.procedural_pbr_properties.normals_selector == "Bump":
+            if procedural_pbr_props.normals_selector == "BUMP":
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Bump Settings:", icon="MODIFIER")
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "bump_strength", slider=True)
-            else:
+                row.prop(procedural_pbr_props, "bump_strength", slider=True)
+            elif procedural_pbr_props.normals_selector == "PROCEDURAL_NORMALS":
                 tbox = sbox.box()
                 row = tbox.row()
                 row.label(text="Procedural Normals Settings:", icon="MODIFIER")
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_size", slider=True)
+                row.prop(procedural_pbr_props, "pnormals_size", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_blur", slider=True)
+                row.prop(procedural_pbr_props, "pnormals_blur", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_strength", slider=True)
+                row.prop(procedural_pbr_props, "pnormals_strength", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_exclude", slider=True)
+                row.prop(procedural_pbr_props, "pnormals_exclude", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_min", slider=True)
+                row.prop(procedural_pbr_props, "pnormals_min", slider=True)
 
                 row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_max", slider=True)
-
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_size_x_multiplier", slider=True)
-
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "pnormals_size_y_multiplier", slider=True)
+                row.prop(procedural_pbr_props, "pnormals_max", slider=True)
             
-            row = tbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "revert_normals")
-            row.enabled = not context.scene.miblend_properties.procedural_pbr_properties.use_normals
+            elif procedural_pbr_props.normals_selector == "PROCEDURAL_NORMALS_V2":
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Procedural Normals V2 Settings:", icon="MODIFIER")
+
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "procedural_normals_v2_size", slider=True)
+
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "pnormals_strength", slider=True)
+            
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "revert_normals")
+            row.enabled = not procedural_pbr_props.use_normals
         
         row = box.row()
-        row.prop(scene.miblend_properties.procedural_pbr_properties, "use_procedural_emission_and_animation")
-        row.prop(scene.miblend_properties.procedural_pbr_properties, "toggle_procedural_emission_and_animation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.toggle_procedural_emission_and_animation_settings else "TRIA_LEFT"), icon_only=True)
-        if scene.miblend_properties.procedural_pbr_properties.toggle_procedural_emission_and_animation_settings:
+        row.prop(procedural_pbr_props, "use_procedural_emission")
+        draw_toggle_button(row, procedural_pbr_props, "toggle_procedural_emission_settings")
+        if procedural_pbr_props.toggle_procedural_emission_settings:
             sbox = box.box()
             row = sbox.row()
-            row.label(text="Procedural Emission & Animation Settings:", icon="MODIFIER")
+            row.label(text="Procedural Emission Settings:", icon="MODIFIER")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "camera_strength")
+            row.prop(procedural_pbr_props, "camera_emission_strength")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "non_camera_strength")
+            row.prop(procedural_pbr_props, "non_camera_emission_strength")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "use_procedural_animation")
+            row.prop(procedural_pbr_props, "randomize_emission_strength")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "randomize_animation_speed")
+            row.prop(procedural_pbr_props, "use_procedural_emission_custom_config")
 
             row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "custom_peaa_config")
-
-            row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "revert_procedural_emission_and_animation")
-            row.enabled = not context.scene.miblend_properties.procedural_pbr_properties.use_procedural_emission_and_animation
+            row.prop(procedural_pbr_props, "revert_procedural_emission")
+            row.enabled = not procedural_pbr_props.use_procedural_emission
         
         if preferences.experimental_features:
             row = box.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "use_procedural_specular")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "toggle_procedural_specular_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.toggle_procedural_specular_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.miblend_properties.procedural_pbr_properties.toggle_procedural_specular_settings:
+            row.prop(procedural_pbr_props, "use_procedural_specular_and_roughness")
+            draw_toggle_button(row, procedural_pbr_props, "toggle_procedural_specular_and_roughness_settings")
+            if procedural_pbr_props.toggle_procedural_specular_and_roughness_settings:
                 sbox = box.box()
                 row = sbox.row()
-                row.label(text="Procedural Specular Settings:", icon="MODIFIER")
+                row.label(text="Procedural Specular & Roughness Settings:", icon="MODIFIER")
 
                 row = sbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "procedural_specular_interpolation")
+                row.prop(procedural_pbr_props, "procedural_specular_interpolation")
 
                 row = sbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "procedural_specular_difference")
+                row.prop(procedural_pbr_props, "procedural_specular_difference")
 
                 row = sbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "revert_procedural_specular")
-                row.enabled = not context.scene.miblend_properties.procedural_pbr_properties.use_procedural_specular
-        
+                row.prop(procedural_pbr_props, "procedural_roughness_interpolation")
+
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "procedural_roughness_difference")
+
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "revert_procedural_specular_and_roughness")
+                row.enabled = not procedural_pbr_props.use_procedural_specular_and_roughness
+
             row = box.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "use_procedural_roughness")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "toggle_procedural_roughness_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.toggle_procedural_roughness_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.miblend_properties.procedural_pbr_properties.toggle_procedural_roughness_settings:
+            row.prop(procedural_pbr_props, "use_pbsdf_tweaks")
+            draw_toggle_button(row, procedural_pbr_props, "toggle_pbsdf_tweaks_settings")
+            if procedural_pbr_props.toggle_pbsdf_tweaks_settings:
                 sbox = box.box()
                 row = sbox.row()
-                row.label(text="Procedural Roughness Settings:", icon="MODIFIER")
-
-                row = sbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "procedural_roughness_interpolation")
-
-                row = sbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "procedural_roughness_difference")
-
-                row = sbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "revert_procedural_roughness")
-                row.enabled = not context.scene.miblend_properties.procedural_pbr_properties.use_procedural_roughness
-
-        row = box.row()
-        row.prop(scene.miblend_properties.procedural_pbr_properties, "advanced_settings", toggle=True, text="Advanced Settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.advanced_settings else "TRIA_RIGHT"))
-        if scene.miblend_properties.procedural_pbr_properties.advanced_settings:
-            sbox = box.box()
-
-            row = sbox.row()
-            row.prop(context.scene.miblend_properties.procedural_pbr_properties, "change_bsdf")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "change_bsdf_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.change_bsdf_settings else "TRIA_LEFT"), icon_only=True)
-            if  scene.miblend_properties.procedural_pbr_properties.change_bsdf_settings:
-                tbox = sbox.box()
-                row = tbox.row()
                 row.label(text="Global PBSDF Settings:", icon="MODIFIER")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "specular", slider=True)
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "roughness", slider=True)
 
-            row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "use_sss")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "sss_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.sss_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.miblend_properties.procedural_pbr_properties.sss_settings:
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="SSS Settings:", icon="MODIFIER")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "sss_type", text="")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "sss_skip")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "connect_texture")
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "specular", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks
 
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "sss_weight", slider=True)
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "sss_scale", slider=True)
-                
-                row = tbox.row()
-                row.prop(context.scene.miblend_properties.procedural_pbr_properties, "revert_sss")
-                row.enabled = not context.scene.miblend_properties.procedural_pbr_properties.use_sss
-            
-            row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "use_translucency")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "translucency_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.translucency_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.miblend_properties.procedural_pbr_properties.translucency_settings:
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Translucent Materials Settings:", icon="MODIFIER")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "translucency", slider=True)
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "roughness", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks
 
-                row = tbox.row()
-                row.prop(context.scene.miblend_properties.procedural_pbr_properties, "revert_translucency")
-                row.enabled = not context.scene.miblend_properties.procedural_pbr_properties.use_translucency
+                sbox = box.box()
+                row = sbox.row()
+                row.label(text="Smart PBSDF Settings:", icon="MODIFIER")
 
-            row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "make_metal")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "metal_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.metal_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.miblend_properties.procedural_pbr_properties.metal_settings:
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Metallic Materials Settings:", icon="MODIFIER")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "metal_metallic", slider=True)
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "metal_roughness", slider=True)
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "use_sss")
+                draw_toggle_button(row, procedural_pbr_props, "toggle_sss_settings")
+                if procedural_pbr_props.toggle_sss_settings:
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Subsurface Scattering Settings:", icon="MODIFIER")
 
-            row = sbox.row()
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "make_reflections")
-            row.prop(scene.miblend_properties.procedural_pbr_properties, "reflections_settings", icon=("TRIA_DOWN" if scene.miblend_properties.procedural_pbr_properties.reflections_settings else "TRIA_LEFT"), icon_only=True)
-            if scene.miblend_properties.procedural_pbr_properties.reflections_settings:
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Reflective Materials Settings:", icon="MODIFIER")
-                row = tbox.row()
-                row.prop(scene.miblend_properties.procedural_pbr_properties, "reflections_roughness", text="Roughness", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "sss_type", text="")
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "use_sss_connect_texture_to_radius")
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "sss_weight", slider=True)
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "sss_scale", slider=True)
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "revert_sss")
+                    row.enabled = not procedural_pbr_props.use_pbsdf_tweaks or not procedural_pbr_props.use_sss
+
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "use_metallic")
+                draw_toggle_button(row, procedural_pbr_props, "toggle_metallic_settings")
+                if procedural_pbr_props.toggle_metallic_settings:
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Metallic Settings:", icon="MODIFIER")
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "metallic", slider=True)
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_metallic
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "metallic_roughness", slider=True)
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_metallic
+
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "use_reflectiveness")
+                draw_toggle_button(row, procedural_pbr_props, "toggle_reflectiveness_settings")
+                if procedural_pbr_props.toggle_reflectiveness_settings:
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Reflectiveness Settings:", icon="MODIFIER")
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "reflections_roughness", text="Roughness", slider=True)
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_reflectiveness
+
+                row = sbox.row()
+                row.prop(procedural_pbr_props, "use_translucency")
+                draw_toggle_button(row, procedural_pbr_props, "toggle_translucency_settings")
+                if procedural_pbr_props.toggle_translucency_settings:
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Translucency Settings:", icon="MODIFIER")
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "translucency", slider=True)
+                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_translucency
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "revert_translucency", slider=True)
+                    row.enabled = not procedural_pbr_props.use_pbsdf_tweaks or not procedural_pbr_props.use_translucency
                 
         row = box.row()
         row.scale_y = 1.4
