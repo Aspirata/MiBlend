@@ -129,97 +129,97 @@ class MIBLEND_PT_procedural_pbr(Panel):
                 row.prop(procedural_pbr_props, "revert_procedural_specular_and_roughness")
                 row.enabled = not procedural_pbr_props.use_procedural_specular_and_roughness
 
-            row = box.row()
-            row.prop(procedural_pbr_props, "use_pbsdf_tweaks")
-            draw_toggle_button(row, procedural_pbr_props, "toggle_pbsdf_tweaks_settings")
-            if procedural_pbr_props.toggle_pbsdf_tweaks_settings:
-                sbox = box.box()
-                row = sbox.row()
-                row.label(text="Global PBSDF Settings:", icon="MODIFIER")
+        row = box.row()
+        row.prop(procedural_pbr_props, "use_pbsdf_tweaks")
+        draw_toggle_button(row, procedural_pbr_props, "toggle_pbsdf_tweaks_settings")
+        if procedural_pbr_props.toggle_pbsdf_tweaks_settings:
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Global PBSDF Settings:", icon="MODIFIER")
 
-                row = sbox.row()
-                row.prop(procedural_pbr_props, "specular", slider=True)
-                row.enabled = procedural_pbr_props.use_pbsdf_tweaks
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "specular", slider=True)
+            row.enabled = procedural_pbr_props.use_pbsdf_tweaks
 
-                row = sbox.row()
-                row.prop(procedural_pbr_props, "roughness", slider=True)
-                row.enabled = procedural_pbr_props.use_pbsdf_tweaks
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "roughness", slider=True)
+            row.enabled = procedural_pbr_props.use_pbsdf_tweaks
 
-                sbox = box.box()
-                row = sbox.row()
-                row.label(text="Smart PBSDF Settings:", icon="MODIFIER")
+            sbox = box.box()
+            row = sbox.row()
+            row.label(text="Smart PBSDF Settings:", icon="MODIFIER")
 
-                row = sbox.row()
-                row.prop(procedural_pbr_props, "use_sss")
-                draw_toggle_button(row, procedural_pbr_props, "toggle_sss_settings")
-                if procedural_pbr_props.toggle_sss_settings:
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Subsurface Scattering Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "use_sss")
+            draw_toggle_button(row, procedural_pbr_props, "toggle_sss_settings")
+            if procedural_pbr_props.toggle_sss_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Subsurface Scattering Settings:", icon="MODIFIER")
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "sss_type", text="")
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "sss_type", text="")
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "use_sss_connect_texture_to_radius")
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "use_sss_connect_texture_to_radius")
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "sss_weight", slider=True)
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "sss_weight", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "sss_scale", slider=True)
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "sss_scale", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_sss
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "revert_sss")
-                    row.enabled = not procedural_pbr_props.use_pbsdf_tweaks or not procedural_pbr_props.use_sss
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "revert_sss")
+                row.enabled = not procedural_pbr_props.use_pbsdf_tweaks or not procedural_pbr_props.use_sss
 
-                row = sbox.row()
-                row.prop(procedural_pbr_props, "use_metallic")
-                draw_toggle_button(row, procedural_pbr_props, "toggle_metallic_settings")
-                if procedural_pbr_props.toggle_metallic_settings:
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Metallic Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "use_metallic")
+            draw_toggle_button(row, procedural_pbr_props, "toggle_metallic_settings")
+            if procedural_pbr_props.toggle_metallic_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Metallic Settings:", icon="MODIFIER")
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "metallic", slider=True)
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_metallic
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "metallic", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_metallic
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "metallic_roughness", slider=True)
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_metallic
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "metallic_roughness", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_metallic
 
-                row = sbox.row()
-                row.prop(procedural_pbr_props, "use_reflectiveness")
-                draw_toggle_button(row, procedural_pbr_props, "toggle_reflectiveness_settings")
-                if procedural_pbr_props.toggle_reflectiveness_settings:
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Reflectiveness Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "use_reflectiveness")
+            draw_toggle_button(row, procedural_pbr_props, "toggle_reflectiveness_settings")
+            if procedural_pbr_props.toggle_reflectiveness_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Reflectiveness Settings:", icon="MODIFIER")
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "reflections_roughness", text="Roughness", slider=True)
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_reflectiveness
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "reflections_roughness", text="Roughness", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_reflectiveness
 
-                row = sbox.row()
-                row.prop(procedural_pbr_props, "use_translucency")
-                draw_toggle_button(row, procedural_pbr_props, "toggle_translucency_settings")
-                if procedural_pbr_props.toggle_translucency_settings:
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Translucency Settings:", icon="MODIFIER")
+            row = sbox.row()
+            row.prop(procedural_pbr_props, "use_translucency")
+            draw_toggle_button(row, procedural_pbr_props, "toggle_translucency_settings")
+            if procedural_pbr_props.toggle_translucency_settings:
+                tbox = sbox.box()
+                row = tbox.row()
+                row.label(text="Translucency Settings:", icon="MODIFIER")
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "translucency", slider=True)
-                    row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_translucency
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "translucency", slider=True)
+                row.enabled = procedural_pbr_props.use_pbsdf_tweaks and procedural_pbr_props.use_translucency
 
-                    row = tbox.row()
-                    row.prop(procedural_pbr_props, "revert_translucency", slider=True)
-                    row.enabled = not procedural_pbr_props.use_pbsdf_tweaks or not procedural_pbr_props.use_translucency
+                row = tbox.row()
+                row.prop(procedural_pbr_props, "revert_translucency", slider=True)
+                row.enabled = not procedural_pbr_props.use_pbsdf_tweaks or not procedural_pbr_props.use_translucency
                 
         row = box.row()
         row.scale_y = 1.4
