@@ -32,7 +32,7 @@ MiBlend was created to:
 The main MiBlend components planned to be completed before release:
 
 - [x] World Panel
-- [ ] Procedural PBR Panel
+- [x] Procedural PBR Panel
 - [ ] Environment Panel
 - [ ] Assets
 - [ ] Materials Panel
