@@ -45,7 +45,7 @@ Learn more about MiBlend on the official [Wiki](https://docs.page/Aspirata/MiBle
 
 ## 🎬 Video Showcase
 
-**Special thanks to [woodplank](https://www.youtube.com/@woodplank)** for the MiBlend video!  
+**Special thanks to [woodplank](https://www.youtube.com/@woodplankmc)** for the MiBlend video!  
 Note: the video covers **v0.4.0 M2** and is **outdated**.
 
 ▶️ [Watch on YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
