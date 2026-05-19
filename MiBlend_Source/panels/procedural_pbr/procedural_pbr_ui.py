@@ -86,7 +86,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
         if procedural_pbr_props.toggle_procedural_emission_settings:
             sbox = box.box()
             row = sbox.row()
-            row.label(text="Procedural Emission Settings:", icon="MODIFIER")
+            row.label(text="Emission Settings:", icon="MODIFIER")
 
             row = sbox.row()
             row.prop(procedural_pbr_props, "camera_emission_strength")
@@ -111,7 +111,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
             if procedural_pbr_props.toggle_procedural_specular_and_roughness_settings:
                 sbox = box.box()
                 row = sbox.row()
-                row.label(text="Procedural Specular & Roughness Settings:", icon="MODIFIER")
+                row.label(text="Specular & Roughness Settings:", icon="MODIFIER")
 
                 row = sbox.row()
                 row.prop(procedural_pbr_props, "procedural_specular_interpolation")

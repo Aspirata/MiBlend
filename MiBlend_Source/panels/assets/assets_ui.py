@@ -141,9 +141,10 @@ class MIBLEND_PT_assets(Panel):
             row = sbox.row()
             row.prop(assets_props, "filter_by_version", toggle=True)
 
-        row = box.row()
-        row.scale_y = 1.4
-        row.operator("miblend.import_asset", text=self.import_asset_text(current_index), icon="REC")
+        if current_asset:
+            row = box.row()
+            row.scale_y = 1.4
+            row.operator("miblend.import_asset", text=self.import_asset_text(current_index), icon="REC")
 
 class MIBLEND_UL_assets(bpy.types.UIList):
     @staticmethod
