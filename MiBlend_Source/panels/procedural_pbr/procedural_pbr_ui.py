@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Panel
 from ...mib_utils import get_preferences, draw_toggle_button
 
@@ -33,48 +34,98 @@ class MIBLEND_PT_procedural_pbr(Panel):
             row.label(text="Normals Type:", icon="NORMALS_FACE")
 
             row = sbox.row()
-            row.prop(procedural_pbr_props, "normals_selector", expand=True)
+            if preferences.experimental_features and bpy.app.version >= (5, 1, 0):
+                row.prop(procedural_pbr_props, "normals_selector_experimental", expand=True)
+                row.enabled = procedural_pbr_props.use_normals
 
-            if procedural_pbr_props.normals_selector == "BUMP":
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Bump Settings:", icon="MODIFIER")
+                if procedural_pbr_props.normals_selector_experimental == "BUMP":
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Bump Settings:", icon="MODIFIER")
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "bump_strength", slider=True)
-            elif procedural_pbr_props.normals_selector == "PROCEDURAL_NORMALS":
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Procedural Normals Settings:", icon="MODIFIER")
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "bump_strength", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_size", slider=True)
+                elif procedural_pbr_props.normals_selector_experimental == "PROCEDURAL_NORMALS":
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Normals Settings:", icon="MODIFIER")
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_blur", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_size", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_strength", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_blur", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_exclude", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_strength", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_min", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_exclude", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_max", slider=True)
-            
-            elif procedural_pbr_props.normals_selector == "PROCEDURAL_NORMALS_V2":
-                tbox = sbox.box()
-                row = tbox.row()
-                row.label(text="Procedural Normals V2 Settings:", icon="MODIFIER")
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_min", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "procedural_normals_v2_size", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_max", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+                
+                elif procedural_pbr_props.normals_selector_experimental == "PROCEDURAL_NORMALS_V2":
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Normals V2 Settings:", icon="MODIFIER")
 
-                row = tbox.row()
-                row.prop(procedural_pbr_props, "pnormals_strength", slider=True)
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "procedural_normals_v2_size", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+            else:
+                row.prop(procedural_pbr_props, "normals_selector", expand=True)
+                row.enabled = procedural_pbr_props.use_normals
+
+                if procedural_pbr_props.normals_selector == "BUMP":
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Bump Settings:", icon="MODIFIER")
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "bump_strength", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+                elif procedural_pbr_props.normals_selector == "PROCEDURAL_NORMALS":
+                    tbox = sbox.box()
+                    row = tbox.row()
+                    row.label(text="Normals Settings:", icon="MODIFIER")
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_size", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_blur", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_strength", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_exclude", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_min", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
+
+                    row = tbox.row()
+                    row.prop(procedural_pbr_props, "pnormals_max", slider=True)
+                    row.enabled = procedural_pbr_props.use_normals
             
             row = sbox.row()
             row.prop(procedural_pbr_props, "revert_normals")
@@ -90,15 +141,19 @@ class MIBLEND_PT_procedural_pbr(Panel):
 
             row = sbox.row()
             row.prop(procedural_pbr_props, "camera_emission_strength")
+            row.enabled = procedural_pbr_props.use_procedural_emission
 
             row = sbox.row()
             row.prop(procedural_pbr_props, "non_camera_emission_strength")
+            row.enabled = procedural_pbr_props.use_procedural_emission
 
             row = sbox.row()
             row.prop(procedural_pbr_props, "randomize_emission_strength")
+            row.enabled = procedural_pbr_props.use_procedural_emission
 
             row = sbox.row()
             row.prop(procedural_pbr_props, "use_procedural_emission_custom_config")
+            row.enabled = procedural_pbr_props.use_procedural_emission
 
             row = sbox.row()
             row.prop(procedural_pbr_props, "revert_procedural_emission")
@@ -115,15 +170,19 @@ class MIBLEND_PT_procedural_pbr(Panel):
 
                 row = sbox.row()
                 row.prop(procedural_pbr_props, "procedural_specular_interpolation")
+                row.enabled = procedural_pbr_props.use_procedural_specular_and_roughness
 
                 row = sbox.row()
                 row.prop(procedural_pbr_props, "procedural_specular_difference")
+                row.enabled = procedural_pbr_props.use_procedural_specular_and_roughness
 
                 row = sbox.row()
                 row.prop(procedural_pbr_props, "procedural_roughness_interpolation")
+                row.enabled = procedural_pbr_props.use_procedural_specular_and_roughness
 
                 row = sbox.row()
                 row.prop(procedural_pbr_props, "procedural_roughness_difference")
+                row.enabled = procedural_pbr_props.use_procedural_specular_and_roughness
 
                 row = sbox.row()
                 row.prop(procedural_pbr_props, "revert_procedural_specular_and_roughness")
@@ -152,6 +211,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
             row = sbox.row()
             row.prop(procedural_pbr_props, "use_sss")
             draw_toggle_button(row, procedural_pbr_props, "toggle_sss_settings")
+            row.enabled = procedural_pbr_props.use_pbsdf_tweaks
             if procedural_pbr_props.toggle_sss_settings:
                 tbox = sbox.box()
                 row = tbox.row()
@@ -180,6 +240,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
             row = sbox.row()
             row.prop(procedural_pbr_props, "use_metallic")
             draw_toggle_button(row, procedural_pbr_props, "toggle_metallic_settings")
+            row.enabled = procedural_pbr_props.use_pbsdf_tweaks
             if procedural_pbr_props.toggle_metallic_settings:
                 tbox = sbox.box()
                 row = tbox.row()
@@ -196,6 +257,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
             row = sbox.row()
             row.prop(procedural_pbr_props, "use_reflectiveness")
             draw_toggle_button(row, procedural_pbr_props, "toggle_reflectiveness_settings")
+            row.enabled = procedural_pbr_props.use_pbsdf_tweaks
             if procedural_pbr_props.toggle_reflectiveness_settings:
                 tbox = sbox.box()
                 row = tbox.row()
@@ -208,6 +270,7 @@ class MIBLEND_PT_procedural_pbr(Panel):
             row = sbox.row()
             row.prop(procedural_pbr_props, "use_translucency")
             draw_toggle_button(row, procedural_pbr_props, "toggle_translucency_settings")
+            row.enabled = procedural_pbr_props.use_pbsdf_tweaks
             if procedural_pbr_props.toggle_translucency_settings:
                 tbox = sbox.box()
                 row = tbox.row()

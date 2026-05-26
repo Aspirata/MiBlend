@@ -4,7 +4,8 @@ from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
 from ...mib_utils import (get_preferences, is_code_ignored, name_in, perf_time, 
                         detect_texture_node, detect_image_texture, 
                         is_emissive, GetConnectedSocketTo, create_node_group, 
-                        add_modifier, RemoveLinksFrom, dissolve_node, inject_node)
+                        add_modifier, RemoveLinksFrom, dissolve_node, inject_node, 
+                        wrap_texture_node_in_closures)
 from ...resources.data import nodes_file, resources_directory, EMISSIVE_MATERIALS
 
 
@@ -67,11 +68,13 @@ class ProceduralPBR:
             dissolve_node(current_material, procedural_normals_v2_node, None)
             return
 
+        normals_mode = self.procedural_pbr_properties.normals_selector if not self.is_experimental_features_enabled or \
+                        bpy.app.version < (5, 1, 0) else self.procedural_pbr_properties.normals_selector_experimental
         normals_size_x_multiplier = 1
         normals_size_y_multiplier = 1
         base_color_connection = GetConnectedSocketTo("Base Color", pbsdf_node)
 
-        if self.procedural_pbr_properties.normals_selector == 'BUMP' and base_color_connection:
+        if normals_mode == 'BUMP' and base_color_connection:
             dissolve_node(current_material, procedural_normals_node, None)
 
             if not bump_node:
@@ -87,7 +90,7 @@ class ProceduralPBR:
             if bpy.app.version >= (4, 5, 0) and bump_node.inputs["Distance"].default_value < 1.0:
                 bump_node.inputs["Distance"].default_value = 1.0
 
-        elif self.procedural_pbr_properties.normals_selector == 'PROCEDURAL_NORMALS' and image_texture_node and image:
+        elif normals_mode == 'PROCEDURAL_NORMALS' and image_texture_node and image:
             dissolve_node(current_material, bump_node, None)
             vector_connection = None
 
@@ -142,14 +145,22 @@ class ProceduralPBR:
             if vector_connection:
                 current_material.node_tree.links.new(vector_connection, procedural_normals_node.inputs['Vector'])
         
-        elif self.procedural_pbr_properties.normals_selector == 'PROCEDURAL_NORMALS_V2' and self.is_experimental_features_enabled and image_texture_node and image:
-            return
+        elif normals_mode == 'PROCEDURAL_NORMALS_V2' and self.is_experimental_features_enabled and image_texture_node and image:
+            wrap_texture_node_in_closures(image_texture_node, current_material)
+            
             create_node_group(current_material, "Procedural Normals V2", (pbsdf_node.location.x - 180, pbsdf_node.location.y - 132), os.path.join(resources_directory, "Procedural Normals V2.blend"), True)
-            procedural_normals_v2_node.inputs["Size"].default_value = self.procedural_pbr_properties.pnormals_size
-            procedural_normals_v2_node.inputs["Strength"].default_value = self.procedural_pbr_properties.pnormals_strength
-            procedural_normals_v2_node.inputs["Size X Multiplier"].default_value = normals_size_x_multiplier
-            procedural_normals_v2_node.inputs["Size Y Multiplier"].default_value = normals_size_y_multiplier
-            # wrap_nodes(current_material, [image_texture_node])
+
+            if image.size[0] > image.size[1]:
+                normals_size_x_multiplier = image.size[1] / image.size[0]
+
+            if image.size[0] < image.size[1]:
+                normals_size_y_multiplier = image.size[0] / image.size[1]
+
+            procedural_normals_v2_node.inputs["Strength"].default_value = self.procedural_pbr_properties.procedural_normals_v2_size
+            procedural_normals_v2_node.inputs["Strength X Multiplier"].default_value = normals_size_x_multiplier
+            procedural_normals_v2_node.inputs["Strength Y Multiplier"].default_value = normals_size_y_multiplier
+
+            current_material.node_tree.links.new(procedural_normals_v2_node.outputs['Normal'], pbsdf_node.inputs['Normal'])
 
     def apply_procedural_emission(self, current_object, current_material, pbsdf_node, image):
         procedural_emission_node = self.find_nodes_group_by_name("Procedural Emission", current_material)

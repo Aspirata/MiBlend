@@ -23,6 +23,91 @@ def draw_toggle_button(layout, property_path, property_name: str, is_small: bool
     layout.prop(property_path, property_name, icon_only=is_small, icon=arrow_icon, toggle=True)
 
 
+def wrap_texture_node_in_closures(texture_node: bpy.types.Node, material: bpy.types.Material):
+    return NotImplementedError("This function is currently not working properly because the closure zone api is hard")
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+
+    color_targets = GetConnectedSocketFrom("Color", texture_node)
+    alpha_targets = GetConnectedSocketFrom("Alpha", texture_node)
+    x, y = texture_node.location
+
+    for node in nodes:
+        node.select = False
+
+    node_editor = next(
+        (area for area in bpy.context.screen.areas if area.type == "NODE_EDITOR"), None
+    )
+    space  = node_editor.spaces.active
+    region = next((r for r in node_editor.regions if r.type == "WINDOW"), None)
+
+    prev_tree = space.node_tree
+    space.node_tree = material.node_tree
+
+    with bpy.context.temp_override(area=node_editor, region=region, space_data=space):
+        bpy.ops.node.add_closure_zone()
+
+    new_nodes   = [n for n in nodes if n.select]
+    closure_in  = next((n for n in new_nodes if "Input"  in n.bl_idname), None)
+    closure_out = next((n for n in new_nodes if "Output" in n.bl_idname), None)
+
+    with bpy.context.temp_override(area=node_editor, region=region, space_data=space):
+        bpy.ops.node.closure_input_item_add(node_identifier=closure_in.identifier)
+
+    item = closure_in.zone_items[-1]
+    item.socket_type = "NodeSocketVector"
+    item.name = "Vector"
+
+    with bpy.context.temp_override(area=node_editor, region=region, space_data=space):
+        bpy.ops.node.closure_output_item_add(node_identifier=closure_out.identifier)
+        bpy.ops.node.closure_output_item_add(node_identifier=closure_out.identifier)
+
+    closure_out.zone_items[-2].socket_type = "NodeSocketColor"
+    closure_out.zone_items[-2].name = "Color"
+    closure_out.zone_items[-1].socket_type = "NodeSocketFloat"
+    closure_out.zone_items[-1].name = "Alpha"
+
+    space.node_tree = prev_tree
+
+    closure_in.location  = (x - 500, y)
+    closure_out.location = (x + 250, y)
+
+    less_than = nodes.new("ShaderNodeMath")
+    less_than.operation = "LESS_THAN"
+    less_than.inputs[1].default_value = 0.001
+    less_than.location = (x - 350, y + 60)
+
+    tex_coord = nodes.new("ShaderNodeTexCoord")
+    tex_coord.location = (x - 350, y - 80)
+
+    mix = nodes.new("ShaderNodeMix")
+    mix.data_type = "VECTOR"
+    mix.clamp_factor = True
+    mix.location = (x - 180, y)
+
+    links.new(closure_in.outputs["Vector"], less_than.inputs[0])
+    links.new(less_than.outputs["Value"],   mix.inputs["Factor"])
+    links.new(closure_in.outputs["Vector"], mix.inputs[4])
+    links.new(tex_coord.outputs["UV"],      mix.inputs[5])
+    links.new(mix.outputs[1],               texture_node.inputs["Vector"])
+
+    links.new(texture_node.outputs["Color"], closure_out.inputs["Color"])
+    links.new(texture_node.outputs["Alpha"], closure_out.inputs["Alpha"])
+
+    evaluate = nodes.new("NodeEvaluateClosure")
+    evaluate.location = (x + 450, y)
+
+    links.new(closure_out.outputs["Closure"], evaluate.inputs["Closure"])
+
+    if color_targets:
+        for socket in color_targets:
+            links.new(evaluate.outputs["Color"], socket)
+
+    if alpha_targets:
+        for socket in alpha_targets:
+            links.new(evaluate.outputs["Alpha"], socket)
+
+
 def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str | None = 0):
     if not node_to_dissolve:
         return

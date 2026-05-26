@@ -1,4 +1,3 @@
-import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.types import PropertyGroup
 
@@ -9,23 +8,18 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
         default=True
     )
 
-    @staticmethod
-    def define_normals_selector_items():
-        if bpy.app.version < (5, 1, 0):
-            return [
-                ('BUMP', 'Bump', ''), 
-                ('PROCEDURAL_NORMALS', 'Procedural Normals', '')
-            ]
-        else:
-            return [
-                ('BUMP', 'Bump', ''), 
-                ('PROCEDURAL_NORMALS', 'Procedural Normals', ''),
-                ('PROCEDURAL_NORMALS_V2', 'Procedural Normals V2', '')
-            ]
-
     normals_selector: EnumProperty(
-        items=define_normals_selector_items(),
-        name="normals_selector",
+        items=[('BUMP', 'Bump', ''),
+            ('PROCEDURAL_NORMALS', 'Normals', '')],
+        name="Normals Type Selector",
+        default='BUMP'
+    )
+
+    normals_selector_experimental: EnumProperty(
+        items=[('BUMP', 'Bump', ''),
+            ('PROCEDURAL_NORMALS', 'Normals', ''),
+            ('PROCEDURAL_NORMALS_V2', 'Normals V2', '')],
+        name="Normals Type Selector (Experimental)",
         default='BUMP'
     )
 
@@ -34,56 +28,56 @@ class MIBLEND_PG_procedural_pbr(PropertyGroup):
     )
 
     bump_strength: FloatProperty(
-        name="Bump Strength",
+        name="Strength",
         default=0.4,
         min=0.0,
         max=1.0
     )
 
     pnormals_size: FloatProperty(
-        name="PNormals Size",
+        name="Normals Size",
         default=4.0,
         min=0.0,
         max=16.0
     )
 
     procedural_normals_v2_size: FloatProperty(
-        name="Procedural Normals V2 Size",
+        name="Normals V2 Strength",
         default=1.0,
         min=0.0,
         max=20.0
     )
 
     pnormals_blur: FloatProperty(
-        name="PNormals Blur",
+        name="Blur",
         default=0,
         min=0.0,
         max=4.0
     )
 
     pnormals_strength: FloatProperty(
-        name="PNormals Strength",
+        name="Strength",
         default=1,
         min=-2.0,
         max=2.0
     )
 
     pnormals_exclude: FloatProperty(
-        name="PNormals Exclude",
+        name="Exclude",
         default=0,
         min=0.0,
         max=1.0
     )
 
     pnormals_min: FloatProperty(
-        name="PNormals Min",
+        name="Min",
         default=0,
         min=0.0,
         max=1.0
     )
 
     pnormals_max: FloatProperty(
-        name="PNormals Max",
+        name="Max",
         default=1,
         min=0.0,
         max=1.0
