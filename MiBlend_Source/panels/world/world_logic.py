@@ -176,9 +176,12 @@ class FixWorld:
     def apply_force_shading_flat(self):
         current_mode = bpy.context.object.mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.shade_flat()
+        try:
+            bpy.ops.object.shade_flat()
+        except Exception:
+            dprint("Failed to set shading to flat for object: " + bpy.context.object.name, zone="fw")
         bpy.ops.object.mode_set(mode=current_mode)
-    
+
     def apply_backface_culling(self, current_material, pbsdf_node):
         if not self.world_properties.use_backface_culling or not name_in(self.BACKFACE_CULLING_MATERIALS, current_material.name)[0]:
             current_material.use_backface_culling = False
@@ -241,13 +244,13 @@ class FixWorld:
     def apply_animated_texture_fix(self, current_material, pbsdf_node, image_texture_node, image):
         if image_texture_node.type == "GROUP" or image.size[0] == 0:
             return
+        
+        frames = max(1, int(image.size[1] / image.size[0]))
+        x_divider = 1.0
 
         if name_in(["lava flow"], image.name, True)[0]:
-            frames = int(image.size[1] / image.size[0])*2
+            frames *= 2
             x_divider = 2.0
-        else:
-            frames = int(image.size[1] / image.size[0])
-            x_divider = 1.0
         
         if not self.world_properties.use_animated_uv_fix or frames == 1:
             animated_uv_fix_node = self.find_nodes_group_by_name("Animated UV Fix", current_material)
