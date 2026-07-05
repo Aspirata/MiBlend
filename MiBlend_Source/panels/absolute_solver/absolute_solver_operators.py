@@ -4,7 +4,6 @@ import bpy
 from pathlib import Path
 from bpy.types import Operator
 from bpy.props import StringProperty
-from .absolute_solver_logic import translate
 from ..assets.assets_logic import update_assets
 from ..resource_packs.resource_packs_logic import update_default_pack
 
@@ -52,18 +51,18 @@ class MIBLEND_OT_absolute_solver(Operator):
 
             sbox = box.box()
             row = sbox.row()
-            row.label(text=f"{translate('Code')}: {error['Code']}")
+            row.label(text=f"('Code'): {error['Code']}")
         
             row = sbox.row()
-            row.label(text=f"{translate('Name')}: {translate(error['Name'])}")
+            row.label(text=f"{'Name'}: {error['Name']}")
 
             row = sbox.row()
-            row.label(text=f"{translate('Description')}: {error['Description']}")
+            row.label(text=f"{'Description'}: {error['Description']}")
 
             if error["Solutions"]:
                 sbox = box.box()
                 row = sbox.row()
-                row.label(text=f"{translate('Solutions')}:")
+                row.label(text=f"{'Solutions'}:")
                 for solution_operator in filter(None, error["Solutions"].split("; ")):
                     row = sbox.row()
                     solution = row.operator(solution_operator)
@@ -78,7 +77,7 @@ class MIBLEND_OT_absolute_solver(Operator):
                     row.operator("miblend.absolute_solver_open_console")
 
                 row = sbox.row()
-                copy_to_clipboard = row.operator("miblend.absolute_solver_copy_to_clipboard", text=translate("Copy Tech Things to Clipboard"))
+                copy_to_clipboard = row.operator("miblend.absolute_solver_copy_to_clipboard")
                 copy_to_clipboard.text = error["Tech_Things"]
 
                 print(f"\033[33mAbsolute Solver Report: \033[31m\n{error['Tech_Things']}\033[0m")
@@ -111,7 +110,7 @@ class MIBLEND_OT_absolute_solver_open_console(Operator):
 
 class MIBLEND_OT_absolute_solver_copy_to_clipboard(Operator):
     bl_idname = "miblend.absolute_solver_copy_to_clipboard"
-    bl_label = "Copy to Clipboard"
+    bl_label = "Copy Tech Things to Clipboard"
     bl_description = "Copies the Text to your Clipboard"
     bl_options = {'REGISTER', 'UNDO'}
     

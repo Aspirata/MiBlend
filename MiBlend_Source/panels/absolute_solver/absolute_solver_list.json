@@ -4,7 +4,9 @@
         "00":
         {
             "Name": "Unknown Error",
-            "Description": "Well, tbh idk why you see that error lol fr"
+            "Name_ru": "Неизвестная ошибка",
+            "Description": "Well, tbh idk why you see that error lol fr",
+            "Description_ru": "Я понятия не имею почему ты видишь эту ошибку LoL"
         }
     },
 
@@ -12,31 +14,41 @@
         "-1":
         {
             "Name": "Triggered Warning",
-            "Description": "Test Warning"
+            "Name_ru": "Вызванное предупреждение",
+            "Description": "Test Warning",
+            "Description_ru": "Тестовое предупреждение"
         },
 
         "01": {
             "Name": "Object has no Materials",
-            "Description": "{Data.name} does not have materials because it is an empty, lattice, light source, armature etc."
+            "Name_ru": "Объект не имеет материалов",
+            "Description": "{Data.name} does not have materials because it is an empty, lattice, light source, armature etc.",
+            "Description_ru": "{Data.name} не имеет материалов, так как это пустой объект, решетка, источник света, арматура и т.д."
         },
 
         "02": {
             "Name": "MiBlend hasn't fixed that world",
+            "Name_ru": "MiBlend не исправил этот мир",
             "Description": "MiBlend hasn't fixed {Data} that may and almost 100% will lead to problems",
+            "Description_ru": "MiBlend не исправил {Data}, что может и почти 100% приведет к проблемам",
             "Solutions": "miblend.fix_world; "
         },
 
         "03": {
             "Name": "Selected object isn't a world",
-            "Description": "You've tried to fix world that isn't a world, perhaps you should try to fix materials instead",
+            "Name_ru": "Выбранный объект не является миром",
+            "Description": "You've tried to fix world that isn't a world, perhaps you should try Fix Materials instead",
+            "Description_ru": "Вы пытались исправить мир, который не является миром, возможно, вам стоит попробовать Fix Materials вместо этого",
             "Solutions": "miblend.materials_fix_materials; "
         },
 
         "04": 
         {
             "Name": "Legacy Component",
+            "Name_ru": "Устаревший компонент",
             "Description": "This .blend file was made with an older verion of MiBlend. {Data}. Some features may not work correctly.",
-            "Solutions": "miblend.fix_compatibility; miblend.save_blend_file; "
+            "Description_ru": "Этот .blend файл был создан с использованием более старой версии MiBlend. {Data}. Некоторые функции могут работать некорректно.",
+            "Solutions": "miblend.absolute_solver_fix_compatibility; miblend.absolute_solver_save_blend_file; "
         }
     },
 
@@ -44,56 +56,74 @@
         "-1":
         {
             "Name": "Triggered Error",
-            "Description": "Test Error"
+            "Name_ru": "Срабатывание ошибки",
+            "Description": "Test Error",
+            "Description_ru": "Тестовая ошибка"
         },
 
         "00":
         {
             "Name": "Absolute Solver Error",
-            "Description": "Absolute Solver cannot display {Data}"
+            "Name_ru": "Ошибка Absolute Solver",
+            "Description": "Absolute Solver cannot display {Data}",
+            "Description_ru": "Absolute Solver не может отобразить {Data}"
         },
 
         "02":
         {
             "Name": "UI Display Error",
-            "Description": "User interface cannot display the requested element"
+            "Name_ru": "Ошибка отображения UI",
+            "Description": "User interface cannot display the requested element",
+            "Description_ru": "Пользовательский интерфейс не может отобразить запрашиваемый элемент"
         },
 
         "03":
         {
             "Name": "File Not Found",
-            "Description": "{Data} file could not be found"
+            "Name_ru": "Файл не найден",
+            "Description": "{Data} file could not be found",
+            "Description_ru": "Файл {Data} не может быть найден"
         },
 
         "05":
         {
             "Name": "Bad Asset Import",
-            "Description": "Can't import {Data}"
+            "Name_ru": "Ошибка импорта ассета",
+            "Description": "Can't import {Data}",
+            "Description_ru": "Не удается импортировать {Data}"
         },
 
         "06":
         {
             "Name": "Bad Asset Addition",
-            "Description": "Can't add {Data}"
+            "Name_ru": "Ошибка добавления ассета",
+            "Description": "Can't add {Data}",
+            "Description_ru": "Не удается добавить {Data}"
         },
 
         "07":
         {
             "Name": "Texture Not Found",
-            "Description": "Can't Find Texture in {Data} material"
+            "Name_ru": "Текстура не найдена",
+            "Description": "Can't Find Texture in {Data} material",
+            "Description_ru": "Не удается найти текстуру в материале {Data}"
         },
         
         "09":
         {
             "Name": "Bad Pack File Extension",
-            "Description": "Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension"
+            "Name_ru": "Неправильное расширение файла пакета",
+            "Description": "Resource Pack Should be a folder or a file with .jar or .zip extension, while selected file has {Data} extension",
+            "Description_ru": "Ресурс пак должен быть папкой или файлом с расширением .jar или .zip, а выбранный файл имеет расширение {Data}"
         },
 
         "10":
         {
-            "Name": "MiBlend addon is installed",
+            "Name": "MiBlend legacy addon is installed",
+            "Name_ru": "Установлен аддон MiBlend",
             "Description": "MiBlend v0.8+ is an extension and it won't work with previous MiBlend legacy addon versions installed",
-            "Solutions": "miblend.delete_miblend_addon; "
+            "Description_ru": "MiBlend v0.8+ является расширением и не будет работать с установленным аддоном MiBlend",
+            "Solutions": "miblend.absolute_solver_delete_miblend_addon; "
         }
     }
 }
