@@ -1,0 +1,195 @@
+---
+title: MiBlend Panels
+description: Detailed description of the functions and settings of all MiBlend panels
+---
+
+# Sections
+
+<Tabs>
+  <TabItem label="World" value="world">
+
+  **“World” Panel** — correction and optimization of worlds imported from Minecraft.
+
+  ## Fix World
+  **Functionality:** automatic adjustment of materials and textures for correct display in Minecraft.
+
+  **What it does:**
+  1. Sets the transparency mode to Dithered (Hashed) for proper rendering of semi-transparent textures.
+  2. Configures texture filtering without blur, preserving crisp pixel art.
+  3. Integrates the texture's alpha channel with the material's transparency (Principled BSDF).
+  4. Connects the emission map for glowing blocks to the Emission parameter.
+
+  **Settings:**
+  - **Animated UV Fix** — adds a node in the shaders that fixes the appearance of animated textures without directly animating them.
+  - **Lazy Biome Color Fix** — adds basic grass color correction according to the biome color.
+  - **Backface Culling** — enables hidden face culling for glass, leaves, and other transparent elements.
+
+  </TabItem>
+
+  <TabItem label="Resource Packs" value="resource-packs">
+
+  **“Resource Packs” Panel** — working with resource packs.
+
+  ## Reload Packs List
+  **Functionality:** updating built-in MiBlend resource packs.
+
+  **What it does:**
+  1. Clears the list of default built-in packs.
+  2. Checks for new versions of built-in packs (Disabled in the add-on settings).
+  3. Adds all packages from the Resource Packs folder to the list.
+
+  ## Add Resource Pack (+)
+  **Functionality:** adding custom resource packs.
+
+  **What it does:**
+  - Includes the selected folder or archive in the overall list.
+
+  **Parameters:**
+  - **Mode (Temporarily / Permanently)**
+    - **Temporarily (default)** — applies only to the current project;
+    - **Permanently** — saves the package for all projects.
+  - **Type**
+    - **Automatic (default)** — auto-detects the package type;
+    - **Texture & PBR** — contains classic and PBR textures;
+    - **Texture** — classic textures only;
+    - **PBR** — PBR textures only.
+
+  ## Apply Resource Packs
+  **Functionality:** bulk application of resource packs to materials.
+
+  **Settings:**
+  - **Combine Duplicates** — merges duplicate textures.
+  - **Use Image Texture** — replaces standard textures with images from the package.
+  - **Use PBR Textures** — applies PBR maps.
+  - **Animate Textures**
+    - **Interpolate** — smooths the animation;
+    - **Randomize Speed** — assigns a random speed to each frame.
+
+  </TabItem>
+
+  <TabItem label="Environment" value="environment">
+
+  **“Environment” Panel** — creating a Minecraft-style environment.
+
+  ## Create Environment
+  **Functionality:** generates sky, clouds, and fog using shaders.
+
+  **Settings:**
+  - **Create Clouds** — creates clouds;
+  - **Create Sky** — adds the sky;
+  - **Create Fog** — enables fog.
+
+  ## Recreate Environment
+  **Functionality:** restores environment elements if they are damaged or replaced.
+
+  **Work Modes:**
+  - **Reset Settings** — resets all environment parameters;
+  - **Create Sky / Add Sky** — restores the sky from the original file;
+  - **Create Clouds / Add Clouds** — brings back clouds;
+  - **Create Fog / Add Fog** — brings back fog;
+  - **Recreate Sky / Clouds / Fog** — completely removes and re-adds the corresponding element.
+
+  </TabItem>
+
+  <TabItem label="Materials" value="materials">
+
+  **“Materials” Panel** — simplified and accelerated tools for working with materials.
+
+  ## Fix Materials
+  **Functionality:** basic material setup for correct rendering.
+
+  **What it does:**
+  1. Sets Dithered transparency;
+  2. Configures crisp texture filtering;
+  3. Links the texture's alpha channel to transparency (Principled BSDF).
+
+  ## Swap Textures
+  **Functionality:** replacing textures in materials.
+
+  **What it does:**
+  - Searches for texture files with the same name in the specified folder and substitutes them in place of the originals.
+
+  </TabItem>
+
+  <TabItem label="Procedural PBR" value="ppbr">
+
+  **“Procedural PBR” Panel** — procedural PBR effects for materials.
+
+  ## Set Procedural PBR
+  **Functionality:** improves the appearance of materials using procedural effects.
+
+  **Settings:**
+  1. **Normals** — generates normals or a bump node;
+      * **Bump/Normals** - Bump uses a bump node, Normals - creates procedural normals from the albedo texture using a method similar to the Complementary shader in Minecraft
+
+  2. **Emission** — creates glow;
+      * **Camera Emission Strength** - Determines the emission strength for the camera
+      * **Non-Camera Emission Strength** - Determines the emission strength for physics
+      * **Randomize Emission Strength** - Enables randomization of the emission strength for each face
+      * **Custom Config** - Uses pre-defined emission settings for different blocks
+
+  3. **Principled BSDF Tweaks** — Changes the settings of the Principled BSDF node in the shaders;
+      * **Specular** - Changes Specular for all materials
+      * **Roughness** - Changes Roughness for all materials
+      * **Subsurface Scattering** — Adds a sub-surface scattering (SSS) effect for grass and leaves;
+      * **Metal** — Increases the metallicity of "metallic" materials;
+      * **Reflections** — Lowers Roughness for reflective surfaces, enhancing reflections.
+      * **Translucency** — Adds translucency for foliage;
+  </TabItem>
+
+  <TabItem label="Assets" value="assets">
+
+  **“Assets” Panel** — various assets built into MiBlend.
+
+  ## Reload Assets List
+  **Description:** Reloads the asset list.
+
+  ### What it does:
+  1. Removes all current assets from the list.
+  2. Adds all temporary and permanent assets back to the list.
+
+  ---
+
+  ## Add Asset (+)
+  **Description:** Adds a new asset to the list.
+
+  ### What it does:
+  1. Includes the specified asset in the overall list.
+
+  > **P.S.**
+  > - If you specify a `.json` file, it will be added only for the current scene (temporarily).
+  > - If you select a `.zip` archive, it will be saved in the add-on's assets folder (permanently).
+
+  ---
+
+  ## Import Asset
+  *(Run Script / Import Rig / Import Material / Import Model / Import Shader Node / Import Compositor Node)*
+  **Description:** Imports the selected asset into the current Blender project.
+
+  ### What it does:
+  - **Scripts:** execute automatically.
+  - **Rigs and models:** appended into the scene.
+  - **Shader and compositor nodes:** added to the respective node editors.
+  - **Materials:** loaded and linked to objects.
+
+  ---
+
+  ## Asset System History
+
+  1. **MiBlend v0.3.x – 0.4.x**
+    **No Name**
+    A simple system without an official name. Allowed quick and convenient addition of rigs to the scene.
+
+  2. **MiBlend v0.5.x**
+    **UAS v1 (Universal Assets System)**
+    The first full version: added scripts and categorical selection of assets. The GUI interface was completely redesigned.
+
+  3. **MiBlend v0.6.x (current version)**
+    **UAS v2.x.x (Universal Assets System)**
+    Completely rewritten system: tags are used instead of categories.
+    Support for rigs, scripts, models, materials, shader, geometry, and compositor nodes.
+    Each asset can include its own script for advanced import logic.
+    New GUI with improved settings right in the add-on.
+  </TabItem>
+  
+</Tabs>

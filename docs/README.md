@@ -9,11 +9,6 @@
 > [!CAUTION]
 > **MiBlend** is currently in **beta**, so expect bugs and major changes during development.
 
-> [!WARNING]
-> **MiBlend** is not actively developed at the moment, and **major updates come out at my discretion — there is no schedule or pattern**.
-> More info: [Discord Announcement](https://discord.com/channels/1275706547162452039/1275861086507110453/1414264854419607612)  
-> 💬 [Join the Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
-
 ---
 
 ## 💡 What is MiBlend ?
@@ -31,12 +26,12 @@ MiBlend was created to:
 
 The main MiBlend components planned to be completed before release:
 
-- [x] World Panel
-- [x] Procedural PBR Panel
-- [ ] Environment Panel
-- [ ] Assets
-- [ ] Materials Panel
-- [ ] Resource Packs Panel
+- [x] World Panel | v0.8.0 Snake
+- [x] Procedural PBR Panel | v0.8.0 Snake
+- [ ] Environment Panel | v0.9.0
+- [ ] Assets | v0.10.0
+- [ ] Materials Panel | vIDK.lol
+- [ ] Resource Packs Panel | v0.11.0
 
 ## 📖 Documentation
 
@@ -44,18 +39,9 @@ Learn more about MiBlend on the official [Wiki](https://docs.page/Aspirata/MiBle
 
 ---
 
-## 🎬 Video Showcase
-
-**Special thanks to [woodplank](https://www.youtube.com/@woodplankmc)** for the MiBlend video!  
-Note: the video covers **v0.4.0 M2** and is **outdated**.
-
-▶️ [Watch on YouTube](https://youtu.be/OU4oIugW3Gc?si=2c167M2b8Zn0cqpp)
-
----
-
 ## 🤝 Want to Contribute?
 
-If you want to help develop MiBlend — whether it’s **rigging**, **scripting**, **materials**, or **testing**:  
+If you want to help develop MiBlend — whether it’s **rigging**, **scripting**, or **testing**:  
 - Contact on Discord: `aspirata`  
 - Or join the [Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
 

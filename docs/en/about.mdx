@@ -47,13 +47,13 @@ Additionally, letter indices may appear in the version name, indicating the type
 
 # 🔄 Compatibility
 ## 🛠 Supported Blender Versions
-MiBlend **works with all Blender versions**, starting from the oldest **updatable LTS** (currently Blender 3.6 LTS).
+MiBlend **works with all Blender versions**, starting from the oldest **updatable LTS** (currently Blender 4.2 LTS).
 However, some functions and assets may be missing in older versions due to Blender limitations.
 
 ### Supported Versions:
-* **3.6 LTS** 🟡
-* **4.0** 🟡
-* **4.1** 🟡
+* **3.6 LTS** 🔴 (not supported starting with v0.8 of Snake)
+* **4.0** 🔴 (not supported starting with v0.8 of Snake)
+* **4.1** 🔴 (not supported starting with v0.8 of Snake)
 * **4.2 LTS** 🟢
 * **4.3** 🟢
 * **4.4** 🟢
@@ -61,22 +61,23 @@ However, some functions and assets may be missing in older versions due to Blend
 * **5.0** 🟢
 * **5.1** 🟢
 * **5.2** 🟢
+* **5.3** 🟢
 
-ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Supported but with limitations**.
+ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Supported but with limitations**, 🔴 — **No support**.
 
 ## 🌍 World Exporter Support
 **jmc2obj** shows the best compatibility because it minimally changes textures and their names, and also provides more information for more correct operation. 
-MiEx does not require MiBlend or Mcprep as it uses .usd format.
+MiEx does not require MiBlend or Mcprep, since it uses .usd files, but due to its core functionality, MiBlend works even with worlds from MiEx
 
 ### List of Supported Exporters:
-* **Mineways** 🟡
+* **Mineways** 🟡 (Some blocks, such as chests, work incorrectly)
 * **jmc2obj** 🟢
-* **MiEx** 🔴
+* **MiEx** 🟡 (Возможны проблемы, конфликты не пока подтверждены)
 
-ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Partial support**, 🔴 — **Not supported**.
+ℹ️ **Legend:** 🟢 — **Full support**, 🟡 — **Partial support**, 🔴 — **No support**.
 
 ## 🖥 Supported Operating Systems
-Development and testing are done on Windows 11 and Intel MacBook.
+Development and testing are done on Windows 11 and Intel MacBook (MacOS 13 Ventura).
 
 ### List of OS:
 * **Windows** 🟢
