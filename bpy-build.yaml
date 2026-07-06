@@ -2,7 +2,9 @@ addon_folder: MiBlend_Source
 build_name: MiBlend_Source
 
 install_versions:
-  - 3.6+
+  - 4.2+
+
+build_extension: true
 
 build_actions:
   default:
