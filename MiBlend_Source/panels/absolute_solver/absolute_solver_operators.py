@@ -1,11 +1,12 @@
 import platform
 import shutil
 import bpy
-from pathlib import Path
 from bpy.types import Operator
 from bpy.props import StringProperty
 from ..assets.assets_logic import update_assets
 from ..resource_packs.resource_packs_logic import update_default_pack
+from ...mib_utils import dprint
+from ...resources.data import main_directory_path
 
 
 class MIBLEND_OT_absolute_solver(Operator):
@@ -51,18 +52,18 @@ class MIBLEND_OT_absolute_solver(Operator):
 
             sbox = box.box()
             row = sbox.row()
-            row.label(text=f"('Code'): {error['Code']}")
+            row.label(text=f"Code: {error['Code']}")
         
             row = sbox.row()
-            row.label(text=f"{'Name'}: {error['Name']}")
+            row.label(text=f"Name: {error['Name']}")
 
             row = sbox.row()
-            row.label(text=f"{'Description'}: {error['Description']}")
+            row.label(text=f"Description: {error['Description']}")
 
             if error["Solutions"]:
                 sbox = box.box()
                 row = sbox.row()
-                row.label(text=f"{'Solutions'}:")
+                row.label(text="Solutions:")
                 for solution_operator in filter(None, error["Solutions"].split("; ")):
                     row = sbox.row()
                     solution = row.operator(solution_operator)
@@ -176,9 +177,10 @@ class MIBLEND_OT_delete_miblend_addon(Operator):
     bl_label = "Delete MiBlend Legacy Addon"
 
     def execute(self, context):
-        miblend_addon_folder = Path(__file__).resolve().parent.parent.parent.parent.parent / "scripts" / "addons" / "MiBlend_Source"
+        miblend_addon_folder = main_directory_path.parent.parent.parent / "scripts" / "addons" / "MiBlend_Source"
 
         if not miblend_addon_folder.is_dir():
+            dprint(miblend_addon_folder)
             self.report({'WARNING'}, "MiBlend Legacy Addon Folder not Found")
             return {'CANCELLED'}
 

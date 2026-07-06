@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
 
 
 main_directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+main_directory_path: Path = Path(__file__).resolve().parent.parent
 resources_directory = os.path.join(main_directory, "resources")
 nodes_file = os.path.join(resources_directory, "Nodes.blend")
 assets_directory = os.path.join(main_directory, "Assets")
