@@ -6,8 +6,8 @@
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Kf4VsZQz22)
 
 > [!IMPORTANT]
-> Это **ветка Deprecated Legacy-Addon (MiBlend v0.7.2F)**
-> Это последняя версия, которая поддерживает Blender 3.6, 4.0 и 4.1.
+> Это **ветка Deprecated Legacy-Addon (MiBlend v0.7.2F)**  
+> Это последняя версия, которая поддерживает Blender 3.6, 4.0 и 4.1.  
 > Если вы используете Blender 4.2 или новее, пожалуйста, используйте [ветку Stable Extension (MiBlend v0.8+)](https://github.com/Aspirata/MiBlend/tree/Stable-Extension).
 
 > [!CAUTION]
