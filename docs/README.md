@@ -5,6 +5,11 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/Aspirata/MiBlend/total)](https://github.com/Aspirata/MiBlend/releases)
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Kf4VsZQz22)
 
+> [!IMPORTANT]
+> This is the **Deprecated Legacy-Addon branch (MiBlend v0.7.2F)**
+> This is the final version supporting Blender 3.6, 4.0, and 4.1.
+> If you are using Blender 4.2 or newer, please use the [Stable Extension branch (MiBlend v0.8+)](https://github.com/Aspirata/MiBlend/tree/Stable-Extension).
+
 > [!CAUTION]
 > **MiBlend** is currently in **beta**, so expect bugs and frequent changes during development.
 
