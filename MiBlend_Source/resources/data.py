@@ -10,7 +10,7 @@ assets_directory = os.path.join(main_directory, "Assets")
 
 
 GRAY_BLOCKS = {
-    "vegetation" : ["grass ; snow azalea", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
+    "vegetation" : ["grass ; snow azalea", "bush", "leaf litter", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
     "redstone" : ["redstone ; torch", "dust"],
     "water" : ["water"]
 }

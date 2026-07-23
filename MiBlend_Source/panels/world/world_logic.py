@@ -25,6 +25,7 @@ class FixWorld:
             "Jungle": (0.2455, 0.664272, 0.096224),
             "Mangrove": (0.314244, 0.522575, 0.023661),
             "Savanna": (0.618196, 0.49695, 0.081344),
+            "Dry": (0.3564, 0.171441, 0.064803),
         }
 
         self.BACKFACE_CULLING_MATERIALS = ["glass", "door", "nether portal", "redstone torch"]
@@ -226,6 +227,10 @@ class FixWorld:
         elif "grass" in texture_parts:
             lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(self.GRASS_COLORS.get(biome, lazy_biome_fix_node.inputs["Biome Color"].default_value)[:3]) + (1.0,)
             lazy_biome_fix_node.inputs["Mode"].default_value = 1
+        
+        elif all(i in texture_parts for i in ["leaf", "litter"]):
+            lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(self.FOLIAGE_COLORS.get("Dry", lazy_biome_fix_node.inputs["Biome Color"].default_value)[:3]) + (1.0,)
+            lazy_biome_fix_node.inputs["Mode"].default_value = 1
 
         elif "water" in texture_parts:
             lazy_biome_fix_node.inputs["Biome Color"].default_value = (0.066625, 0.135633, 1.0, 1.0)
@@ -234,7 +239,7 @@ class FixWorld:
         elif "redstone" in texture_parts:
             lazy_biome_fix_node.inputs["Biome Color"].default_value = (0.066625, 0.135633, 1.0, 1.0)
             lazy_biome_fix_node.inputs["Mode"].default_value = 4
-        
+
         else:
             lazy_biome_fix_node.inputs["Biome Color"].default_value = tuple(self.FOLIAGE_COLORS.get(biome, lazy_biome_fix_node.inputs["Biome Color"].default_value)[:3]) + (1.0,)
             lazy_biome_fix_node.inputs["Mode"].default_value = 1
