@@ -27,12 +27,12 @@ MiBlend создан, чтобы:
 
 Основные компоненты MiBlend, которые планируется завершить перед релизом:
 
-- [x] World Panel
-- [x] Procedural PBR Panel
-- [ ] Environment Panel
-- [ ] Assets
-- [ ] Materials Panel
-- [ ] Resource Packs Panel
+- [x] World Panel | v0.8.0 Snake https://github.com/Aspirata/MiBlend/issues/117
+- [x] Procedural PBR Panel | v0.8.0 Snake https://github.com/Aspirata/MiBlend/issues/118
+- [ ] Environment Panel | v0.9.0
+- [ ] Assets | v0.10.0
+- [ ] Materials Panel | vIDK.lol
+- [ ] Resource Packs Panel | v0.11.0
 
 ## 📖 Документация
 

@@ -26,8 +26,8 @@ MiBlend was created to:
 
 The main MiBlend components planned to be completed before release:
 
-- [x] World Panel | v0.8.0 Snake
-- [x] Procedural PBR Panel | v0.8.0 Snake
+- [x] World Panel | v0.8.0 Snake https://github.com/Aspirata/MiBlend/issues/117
+- [x] Procedural PBR Panel | v0.8.0 Snake https://github.com/Aspirata/MiBlend/issues/118
 - [ ] Environment Panel | v0.9.0
 - [ ] Assets | v0.10.0
 - [ ] Materials Panel | vIDK.lol
