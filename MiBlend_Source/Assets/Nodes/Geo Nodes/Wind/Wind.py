@@ -25,5 +25,9 @@ for windy_object in windy_objects:
         geonodes_modifier = windy_object.modifiers.new("Wind", type='NODES')
         geonodes_modifier.node_group = bpy.data.node_groups.get("Wind")
 
-    geonodes_modifier["Socket_9"] = properties.get("Speed")
-    geonodes_modifier["Socket_21"] = properties.get("Optimize Mode")
+    if bpy.app.version >= (5, 2, 0):
+        geonodes_modifier.properties.inputs.Socket_9.value = properties.get("Speed")
+        geonodes_modifier.properties.inputs.Socket_21.value = properties.get("Optimize Mode")
+    else:
+        geonodes_modifier["Socket_9"] = properties.get("Speed")
+        geonodes_modifier["Socket_21"] = properties.get("Optimize Mode")

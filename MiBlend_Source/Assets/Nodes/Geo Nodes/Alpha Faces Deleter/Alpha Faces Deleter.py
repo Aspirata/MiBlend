@@ -24,13 +24,19 @@ for selected_object in bpy.context.selected_objects:
 
     blend_file = get_selected_asset().get("File_path")
     geonodes_modifier = add_modifier(selected_object, "Alpha Faces Deleter", "Alpha Faces Deleter", blend_file)
-    
+
     if properties.get("Solidify"):
         solidify_modifier = add_modifier(selected_object, "SOLIDIFY", "Solidify")
         solidify_modifier.thickness = properties.get("Solidify Thickness")
         solidify_modifier.use_even_offset = True
 
-    geonodes_modifier["Socket_10"] = texture
-    geonodes_modifier["Socket_12"] = properties.get("Auto Detect Subdivision")
-    geonodes_modifier["Socket_13"] = clamp(0, properties.get("Subdivision"), 6)
-    geonodes_modifier["Socket_2"] = selected_object.data.uv_layers.active.name
+    if bpy.app.version >= (5, 2, 0):
+        geonodes_modifier.properties.inputs.Socket_10.value = texture
+        geonodes_modifier.properties.inputs.Socket_12.value = properties.get("Auto Detect Subdivision")
+        geonodes_modifier.properties.inputs.Socket_13.value = clamp(0, properties.get("Subdivision"), 6)
+        geonodes_modifier.properties.inputs.Socket_2.value = selected_object.data.uv_layers.active.name
+    else:
+        geonodes_modifier["Socket_10"] = texture
+        geonodes_modifier["Socket_12"] = properties.get("Auto Detect Subdivision")
+        geonodes_modifier["Socket_13"] = clamp(0, properties.get("Subdivision"), 6)
+        geonodes_modifier["Socket_2"] = selected_object.data.uv_layers.active.name
