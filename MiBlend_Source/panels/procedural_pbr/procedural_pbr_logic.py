@@ -62,10 +62,11 @@ class ProceduralPBR:
         procedural_normals_node = self.find_nodes_group_by_name("PNormals", current_material)
         procedural_normals_v2_node = self.find_nodes_group_by_name("Procedural Normals V2", current_material)
 
-        if not self.procedural_pbr_properties.use_normals and self.procedural_pbr_properties.revert_normals:
-            dissolve_node(current_material, bump_node, None)
-            dissolve_node(current_material, procedural_normals_node, None)
-            dissolve_node(current_material, procedural_normals_v2_node, None)
+        if not self.procedural_pbr_properties.use_normals:
+            if self.procedural_pbr_properties.revert_normals:
+                dissolve_node(current_material, bump_node, None)
+                dissolve_node(current_material, procedural_normals_node, None)
+                dissolve_node(current_material, procedural_normals_v2_node, None)
             return
 
         normals_mode = self.procedural_pbr_properties.normals_selector if not self.is_experimental_features_enabled or \
@@ -167,8 +168,9 @@ class ProceduralPBR:
         is_valid, item = name_in(EMISSIVE_MATERIALS.keys(), current_material.name)
         emission_settings_dict: dict[str, float] = EMISSIVE_MATERIALS.get(item, {})
 
-        if not self.procedural_pbr_properties.use_procedural_emission or not image or not is_emissive(pbsdf_node, image.name) and self.procedural_pbr_properties.revert_procedural_emission:
-            dissolve_node(current_material, procedural_emission_node, "Strength Multiply")
+        if not image or not is_emissive(pbsdf_node, image.name) or not self.procedural_pbr_properties.use_procedural_emission:
+            if self.procedural_pbr_properties.revert_procedural_emission:
+                dissolve_node(current_material, procedural_emission_node, "Strength Multiply")
             return
 
         if not is_valid or not emission_settings_dict:
@@ -204,9 +206,10 @@ class ProceduralPBR:
         procedural_specular_node = next((node for node in current_material.node_tree.nodes if node.type == "MAP_RANGE" 
                                             and "Procedural Specular Node" in node.label), None)
 
-        if not self.procedural_pbr_properties.use_procedural_specular_and_roughness and self.procedural_pbr_properties.revert_procedural_specular_and_roughness:
-            dissolve_node(current_material, procedural_specular_node, None)
-            dissolve_node(current_material, procedural_roughness_node, None)
+        if not self.procedural_pbr_properties.use_procedural_specular_and_roughness:
+            if self.procedural_pbr_properties.revert_procedural_specular_and_roughness:
+                dissolve_node(current_material, procedural_specular_node, None)
+                dissolve_node(current_material, procedural_roughness_node, None)
             return
 
         if not procedural_specular_node:
