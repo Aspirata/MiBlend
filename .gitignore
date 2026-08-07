@@ -3,3 +3,4 @@ build
 2*
 1.*
 .DS_Store
+tests/
