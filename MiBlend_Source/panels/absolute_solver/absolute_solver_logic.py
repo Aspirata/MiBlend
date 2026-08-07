@@ -1,36 +1,35 @@
 import os
 import json
-import time
 import traceback
 import bpy
 
 
-def trigger_absolute_solver(code: str, tech_things: str = "", data: str = ""):
-    from ...mib_utils import get_preferences
-    preferences = get_preferences()
-    
-    if not hasattr(trigger_absolute_solver, 'call_queue'):
-        trigger_absolute_solver.call_queue = []
-        trigger_absolute_solver.last_call_time = 0
-        trigger_absolute_solver.is_processing = False
-    
-    use_ru_text: str = "_ru" if bpy.app.translations.locale == "ru_RU" else ""
-    
-    current_time = time.time()
-    
-    trigger_absolute_solver.call_queue.append((code, data))
-    
-    if (current_time - trigger_absolute_solver.last_call_time >= 0.1) and not trigger_absolute_solver.is_processing:
-        trigger_absolute_solver.is_processing = True
+_absolute_solver_queue = []
+_absolute_solver_processing = False
+_absolute_solver_timer_scheduled = False
 
+
+def _process_absolute_solver_queue():
+    from ...mib_utils import get_preferences
+    global _absolute_solver_processing, _absolute_solver_timer_scheduled
+
+    if _absolute_solver_processing:
+        return 0.1
+
+    _absolute_solver_processing = True
+    queued_calls = list(_absolute_solver_queue)
+    _absolute_solver_queue.clear()
+    try:
+        preferences = get_preferences()
+        use_ru_text: str = "_ru" if bpy.app.translations.locale == "ru_RU" else ""
         call_data = {}
         try:
-            with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "absolute_solver_list.json"), "r") as file:
+            with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "absolute_solver_list.json"), "r", encoding="utf-8") as file:
                 data_json = json.load(file)
                 critical_error_name = data_json.get("errors", {}).get("00", {}).get("Name" + use_ru_text, "Critical Error")
                 critical_error_description = data_json.get("errors", {}).get("00", {}).get("Description" + use_ru_text, "Unknown error occurred: {Data}")
 
-                for code, Data in trigger_absolute_solver.call_queue:
+                for code, Data, tech_things in queued_calls:
                     if code in call_data or code in bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes.split():
                         continue
                     
@@ -63,8 +62,37 @@ def trigger_absolute_solver(code: str, tech_things: str = "", data: str = ""):
         if call_data:
             result = bpy.ops.miblend.absolute_solver('INVOKE_DEFAULT', call_data="|||".join(call_data.values()))
             if 'CANCELLED' in result:
-                raise Exception("Cancelled by user")
-        
-        trigger_absolute_solver.call_queue.clear()
-        trigger_absolute_solver.last_call_time = current_time
-        trigger_absolute_solver.is_processing = False
+                raise RuntimeError("Absolute Solver popup was cancelled")
+    except Exception:
+        print(f"Absolute Solver processing failed:\n{traceback.format_exc()}")
+    finally:
+        _absolute_solver_processing = False
+        _absolute_solver_timer_scheduled = bool(_absolute_solver_queue)
+
+    return 0.1 if _absolute_solver_timer_scheduled else None
+
+
+def trigger_absolute_solver(code: str, tech_things: str = "", data: object = ""):
+    global _absolute_solver_timer_scheduled
+
+    _absolute_solver_queue.append((code, data, tech_things))
+    if _absolute_solver_timer_scheduled:
+        return
+
+    _absolute_solver_timer_scheduled = True
+    try:
+        bpy.app.timers.register(_process_absolute_solver_queue, first_interval=0.1)
+    except Exception:
+        _absolute_solver_timer_scheduled = False
+        _process_absolute_solver_queue()
+
+
+def cancel_absolute_solver_queue():
+    global _absolute_solver_processing, _absolute_solver_timer_scheduled
+
+    if bpy.app.timers.is_registered(_process_absolute_solver_queue):
+        bpy.app.timers.unregister(_process_absolute_solver_queue)
+
+    _absolute_solver_queue.clear()
+    _absolute_solver_processing = False
+    _absolute_solver_timer_scheduled = False

@@ -5,7 +5,7 @@ from bpy.app.handlers import persistent
 from .preferences import MiBlendPreferences, MIBLEND_OT_save_preferences
 from .mib_utils import dprint
 from .panels.assets.assets_logic import update_assets
-from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
+from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver, cancel_absolute_solver_queue
 from .panels.resource_packs.resource_packs_logic import update_default_pack
 from .panels import classes as panel_classes, MIBLEND_PG_properties
 
@@ -73,6 +73,8 @@ def register():
 def unregister():
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
+
+    cancel_absolute_solver_queue()
 
     if hasattr(bpy.types.Scene, "miblend_properties"):
         del bpy.types.Scene.miblend_properties
