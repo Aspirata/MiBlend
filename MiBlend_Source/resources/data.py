@@ -10,7 +10,7 @@ assets_directory = os.path.join(main_directory, "Assets")
 
 
 GRAY_BLOCKS = {
-    "vegetation" : ["grass ; snow azalea", "bush", "leaf litter", "leaves ; cherry pale", "lily", "vine", "fern", "pink stem"],
+    "vegetation" : ["grass ; snow azalea", "bush", "leaf litter", "leaves ; cherry pale poplar", "lily", "vine", "fern", "pink stem"],
     "redstone" : ["redstone ; torch", "dust"],
     "water" : ["water"]
 }
@@ -142,6 +142,13 @@ EMISSIVE_MATERIALS = {
         "From Min": 0,
         "From Max": 2,
     },
+    "spawner": {
+        "Green": 0,
+        "Blue": 0,
+        "From Min": 0.1,
+        "To Max": 400.0,
+    },
+    "open eyeblossom emissive": {},
     "jack o lantern north": {
         "From Min": 1.5,
         "From Max": 2,

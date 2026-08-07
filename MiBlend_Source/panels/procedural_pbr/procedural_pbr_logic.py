@@ -14,9 +14,11 @@ class ProceduralPBR:
         self.is_experimental_features_enabled = get_preferences().experimental_features
         self.is_show_warnings_enabled = get_preferences().show_warnings
         self.procedural_pbr_properties = bpy.context.scene.miblend_properties.procedural_pbr_properties
-        self.SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower", "lily of the valley", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay", "wildflowers"]
+        self.SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower",
+                            "lily of the valley", "lily pad", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay", "wildflowers",
+                            "moss block", "moss carpet", "hanging moss", "eyeblossom", "chorus flower", "bush", "resin"]
         self.TRANSLUCENT_MATERIALS = ["leaves", "glass"]
-        self.METALLIC_MATERIALS = ["iron", "gold", "emerald", "copper ; torch", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail"]
+        self.METALLIC_MATERIALS = ["iron", "gold", "emerald", "copper ; torch", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail", "spawner", "bell"]
         self.REFLECTIVE_MATERIALS = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
     @staticmethod
@@ -165,15 +167,12 @@ class ProceduralPBR:
 
     def apply_procedural_emission(self, current_object, current_material, pbsdf_node, image):
         procedural_emission_node = self.find_nodes_group_by_name("Procedural Emission", current_material)
-        is_valid, item = name_in(EMISSIVE_MATERIALS.keys(), current_material.name)
+        _is_valid, item = name_in(EMISSIVE_MATERIALS.keys(), current_material.name)
         emission_settings_dict: dict[str, float] = EMISSIVE_MATERIALS.get(item, {})
 
         if not image or not is_emissive(pbsdf_node, image.name) or not self.procedural_pbr_properties.use_procedural_emission:
             if self.procedural_pbr_properties.revert_procedural_emission:
                 dissolve_node(current_material, procedural_emission_node, "Strength Multiply")
-            return
-
-        if not is_valid or not emission_settings_dict:
             return
 
         if not procedural_emission_node:
@@ -182,7 +181,7 @@ class ProceduralPBR:
         if self.procedural_pbr_properties.randomize_emission_strength:
             add_modifier(current_object, "Random Face Value")
 
-        if self.procedural_pbr_properties.use_procedural_emission_custom_config:
+        if emission_settings_dict and self.procedural_pbr_properties.use_procedural_emission_custom_config:
             for setting, value in emission_settings_dict.items():
                 procedural_emission_node.inputs[setting].default_value = value
 
