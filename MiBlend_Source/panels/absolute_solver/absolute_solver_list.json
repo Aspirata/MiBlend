@@ -51,7 +51,7 @@
             "Name_ru": "Устаревший компонент",
             "Description": "This .blend file was made with an older verion of MiBlend. {Data}. Some features may not work correctly.",
             "Description_ru": "Этот .blend файл был создан с использованием более старой версии MiBlend. {Data}. Некоторые функции могут работать некорректно.",
-            "Solutions": "miblend.absolute_solver_fix_compatibility; miblend.absolute_solver_save_blend_file; "
+            "Solutions": "miblend.absolute_solver_migrate_blend_file; "
         },
 
         "05":

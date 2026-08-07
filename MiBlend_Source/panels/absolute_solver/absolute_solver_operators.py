@@ -143,9 +143,11 @@ class MIBLEND_OT_absolute_solver_ignore(Operator):
         return {'FINISHED'}
 
 
-class MIBLEND_OT_fix_compatibility(Operator):
-    bl_idname = "miblend.absolute_solver_fix_compatibility"
-    bl_label = "Fix Compatibility"
+class MIBLEND_OT_migrate_blend_file(Operator):
+    bl_idname = "miblend.absolute_solver_migrate_blend_file"
+    bl_label = "Migrate Blend File"
+    bl_description = "Rebuilds MiBlend scene data and saves the migrated blend file"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if "resource_packs" in bpy.context.scene:
@@ -153,22 +155,13 @@ class MIBLEND_OT_fix_compatibility(Operator):
             update_default_pack()
         
         update_assets()
-        self.report({'INFO'}, "Resource Packs and Assets Lists were recreated")
-        return {'FINISHED'}
 
-
-class MIBLEND_OT_save_blend_file(Operator):
-    bl_idname = "miblend.absolute_solver_save_blend_file"
-    bl_label = "Save Blend File"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
         if bpy.data.filepath == "":
             bpy.ops.wm.save_homefile()
-            self.report({'INFO'}, "Default file was overwritten")
+            self.report({'INFO'}, "Default file was migrated and overwritten")
         else:
             bpy.ops.wm.save_mainfile()
-            self.report({'INFO'}, "Current file was saved")
+            self.report({'INFO'}, "Current file was migrated and saved")
         return {'FINISHED'}
 
 
