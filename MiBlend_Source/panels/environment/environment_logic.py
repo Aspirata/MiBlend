@@ -1,7 +1,7 @@
 import os
 import traceback
 import bpy
-from ...mib_utils import perf_time, GetConnectedSocketTo, create_node_group
+from ...mib_utils import perf_time, get_connected_socket_to, create_node_group
 from ...resources.data import resources_directory, nodes_file
 from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
 
@@ -163,7 +163,7 @@ def create_env(mode=None):
             fog_cube.data.materials.append(fog_material)
 
             output_node = [node for node in fog_material.node_tree.nodes if node.type == "OUTPUT_MATERIAL"][0]
-            fog_material.node_tree.nodes.remove(GetConnectedSocketTo(0, output_node).node)
+            fog_material.node_tree.nodes.remove(get_connected_socket_to(0, output_node).node)
             fog_node = create_node_group(fog_material, FOG_NODE_TREE_NAME, (output_node.location.x - 200, output_node.location.y))
             fog_material.node_tree.links.new(fog_node.outputs[0], output_node.inputs["Volume"])
 

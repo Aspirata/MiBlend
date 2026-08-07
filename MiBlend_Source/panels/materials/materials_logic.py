@@ -66,7 +66,7 @@ def swap_textures(folder_path):
     
     for selected_object in bpy.context.selected_objects:
         if selected_object.type != "MESH" and not is_code_ignored("w01") and get_preferences().show_warnings:
-            trigger_absolute_solver("w01", selected_object)
+            trigger_absolute_solver("w01", data=selected_object)
             continue
         elif selected_object.type != "MESH":
             continue

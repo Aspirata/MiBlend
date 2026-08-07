@@ -19,14 +19,16 @@
             "Description_ru": "Тестовое предупреждение"
         },
 
-        "01": {
+        "01":
+        {
             "Name": "Object has no Materials",
             "Name_ru": "Объект не имеет материалов",
             "Description": "{Data.name} does not have materials because it is an empty, lattice, light source, armature etc.",
             "Description_ru": "{Data.name} не имеет материалов, так как это пустой объект, решетка, источник света, арматура и т.д."
         },
 
-        "02": {
+        "02":
+        {
             "Name": "MiBlend hasn't fixed that world",
             "Name_ru": "MiBlend не исправил этот мир",
             "Description": "MiBlend hasn't fixed {Data} that may and almost 100% will lead to problems",
@@ -34,7 +36,8 @@
             "Solutions": "miblend.fix_world; "
         },
 
-        "03": {
+        "03":
+        {
             "Name": "Selected object isn't a world",
             "Name_ru": "Выбранный объект не является миром",
             "Description": "You've tried to fix world that isn't a world, perhaps you should try Fix Materials instead",
@@ -49,6 +52,14 @@
             "Description": "This .blend file was made with an older verion of MiBlend. {Data}. Some features may not work correctly.",
             "Description_ru": "Этот .blend файл был создан с использованием более старой версии MiBlend. {Data}. Некоторые функции могут работать некорректно.",
             "Solutions": "miblend.absolute_solver_fix_compatibility; miblend.absolute_solver_save_blend_file; "
+        },
+
+        "05":
+        {
+            "Name": "This is an MiEx world",
+            "Name_ru": "Это мир MiEx",
+            "Description": "{Data.name} is an MiEx world, you shouldn't fix it with MiBlend",
+            "Description_ru": "{Data.name} это мир MiEx, вам не стоит исправлять его с помощью MiBlend"
         }
     },
 

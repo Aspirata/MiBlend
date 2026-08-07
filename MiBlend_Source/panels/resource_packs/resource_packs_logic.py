@@ -515,17 +515,17 @@ def apply_resources():
                                 node.image = image_texture
 
                     if texture_node:
-                        color_connection = GetConnectedSocketFrom("Color", texture_node)
+                        color_connection = get_connected_socket_from("Color", texture_node)
                         if color_connection:
                             for socket in color_connection:
                                 material.node_tree.links.new(ITexture_Animator.outputs["Color"], socket)
                     
-                        alpha_connection = GetConnectedSocketFrom("Alpha", texture_node)
+                        alpha_connection = get_connected_socket_from("Alpha", texture_node)
                         if alpha_connection:
                             for socket in alpha_connection:
                                 material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], socket)
                         
-                        vector_connection = GetConnectedSocketTo("Vector", texture_node)
+                        vector_connection = get_connected_socket_to("Vector", texture_node)
 
                         if vector_connection and vector_connection.node != ITexture_Animator:
                             material.node_tree.links.new(vector_connection, ITexture_Animator.inputs["Vector"])
@@ -545,12 +545,12 @@ def apply_resources():
                     texture_node.image = image_texture
                     texture_node.interpolation = "Closest"
 
-                    color_connection = GetConnectedSocketFrom("Color", ITexture_Animator)
+                    color_connection = get_connected_socket_from("Color", ITexture_Animator)
                     if color_connection:
                         for socket in color_connection:
                             material.node_tree.links.new(texture_node.outputs["Color"], socket)
                     
-                    alpha_connection = GetConnectedSocketFrom("Alpha", ITexture_Animator)
+                    alpha_connection = get_connected_socket_from("Alpha", ITexture_Animator)
                     if alpha_connection:
                         for socket in alpha_connection:
                             material.node_tree.links.new(texture_node.outputs["Alpha"], socket)
@@ -560,7 +560,7 @@ def apply_resources():
                 if Texture_Animator is None:
                    Texture_Animator = create_node_group(material, "Texture Animator", (texture_node.location.x - 200, texture_node.location.y - 60))
 
-                vector_connection = GetConnectedSocketTo("Vector", texture_node)
+                vector_connection = get_connected_socket_to("Vector", texture_node)
 
                 if vector_connection is not None and vector_connection.node != Texture_Animator:
                     material.node_tree.links.new(vector_connection, Texture_Animator.inputs["Vector"])
@@ -579,10 +579,10 @@ def apply_resources():
                 texture_node.image = image_texture
                 texture_node.interpolation = "Closest"
 
-                for socket in GetConnectedSocketFrom("Color", ITexture_Animator):
+                for socket in get_connected_socket_from("Color", ITexture_Animator):
                     material.node_tree.links.new(texture_node.outputs["Color"], socket)
 
-                for socket in GetConnectedSocketFrom("Alpha", ITexture_Animator):
+                for socket in get_connected_socket_from("Alpha", ITexture_Animator):
                     material.node_tree.links.new(texture_node.outputs["Alpha"], socket)
 
                 material.node_tree.nodes.remove(ITexture_Animator)
@@ -701,17 +701,17 @@ def apply_resources():
             if r_props.roughness:
                 material.node_tree.links.new(LabPBR_s.outputs["Roughness"], PBSDF.inputs["Roughness"])
             else:
-                RemoveLinksFrom(LabPBR_s.outputs["Roughness"])
+                remove_links_from(LabPBR_s.outputs["Roughness"])
 
             if r_props.metallic:
                 material.node_tree.links.new(LabPBR_s.outputs["Reflectance (Metallic)"], PBSDF.inputs["Metallic"])
             else:
-                RemoveLinksFrom(LabPBR_s.outputs["Reflectance (Metallic)"])
+                remove_links_from(LabPBR_s.outputs["Reflectance (Metallic)"])
             
             if r_props.specular:
                 material.node_tree.links.new(LabPBR_s.outputs["Porosity (Specular)"], PBSDF.inputs["Specular IOR Level"])
             else:
-                RemoveLinksFrom(LabPBR_s.outputs["Porosity (Specular)"])
+                remove_links_from(LabPBR_s.outputs["Porosity (Specular)"])
 
             if r_props.sss:
                 material.node_tree.links.new(LabPBR_s.outputs["SSS"], PBSDF.inputs["Subsurface Weight"])
@@ -720,7 +720,7 @@ def apply_resources():
 
                 PBSDF.subsurface_method = 'BURLEY'
             else:
-                RemoveLinksFrom(LabPBR_s.outputs["SSS"])
+                remove_links_from(LabPBR_s.outputs["SSS"])
 
             if r_props.emission:
                 try:
@@ -733,8 +733,8 @@ def apply_resources():
             
                 material.node_tree.links.new(LabPBR_s.outputs["Emission Strength"], PBSDF.inputs["Emission Strength"])
             else:
-                RemoveLinksFrom(LabPBR_s.outputs["Emission Strength"])
-                RemoveLinksFrom(PBSDF.inputs["Emission Color"])
+                remove_links_from(LabPBR_s.outputs["Emission Strength"])
+                remove_links_from(PBSDF.inputs["Emission Color"])
 
             animate_texture(specular_texture_node, new_specular_image_path, STexture_Animator, Current_node_tree, image_path, object=selected_object)
             return new_specular_image_path
@@ -777,19 +777,19 @@ def apply_resources():
         if r_props.use_color:
             material.node_tree.links.new(emission_texture_node.outputs["Color"], PBSDF.inputs["Emission Color"])
         else:
-            RemoveLinksFrom(emission_texture_node.outputs["Color"])
+            remove_links_from(emission_texture_node.outputs["Color"])
         
         if r_props.use_strength:
             material.node_tree.links.new(emission_texture_node.outputs["Alpha"], PBSDF.inputs["Emission Strength"])
         else:
-            RemoveLinksFrom(emission_texture_node.outputs["Alpha"])
+            remove_links_from(emission_texture_node.outputs["Alpha"])
 
         animate_texture(emission_texture_node, new_emission_image_path, ETexture_Animator, Current_node_tree, image_path, object=selected_object)
         return True
 
     for selected_object in bpy.context.selected_objects:
         if not selected_object.material_slots and not is_code_ignored("w01") and get_preferences().show_warnings:
-            trigger_absolute_solver("w01", selected_object)
+            trigger_absolute_solver("w01", data=selected_object)
             continue
         
         elif not selected_object.material_slots:
@@ -799,7 +799,8 @@ def apply_resources():
             if material is None or not material.use_nodes:
                 continue
             
-            if detect_world_exporter(selected_object) != "unknown" and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02") and get_preferences().show_warnings:
+            if detect_world_exporter(selected_object) != "unknown" and detect_world_exporter(selected_object) != "miex" \
+                and selected_object.get("MiBlend ID", "") != "World" and not is_code_ignored("w02") and get_preferences().show_warnings:
                 trigger_absolute_solver("w02", data=selected_object.name)
                 continue
             
@@ -939,8 +940,8 @@ def apply_resources():
                     NTexture_Animator = None
 
                 elif normal_texture_node:
-                    if GetConnectedSocketTo(0, normal_texture_node):
-                        material.node_tree.nodes.remove(GetConnectedSocketTo(0, normal_texture_node).node)
+                    if get_connected_socket_to(0, normal_texture_node):
+                        material.node_tree.nodes.remove(get_connected_socket_to(0, normal_texture_node).node)
                         
                     material.node_tree.nodes.remove(normal_texture_node)
                     normal_texture_node = None
@@ -965,8 +966,8 @@ def apply_resources():
                     STexture_Animator = None
 
                 elif specular_texture_node:
-                    if GetConnectedSocketTo(0, specular_texture_node):
-                        material.node_tree.nodes.remove(GetConnectedSocketTo(0, specular_texture_node).node)
+                    if get_connected_socket_to(0, specular_texture_node):
+                        material.node_tree.nodes.remove(get_connected_socket_to(0, specular_texture_node).node)
 
                     material.node_tree.nodes.remove(specular_texture_node)
                     specular_texture_node = None
@@ -1003,7 +1004,7 @@ def apply_resources():
                     ETexture_Animator = None
 
                 elif emission_texture_node:
-                    if GetConnectedSocketTo(0, emission_texture_node):
-                        material.node_tree.nodes.remove(GetConnectedSocketTo(0, emission_texture_node).node)
+                    if get_connected_socket_to(0, emission_texture_node):
+                        material.node_tree.nodes.remove(get_connected_socket_to(0, emission_texture_node).node)
                     material.node_tree.nodes.remove(emission_texture_node)
                     emission_texture_node = None

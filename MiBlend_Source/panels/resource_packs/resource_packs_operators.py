@@ -211,7 +211,7 @@ class MIBLEND_OT_add_resource_pack(Operator):
             if resource_packs[pack_name]["path"].endswith(('.zip', '.jar')) or os.path.isdir(resource_packs[pack_name]["path"]):
                 set_resource_packs(resource_packs)
             else:
-                trigger_absolute_solver("e09", os.path.splitext(resource_packs[pack_name]["path"])[1])
+                trigger_absolute_solver("e09", data=os.path.splitext(resource_packs[pack_name]["path"])[1])
                 return {'CANCELLED'}
             
         elif self.Mode == "perm":

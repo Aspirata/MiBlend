@@ -11,7 +11,7 @@ def get_preferences() -> bpy.types.AddonPreferences:
     return bpy.context.preferences.addons[__package__].preferences
 
 
-def clamp(min_value: int | float, value: int | float, max_value: int | float) -> int | float:
+def clamp(min_value: float, value: float, max_value: float) -> float:
     return max(min_value, min(value, max_value))
 
 
@@ -28,8 +28,8 @@ def wrap_texture_node_in_closures(texture_node: bpy.types.Node, material: bpy.ty
     nodes = material.node_tree.nodes
     links = material.node_tree.links
 
-    color_targets = GetConnectedSocketFrom("Color", texture_node)
-    alpha_targets = GetConnectedSocketFrom("Alpha", texture_node)
+    color_targets = get_connected_socket_from("Color", texture_node)
+    alpha_targets = get_connected_socket_from("Alpha", texture_node)
     x, y = texture_node.location
 
     for node in nodes:
@@ -131,7 +131,7 @@ def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str 
 
 
 def inject_node(material: str, node_to_inject: object, target_node: object, target_node_input: int | str = 0, node_to_inject_input: int | str = 0, node_to_inject_output: int | str = 0):
-    target_node_input_connection = GetConnectedSocketTo(target_node_input, target_node)
+    target_node_input_connection = get_connected_socket_to(target_node_input, target_node)
     if target_node_input_connection:
         if target_node_input_connection.node == node_to_inject:
             return
@@ -140,19 +140,20 @@ def inject_node(material: str, node_to_inject: object, target_node: object, targ
     material.node_tree.links.new(node_to_inject.outputs[node_to_inject_output], target_node.inputs[target_node_input])
 
 
-def get_selected_asset() -> dict:
+def get_selected_asset() -> dict | None:
     from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
 
     current_index = bpy.context.scene.miblend_properties.assets_properties.asset_index
     items = bpy.context.scene.miblend_properties.assets_properties.asset_items
-    
+
+    if current_index < 0 or current_index >= len(items):
+        return None
+
     try:
         return items[current_index]
     except Exception:
-        if current_index < 0 or current_index >= len(items):
-            trigger_absolute_solver("e08", traceback.format_exc())
-        else:
-            trigger_absolute_solver("n00", traceback.format_exc())
+        trigger_absolute_solver("n00", tech_things=traceback.format_exc())
+        return None
 
 
 # Checks if the version_name is a valid version number and returns the formatted version number else returns None
@@ -280,7 +281,7 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
                 with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
                     data_to.node_groups = [modifier_type_or_node_group]
             except Exception as error:
-                trigger_absolute_solver("e03", file, error)
+                trigger_absolute_solver("e03", tech_things=error, data=file)
 
         name = modifier_name if modifier_name else modifier_type_or_node_group
         modifier = object.modifiers.new(name, type='NODES')
@@ -321,7 +322,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
             with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
                 data_to.node_groups = [node_tree_name]
         except Exception as error:
-            trigger_absolute_solver("e03", file, error)
+            trigger_absolute_solver("e03", tech_things=error, data=file)
 
     # Create and configure new node
     group_node = place.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -405,7 +406,7 @@ def dprint(*messages: str, is_deep: bool =False, zone: str =None, separate: bool
         print(f"Debug print error: {str(e)}")
 
 
-def isduplicate(text: str, original_text: str=None) -> bool:
+def is_duplicate(text: str, original_text: str = "") -> bool:
     parts = text.split(".")
     if len(parts) > 1 and parts[-1].isdigit():
         base_text = text.replace(f".{parts[-1]}", "")
@@ -480,11 +481,7 @@ def detect_texture_node(PBSDF: object) -> object | None:
     
     connected_nodes = traverse_nodes(PBSDF, "Base Color")
     for n in connected_nodes:
-        if n.type == "GROUP":
-            if "Animated;" in n.node_tree.name:
-                return n
-                
-        if n.type == "TEX_IMAGE" and n.image:
+        if (n.type == "GROUP" and "Animated;" in n.node_tree.name) or (n.type == "TEX_IMAGE" and n.image):
             return n
     
     return None
@@ -539,9 +536,8 @@ def detect_image_texture(PBSDF: object) -> object | None:
     
     connected_nodes = traverse_nodes(PBSDF, "Base Color")
     for n in connected_nodes:
-        if n.type == "GROUP":
-            if "Animated;" in n.node_tree.name:
-                return bpy.data.images.get(n.node_tree.name.replace("Animated; ", "") + ".png")
+        if n.type == "GROUP" and "Animated;" in n.node_tree.name:
+            return bpy.data.images.get(n.node_tree.name.replace("Animated; ", "") + ".png")
                 
         if n.type == "TEX_IMAGE" and n.image:
             return n.image
@@ -656,7 +652,7 @@ def perf_time(func):
     return wrapper
 
 
-def GetConnectedSocketFrom(output: str, node: object) -> list:
+def get_connected_socket_from(output: str, node: object) -> list:
     from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
 
     try:
@@ -673,7 +669,7 @@ def GetConnectedSocketFrom(output: str, node: object) -> list:
         trigger_absolute_solver("n00", error)
 
 
-def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
+def get_connected_socket_to(input: int | str, node: object) -> object | None:
     from .panels.absolute_solver.absolute_solver_logic import trigger_absolute_solver
     
     try:
@@ -697,7 +693,7 @@ def GetConnectedSocketTo(input: int | str, node: object) -> object | None:
         trigger_absolute_solver("n00", error)
 
 
-def RemoveLinksFrom(sockets: object):
+def remove_links_from(sockets: object):
     try:
         for socket in sockets:
             for link in socket.links:

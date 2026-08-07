@@ -1,7 +1,7 @@
 import bpy
 from ...mib_utils import (dprint, get_preferences, is_code_ignored, name_in, perf_time, 
                         detect_world_exporter, detect_texture_node, detect_image_texture, 
-                        is_emissive, format_texture_name, is_gray, GetConnectedSocketTo, 
+                        is_emissive, format_texture_name, is_gray, get_connected_socket_to,
                         create_node_group, inject_node, dissolve_node)
 from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
 
@@ -37,7 +37,7 @@ class FixWorld:
     @perf_time
     def fix_world(self):
         for current_object in bpy.context.selected_objects:
-            if not current_object.type == 'MESH':
+            if current_object.type != 'MESH':
                 if not is_code_ignored("w01") and self.is_show_warnings_enabled:
                     trigger_absolute_solver("w01", data=current_object)
                 continue
@@ -50,7 +50,11 @@ class FixWorld:
 
             current_object["MiBlend ID"] = "World"
 
-            self.apply_force_shading_flat()
+            if current_world_exporter == "miex" and not is_code_ignored("w05") and self.is_show_warnings_enabled:
+                trigger_absolute_solver("w05", data=current_object)
+                continue
+
+            current_object.data.shade_flat()
 
             for current_material in current_object.data.materials:
                 if not current_material:
@@ -86,13 +90,13 @@ class FixWorld:
                 if not image_texture_node or not pbsdf_node:
                     continue
 
-                if not GetConnectedSocketTo("Alpha", pbsdf_node):
+                if not get_connected_socket_to("Alpha", pbsdf_node):
                     current_material.node_tree.links.new(image_texture_node.outputs["Alpha"], pbsdf_node.inputs["Alpha"])
                 
                 # Emission
                 if is_emissive(pbsdf_node, image.name):
-                    if not GetConnectedSocketTo("Emission Color", pbsdf_node):
-                        current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
+                    if not get_connected_socket_to("Emission Color", pbsdf_node):
+                        current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
 
                     if pbsdf_node.inputs["Emission Strength"].default_value == 0:
                         pbsdf_node.inputs["Emission Strength"].default_value = 1
@@ -173,15 +177,6 @@ class FixWorld:
                         current_material.node_tree.links.new(node_to_keep.outputs[output_idx], link.to_socket)
                 
                 current_material.node_tree.nodes.remove(node)
-
-    def apply_force_shading_flat(self):
-        current_mode = bpy.context.object.mode
-        bpy.ops.object.mode_set(mode='OBJECT')
-        try:
-            bpy.ops.object.shade_flat()
-        except Exception:
-            dprint("Failed to set shading to flat for object: " + bpy.context.object.name, zone="fw")
-        bpy.ops.object.mode_set(mode=current_mode)
 
     def apply_backface_culling(self, current_material, pbsdf_node):
         if not self.world_properties.use_backface_culling or not name_in(self.BACKFACE_CULLING_MATERIALS, current_material.name)[0]:

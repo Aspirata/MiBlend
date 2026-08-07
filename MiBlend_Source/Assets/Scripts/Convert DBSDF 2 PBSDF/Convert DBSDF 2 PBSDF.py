@@ -34,9 +34,9 @@ for selected_object in bpy.context.selected_objects:
                         PBSDF.location = (Output.location.x - 280, Output.location.y)
                         PBSDF.inputs[0].default_value = DBSDF.inputs[0].default_value
                     
-                    material.node_tree.links.new(GetConnectedSocketTo(0, DBSDF), PBSDF.inputs["Base Color"])
+                    material.node_tree.links.new(get_connected_socket_to(0, DBSDF), PBSDF.inputs["Base Color"])
 
-                    material.node_tree.links.new(GetConnectedSocketTo(0, MixShader), PBSDF.inputs["Alpha"])
+                    material.node_tree.links.new(get_connected_socket_to(0, MixShader), PBSDF.inputs["Alpha"])
                     
                     if MixShader != None:
                         material.node_tree.nodes.remove(MixShader)

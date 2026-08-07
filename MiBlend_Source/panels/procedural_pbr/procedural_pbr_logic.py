@@ -3,8 +3,8 @@ import bpy
 from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
 from ...mib_utils import (get_preferences, is_code_ignored, name_in, perf_time, 
                         detect_texture_node, detect_image_texture, 
-                        is_emissive, GetConnectedSocketTo, create_node_group, 
-                        add_modifier, RemoveLinksFrom, dissolve_node, inject_node, 
+                        is_emissive, get_connected_socket_to, create_node_group,
+                        add_modifier, remove_links_from, dissolve_node, inject_node,
                         wrap_texture_node_in_closures)
 from ...resources.data import nodes_file, resources_directory, EMISSIVE_MATERIALS
 
@@ -26,7 +26,7 @@ class ProceduralPBR:
     @perf_time
     def apply_procedural_pbr(self):
         for current_object in bpy.context.selected_objects:
-            if not current_object.type == 'MESH':
+            if current_object.type != 'MESH':
                 if not is_code_ignored("w01") and self.is_show_warnings_enabled:
                     trigger_absolute_solver("w01", data=current_object)
                 continue
@@ -49,7 +49,7 @@ class ProceduralPBR:
 
                 self.apply_pbsdf_tweaks(current_material, pbsdf_node)
 
-                base_color_connection = GetConnectedSocketTo("Base Color", pbsdf_node)
+                base_color_connection = get_connected_socket_to("Base Color", pbsdf_node)
                 if base_color_connection:
                     self.apply_procedural_emission(current_object, current_material, pbsdf_node, image)
                     self.apply_procedural_specular_and_roughness(current_material, pbsdf_node)
@@ -73,7 +73,7 @@ class ProceduralPBR:
                         bpy.app.version < (5, 1, 0) else self.procedural_pbr_properties.normals_selector_experimental
         normals_size_x_multiplier = 1
         normals_size_y_multiplier = 1
-        base_color_connection = GetConnectedSocketTo("Base Color", pbsdf_node)
+        base_color_connection = get_connected_socket_to("Base Color", pbsdf_node)
 
         if normals_mode == 'BUMP' and base_color_connection:
             dissolve_node(current_material, procedural_normals_node, None)
@@ -98,7 +98,7 @@ class ProceduralPBR:
             if image_texture_node.type == "GROUP":
                 vector_connection = image_texture_node.outputs["Current Frame"]
             else:
-                vector_connection = GetConnectedSocketTo("Vector", image_texture_node)
+                vector_connection = get_connected_socket_to("Vector", image_texture_node)
             
             group_name = f"PNormals; {image.name[:63]}"
             
@@ -190,10 +190,10 @@ class ProceduralPBR:
         procedural_emission_node.inputs["Non-Camera Strength"].default_value = self.procedural_pbr_properties.non_camera_emission_strength
         procedural_emission_node.inputs["Randomize Strength"].default_value = self.procedural_pbr_properties.randomize_emission_strength and emission_settings_dict.get("Randomize Strength", False)
 
-        if GetConnectedSocketTo("Emission Color", pbsdf_node):
-            current_material.node_tree.links.new(GetConnectedSocketTo("Emission Color", pbsdf_node), procedural_emission_node.inputs["Emission Color"])
+        if get_connected_socket_to("Emission Color", pbsdf_node):
+            current_material.node_tree.links.new(get_connected_socket_to("Emission Color", pbsdf_node), procedural_emission_node.inputs["Emission Color"])
         else:
-            current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
+            current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
         
         inject_node(current_material, procedural_emission_node, pbsdf_node, "Emission Strength", "Strength Multiply")
     
@@ -236,10 +236,10 @@ class ProceduralPBR:
         procedural_roughness_node.inputs["To Max"].default_value = pbsdf_node.inputs["Roughness"].default_value
         procedural_roughness_node.inputs["To Min"].default_value = pbsdf_node.inputs["Roughness"].default_value * self.procedural_pbr_properties.procedural_roughness_difference
         
-        current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), procedural_specular_node.inputs["Value"])
+        current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), procedural_specular_node.inputs["Value"])
         current_material.node_tree.links.new(procedural_specular_node.outputs[0], pbsdf_node.inputs["Specular IOR Level"])
 
-        current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), procedural_roughness_node.inputs["Value"])
+        current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), procedural_roughness_node.inputs["Value"])
         current_material.node_tree.links.new(procedural_roughness_node.outputs[0], pbsdf_node.inputs["Roughness"])
 
     def apply_pbsdf_tweaks(self, current_material, pbsdf_node):
@@ -260,9 +260,9 @@ class ProceduralPBR:
             pbsdf_node.subsurface_method = self.procedural_pbr_properties.sss_type
 
             if self.procedural_pbr_properties.use_sss_connect_texture_to_radius:
-                current_material.node_tree.links.new(GetConnectedSocketTo("Base Color", pbsdf_node), pbsdf_node.inputs["Subsurface Radius"])
+                current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), pbsdf_node.inputs["Subsurface Radius"])
             else:
-                RemoveLinksFrom(pbsdf_node.inputs["Subsurface Radius"])
+                remove_links_from(pbsdf_node.inputs["Subsurface Radius"])
 
             pbsdf_node.inputs["Subsurface Weight"].default_value = self.procedural_pbr_properties.sss_weight
             pbsdf_node.inputs["Subsurface Scale"].default_value = self.procedural_pbr_properties.sss_scale

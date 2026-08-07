@@ -58,13 +58,13 @@ def process_material():
                             node.image = image_texture
 
                 if texture_node is not None:
-                    for socket in GetConnectedSocketFrom("Color", texture_node):
+                    for socket in get_connected_socket_from("Color", texture_node):
                         material.node_tree.links.new(ITexture_Animator.outputs["Color"], socket)
                 
-                    for socket in GetConnectedSocketFrom("Alpha", texture_node):
+                    for socket in get_connected_socket_from("Alpha", texture_node):
                         material.node_tree.links.new(ITexture_Animator.outputs["Alpha"], socket)
                     
-                    vector_connection = GetConnectedSocketTo("Vector", texture_node)
+                    vector_connection = get_connected_socket_to("Vector", texture_node)
 
                     if vector_connection is not None and vector_connection.node != ITexture_Animator:
                         material.node_tree.links.new(vector_connection, ITexture_Animator.inputs["Vector"])
@@ -82,10 +82,10 @@ def process_material():
                 texture_node.image = image_texture
                 texture_node.interpolation = "Closest"
 
-                for socket in GetConnectedSocketFrom("Color", ITexture_Animator):
+                for socket in get_connected_socket_from("Color", ITexture_Animator):
                     material.node_tree.links.new(texture_node.outputs["Color"], socket)
                 
-                for socket in GetConnectedSocketFrom("Alpha", ITexture_Animator):
+                for socket in get_connected_socket_from("Alpha", ITexture_Animator):
                     material.node_tree.links.new(texture_node.outputs["Alpha"], socket)
 
                 material.node_tree.nodes.remove(ITexture_Animator)
@@ -93,7 +93,7 @@ def process_material():
             if not Texture_Animator:
                 Texture_Animator = create_node_group(material, "Texture Animator", (texture_node.location.x - 200, texture_node.location.y - 60))
 
-            vector_connection = GetConnectedSocketTo("Vector", texture_node)
+            vector_connection = get_connected_socket_to("Vector", texture_node)
 
             if vector_connection is not None and vector_connection.node != Texture_Animator:
                 material.node_tree.links.new(vector_connection, Texture_Animator.inputs["Vector"])

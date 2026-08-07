@@ -9,7 +9,7 @@ for selected_object in bpy.context.selected_objects:
         materials_to_separate = [material for material in selected_object.data.materials if material and any(part in format_material_name(material.name) for part in properties.get("Materials", "").split()) and 
                                     all(part not in format_material_name(material.name) for part in ("side", "snow", "mushroom", "top", "block"))]
         for material in materials_to_separate:
-            windy_objects.append(SeparateMeshByMaterial(selected_object, material))
+            windy_objects.append(separate_mesh_by_material(selected_object, material))
 
     elif len(selected_object.data.materials) == 1 and (material := selected_object.data.materials[0]):
         materials = properties.get("Materials", "").split()

@@ -55,8 +55,8 @@ for selected_object in bpy.context.selected_objects:
                 bevel_node.location = (pbsdf_node.location.x - 180, pbsdf_node.location.y - 132)
 
             inject_node(material, bevel_node, pbsdf_node, "Normal")
-            bevel_node.samples = clamp(2, segments, 128)
-            bevel_node.inputs[0].default_value = clamp(0, amount, 1000.0)
+            bevel_node.samples = int(clamp(2.0, float(segments), 128.0))
+            bevel_node.inputs[0].default_value = clamp(0.0, amount, 1000.0)
         
         if bevel_modifier:
             selected_object.modifiers.remove(bevel_modifier)
