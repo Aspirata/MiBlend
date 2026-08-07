@@ -14,9 +14,18 @@ class MiBlendPreferences(AddonPreferences):
     @staticmethod
     def override_preference(setting_name: str, default_value: Union[str, bool, int, float]) -> Union[str, bool, int, float]:
         settings_override_path = Path(main_directory).parent / "miblend_preferences_override.json"
-        if settings_override_path.exists():
-            return json.loads(settings_override_path.read_text()).get(setting_name, default_value)
-        return default_value
+        if not settings_override_path.exists():
+            return default_value
+
+        try:
+            settings_override = json.loads(settings_override_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            return default_value
+
+        if not isinstance(settings_override, dict):
+            return default_value
+
+        return settings_override.get(setting_name, default_value)
 
     transparent_ui: BoolProperty(
         name="Transparent UI",
