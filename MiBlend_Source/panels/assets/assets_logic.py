@@ -50,6 +50,7 @@ def append_collection(asset_name, asset_collection, asset_path):
             bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.collection.children.link(collection)
+        bpy.context.view_layer.update()
         for obj in collection.objects:
             obj["MiBlend_ID"] = "Asset"
             if obj.type != "ARMATURE":
