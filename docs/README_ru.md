@@ -29,10 +29,10 @@ MiBlend создан, чтобы:
 
 - [x] World Panel | v0.8.0 Snake https://github.com/Aspirata/MiBlend/issues/117
 - [x] Procedural PBR Panel | v0.8.0 Snake https://github.com/Aspirata/MiBlend/issues/118
-- [ ] Environment Panel | v0.9.0
-- [ ] Assets | v0.10.0
-- [ ] Materials Panel | vIDK.lol
-- [ ] Resource Packs Panel | v0.11.0
+- [ ] Environment Panel | v0.9.0 Falcon https://github.com/Aspirata/MiBlend/issues/53
+- [ ] Assets | v0.10.0 Spider https://github.com/Aspirata/MiBlend/issues/121
+- [ ] Resource Packs Panel | v0.11.0 Octopus https://github.com/Aspirata/MiBlend/issues/96
+- [ ] Materials Panel | v1.0 Horizon
 
 ## 📖 Документация
 
