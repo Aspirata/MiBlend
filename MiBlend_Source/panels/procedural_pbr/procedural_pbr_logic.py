@@ -5,7 +5,8 @@ from ...mib_utils import (get_preferences, is_code_ignored, name_in, perf_time,
                         detect_texture_node, detect_image_texture, 
                         is_emissive, get_connected_socket_to, create_node_group,
                         add_modifier, remove_links_from, dissolve_node, inject_node,
-                        wrap_texture_node_in_closures)
+                        wrap_texture_node_in_closures,
+                        place_node_opposite_input)
 from ...resources.data import nodes_file, resources_directory, EMISSIVE_MATERIALS
 
 
@@ -149,9 +150,12 @@ class ProceduralPBR:
                 current_material.node_tree.links.new(vector_connection, procedural_normals_node.inputs['Vector'])
         
         elif normals_mode == 'PROCEDURAL_NORMALS_V2' and self.is_experimental_features_enabled and image_texture_node and image:
-            wrap_texture_node_in_closures(image_texture_node, current_material)
+            existing_node_names = {
+                node.name for node in current_material.node_tree.nodes
+            }
+            image_texture_closure_output = wrap_texture_node_in_closures(image_texture_node, current_material)
             
-            create_node_group(current_material, "Procedural Normals V2", (pbsdf_node.location.x - 180, pbsdf_node.location.y - 132), os.path.join(resources_directory, "Procedural Normals V2.blend"), True)
+            procedural_normals_v2_node = create_node_group(current_material, "Procedural Normals V2", (pbsdf_node.location.x - 185, pbsdf_node.location.y - 155), os.path.join(resources_directory, "Procedural Normals V2.blend"), True)
 
             if image.size[0] > image.size[1]:
                 normals_size_x_multiplier = image.size[1] / image.size[0]
@@ -163,7 +167,35 @@ class ProceduralPBR:
             procedural_normals_v2_node.inputs["Strength X Multiplier"].default_value = normals_size_x_multiplier
             procedural_normals_v2_node.inputs["Strength Y Multiplier"].default_value = normals_size_y_multiplier
 
+            current_material.node_tree.links.new(image_texture_closure_output.outputs['Closure'], procedural_normals_v2_node.inputs['Closure'])
             current_material.node_tree.links.new(procedural_normals_v2_node.outputs['Normal'], pbsdf_node.inputs['Normal'])
+            closure_socket = image_texture_closure_output.outputs['Closure']
+            evaluate_node = next(link.to_node for link in closure_socket.links if link.to_node.bl_idname == "NodeEvaluateClosure")
+            layout_items = (
+                (procedural_normals_v2_node, procedural_normals_v2_node.outputs['Normal'], pbsdf_node.inputs['Normal'], (0, -22)),
+                (evaluate_node, evaluate_node.outputs['Color'], pbsdf_node.inputs['Base Color'], (0, 0)),
+                (image_texture_closure_output, closure_socket, evaluate_node.inputs['Closure'], (0, 0)),
+            )
+            if procedural_normals_v2_node.name not in existing_node_names:
+                layout_names = {node.name for node, *_ in layout_items}
+                original_locations = {
+                    node.name: tuple(node.location) for node, *_ in layout_items
+                }
+                parking_x = pbsdf_node.location.x - 10000
+                image_texture_closure_output.location = (parking_x, pbsdf_node.location.y + 10000)
+                evaluate_node.location = (parking_x, pbsdf_node.location.y + 10500)
+                occupied_nodes = [
+                    node for node in current_material.node_tree.nodes
+                    if node.name not in layout_names
+                ]
+
+                for node, source_socket, target_socket, offset in layout_items:
+                    if place_node_opposite_input(
+                            source_socket, target_socket,
+                            nodes_to_avoid=occupied_nodes, offset=offset):
+                        occupied_nodes.append(node)
+                    else:
+                        node.location = original_locations[node.name]
 
     def apply_procedural_emission(self, current_object, current_material, pbsdf_node, image):
         procedural_emission_node = self.find_nodes_group_by_name("Procedural Emission", current_material)
