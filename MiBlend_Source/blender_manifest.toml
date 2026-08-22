@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "miblend"
-version = "0.8.0"
+version = "0.8.1"
 name = "MiBlend"
 tagline = "A useful tool for creating minecraft content in blender"
 maintainer = "Aspirata <Aspirata.minecraft@gmail.com>"
