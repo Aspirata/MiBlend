@@ -1,4 +1,4 @@
-name: Blender Integration CI
+name: Blender CI Test
 
 on:
   workflow_dispatch:
@@ -68,9 +68,9 @@ jobs:
 
     env:
       BLENDER_API: https://builder.blender.org/download/daily/?format=json&v=2
-      BLENDER_DOWNLOAD_DIR: ${{ runner.temp }}/blender-downloads
-      BLENDER_INSTALL_DIR: ${{ runner.temp }}/blender-install
-      CI_OUTPUT_DIR: ${{ runner.temp }}/miblend-ci-output
+      BLENDER_DOWNLOAD_DIR: /tmp/miblend-ci/blender-downloads
+      BLENDER_INSTALL_DIR: /tmp/miblend-ci/blender-install
+      CI_OUTPUT_DIR: /tmp/miblend-ci/output
 
     steps:
       - name: Checkout repository
