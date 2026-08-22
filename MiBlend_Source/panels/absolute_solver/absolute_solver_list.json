@@ -135,6 +135,15 @@
             "Description": "MiBlend v0.8+ is an extension and it won't work with previous MiBlend legacy addon versions installed",
             "Description_ru": "MiBlend v0.8+ является расширением и не будет работать с установленным аддоном MiBlend",
             "Solutions": "miblend.absolute_solver_delete_miblend_addon; "
+        },
+
+        "11":
+        {
+            "Name": "Operation Failed",
+            "Name_ru": "Ошибка операции",
+            "Description": "{Data} failed after partially changing the scene",
+            "Description_ru": "Операция {Data} завершилась ошибкой после частичного изменения сцены",
+            "Solutions": "miblend.absolute_solver_reverse_all_changes; "
         }
     }
 }

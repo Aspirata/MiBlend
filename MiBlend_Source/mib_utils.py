@@ -3,9 +3,26 @@ import json
 import time
 import re
 import traceback
+from contextlib import contextmanager
 import bpy
 from .resources.data import main_directory, nodes_file, EMISSIVE_MATERIALS, GRAY_BLOCKS
 
+
+@contextmanager
+def skip_error_if_ignored(code: str, item: object, zone: str | None = None):
+    try:
+        item_name = getattr(item, "name", type(item).__name__)
+    except Exception:
+        item_name = type(item).__name__
+
+    try:
+        yield
+    except Exception:
+        error_traceback = traceback.format_exc()
+        if not is_code_ignored(code):
+            raise
+
+        dprint(f"Skipped {item_name} after ignored {code}", error_traceback, zone=zone, separate=True)
 
 def get_preferences() -> bpy.types.AddonPreferences:
     return bpy.context.preferences.addons[__package__].preferences

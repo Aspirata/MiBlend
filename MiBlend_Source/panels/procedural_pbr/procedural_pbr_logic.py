@@ -1,7 +1,8 @@
 import os
 import bpy
 from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
-from ...mib_utils import (get_preferences, is_code_ignored, name_in, perf_time, 
+from ...mib_utils import (get_preferences, is_code_ignored, name_in, perf_time,
+                        skip_error_if_ignored,
                         detect_texture_node, detect_image_texture, 
                         is_emissive, get_connected_socket_to, create_node_group,
                         add_modifier, remove_links_from, dissolve_node, inject_node,
@@ -16,10 +17,11 @@ class ProceduralPBR:
         self.is_show_warnings_enabled = get_preferences().show_warnings
         self.procedural_pbr_properties = bpy.context.scene.miblend_properties.procedural_pbr_properties
         self.SSS_Materials = ["leaves", "grass", "tulip", "oxeye daisy", "dandelion", "poppy", "blue orchid", "torchflower",
-                            "lily of the valley", "lily pad", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay", "wildflowers",
-                            "moss block", "moss carpet", "hanging moss", "eyeblossom", "chorus flower", "bush", "resin"]
+                            "lily of the valley", "lily pad", "cornflower", "allium", "azure bluet", "azalea", "cactus", "wheat", "hay", 
+                            "wildflowers", "moss block", "moss carpet", "hanging moss", "eyeblossom", "chorus flower", "bush", "resin"]
         self.TRANSLUCENT_MATERIALS = ["leaves", "glass"]
-        self.METALLIC_MATERIALS = ["iron", "gold", "emerald", "copper ; torch", "diamond", "netherite", "minecart", "lantern ; jack", "chain", "anvil", "clock", "cauldron", "spyglass", "rail", "spawner", "bell"]
+        self.METALLIC_MATERIALS = ["iron", "gold", "emerald", "copper ; torch", "diamond", "netherite", "minecart", "lantern ; jack", 
+                                "chain", "anvil", "clock", "cauldron", "spyglass", "rail", "spawner", "bell"]
         self.REFLECTIVE_MATERIALS = ["glass", "ender", "amethyst", "water", "emerald", "quartz", "concrete", "ice"]
 
     @staticmethod
@@ -38,27 +40,35 @@ class ProceduralPBR:
                 if not current_material:
                     continue
 
-                # Remove after Blender 4.x support ends
-                if bpy.app.version < (5, 0, 0) and not current_material.use_nodes:
-                    continue
-                
-                pbsdf_node = next((node for node in current_material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
-                
-                if not pbsdf_node:
-                    continue
+                add_random_face_modifier = False
+                with skip_error_if_ignored("e11", current_material):
+                    material_needs_random_face_modifier = False
 
-                image_texture_node = detect_texture_node(pbsdf_node)
-                image = detect_image_texture(pbsdf_node)
+                    # Remove after Blender 4.x support ends
+                    if bpy.app.version < (5, 0, 0) and not current_material.use_nodes:
+                        continue
 
-                self.apply_pbsdf_tweaks(current_material, pbsdf_node)
+                    pbsdf_node = next((node for node in current_material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
 
-                base_color_connection = get_connected_socket_to("Base Color", pbsdf_node)
-                if base_color_connection:
-                    self.apply_procedural_emission(current_object, current_material, pbsdf_node, image)
-                    self.apply_procedural_specular_and_roughness(current_material, pbsdf_node)
-                
-                self.apply_normals(current_material, pbsdf_node, image_texture_node, image)
-                current_material.node_tree.nodes.active = image_texture_node
+                    if not pbsdf_node:
+                        continue
+
+                    image_texture_node = detect_texture_node(pbsdf_node)
+                    image = detect_image_texture(pbsdf_node)
+
+                    self.apply_pbsdf_tweaks(current_material, pbsdf_node)
+
+                    base_color_connection = get_connected_socket_to("Base Color", pbsdf_node)
+                    if base_color_connection:
+                        material_needs_random_face_modifier = self.apply_procedural_emission( current_material, pbsdf_node, image)
+                        self.apply_procedural_specular_and_roughness(current_material, pbsdf_node)
+
+                    self.apply_normals(current_material, pbsdf_node, image_texture_node, image)
+                    current_material.node_tree.nodes.active = image_texture_node
+                    add_random_face_modifier = material_needs_random_face_modifier
+
+                if add_random_face_modifier:
+                    add_modifier(current_object, "Random Face Value")
 
     def apply_normals(self, current_material, pbsdf_node, image_texture_node, image):
         bump_node = next((node for node in current_material.node_tree.nodes if node.type == "BUMP"), None)
@@ -197,7 +207,7 @@ class ProceduralPBR:
                     else:
                         node.location = original_locations[node.name]
 
-    def apply_procedural_emission(self, current_object, current_material, pbsdf_node, image):
+    def apply_procedural_emission(self, current_material, pbsdf_node, image) -> bool:
         procedural_emission_node = self.find_nodes_group_by_name("Procedural Emission", current_material)
         _is_valid, item = name_in(EMISSIVE_MATERIALS.keys(), current_material.name)
         emission_settings_dict: dict[str, float] = EMISSIVE_MATERIALS.get(item, {})
@@ -205,13 +215,10 @@ class ProceduralPBR:
         if not image or not is_emissive(pbsdf_node, image.name) or not self.procedural_pbr_properties.use_procedural_emission:
             if self.procedural_pbr_properties.revert_procedural_emission:
                 dissolve_node(current_material, procedural_emission_node, "Strength Multiply")
-            return
+            return False
 
         if not procedural_emission_node:
             procedural_emission_node = create_node_group(current_material, "Procedural Emission", (pbsdf_node.location.x - 200, pbsdf_node.location.y - 265))
-
-        if self.procedural_pbr_properties.randomize_emission_strength:
-            add_modifier(current_object, "Random Face Value")
 
         if emission_settings_dict and self.procedural_pbr_properties.use_procedural_emission_custom_config:
             for setting, value in emission_settings_dict.items():
@@ -227,6 +234,7 @@ class ProceduralPBR:
             current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
         
         inject_node(current_material, procedural_emission_node, pbsdf_node, "Emission Strength", "Strength Multiply")
+        return self.procedural_pbr_properties.randomize_emission_strength
     
     def apply_procedural_specular_and_roughness(self, current_material, pbsdf_node):
         if not self.is_experimental_features_enabled:

@@ -1,5 +1,6 @@
 import bpy
-from ...mib_utils import (dprint, get_preferences, is_code_ignored, name_in, perf_time, 
+from ...mib_utils import (dprint, get_preferences, is_code_ignored, name_in, perf_time,
+                        skip_error_if_ignored,
                         detect_world_exporter, detect_texture_node, detect_image_texture, 
                         is_emissive, format_texture_name, is_gray, get_connected_socket_to,
                         create_node_group, inject_node, dissolve_node)
@@ -60,50 +61,51 @@ class FixWorld:
                 if not current_material:
                     continue
 
-                # Remove after Blender 4.x support ends
-                if bpy.app.version < (5, 0, 0) and not current_material.use_nodes:
-                    continue
+                with skip_error_if_ignored("e11", current_material, zone="fw"):
+                    # Remove after Blender 4.x support ends
+                    if bpy.app.version < (5, 0, 0) and not current_material.use_nodes:
+                        continue
 
-                dprint(f"Material: {current_material.name}", is_deep=True, zone="fw")
+                    dprint(f"Material: {current_material.name}", is_deep=True, zone="fw")
 
-                current_material.blend_method = 'HASHED'
-                
-                if bpy.app.version < (4, 3, 0):
-                    current_material.shadow_method = 'HASHED'
+                    current_material.blend_method = 'HASHED'
 
-                self.apply_combine_texture_nodes_duplicates(current_material)
+                    if bpy.app.version < (4, 3, 0):
+                        current_material.shadow_method = 'HASHED'
 
-                image_texture_nodes_list = [node for node in current_material.node_tree.nodes if node.type == "TEX_IMAGE"]
-                for node in image_texture_nodes_list:
-                    if current_world_exporter == "mineways" and node.image:
-                        if node.image.name.replace(".png", "").endswith("_y"):
-                            node.image.name = node.image.name.replace("_y", "", 1)
-                        elif node.image.name.replace(".png", "").endswith("_a"):
-                            current_material.node_tree.nodes.remove(node)
-                            continue
-                    node.interpolation = "Closest"
+                    self.apply_combine_texture_nodes_duplicates(current_material)
 
-                pbsdf_node = next((node for node in current_material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
-                image_texture_node = detect_texture_node(pbsdf_node)
-                image = detect_image_texture(pbsdf_node)
+                    image_texture_nodes_list = [node for node in current_material.node_tree.nodes if node.type == "TEX_IMAGE"]
+                    for node in image_texture_nodes_list:
+                        if current_world_exporter == "mineways" and node.image:
+                            if node.image.name.replace(".png", "").endswith("_y"):
+                                node.image.name = node.image.name.replace("_y", "", 1)
+                            elif node.image.name.replace(".png", "").endswith("_a"):
+                                current_material.node_tree.nodes.remove(node)
+                                continue
+                        node.interpolation = "Closest"
 
-                if not image_texture_node or not pbsdf_node:
-                    continue
+                    pbsdf_node = next((node for node in current_material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+                    image_texture_node = detect_texture_node(pbsdf_node)
+                    image = detect_image_texture(pbsdf_node)
 
-                if not get_connected_socket_to("Alpha", pbsdf_node):
-                    current_material.node_tree.links.new(image_texture_node.outputs["Alpha"], pbsdf_node.inputs["Alpha"])
-                
-                # Emission
-                if is_emissive(pbsdf_node, image.name):
-                    if not get_connected_socket_to("Emission Color", pbsdf_node):
-                        current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
+                    if not image_texture_node or not pbsdf_node:
+                        continue
 
-                    if pbsdf_node.inputs["Emission Strength"].default_value == 0:
-                        pbsdf_node.inputs["Emission Strength"].default_value = 1
-                
-                self.apply_backface_culling(current_material, pbsdf_node)
-                self.apply_lazy_biome_color_fix(current_material, pbsdf_node, image_texture_node, image)
-                self.apply_animated_texture_fix(current_material, pbsdf_node, image_texture_node, image)
+                    if not get_connected_socket_to("Alpha", pbsdf_node):
+                        current_material.node_tree.links.new(image_texture_node.outputs["Alpha"], pbsdf_node.inputs["Alpha"])
+
+                    # Emission
+                    if is_emissive(pbsdf_node, image.name):
+                        if not get_connected_socket_to("Emission Color", pbsdf_node):
+                            current_material.node_tree.links.new(get_connected_socket_to("Base Color", pbsdf_node), pbsdf_node.inputs["Emission Color"])
+
+                        if pbsdf_node.inputs["Emission Strength"].default_value == 0:
+                            pbsdf_node.inputs["Emission Strength"].default_value = 1
+
+                    self.apply_backface_culling(current_material, pbsdf_node)
+                    self.apply_lazy_biome_color_fix(current_material, pbsdf_node, image_texture_node, image)
+                    self.apply_animated_texture_fix(current_material, pbsdf_node, image_texture_node, image)
     
     @staticmethod
     def get_node_suffix_number(node_name):

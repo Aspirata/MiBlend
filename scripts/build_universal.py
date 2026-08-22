@@ -1,6 +1,13 @@
 import os, subprocess, psutil, sys
 from colorama import init, Fore, Style
 
+
+def get_bab_environment():
+    environment = os.environ.copy()
+    environment["PYTHONUTF8"] = "1"
+    return environment
+
+
 def find_and_kill_blender():
     blender_process_name = "blender.exe" if os.name == "nt" else "blender"
     for proc in psutil.process_iter(attrs=["pid", "name", "cmdline"]):
@@ -37,6 +44,9 @@ def run_bab_in_script_directory(script_dir):
             stderr=subprocess.STDOUT,
             shell=use_shell,
             text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=get_bab_environment(),
             bufsize=1
         )
 

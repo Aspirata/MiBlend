@@ -6,14 +6,37 @@ from bpy.props import StringProperty
 from ..assets.assets_logic import update_assets
 from ..resource_packs.resource_packs_logic import update_default_pack
 from ...mib_utils import dprint
+from .absolute_solver_logic import schedule_reverse_all_changes
 from ...resources.data import main_directory_path
 
+
+def _close_absolute_solver_popup(context):
+    window = getattr(context, "window", None)
+    if window is None or window.screen is None:
+        return
+
+    window.screen = window.screen
 
 class MIBLEND_OT_absolute_solver(Operator):
     bl_label = "Absolute Solver"
     bl_idname = "miblend.absolute_solver"
 
     call_data: StringProperty()
+
+    @staticmethod
+    def _add_solution_button(layout, solution_operator, description, text=None, depress=False):
+        if text is None:
+            try:
+                text = MIBLEND_OT_absolute_solver_run_solution._get_operator(solution_operator).get_rna_type().name
+            except (AttributeError, ValueError):
+                text = solution_operator
+
+        solution = layout.operator(
+            "miblend.absolute_solver_run_solution", text=text,
+            **({"depress": True} if depress else {})
+        )
+        solution.solution_operator = solution_operator
+        solution.description = description
 
     def invoke(self, context, event):
         self.errors = []
@@ -66,9 +89,7 @@ class MIBLEND_OT_absolute_solver(Operator):
                 row.label(text="Solutions:")
                 for solution_operator in filter(None, error["Solutions"].split("; ")):
                     row = sbox.row()
-                    solution = row.operator(solution_operator)
-                    if hasattr(solution, "description"):
-                        solution.description = error["Description"]
+                    self._add_solution_button(row, solution_operator, error["Description"])
 
             if error["Tech_Things"]:
                 sbox = box.box()
@@ -85,9 +106,7 @@ class MIBLEND_OT_absolute_solver(Operator):
             
             row = layout.row()
             if error["Solutions"]:
-                auto_solution = row.operator(error["Solutions"].split("; ")[0], text="Auto Solve", depress=True)
-                if hasattr(auto_solution, "description"):
-                    auto_solution.description = error["Description"]
+                self._add_solution_button(row, error["Solutions"].split("; ")[0], error["Description"], text="Auto Solve", depress=True)
             ignore_operator = row.operator("miblend.absolute_solver_ignore")
             ignore_operator.error_code = error["Code"]
 
@@ -139,6 +158,51 @@ class MIBLEND_OT_absolute_solver_ignore(Operator):
             ignored_list.append(self.error_code)
             as_props.ignored_codes = " ".join(ignored_list)
             self.report({'INFO'}, f"{self.error_code} is being ignored now.")
+
+        _close_absolute_solver_popup(context)
+        return {'FINISHED'}
+
+
+class MIBLEND_OT_absolute_solver_run_solution(Operator):
+    bl_idname = "miblend.absolute_solver_run_solution"
+    bl_label = "Apply Solution"
+    bl_description = "Runs the selected Absolute Solver solution"
+    bl_options = {'INTERNAL'}
+
+    solution_operator: StringProperty()
+    description: StringProperty()
+
+    @staticmethod
+    def _get_operator(operator_id):
+        category, name = operator_id.split(".", 1)
+        return getattr(getattr(bpy.ops, category), name)
+
+    def execute(self, context):
+        try:
+            solution_operator = self._get_operator(self.solution_operator)
+            properties = solution_operator.get_rna_type().properties
+            kwargs = {"description": self.description} if "description" in properties else {}
+            result = solution_operator('EXEC_DEFAULT', **kwargs)
+        except (AttributeError, RuntimeError, ValueError) as error:
+            self.report({'ERROR'}, str(error))
+            return {'CANCELLED'}
+
+        if 'FINISHED' in result:
+            _close_absolute_solver_popup(context)
+
+        return result
+
+
+class MIBLEND_OT_absolute_solver_reverse_all_changes(Operator):
+    bl_idname = "miblend.absolute_solver_reverse_all_changes"
+    bl_label = "Reverse All Changes"
+    bl_description = "Reverses all changes made by the failed MiBlend operation"
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        if not schedule_reverse_all_changes(context):
+            self.report({'ERROR'}, "Could not schedule rollback. Use Edit > Undo")
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 

@@ -1,12 +1,14 @@
 import os
 import json
 import traceback
+from functools import wraps
 import bpy
 
 
 _absolute_solver_queue = []
 _absolute_solver_processing = False
 _absolute_solver_timer_scheduled = False
+_reverse_all_changes_callback = None
 
 
 def _process_absolute_solver_queue():
@@ -96,3 +98,90 @@ def cancel_absolute_solver_queue():
     _absolute_solver_queue.clear()
     _absolute_solver_processing = False
     _absolute_solver_timer_scheduled = False
+
+
+def trigger_absolute_solver_on_error(operation_name: str):
+    def decorator(execute):
+        @wraps(execute)
+        def wrapped_execute(operator, context):
+            try:
+                return execute(operator, context)
+            except Exception:
+                trigger_absolute_solver("e11", data=operation_name, tech_things=traceback.format_exc())
+                return {'FINISHED'}
+
+        return wrapped_execute
+
+    return decorator
+
+
+def _show_reverse_changes_failure():
+    use_ru_text = bpy.app.translations.locale == "ru_RU"
+    title = "Ошибка отката" if use_ru_text else "Rollback Failed"
+    message = "MiBlend не удалось отменить изменения. Используйте Правка > Отменить." if use_ru_text else "MiBlend could not reverse the changes. Use Edit > Undo."
+
+    def draw(self, _context):
+        self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title=title, icon='ERROR')
+
+
+def schedule_reverse_all_changes(context) -> bool:
+    global _reverse_all_changes_callback
+
+    if _reverse_all_changes_callback:
+        return False
+
+    window = getattr(context, "window", None)
+    if not window:
+        return False
+
+    areas = list(window.screen.areas)
+    area = getattr(context, "area", None)
+    if area not in areas:
+        area = next((item for item in areas if item.type == 'VIEW_3D'), None)
+    if not area and areas:
+        area = areas[0]
+    if not area:
+        return False
+
+    def reverse_all_changes():
+        global _reverse_all_changes_callback
+
+        try:
+            if (not any(item == window for item in bpy.context.window_manager.windows)
+                    or not any(item == area for item in window.screen.areas)):
+                raise RuntimeError("The Blender window used by the failed operation is no longer available")
+
+            with bpy.context.temp_override(window=window, area=area):
+                if not bpy.ops.ed.undo.poll():
+                    raise RuntimeError("Blender Undo is not available")
+
+                result = bpy.ops.ed.undo()
+                if 'FINISHED' not in result:
+                    raise RuntimeError(f"Blender Undo returned {result}")
+        except Exception:
+            _show_reverse_changes_failure()
+        finally:
+            _reverse_all_changes_callback = None
+
+        return None
+
+    try:
+        _reverse_all_changes_callback = reverse_all_changes
+        bpy.app.timers.register(reverse_all_changes, first_interval=0.1)
+    except Exception:
+        _reverse_all_changes_callback = None
+        _show_reverse_changes_failure()
+        return False
+
+    return True
+
+
+def cancel_reverse_all_changes():
+    global _reverse_all_changes_callback
+
+    if _reverse_all_changes_callback and bpy.app.timers.is_registered(_reverse_all_changes_callback):
+        bpy.app.timers.unregister(_reverse_all_changes_callback)
+
+    _reverse_all_changes_callback = None
