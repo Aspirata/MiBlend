@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -142,7 +142,7 @@ jobs:
           PY
 
       - name: Restore Blender download cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.BLENDER_DOWNLOAD_DIR }}/${{ steps.blender-build.outputs.file_name }}
           key: blender-linux-${{ steps.blender-build.outputs.hash }}
@@ -191,7 +191,7 @@ jobs:
 
       - name: Upload failure reproduction
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: miblend-ci-${{ steps.blender-build.outputs.actual_version }}-${{ steps.blender-build.outputs.hash }}
           path: ${{ env.CI_OUTPUT_DIR }}
