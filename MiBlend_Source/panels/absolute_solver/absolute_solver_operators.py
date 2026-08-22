@@ -20,6 +20,7 @@ def _close_absolute_solver_popup(context):
 class MIBLEND_OT_absolute_solver(Operator):
     bl_label = "Absolute Solver"
     bl_idname = "miblend.absolute_solver"
+    bl_options = {'INTERNAL'}
 
     call_data: StringProperty()
 
@@ -118,7 +119,7 @@ class MIBLEND_OT_absolute_solver_open_console(Operator):
     bl_idname = "miblend.absolute_solver_open_console"
     bl_label = "Open Console"
     bl_description = "Toggles Blender System Console"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     def execute(self, context):
         try:
@@ -132,7 +133,7 @@ class MIBLEND_OT_absolute_solver_copy_to_clipboard(Operator):
     bl_idname = "miblend.absolute_solver_copy_to_clipboard"
     bl_label = "Copy Tech Things to Clipboard"
     bl_description = "Copies the Text to your Clipboard"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
     
     text: StringProperty()
 
@@ -147,6 +148,7 @@ class MIBLEND_OT_absolute_solver_copy_to_clipboard(Operator):
 class MIBLEND_OT_absolute_solver_ignore(Operator):
     bl_idname = "miblend.absolute_solver_ignore"
     bl_label = "Ignore"
+    bl_options = {'INTERNAL'}
 
     error_code: StringProperty()
 
@@ -211,7 +213,7 @@ class MIBLEND_OT_migrate_blend_file(Operator):
     bl_idname = "miblend.absolute_solver_migrate_blend_file"
     bl_label = "Migrate Blend File"
     bl_description = "Rebuilds MiBlend scene data and saves the migrated blend file"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     def execute(self, context):
         if "resource_packs" in bpy.context.scene:
@@ -232,6 +234,7 @@ class MIBLEND_OT_migrate_blend_file(Operator):
 class MIBLEND_OT_delete_miblend_addon(Operator):
     bl_idname = "miblend.absolute_solver_delete_miblend_addon"
     bl_label = "Delete MiBlend Legacy Addon"
+    bl_options = {'INTERNAL'}
 
     def execute(self, context):
         miblend_addon_folder = main_directory_path.parent.parent.parent / "scripts" / "addons" / "MiBlend_Source"

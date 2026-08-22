@@ -13,7 +13,7 @@ class MIBLEND_OT_toggle_resource_pack(Operator):
     bl_idname = "miblend.toggle_resource_pack"
     bl_label = "Toggle Resource Pack"
     bl_description = "Toggles the Enabled State of a Resource Pack"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     pack_name: bpy.props.StringProperty()
 
@@ -30,7 +30,7 @@ class MIBLEND_OT_move_resource_pack_up(Operator):
     bl_idname = "miblend.move_resource_pack_up"
     bl_label = "Move Resource Pack Up"
     bl_description = "Moves the Selected Resource Pack Up in the Priority List"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     pack_name: bpy.props.StringProperty()
 
@@ -49,7 +49,7 @@ class MIBLEND_OT_move_resource_pack_down(Operator):
     bl_idname = "miblend.move_resource_pack_down"
     bl_label = "Move Resource Pack Down"
     bl_description = "Moves the Selected Resource Pack Down in the Priority List"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     pack_name: bpy.props.StringProperty()
 
@@ -68,7 +68,7 @@ class MIBLEND_OT_remove_resource_pack(Operator):
     bl_idname = "miblend.remove_resource_pack"
     bl_label = "Remove Resource Pack"
     bl_description = "Removes a Resource Pack from the List"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     pack_name: bpy.props.StringProperty()
 

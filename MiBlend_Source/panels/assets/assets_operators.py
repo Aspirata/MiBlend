@@ -139,7 +139,7 @@ class MIBLEND_OT_add_asset(Operator):
 class MIBLEND_OT_remove_asset(Operator):
     bl_idname = "miblend.remove_asset"
     bl_label = "Removes Temporal Asset from the List"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
    
     def execute(self, context):
         asset_props = context.scene.miblend_properties.assets_properties

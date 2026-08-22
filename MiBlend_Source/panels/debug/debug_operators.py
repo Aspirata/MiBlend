@@ -12,7 +12,7 @@ class MIBLEND_OT_clear_ignored_codes(Operator):
     bl_idname = "miblend.debug_clear_ignored_codes"
     bl_label = "Clear Ignored Codes"
     bl_description = "Cleares the List of Ignored Errors and Warnings"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     def execute(self, context):
         bpy.context.scene.miblend_properties.absolute_solver_properties.ignored_codes = ""
@@ -23,7 +23,7 @@ class MIBLEND_OT_trigger_absolute_solver_error(Operator):
     bl_idname = "miblend.debug_trigger_absolute_solver_error"
     bl_label = "Trigger AS Error"
     bl_description = "Triggers e00"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
     
     def execute(self, context):
         if "e-1" in context.scene.miblend_properties.absolute_solver_properties.ignored_codes:
@@ -39,7 +39,7 @@ class MIBLEND_OT_open_miblend_folder(Operator):
     bl_idname = "miblend.debug_open_miblend_folder"
     bl_label = "Open MiBlend Folder"
     bl_description = "Opens MiBlend Folder in your File Explorer"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     def execute(self, context):
         if platform.system() == "Windows":
@@ -55,7 +55,7 @@ class MIBLEND_OT_remove_attribute(Operator):
     bl_idname = "miblend.remove_attribute"
     bl_label = "Remove Attribute"
     bl_description = "Removes a Specified Attribute from the Scene"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     attribute: bpy.props.StringProperty()
 

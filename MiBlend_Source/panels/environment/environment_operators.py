@@ -8,7 +8,7 @@ class MIBLEND_OT_recreate_environment(Operator):
     bl_label = "Recreate Environment"
     bl_idname = "miblend.recreate_env"
     bl_description = "Recreates the Environment with Options for Sky, Fog, and Clouds"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
     
     reset_settings: BoolProperty(
         name="Reset Settings",
