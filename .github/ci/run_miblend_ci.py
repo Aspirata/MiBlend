@@ -621,6 +621,10 @@ def core_worker(args: argparse.Namespace) -> dict[str, Any]:
                     bpy.ops.miblend.apply_resource_pack(),
                 )[1],
             ),
+            (
+                "Create Environment",
+                lambda: bpy.ops.miblend.create_env(),
+            ),
         ]
         for name, operator in steps:
             step = run_operator_step(name, operator, capture)
