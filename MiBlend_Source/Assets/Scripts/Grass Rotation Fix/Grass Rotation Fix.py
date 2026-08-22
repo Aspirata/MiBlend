@@ -63,6 +63,7 @@ for selected_object in bpy.context.selected_objects:
                     loop[uv_layer].uv = uv
         
         bmesh.update_edit_mesh(selected_object.data, loop_triangles=False, destructive=True)
-        bpy.context.area.tag_redraw()
+        if bpy.context.area:
+            bpy.context.area.tag_redraw()
         bpy.ops.object.mode_set(mode='OBJECT')
         break

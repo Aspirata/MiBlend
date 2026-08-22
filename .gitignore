@@ -4,3 +4,4 @@ build
 1.*
 .DS_Store
 tests/
+__pycache__/

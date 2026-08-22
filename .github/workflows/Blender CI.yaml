@@ -1,0 +1,199 @@
+name: Blender Integration CI
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blender-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  blender-integration:
+    name: Blender ${{ matrix.label }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        include:
+          - label: 4.2.23
+            version: 4.2.23
+            preview: false
+            file_name: blender-4.2.23-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender4.2/blender-4.2.23-linux-x64.tar.xz
+            checksum: bea0eb3146be13eae6225409a117b215184f41b7f79e799f97cb3abb8f6dc404
+          - label: 4.3.2
+            version: 4.3.2
+            preview: false
+            file_name: blender-4.3.2-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
+            checksum: 4da1c956673c0485e63054e563ee69198cc8f80d8157dd7592dffc8a6a5592e6
+          - label: 4.5.12
+            version: 4.5.12
+            preview: false
+            file_name: blender-4.5.12-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender4.5/blender-4.5.12-linux-x64.tar.xz
+            checksum: 95e3a2dfedba3bd32ca54fc355eac6b15a11986954ccb02815a07535d0120a25
+          - label: 5.0.1
+            version: 5.0.1
+            preview: false
+            file_name: blender-5.0.1-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender5.0/blender-5.0.1-linux-x64.tar.xz
+            checksum: 8019580ee1b7262e505f4196a00237ccf743c88d205b38d34201510676e60b09
+          - label: 5.1.2
+            version: 5.1.2
+            preview: false
+            file_name: blender-5.1.2-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+            checksum: aaccb355f50183979b698bcce7467103a76261b5fa59f4972295842662a285fb
+          - label: 5.2.0
+            version: 5.2.0
+            preview: false
+            file_name: blender-5.2.0-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender5.2/blender-5.2.0-linux-x64.tar.xz
+            checksum: 96f6c181a30f4950607839dc84d42a354b250d8a0231b098b59b7bc69c351c48
+          - label: 5.3 Preview
+            version: "5.3."
+            preview: true
+            file_name: ""
+            url: ""
+            checksum: ""
+
+    env:
+      BLENDER_API: https://builder.blender.org/download/daily/?format=json&v=2
+      BLENDER_DOWNLOAD_DIR: ${{ runner.temp }}/blender-downloads
+      BLENDER_INSTALL_DIR: ${{ runner.temp }}/blender-install
+      CI_OUTPUT_DIR: ${{ runner.temp }}/miblend-ci-output
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prepare output directory
+        run: mkdir -p "$CI_OUTPUT_DIR"
+
+      - name: Resolve official Blender build
+        id: blender-build
+        env:
+          REQUESTED_VERSION: ${{ matrix.version }}
+          IS_PREVIEW: ${{ matrix.preview }}
+          STATIC_FILE_NAME: ${{ matrix.file_name }}
+          STATIC_URL: ${{ matrix.url }}
+          STATIC_CHECKSUM: ${{ matrix.checksum }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          requested = os.environ["REQUESTED_VERSION"]
+          preview = os.environ["IS_PREVIEW"].lower() == "true"
+          if preview:
+              with urllib.request.urlopen(
+                  os.environ["BLENDER_API"], timeout=60
+              ) as response:
+                  builds = json.load(response)
+              candidates = [
+                  build for build in builds
+                  if build.get("platform") == "linux"
+                  and build.get("architecture") == "x86_64"
+                  and build.get("file_name", "").endswith("-release.tar.xz")
+                  and build.get("version", "").startswith(requested)
+              ]
+              if not candidates:
+                  raise SystemExit(
+                      f"No official Blender preview found for {requested}"
+                  )
+              build = max(candidates, key=lambda item: item.get("file_mtime", 0))
+              output = {
+                  "url": build["url"],
+                  "file_name": build["file_name"],
+                  "checksum": build["checksum"],
+                  "hash": build["hash"],
+                  "actual_version": build["version"],
+                  "risk": build["risk_id"],
+              }
+          else:
+              checksum = os.environ["STATIC_CHECKSUM"]
+              output = {
+                  "url": os.environ["STATIC_URL"],
+                  "file_name": os.environ["STATIC_FILE_NAME"],
+                  "checksum": checksum,
+                  "hash": checksum[:12],
+                  "actual_version": requested,
+                  "risk": "stable",
+              }
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as stream:
+              for key, value in output.items():
+                  stream.write(f"{key}={value}\n")
+          print(
+              f"Resolved Blender {output['actual_version']} "
+              f"{output['risk']} ({output['hash']})"
+          )
+          PY
+
+      - name: Restore Blender download cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BLENDER_DOWNLOAD_DIR }}/${{ steps.blender-build.outputs.file_name }}
+          key: blender-linux-${{ steps.blender-build.outputs.hash }}
+
+      - name: Download and verify Blender
+        env:
+          BLENDER_URL: ${{ steps.blender-build.outputs.url }}
+          BLENDER_FILE: ${{ steps.blender-build.outputs.file_name }}
+          BLENDER_CHECKSUM: ${{ steps.blender-build.outputs.checksum }}
+        run: |
+          mkdir -p "$BLENDER_DOWNLOAD_DIR"
+          archive="$BLENDER_DOWNLOAD_DIR/$BLENDER_FILE"
+          if [ ! -f "$archive" ]; then
+            curl --fail --location --retry 3 --output "$archive" "$BLENDER_URL"
+          fi
+          echo "$BLENDER_CHECKSUM  $archive" | sha256sum --check --strict
+
+      - name: Extract Blender
+        id: blender
+        env:
+          BLENDER_FILE: ${{ steps.blender-build.outputs.file_name }}
+        run: |
+          mkdir -p "$BLENDER_INSTALL_DIR"
+          tar --extract --xz --file "$BLENDER_DOWNLOAD_DIR/$BLENDER_FILE" \
+            --directory "$BLENDER_INSTALL_DIR" --strip-components=1
+          echo "binary=$BLENDER_INSTALL_DIR/blender" >> "$GITHUB_OUTPUT"
+
+      - name: Run MiBlend integration scenario
+        run: |
+          python .github/ci/run_miblend_ci.py \
+            --blender "${{ steps.blender.outputs.binary }}" \
+            --source-root "$GITHUB_WORKSPACE/MiBlend_Source" \
+            --fixture "$GITHUB_WORKSPACE/.github/ci/miblend_ci_test.blend" \
+            --output-dir "$CI_OUTPUT_DIR"
+
+      - name: Publish job summary
+        if: always()
+        run: |
+          if [ -f "$CI_OUTPUT_DIR/summary.md" ]; then
+            cat "$CI_OUTPUT_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## MiBlend CI — ${{ matrix.label }}" >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+            echo "The CI runner stopped before producing a report." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload failure reproduction
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: miblend-ci-${{ steps.blender-build.outputs.actual_version }}-${{ steps.blender-build.outputs.hash }}
+          path: ${{ env.CI_OUTPUT_DIR }}
+          if-no-files-found: warn
+          retention-days: 7
