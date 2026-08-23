@@ -40,19 +40,16 @@ def draw_toggle_button(layout, property_path, property_name: str, is_small: bool
     layout.prop(property_path, property_name, icon_only=is_small, icon=arrow_icon, toggle=True)
 
 
-def place_node_opposite_input(source_socket, target_socket, horizontal_gap=45, nodes_to_avoid=None, offset=(0, 0)):
+def align_node_to_socket(source_socket, target_socket, horizontal_gap=45, offset=(0, 0), ignored_nodes=()):
     header_height, socket_spacing, margin = 35, 22, 20
     source_node = source_socket.node
     target_node = target_socket.node
 
-    def visible(sockets):
+    def _get_visible_sockets(sockets) -> list[bpy.types.NodeSocket]:
         return [socket for socket in sockets if not socket.hide and socket.enabled]
 
-    target_y = target_node.location.y - header_height - visible(target_node.inputs).index(target_socket) * socket_spacing
-    source_y = header_height + visible(source_node.outputs).index(source_socket) * socket_spacing
-
-    def node_size(node):
-        rows = max(len(visible(node.inputs)), len(visible(node.outputs)), 1)
+    def _estimate_node_size(node) -> tuple[float, float]:
+        rows = max(len(_get_visible_sockets(node.inputs)), len(_get_visible_sockets(node.outputs)), 1)
         estimated_height = header_height + rows * socket_spacing + 20
         if node.type == "TEX_IMAGE":
             estimated_height = max(estimated_height, 300)
@@ -63,43 +60,43 @@ def place_node_opposite_input(source_socket, target_socket, horizontal_gap=45, n
             node.dimensions.y or max(node.height, estimated_height),
         )
 
-    source_width, source_height = node_size(source_node)
-    initial_x = target_node.location.x - source_width - horizontal_gap
-    initial_y = target_y + source_y
-    if nodes_to_avoid is None:
-        nodes_to_avoid = target_node.id_data.nodes
-    obstacles = [node for node in nodes_to_avoid if node != source_node and node.type != "FRAME"]
+    source_width, source_height = _estimate_node_size(source_node)
+    source_socket_y = header_height + _get_visible_sockets(source_node.outputs).index(source_socket) * socket_spacing
+    target_socket_y = target_node.location.y - header_height - _get_visible_sockets(target_node.inputs).index(target_socket) * socket_spacing
+    ideal_x = target_node.location.x - source_width - horizontal_gap
+    ideal_y = target_socket_y + source_socket_y
 
-    def overlaps_obstacle(x, y):
-        for obstacle in obstacles:
-            width, height = node_size(obstacle)
-            left, top = obstacle.location
-            if (x < left + width + margin
-                    and x + source_width + margin > left
-                    and y - source_height < top + margin
-                    and y + margin > top - height):
-                return True
-        return False
+    obstacles = [
+        (*node.location, *_estimate_node_size(node))
+        for node in target_node.id_data.nodes
+        if node != source_node and node not in ignored_nodes and node.type != "FRAME"
+    ]
+
+    def _overlaps_horizontally(x, left, width) -> bool:
+        return x < left + width + margin and x + source_width + margin > left
+
+    def _overlaps_obstacle(x, y) -> bool:
+        return any(
+            _overlaps_horizontally(x, left, width)
+            and y - source_height < top + margin
+            and y + margin > top - height
+            for left, top, width, height in obstacles
+        )
 
     for column in range(13):
-        candidate_x = initial_x - column * (source_width + horizontal_gap)
-        candidate_ys = [initial_y]
-        for obstacle in obstacles:
-            width, height = node_size(obstacle)
-            left, top = obstacle.location
-            if (candidate_x < left + width + margin
-                    and candidate_x + source_width + margin > left):
-                candidate_ys.extend((
-                    top + source_height + margin,
-                    top - height - margin,
-                ))
+        candidate_x = ideal_x - column * (source_width + horizontal_gap)
+        candidate_ys = [ideal_y]
+        for left, top, width, height in obstacles:
+            if _overlaps_horizontally(candidate_x, left, width):
+                candidate_ys.extend((top + source_height + margin, top - height - margin))
 
-        for candidate_y in sorted(dict.fromkeys(candidate_ys), key=lambda y: abs(y - initial_y)):
+        for candidate_y in sorted(dict.fromkeys(candidate_ys), key=lambda y: abs(y - ideal_y)):
             candidate = (candidate_x, candidate_y)
-            if overlaps_obstacle(*candidate):
+            if _overlaps_obstacle(*candidate):
                 continue
-            shifted = (candidate[0] + offset[0], candidate[1] + offset[1])
-            if column == 0 and candidate_y == initial_y and not overlaps_obstacle(*shifted):
+
+            shifted = (candidate_x + offset[0], candidate_y + offset[1])
+            if column == 0 and candidate_y == ideal_y and not _overlaps_obstacle(*shifted):
                 candidate = shifted
             source_node.location = candidate
             return True
@@ -108,98 +105,84 @@ def place_node_opposite_input(source_socket, target_socket, horizontal_gap=45, n
 
 
 def wrap_texture_node_in_closures(texture_node: bpy.types.Node, material: bpy.types.Material) -> bpy.types.Node | None:
-    evaluate_marker = "MiBlend Texture Closure Evaluate"
-
     if bpy.app.version < (5, 1, 0):
         return None
 
-    try:
-        nodes, links = material.node_tree.nodes, material.node_tree.links
-        vector_input = texture_node.inputs["Vector"]
-        color_output, alpha_output = texture_node.outputs["Color"], texture_node.outputs["Alpha"]
-        evaluate = nodes.get(texture_node.get(evaluate_marker, ""))
-        if evaluate and evaluate.inputs["Closure"].is_linked:
-            closure_output = evaluate.inputs["Closure"].links[0].from_node
-            if closure_output.bl_idname == "NodeClosureOutput":
-                return closure_output
-    except Exception:
-        return None
+    nodes, links = material.node_tree.nodes, material.node_tree.links
+    image_texture_node_vector_input = texture_node.inputs["Vector"]
+    image_texture_node_color_output = texture_node.outputs["Color"]
+    image_texture_node_alpha_output = texture_node.outputs["Alpha"]
+    evaluate_closure_node = nodes.get(texture_node.get("MiBlend Texture Closure Evaluate", ""))
 
-    original_links = [(link.from_socket, link.to_socket)
-                      for socket in (vector_input, color_output, alpha_output)
-                      for link in socket.links]
-    created_nodes = []
+    if evaluate_closure_node and evaluate_closure_node.inputs["Closure"].is_linked:
+        closure_output_node = evaluate_closure_node.inputs["Closure"].links[0].from_node
+        if closure_output_node.bl_idname == "NodeClosureOutput":
+            return closure_output_node
 
-    def create_node(node_type: str) -> bpy.types.Node:
-        created_nodes.append(nodes.new(type=node_type))
-        return created_nodes[-1]
+    x, y = texture_node.location
 
-    try:
-        x, y = texture_node.location
-        closure_input = create_node("NodeClosureInput")
-        closure_output = create_node("NodeClosureOutput")
-        if not closure_input.pair_with_output(closure_output):
-            raise RuntimeError("Failed to pair closure zone nodes")
-        closure_output.input_items.new("VECTOR", "Vector")
-        closure_output.output_items.new("RGBA", "Color")
-        closure_output.output_items.new("FLOAT", "Alpha")
+    # Closure zone input node
+    closure_input = nodes.new(type="NodeClosureInput")
+    closure_input.location = (x - 500, y)
 
-        less_than = create_node("ShaderNodeMath")
-        less_than.operation = "LESS_THAN"
-        less_than.inputs[1].default_value = 0.001
-        texture_coordinate = create_node("ShaderNodeTexCoord")
-        mix = create_node("ShaderNodeMix")
-        mix.data_type = "VECTOR"
-        mix.clamp_factor = True
-        evaluate = create_node("NodeEvaluateClosure")
-        evaluate.panel_states[0].is_collapsed = True
-        evaluate.input_items.new("VECTOR", "Vector")
-        evaluate.output_items.new("RGBA", "Color")
-        evaluate.output_items.new("FLOAT", "Alpha")
+    # Closure zone output node and its interface
+    closure_output_node = nodes.new(type="NodeClosureOutput")
+    closure_output_node.location = (x + 250, y)
+    if not closure_input.pair_with_output(closure_output_node):
+        raise RuntimeError("Failed to pair closure zone nodes")
+    closure_output_node.input_items.new("VECTOR", "Vector")
+    closure_output_node.output_items.new("RGBA", "Color")
+    closure_output_node.output_items.new("FLOAT", "Alpha")
 
-        for node, location in (
-                (closure_input, (x - 500, y)), (less_than, (x - 350, y - 190)),
-                (texture_coordinate, (x - 350, y - 235)), (mix, (x - 180, y - 65)),
-                (closure_output, (x + 250, y)), (evaluate, (x + 450, y))):
-            node.location = location
+    # Less than mode
+    less_than_node = nodes.new(type="ShaderNodeMath")
+    less_than_node.location = (x - 350, y - 190)
+    less_than_node.operation = "LESS_THAN"
+    less_than_node.inputs[1].default_value = 0.001
+    less_than_node.hide = True
 
-        for source, target in (
-                (closure_input.outputs["Vector"], less_than.inputs[0]),
-                (less_than.outputs["Value"], mix.inputs[0]),
-                (closure_input.outputs["Vector"], mix.inputs[4]),
-                (texture_coordinate.outputs["UV"], mix.inputs[5]),
-                (mix.outputs[1], vector_input),
-                (color_output, closure_output.inputs["Color"]),
-                (alpha_output, closure_output.inputs["Alpha"]),
-                (closure_output.outputs["Closure"], evaluate.inputs["Closure"])):
-            links.new(source, target)
+    # Texture coordinate node
+    texture_coordinate_node = nodes.new(type="ShaderNodeTexCoord")
+    texture_coordinate_node.location = (x - 350, y - 235)
+    texture_coordinate_node.hide = True
 
-        for output, evaluated in ((color_output, evaluate.outputs["Color"]),
-                                  (alpha_output, evaluate.outputs["Alpha"])):
-            for link in list(output.links):
-                if link.to_node != closure_output:
-                    links.new(evaluated, link.to_socket)
+    # Mix Vector node
+    mix_vector_node = nodes.new(type="ShaderNodeMix")
+    mix_vector_node.location = (x - 180, y - 65)
+    mix_vector_node.data_type = "VECTOR"
+    mix_vector_node.clamp_factor = True
 
-        less_than.hide = True
-        texture_coordinate.hide = True
-        for output in texture_coordinate.outputs:
-            output.hide = not output.is_linked
+    # Evaluate closure node
+    evaluate_closure_node = nodes.new(type="NodeEvaluateClosure")
+    evaluate_closure_node.location = (x + 450, y)
+    evaluate_closure_node.panel_states[0].is_collapsed = True
+    evaluate_closure_node.input_items.new("VECTOR", "Vector")
+    evaluate_closure_node.output_items.new("RGBA", "Color")
+    evaluate_closure_node.output_items.new("FLOAT", "Alpha")
 
-        evaluate["MiBlend Texture Closure Source"] = texture_node.name
-        texture_node[evaluate_marker] = evaluate.name
-        return closure_output
-    except Exception:
-        for node in reversed(created_nodes):
-            try:
-                nodes.remove(node)
-            except Exception:
-                pass
-        for from_socket, to_socket in original_links:
-            try:
-                links.new(from_socket, to_socket)
-            except Exception:
-                pass
-        return None
+    links.new(closure_input.outputs["Vector"], less_than_node.inputs[0])
+    links.new(less_than_node.outputs["Value"], mix_vector_node.inputs[0])
+    links.new(closure_input.outputs["Vector"], mix_vector_node.inputs[4])
+    links.new(texture_coordinate_node.outputs["UV"], mix_vector_node.inputs[5])
+    links.new(mix_vector_node.outputs[1], image_texture_node_vector_input)
+    links.new(image_texture_node_color_output, closure_output_node.inputs["Color"])
+    links.new(image_texture_node_alpha_output, closure_output_node.inputs["Alpha"])
+    links.new(closure_output_node.outputs["Closure"], evaluate_closure_node.inputs["Closure"])
+
+    def _reconnect_sockets(output, evaluated):
+        for link in list(output.links):
+            if link.to_node != closure_output_node:
+                links.new(evaluated, link.to_socket)
+
+    _reconnect_sockets(image_texture_node_color_output, evaluate_closure_node.outputs["Color"])
+    _reconnect_sockets(image_texture_node_alpha_output, evaluate_closure_node.outputs["Alpha"])
+
+    for output in texture_coordinate_node.outputs:
+        output.hide = not output.is_linked
+
+    evaluate_closure_node["MiBlend Texture Closure Source"] = texture_node.name
+    texture_node["MiBlend Texture Closure Evaluate"] = evaluate_closure_node.name
+    return closure_output_node
 
 
 def dissolve_node(material, node_to_dissolve, node_to_dissolve_input: int | str | None = 0):
@@ -372,7 +355,7 @@ def add_modifier(object: object, modifier_type_or_node_group: str, modifier_name
         
         if modifier_type_or_node_group not in bpy.data.node_groups:
             try:
-                with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
+                with bpy.data.libraries.load(file, link=False) as (_, data_to):
                     data_to.node_groups = [modifier_type_or_node_group]
             except Exception as error:
                 trigger_absolute_solver("e03", tech_things=error, data=file)
@@ -413,7 +396,7 @@ def create_node_group(place: object, node_tree_name: str, location: tuple = (0, 
     # Load node group if not already in data
     if node_tree_name not in bpy.data.node_groups:
         try:
-            with bpy.data.libraries.load(file, link=False) as (data_from, data_to):
+            with bpy.data.libraries.load(file, link=False) as (_, data_to):
                 data_to.node_groups = [node_tree_name]
         except Exception as error:
             trigger_absolute_solver("e03", tech_things=error, data=file)

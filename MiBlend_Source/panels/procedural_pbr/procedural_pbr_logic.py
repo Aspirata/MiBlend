@@ -7,7 +7,7 @@ from ...mib_utils import (get_preferences, is_code_ignored, name_in, perf_time,
                         is_emissive, get_connected_socket_to, create_node_group,
                         add_modifier, remove_links_from, dissolve_node, inject_node,
                         wrap_texture_node_in_closures,
-                        place_node_opposite_input)
+                        align_node_to_socket)
 from ...resources.data import nodes_file, resources_directory, EMISSIVE_MATERIALS
 
 
@@ -122,7 +122,7 @@ class ProceduralPBR:
                 if group_name in bpy.data.node_groups:
                     current_node_tree = bpy.data.node_groups[group_name]
                 else:
-                    with bpy.data.libraries.load(nodes_file, link=False) as (data_from, data_to):
+                    with bpy.data.libraries.load(nodes_file, link=False) as (_, data_to):
                         data_to.node_groups = ["PNormals"]
                     bpy.data.node_groups["PNormals"].name = group_name
                     current_node_tree = bpy.data.node_groups[group_name]
@@ -160,9 +160,7 @@ class ProceduralPBR:
                 current_material.node_tree.links.new(vector_connection, procedural_normals_node.inputs['Vector'])
         
         elif normals_mode == 'PROCEDURAL_NORMALS_V2' and self.is_experimental_features_enabled and image_texture_node and image:
-            existing_node_names = {
-                node.name for node in current_material.node_tree.nodes
-            }
+            existing_node_names = {node.name for node in current_material.node_tree.nodes}
             image_texture_closure_output = wrap_texture_node_in_closures(image_texture_node, current_material)
             
             procedural_normals_v2_node = create_node_group(current_material, "Procedural Normals V2", (pbsdf_node.location.x - 185, pbsdf_node.location.y - 155), os.path.join(resources_directory, "Procedural Normals V2.blend"), True)
@@ -179,33 +177,25 @@ class ProceduralPBR:
 
             current_material.node_tree.links.new(image_texture_closure_output.outputs['Closure'], procedural_normals_v2_node.inputs['Closure'])
             current_material.node_tree.links.new(procedural_normals_v2_node.outputs['Normal'], pbsdf_node.inputs['Normal'])
-            closure_socket = image_texture_closure_output.outputs['Closure']
-            evaluate_node = next(link.to_node for link in closure_socket.links if link.to_node.bl_idname == "NodeEvaluateClosure")
-            layout_items = (
-                (procedural_normals_v2_node, procedural_normals_v2_node.outputs['Normal'], pbsdf_node.inputs['Normal'], (0, -22)),
-                (evaluate_node, evaluate_node.outputs['Color'], pbsdf_node.inputs['Base Color'], (0, 0)),
-                (image_texture_closure_output, closure_socket, evaluate_node.inputs['Closure'], (0, 0)),
-            )
-            if procedural_normals_v2_node.name not in existing_node_names:
-                layout_names = {node.name for node, *_ in layout_items}
-                original_locations = {
-                    node.name: tuple(node.location) for node, *_ in layout_items
-                }
-                parking_x = pbsdf_node.location.x - 10000
-                image_texture_closure_output.location = (parking_x, pbsdf_node.location.y + 10000)
-                evaluate_node.location = (parking_x, pbsdf_node.location.y + 10500)
-                occupied_nodes = [
-                    node for node in current_material.node_tree.nodes
-                    if node.name not in layout_names
-                ]
 
-                for node, source_socket, target_socket, offset in layout_items:
-                    if place_node_opposite_input(
-                            source_socket, target_socket,
-                            nodes_to_avoid=occupied_nodes, offset=offset):
-                        occupied_nodes.append(node)
-                    else:
-                        node.location = original_locations[node.name]
+            if procedural_normals_v2_node.name not in existing_node_names:
+                closure_socket = image_texture_closure_output.outputs['Closure']
+                evaluate_node = next(link.to_node for link in closure_socket.links if link.to_node.bl_idname == "NodeEvaluateClosure")
+                align_node_to_socket(
+                    procedural_normals_v2_node.outputs['Normal'],
+                    pbsdf_node.inputs['Normal'],
+                    offset=(0, -22),
+                    ignored_nodes=(evaluate_node, image_texture_closure_output),
+                )
+                align_node_to_socket(
+                    evaluate_node.outputs['Color'],
+                    pbsdf_node.inputs['Base Color'],
+                    ignored_nodes=(image_texture_closure_output,),
+                )
+                align_node_to_socket(
+                    closure_socket,
+                    evaluate_node.inputs['Closure'],
+                )
 
     def apply_procedural_emission(self, current_material, pbsdf_node, image) -> bool:
         procedural_emission_node = self.find_nodes_group_by_name("Procedural Emission", current_material)
