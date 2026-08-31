@@ -10,7 +10,7 @@ def process_material():
     ITexture_Animator = None
     texture_node = None
     
-    if selected_object.type != 'MESH' or not selected_object.active_material:
+    if not selected_object or selected_object.type != 'MESH' or not selected_object.active_material:
         return
 
     material = selected_object.active_material

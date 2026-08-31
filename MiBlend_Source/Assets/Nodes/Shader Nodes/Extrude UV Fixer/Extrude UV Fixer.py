@@ -2,8 +2,14 @@ import bpy
 import os
 
 for selected_object in bpy.context.selected_objects:
-    image_texture_node = None
+    if selected_object.type != "MESH":
+        continue
+
     for material in selected_object.data.materials:
+        if not material or not material.use_nodes or not material.node_tree:
+            continue
+
+        image_texture_node = None
         for node in material.node_tree.nodes:
             if node.type == "BSDF_PRINCIPLED":
                 image_texture_node = detect_texture_node(node)

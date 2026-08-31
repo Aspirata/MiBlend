@@ -13,5 +13,11 @@ def sleep_after_render(dummy):
             subprocess.run(["pmset", "sleepnow"])
     except Exception as e:
         print(f"Cannot sleep system: {e}")
-    
+
+handler_key = "miblend_sleep_after_render"
+previous_handler = bpy.app.driver_namespace.get(handler_key)
+if previous_handler in bpy.app.handlers.render_complete:
+    bpy.app.handlers.render_complete.remove(previous_handler)
+
+bpy.app.driver_namespace[handler_key] = sleep_after_render
 bpy.app.handlers.render_complete.append(sleep_after_render)
