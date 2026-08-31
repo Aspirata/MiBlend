@@ -45,6 +45,27 @@ If you want to help develop MiBlend — whether it’s **rigging**, **scripting*
 - Contact on Discord: `aspirata`  
 - Or join the [Official MiBlend Discord Server](https://discord.gg/Kf4VsZQz22)
 
+<!-- release-downloads:start -->
+### Download leaderboard
+
+A small just-for-fun ranking based on asset downloads from [GitHub Releases](https://github.com/Aspirata/MiBlend/releases).
+
+| Rank | Version | Type | Release date | Downloads |
+| :---: | --- | --- | :---: | ---: |
+| 🥇 | [V0.4.0 Milestone 2](https://github.com/Aspirata/MiBlend/releases/tag/v0.4.0_m2) | 🧪 Pre-release | Mar 28, 2024 | **4,628** |
+| 🥈 | [v0.6.1SS](https://github.com/Aspirata/MiBlend/releases/tag/v0.6.1_ss) | ✅ Stable | Jan 14, 2025 | **636** |
+| 🥉 | [v0.7.0 · Butterfly](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0) | ✅ Stable | Jun 30, 2025 | **382** |
+| 4 | [v0.7.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.1_f) | ✅ Stable | Jan 7, 2026 | **343** |
+| 5 | [v0.7.0S](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_s) | ✅ Stable | Sep 7, 2025 | **328** |
+| 6 | [v0.7.2F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2_f) | ✅ Stable | Apr 20, 2026 | **321** |
+| 7 | [v0.7.0SF](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_sf) | ✅ Stable | Nov 18, 2025 | **289** |
+| 8 | [V0.5.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.5.1_f) | ✅ Stable | Aug 26, 2024 | **251** |
+| 9 | [v0.8.0F](https://github.com/Aspirata/MiBlend/releases/tag/v0.8.0_f) | ✅ Stable | Jul 24, 2026 | **241** |
+| 10 | [v0.7.2 · Nectar](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2) | ✅ Stable | Mar 10, 2026 | **189** |
+
+_Updated automatically about every week and a half from GitHub Releases._
+<!-- release-downloads:end -->
+
 ---
 
 ## 👥 Contributors

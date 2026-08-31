@@ -1,0 +1,42 @@
+name: Update release download leaderboard
+
+on:
+  schedule:
+    # Roughly every week and a half, always at 00:00 UTC.
+    - cron: "0 0 1,10,20 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-release-download-leaderboard
+  cancel-in-progress: true
+
+jobs:
+  update-readmes:
+    name: Refresh README tables
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Generate download leaderboards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/update_downloads_readme.py
+
+      - name: Commit changed leaderboards
+        run: |
+          git add docs/README.md docs/README_ru.md
+          if git diff --cached --quiet; then
+            echo "Download counts have not changed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Autocommit: Updated README Leaderboard"
+          git push
