@@ -18,3 +18,4 @@ blender_version_min = "4.2.0"
 
 [permissions]
 files = "Use local minecraft assets"
+network = "Download and update built-in resource packs"
