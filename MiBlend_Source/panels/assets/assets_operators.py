@@ -97,13 +97,12 @@ class MIBLEND_OT_add_asset(Operator):
         with open(json_file_path, 'r') as f:
             asset_data = json.load(f)
 
-        file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
-        
-        if not file_path_in_json:
-            dprint("File_path not specified in the JSON file")
-            return {'CANCELLED'}
-
         if is_asset_persistent:
+            file_path_in_json = os.path.dirname(asset_data.get("File_path", ""))
+            if not file_path_in_json:
+                dprint("File_path not specified in the JSON file")
+                return {'CANCELLED'}
+
             destination_path = os.path.join(assets_directory, file_path_in_json)
             os.makedirs(destination_path, exist_ok=True)
 
@@ -119,13 +118,15 @@ class MIBLEND_OT_add_asset(Operator):
             dprint(f"Persistent asset files successfully copied to {destination_path}")
 
         else:
-            temp_assets_path = bpy.context.scene.get("mib_options").get("temp_assets_paths")
-
+            temp_assets_path = bpy.context.scene.get("mib_options", {}).get("temp_assets_paths", [])
             temp_assets_path_list = list(temp_assets_path)
-            temp_assets_path_list.append(os.path.dirname(json_file_path))
-            
+            asset_directory = os.path.normpath(os.path.abspath(os.path.dirname(json_file_path)))
+
+            if asset_directory not in temp_assets_path_list:
+                temp_assets_path_list.append(asset_directory)
+
             bpy.context.scene["mib_options"]["temp_assets_paths"] = temp_assets_path_list
-            dprint(f"Using temporary asset in {os.path.dirname(json_file_path)}")
+            dprint(f"Using temporary asset in {asset_directory}")
 
         assets_logic.update_assets()
         

@@ -190,29 +190,29 @@ def append_gnode(asset_data):
     elif Append_mode == "Every Selected":
         mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         for selected_object in bpy.context.selected_objects:
-            geonodes_modifier = None
-            if selected_object.type == "MESH":
-                for modifier in selected_object.modifiers:
-                    if modifier.type == "NODES":
-                        if modifier.node_group == Node_name:
-                            geonodes_modifier = modifier
-                            break
-            
-                if geonodes_modifier is None:
-                    geonodes_modifier = selected_object.modifiers.new(Node_name, type='NODES')
-                    geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
+            if selected_object.type != "MESH":
+                continue
+
+            geonodes_modifier = next((
+                modifier for modifier in selected_object.modifiers
+                if modifier.type == "NODES" and modifier.node_group and modifier.node_group.name == Node_name
+            ), None)
+
+            if geonodes_modifier is None:
+                geonodes_modifier = selected_object.modifiers.new(Node_name, type='NODES')
+                geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
 
     elif Append_mode == "Active Only":
         mib_utils.dprint(f"{Node_name} Script Not Found, using default algorithm", is_deep=True, zone="uas")
         active_obj = bpy.context.active_object
-        geonodes_modifier = None
-        if active_obj and active_obj.type == "MESH":
-            for modifier in selected_object.modifiers:
-                if modifier.type == "NODES":
-                    if modifier.node_group == Node_name:
-                        geonodes_modifier = modifier
-                        break
-        
+        if not active_obj or active_obj.type != "MESH":
+            return
+
+        geonodes_modifier = next((
+            modifier for modifier in active_obj.modifiers
+            if modifier.type == "NODES" and modifier.node_group and modifier.node_group.name == Node_name
+        ), None)
+
         if geonodes_modifier is None:
             geonodes_modifier = active_obj.modifiers.new(Node_name, type='NODES')
             geonodes_modifier.node_group = bpy.data.node_groups.get(Node_name)
