@@ -86,10 +86,13 @@ class FixWorld:
                         node.interpolation = "Closest"
 
                     pbsdf_node = next((node for node in current_material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+                    if not pbsdf_node:
+                        continue
+
                     image_texture_node = detect_texture_node(pbsdf_node)
                     image = detect_image_texture(pbsdf_node)
 
-                    if not image_texture_node or not pbsdf_node:
+                    if not image_texture_node:
                         continue
 
                     if not get_connected_socket_to("Alpha", pbsdf_node):
