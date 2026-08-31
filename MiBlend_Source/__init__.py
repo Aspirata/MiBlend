@@ -74,6 +74,9 @@ def unregister():
     if on_scene_load in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(on_scene_load)
 
+    if bpy.app.timers.is_registered(init_on_start):
+        bpy.app.timers.unregister(init_on_start)
+
     cancel_absolute_solver_queue()
     cancel_reverse_all_changes()
 
