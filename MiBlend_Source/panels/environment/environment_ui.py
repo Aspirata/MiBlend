@@ -255,7 +255,7 @@ class MIBLEND_PT_environment(Panel):
                                 row = fbox.row()
                                 row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=1, text="Y")
                                 row = fbox.row()
-                                row.prop(geonodes_modifier.properties.inputs.Socket_2, "value", index=2, text="Z")
+                                row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=2, text="Z")
                             
                             row = tbox.row()
                             row.prop(geonodes_modifier.properties.inputs.Socket_6, "value", text="Density Factor", slider=True)
