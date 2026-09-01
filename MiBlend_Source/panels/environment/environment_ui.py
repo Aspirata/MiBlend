@@ -97,7 +97,7 @@ class MIBLEND_PT_environment(Panel):
                     if scene.miblend_properties.environment_properties.strength_settings:
                         if not sky_node.inputs["End"].default_value:
                             row = tbox.row()
-                            row.prop(sky_node.inputs["Moon Strenght"], "default_value", text="Moon Strenght")
+                            row.prop(sky_node.inputs["Moon Strength"], "default_value", text="Moon Strength")
                             row = tbox.row()
                             row.prop(sky_node.inputs["Sun Strength"], "default_value", text="Sun Strength")
                             row = tbox.row()
