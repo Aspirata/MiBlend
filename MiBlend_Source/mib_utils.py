@@ -1,10 +1,12 @@
+import bpy
 import os
 import json
 import time
 import re
 import traceback
 from contextlib import contextmanager
-import bpy
+from typing import Literal
+from pathlib import Path
 from .resources.data import main_directory, nodes_file, EMISSIVE_MATERIALS, GRAY_BLOCKS
 
 
@@ -24,8 +26,61 @@ def skip_error_if_ignored(code: str, item: object, zone: str | None = None):
 
         dprint(f"Skipped {item_name} after ignored {code}", error_traceback, zone=zone, separate=True)
 
+
 def get_preferences() -> bpy.types.AddonPreferences:
     return bpy.context.preferences.addons[__package__].preferences
+
+
+def get_miblend_object(miblend_id: str) -> bpy.types.Object | None:
+    return next((obj for obj in bpy.data.objects if obj.get("miblend_id") == miblend_id), None)
+
+
+def draw_gui_failure(self, layout):
+        box = layout.box()
+        row = box.row()
+        row.label(text="GUI Error: Cannot display settings", icon="ERROR")
+
+
+def append_from_blend(blend_file_path: Path, data_block_type: Literal["objects", "collections", "materials", "node_groups", "images", "worlds"], 
+                        data_block_names: str | list[str] | None = None) -> object | list[object] | None:
+    blend_file_path = str(blend_file_path.expanduser().resolve())
+
+    with bpy.data.libraries.load(blend_file_path, link=False, reuse_local_id=True) as (source_library, target_library):
+        available_names = getattr(source_library, data_block_type)
+
+        if data_block_names is None:
+            names_to_append = list(available_names)
+        elif isinstance(data_block_names, str):
+            names_to_append = [data_block_names]
+        else:
+            names_to_append = list(data_block_names)
+
+        missing_names = [name for name in names_to_append if name not in available_names]
+
+        if missing_names:
+            return None
+
+        setattr(target_library, data_block_type, names_to_append)
+
+    appended_data_blocks = [data_block for data_block in getattr(target_library, data_block_type) if data_block is not None]
+
+    if isinstance(data_block_names, str):
+        return appended_data_blocks[0] if appended_data_blocks else None
+
+    return appended_data_blocks
+
+
+def move_to_collection(objects: bpy.types.Object | list[bpy.types.Object], target_collection: bpy.types.Collection):
+    if isinstance(objects, bpy.types.Object):
+        objects = [objects]
+
+    for obj in objects:
+        if target_collection not in obj.users_collection:
+            target_collection.objects.link(obj)
+
+        for collection in list(obj.users_collection):
+            if collection != target_collection:
+                collection.objects.unlink(obj)
 
 
 def clamp(min_value: float, value: float, max_value: float) -> float:

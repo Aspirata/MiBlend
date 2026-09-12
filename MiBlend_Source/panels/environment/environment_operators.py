@@ -33,7 +33,7 @@ class MIBLEND_OT_recreate_environment(Operator):
         description="Options for reusing imported fog assets or reimporting them",
         default='None'
     )
-    
+
     create_clouds: EnumProperty(
         items=[('None', 'None', ''),
             ('Create Clouds', 'Create Clouds', 'Reuses Already Imported Cloud Material'), 
@@ -46,14 +46,14 @@ class MIBLEND_OT_recreate_environment(Operator):
     def execute(self, context):
         environment_logic.recreate_env(self)
         return {'FINISHED'}
-        
+
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=560)
-    
+
     def draw(self, context):
         layout = self.layout
         world = bpy.context.scene.world
-            
+
         box = layout.box()
         row = box.row()
 
@@ -72,11 +72,11 @@ class MIBLEND_OT_recreate_environment(Operator):
 
 
 class MIBLEND_OT_create_environment(Operator):
-    bl_idname = "miblend.create_env"
+    bl_idname = "miblend.create_environment"
     bl_label = "Create Environment"
     bl_description = "Creates a New Environment"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        environment_logic.create_env()
+        environment_logic.Environment().create_environment()
         return {'FINISHED'}

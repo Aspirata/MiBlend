@@ -1,8 +1,6 @@
-import traceback
 import bpy
 from bpy.types import Panel
-from ...mib_utils import get_preferences
-from .environment_logic import WORLD_MATERIAL_NAME
+from ...mib_utils import get_preferences, draw_toggle_button, get_miblend_object, draw_gui_failure
 
 
 class MIBLEND_PT_environment(Panel):
@@ -13,341 +11,151 @@ class MIBLEND_PT_environment(Panel):
     bl_category = 'MiBlend'
 
     def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        world = scene.world
-        preferences = get_preferences()
-
-        if preferences.transparent_ui:
-            self.bl_options = {'HIDE_HEADER'}
-        else:
-            self.bl_options = set()
-
-        sky_exists = False
-        fog_exists = False
-        clouds_exists = False
-
-        sky_node = None
-        fog_node = None
-
-        fog_obj = None
-        clouds_obj = None
-
-        geonodes_modifier = None 
-
         try:
-            if world is not None and (any(node.name == "MiBlend Sky" for node in bpy.data.node_groups)):
-                if WORLD_MATERIAL_NAME in bpy.data.worlds:
-                    sky_exists = True
-                    world_material = scene.world.node_tree
-                    for node in world_material.nodes:
-                        if node.type == 'GROUP':
-                            if "MiBlend Sky" in node.node_tree.name:
-                                sky_node = node
-                                break
+            layout = self.layout
+            preferences = get_preferences()
 
-            for obj in scene.objects:
-                if obj.get("MiBlend ID") == "Clouds":
-                    clouds_exists = True
-                    clouds_obj = obj
-                    geonodes_modifier = obj.modifiers.get("Clouds Generator")
-                    clouds_material_tree = obj.material_slots[0].material.node_tree.nodes
-                    fade_distance_value = next((node for node in clouds_material_tree if node.label == "Fade Distance"), None).inputs[2]
-                    height_transparency_multiplier_value = next((node for node in clouds_material_tree if node.label == "Height Transparency Multiplier"), None).inputs[1]
-                    shadow_intensity_value = next((node for node in clouds_material_tree if node.label == "Shadow Intensity"), None).inputs[1]
-                    base_color = next((node for node in clouds_material_tree if node.type == "BSDF_PRINCIPLED"), None).inputs[0]
-                    
-                elif obj.get("MiBlend ID") == "Fog":
-                    fog_exists = True
-                    fog_obj = obj
-                    fog_material_tree = obj.material_slots[0].material.node_tree.nodes
-                    fog_node = next((node for node in fog_material_tree if node.type == 'GROUP' and "Fog" in node.node_tree.name), None)
+            if preferences.transparent_ui:
+                self.bl_options = {'HIDE_HEADER'}
+            else:
+                self.bl_options = set()
+            
+            sky_material = bpy.data.worlds.get("MiBlend Sky", None)
+            sky_controller = get_miblend_object("sky_controller")
+            if sky_material and sky_material.node_tree:
+                sky_material_node = next((node for node in sky_material.node_tree.nodes if node.type == 'GROUP'), None)
+
+            clouds_obj = get_miblend_object("clouds")
+            if clouds_obj:
+                if clouds_obj.active_material and clouds_obj.active_material.node_tree:
+                    clouds_material_node = next((node for node in clouds_obj.active_material.node_tree.nodes if node.type == 'GROUP'), None)
                 
-                if clouds_exists and fog_exists:
-                    break
+                clouds_geometry_node_modifier = next((node for node in clouds_obj.modifiers if node.type == 'NODES'), None)
+                clouds_solidify_modifier = next((node for node in clouds_obj.modifiers if node.type == 'SOLIDIFY'), None)
+                clouds_bevel_modifier = next((node for node in clouds_obj.modifiers if node.type == 'BEVEL'), None)
+
+            fog_obj = get_miblend_object("fog")
 
             box = layout.box()
             row = box.row()
             row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
 
-            row = box.row() 
-            row.prop(scene.miblend_properties.environment_properties, "create_sky")
-
-            # Sky Settings
-
-            if sky_node:
-                row.prop(scene.miblend_properties.environment_properties, "sky_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.sky_settings else "TRIA_LEFT"), icon_only=True)
-                if scene.miblend_properties.environment_properties.sky_settings:
-                    sbox = box.box()
-
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Main Settings:", icon="PROPERTIES")
-                    row = tbox.row()
-                    row.prop(sky_node.inputs["Time"], "default_value", text="Time")
-
-                    if scene.render.engine == "BLENDER_EEVEE" or scene.render.engine == "BLENDER_EEVEE_NEXT":
-                        row = tbox.row()
-                        row.prop(bpy.data.worlds[WORLD_MATERIAL_NAME], "sun_angle", text="Shadow Softness")
-
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Strength:", icon="LIGHT_SUN")
-                    row.prop(scene.miblend_properties.environment_properties, "strength_settings", icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.strength_settings else "TRIA_LEFT"), icon_only=True)
-                    if scene.miblend_properties.environment_properties.strength_settings:
-                        if not sky_node.inputs["End"].default_value:
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Moon Strength"], "default_value", text="Moon Strength")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Sun Strength"], "default_value", text="Sun Strength")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Stars Strength"], "default_value", text="Stars Strength")
-                        else:
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["End Stars Strength"], "default_value", text="Stars Strength")
-                        row = tbox.row()
-                        row.prop(sky_node.inputs["Camera Ambient Light Strength"], "default_value", text="Camera Ambient Light Strength")
-                        row = tbox.row()
-                        row.prop(sky_node.inputs["Non-Camera Ambient Light Strength"], "default_value", text="Non-Camera Ambient Light Strength")
-                                                
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Colors:", icon="IMAGE")
-                    row.prop(scene.miblend_properties.environment_properties, "colors_settings", icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.colors_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.miblend_properties.environment_properties.colors_settings:
-                        if not sky_node.inputs["End"].default_value:
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Moon Color"], "default_value", text="Moon Color")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Sun Color"], "default_value", text="Sun Color")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Sun Color In Sunset"], "default_value", text="Sun Color In Sunset")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Stars Color"], "default_value", text="Stars Color")
-                        else:
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["End Stars Color"], "default_value", text="Stars Color")
-                    
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Ambient Light Colors:", icon="IMAGE")
-                    row.prop(scene.miblend_properties.environment_properties, "ambient_colors_settings", icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.ambient_colors_settings else "TRIA_LEFT"), icon_only=True)
-                    if scene.miblend_properties.environment_properties.ambient_colors_settings:
-                        for node in bpy.data.node_groups:
-                            if "MiBlend End" in node.name or "Ambient Color" in node.name:
-                                for Node in node.nodes:
-                                    if Node.type == "VALTORGB":
-                                        row = tbox.row()
-                                        row.label(text=f"{Node.name}:")
-                                        for element in Node.color_ramp.elements:                                                    
-                                            row.prop(element, "color", icon_only=True)
-                    
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text=( "Star Rotation:" if sky_node.inputs["End"].default_value else "Sun & Moon Rotation:"), icon="DRIVER_ROTATIONAL_DIFFERENCE")
-                    row.prop(scene.miblend_properties.environment_properties, "rotation_settings", icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.rotation_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.miblend_properties.environment_properties.rotation_settings:
-                        if sky_node.inputs["End"].default_value:
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=0, text="X")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=1, text="Y")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["End Stars Rotation"], "default_value", index=2, text="Z")
-                        else:
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Rotation"], "default_value", index=0, text="X")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Rotation"], "default_value", index=1, text="Y")
-                            row = tbox.row()
-                            row.prop(sky_node.inputs["Rotation"], "default_value", index=2, text="Z")
-
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Other Settings:", icon="COLLAPSEMENU")
-                    row.prop(scene.miblend_properties.environment_properties, "other_settings", icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.other_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.miblend_properties.environment_properties.other_settings:
-                        row = tbox.row()
-                        row.prop(sky_node.inputs["Stars Amount"], "default_value", text="Stars Amount", slider=True)
-                        
-                        row = tbox.row()
-                        row.prop(sky_node.inputs["Pixelated Stars"], "default_value", text="Pixelated Stars", toggle=True)
-
-                        row = tbox.row()
-                        row.prop(sky_node.inputs["End"], "default_value", text="End", toggle=True)
-            
             row = box.row()
-            row.prop(scene.miblend_properties.environment_properties, "create_fog")
-
-            # Fog Settings
-
-            if fog_exists:
-                row.prop(scene.miblend_properties.environment_properties, "fog_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.fog_settings else "TRIA_LEFT"), icon_only=True)
-
-                if scene.miblend_properties.environment_properties.fog_settings:
-                    sbox = box.box()
-                    tbox = sbox.box()
-
-                    row = tbox.row()
-                    row.label(text="Main Settings:", icon="PROPERTIES")
-
-                    row = tbox.row()
-                    row.prop(fog_node.inputs["Fog Color"], "default_value", text="Fog Color")
-                    row = tbox.row()
-                    row.prop(fog_obj, "location", index=2, text="Height") 
-                    row = tbox.row()
-                    row.prop(fog_node.inputs["Density"], "default_value", text="Density")
-                    row = tbox.row()
-                    row.prop(fog_node.inputs["Max Distance"], "default_value", text="Max Distance")
-                    row = tbox.row()
-                    row.prop(fog_node.inputs["Min Distance"], "default_value", text="Min Distance")
-                    row = tbox.row()
-                    row.prop(fog_node.inputs["Anisotropy"], "default_value", text="Anisotropy")
-                    row = tbox.row()
-                    row.prop(fog_node.inputs["Emission"], "default_value", text="Emission")
+            row.prop(context.scene.miblend_properties.environment_properties, "create_sky")
+            if sky_controller and sky_material_node:
+                draw_toggle_button(row, context.scene.miblend_properties.environment_properties, "sky_settings")
+                self.draw_sky_settings(box, context, sky_material_node, sky_controller)
 
             row = box.row()
-            row.prop(scene.miblend_properties.environment_properties, "create_clouds")
-
-            # Clouds Settings
-
-            if clouds_exists:
-                row.prop(scene.miblend_properties.environment_properties, "clouds_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.clouds_settings else "TRIA_LEFT"), icon_only=True)
-
-                if scene.miblend_properties.environment_properties.clouds_settings:
-                    sbox = box.box()
-                    tbox = sbox.box()
-
-                    row = tbox.row()
-                    row.label(text="Main Settings:", icon="PROPERTIES")
-
-                    row = tbox.row()                
-                    row.prop(clouds_obj, "location", index=2, text="Height")
-
-                    row = tbox.row()
-                    row.prop(clouds_obj, "visible_shadow", text="Clouds Shadow", toggle=True)
-
-                    tbox = sbox.box()
-
-                    row = tbox.row()
-                    row.label(text="Geometry Nodes Settings:", icon="GEOMETRY_NODES")
-                    row.prop(scene.miblend_properties.environment_properties, "geonodes_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.geonodes_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.miblend_properties.environment_properties.geonodes_settings:
-                        if bpy.app.version >= (5,2,0):
-                            fbox = tbox.box()
-                            row = fbox.row()
-                            row.label(text="Layers Settings:", icon="AXIS_TOP")
-                            row.prop(scene.miblend_properties.environment_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.miblend_properties.environment_properties.layers_settings:
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier.properties.inputs.Socket_2, "value", text="Layers Count", slider=True)
-
-                                row = fbox.row()
-                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=0, text="X")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=1, text="Y")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier.properties.inputs.Socket_5, "value", index=2, text="Z")
-                            
-                            row = tbox.row()
-                            row.prop(geonodes_modifier.properties.inputs.Socket_6, "value", text="Density Factor", slider=True)
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier.properties.inputs.Socket_7, "value", text="Offset Scale")
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier.properties.inputs.Socket_9, "value", text="Subdivisions")
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier.properties.inputs.Socket_19, "value", text="Seed")
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier.properties.inputs.Socket_10, "value", text="3D Clouds", toggle=True)
-                        else:
-                            fbox = tbox.box()
-                            row = fbox.row()
-                            row.label(text="Layers Settings:", icon="AXIS_TOP")
-                            row.prop(scene.miblend_properties.environment_properties, "layers_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.layers_settings else "TRIA_LEFT"), icon_only=True)
-                            if scene.miblend_properties.environment_properties.layers_settings:
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_2"]', text="Layers Count", slider=True)
-
-                                row = fbox.row()
-                                row.label(text="Layers Offset:", icon="DRIVER_DISTANCE")
-
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=0, text="X")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=1, text="Y")
-                                row = fbox.row()
-                                row.prop(geonodes_modifier, '["Socket_5"]', index=2, text="Z")
-                            
-                            row = tbox.row()
-                            row.prop(geonodes_modifier, '["Socket_6"]', text="Density Factor", slider=True)
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier, '["Socket_7"]', text="Offset Scale")
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier, '["Socket_9"]', text="Subdivisions")
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier, '["Socket_19"]', text="Seed")
-
-                            row = tbox.row()
-                            row.prop(geonodes_modifier, '["Socket_10"]', text="3D Clouds", toggle=True)
-
-                    
-                    tbox = sbox.box()
-                    row = tbox.row()
-                    row.label(text="Material Settings:", icon="MATERIAL")
-                    row.prop(scene.miblend_properties.environment_properties, "material_settings", toggle=True, icon=("TRIA_DOWN" if scene.miblend_properties.environment_properties.material_settings else "TRIA_LEFT"), icon_only=True)
-
-                    if scene.miblend_properties.environment_properties.material_settings:
-
-                        row = tbox.row()
-                        row.prop(base_color, "default_value", text="Color")
-                        
-                        row = tbox.row()
-                        row.prop(fade_distance_value, "default_value", text="Fade Distance")
-
-                        row = tbox.row()
-                        row.prop(shadow_intensity_value, "default_value", text="Shadow intensity")
-
-                        row = tbox.row()
-                        row.prop(height_transparency_multiplier_value, "default_value", text="Height Transparency Multiplier")
-
-        except Exception:
-            box = layout.box()
-            row = box.row()
-            row.label(text="An Error occured !", icon="ERROR")
+            row.prop(context.scene.miblend_properties.environment_properties, "create_clouds")
+            if clouds_obj:
+                draw_toggle_button(row, context.scene.miblend_properties.environment_properties, "cloud_settings")
+                self.draw_cloud_settings(box, context, clouds_material_node, clouds_geometry_node_modifier, clouds_solidify_modifier, clouds_bevel_modifier)
 
             row = box.row()
-            row.label(text="This error could be caused by outdated sky or clouds")
+            row.prop(context.scene.miblend_properties.environment_properties, "create_fog")
+            if fog_obj:
+                draw_toggle_button(row, context.scene.miblend_properties.environment_properties, "fog_settings")
+                self.draw_fog_settings(box, context)
 
-            row = box.row()
-            row.label(text="Try to recreate the environment")
-
-            print(traceback.format_exc())
-
-            row = box.row()
-            row.operator("miblend.absolute_solver_open_console")
-
-        if clouds_exists or sky_exists:
             row = box.row()
             row.scale_y = 1.4
-            row.operator("miblend.create_env", text="Recreate Environment", icon="FILE_REFRESH")
+            row.operator("miblend.create_environment")
+        except Exception as e:
+            draw_gui_failure(self, layout)
+    
+    def draw_sky_settings(self, layout, context, sky_material_node, sky_controller):
+        if not context.scene.miblend_properties.environment_properties.sky_settings:
+            return
 
-        if not clouds_exists and not sky_exists:
-            row = box.row()
-            row.scale_y = 1.4
-            row.operator("miblend.create_env")
+        box = layout.box()
+        row = box.row()
+        row.label(text="Sky Settings:", icon="MODIFIER")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Main Settings:", icon="PROPERTIES")
+
+        row = sbox.row()
+        row.prop(sky_controller, '["Sky Mode"]', expand=True)
+
+        if sky_controller.get("Sky Mode") == 0:
+            row = sbox.row()
+            row.prop(sky_controller, "rotation_euler", text="Rotation X", index=0)
+
+            row = sbox.row()
+            row.scale_y = 0.7
+            row.label(text=f"Time - {sky_controller.get('local_time'):.2f}", icon="INFO")
+
+        sbox = box.box()
+        row = sbox.row() 
+        row.label(text="Lighting:", icon="LIGHT")
+
+        tbox = sbox.box()
+        row = tbox.row()
+        row.label(text="Sky:", icon="WORLD_DATA")
+
+        row = tbox.row()
+        row.prop(sky_material_node.inputs["Camera Sky Strength"], "default_value", text="Camera Sky Strength")
+
+        row = tbox.row()
+        row.prop(sky_material_node.inputs["Non-Camera Sky Strength"], "default_value", text="Non-Camera Sky Strength")
+
+        if sky_controller.get("Sky Mode") == 0:
+            row = tbox.row()
+            row.prop(sky_material_node.inputs["Sun & Moon Strength"], "default_value", text="Sun & Moon Emission Strength")
+
+            tbox = sbox.box()
+            row = tbox.row()
+            row.label(text="Sun & Moon:", icon="LIGHT_SUN")
+
+            row = tbox.row()
+            row.prop(sky_controller, '["Sun Light Strength"]', text="Sun Light Strength")
+
+            row = tbox.row()
+            row.prop(sky_controller, '["Moon Light Strength"]', text="Moon Light Strength")
+
+        if sky_controller.get("Sky Mode") != 1:
+            tbox = sbox.box()
+            row = tbox.row()
+            row.label(text="Stars:", icon="SOLO_ON")
+
+            row = tbox.row()
+            row.prop(sky_material_node.inputs["Stars Strength"], "default_value", text="Stars Strength")
+        
+            sbox = box.box()
+            row = sbox.row() 
+            row.label(text="Other:", icon="OPTIONS")
+
+            row = sbox.row()
+            row.prop(sky_material_node.inputs["Stars Offset"], "default_value", text="Stars Offset")
+
+    def draw_cloud_settings(self, layout, context, clouds_material_node, clouds_geometry_node_modifier,
+                            clouds_solidify_modifier, clouds_bevel_modifier):
+        if not context.scene.miblend_properties.environment_properties.cloud_settings:
+            return
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Cloud Settings:", icon="MODIFIER")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Mesh Settings:", icon="PROPERTIES")
+
+        row = sbox.row()
+        row.prop(clouds_geometry_node_modifier.properties.inputs.Socket_4, "value", text="1.21.6 Clouds")
+
+        row = sbox.row()
+        row.prop(clouds_geometry_node_modifier.properties.inputs.Socket_6, "value", text="Second Layer")
+
+        row = sbox.row()
+        row.prop(clouds_solidify_modifier, "thickness", text="Thickness")
+    
+    def draw_fog_settings(self, layout, context):
+        if not context.scene.miblend_properties.environment_properties.fog_settings:
+            return
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Fog Settings:", icon="MODIFIER")

@@ -16,18 +16,6 @@ class MIBLEND_PG_environment(PropertyGroup):
         default=False
     )
 
-    colors_settings: BoolProperty(
-        default=False
-    )
-
-    ambient_colors_settings: BoolProperty(
-        default=False
-    )
-
-    rotation_settings: BoolProperty(
-        default=False
-    )
-
     other_settings: BoolProperty(
         default=False
     )
@@ -37,19 +25,11 @@ class MIBLEND_PG_environment(PropertyGroup):
         default=True
     )
 
-    clouds_settings: BoolProperty(
+    cloud_settings: BoolProperty(
         default=False
-    )
-
-    geonodes_settings: BoolProperty(
-        default=True
     )
 
     material_settings: BoolProperty(
-        default=False
-    )
-
-    layers_settings: BoolProperty(
         default=False
     )
 
