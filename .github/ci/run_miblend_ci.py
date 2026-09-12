@@ -623,7 +623,7 @@ def core_worker(args: argparse.Namespace) -> dict[str, Any]:
             ),
             (
                 "Create Environment",
-                lambda: bpy.ops.miblend.create_env(),
+                lambda: bpy.ops.miblend.create_environment(),
             ),
         ]
         for name, operator in steps:
