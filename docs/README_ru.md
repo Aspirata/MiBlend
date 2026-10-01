@@ -53,16 +53,16 @@ MiBlend создан, чтобы:
 
 | Место | Версия | Тип | Дата релиза | Скачивания |
 | :---: | --- | --- | :---: | ---: |
-| 🥇 | [V0.4.0 Milestone 2](https://github.com/Aspirata/MiBlend/releases/tag/v0.4.0_m2) | 🧪 Предрелиз | 28.03.2024 | **4 660** |
-| 🥈 | [v0.6.1SS](https://github.com/Aspirata/MiBlend/releases/tag/v0.6.1_ss) | ✅ Стабильная | 14.01.2025 | **639** |
-| 🥉 | [v0.7.0 · Butterfly](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0) | ✅ Стабильная | 30.06.2025 | **382** |
-| 4 | [v0.7.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.1_f) | ✅ Стабильная | 07.01.2026 | **343** |
-| 5 | [v0.7.0S](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_s) | ✅ Стабильная | 07.09.2025 | **328** |
-| 6 | [v0.7.2F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2_f) | ✅ Стабильная | 20.04.2026 | **321** |
+| 🥇 | [V0.4.0 Milestone 2](https://github.com/Aspirata/MiBlend/releases/tag/v0.4.0_m2) | 🧪 Предрелиз | 28.03.2024 | **4 684** |
+| 🥈 | [v0.6.1SS](https://github.com/Aspirata/MiBlend/releases/tag/v0.6.1_ss) | ✅ Стабильная | 14.01.2025 | **641** |
+| 🥉 | [v0.7.0 · Butterfly](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0) | ✅ Стабильная | 30.06.2025 | **385** |
+| 4 | [v0.7.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.1_f) | ✅ Стабильная | 07.01.2026 | **345** |
+| 5 | [v0.7.0S](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_s) | ✅ Стабильная | 07.09.2025 | **330** |
+| 6 | [v0.7.2F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2_f) | ✅ Стабильная | 20.04.2026 | **323** |
 | 7 | [v0.7.0SF](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_sf) | ✅ Стабильная | 18.11.2025 | **289** |
-| 8 | [v0.8.0F](https://github.com/Aspirata/MiBlend/releases/tag/v0.8.0_f) | ✅ Стабильная | 24.07.2026 | **274** |
-| 9 | [V0.5.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.5.1_f) | ✅ Стабильная | 26.08.2024 | **252** |
-| 10 | [v0.7.2 · Nectar](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2) | ✅ Стабильная | 10.03.2026 | **193** |
+| 8 | [v0.8.0F](https://github.com/Aspirata/MiBlend/releases/tag/v0.8.0_f) | ✅ Стабильная | 24.07.2026 | **276** |
+| 9 | [V0.5.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.5.1_f) | ✅ Стабильная | 26.08.2024 | **253** |
+| 10 | [v0.7.2 · Nectar](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2) | ✅ Стабильная | 10.03.2026 | **197** |
 
 _Обновляется автоматически примерно раз в полторы недели по данным GitHub Releases._
 <!-- release-downloads:end -->
