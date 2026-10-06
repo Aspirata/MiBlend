@@ -562,7 +562,8 @@ def format_duplicate_name(text: str, original_text: str=None) -> str:
 
 
 def is_gray(name: str, is_material: bool =False, mode: str ="all") -> bool:
-    #dprint(f'{format_material_name(name)} vegetation: {name_in(GRAY_BLOCKS.get("vegetation"), name, not is_material)} \nrednstone: {name_in(GRAY_BLOCKS.get("redstone"), name, not is_material)} \nwater: {name_in(GRAY_BLOCKS.get("water"), name, not is_material)}', is_deep=True, zone="fw")
+    #dprint(f'{format_material_name(name)} vegetation: {name_in(GRAY_BLOCKS.get("vegetation"), name, not is_material)} \nrednstone: {name_in(GRAY_BLOCKS.get("redstone"), name, not is_material)} \nwater: {name_in(GRAY_BLOCKS.get("water"), name, not is_material)}',
+    #       is_deep=True, zone="fw")
     result = False
     if mode == "all":
         result = name_in(GRAY_BLOCKS.get("vegetation"), name, not is_material)[0]
@@ -677,7 +678,7 @@ def detect_image_texture(PBSDF: object) -> object | None:
     return None
 
 
-def detect_world_exporter(world_obj: object) -> str:
+def detect_world_exporter(world_obj: object) -> Literal["unknown", "miex", "mineways", "jmc2obj"]:
     exporter = "unknown"
 
     if not world_obj.data.materials:
