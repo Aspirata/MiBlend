@@ -52,16 +52,16 @@ A small just-for-fun ranking based on asset downloads from [GitHub Releases](htt
 
 | Rank | Version | Type | Release date | Downloads |
 | :---: | --- | --- | :---: | ---: |
-| 🥇 | [V0.4.0 Milestone 2](https://github.com/Aspirata/MiBlend/releases/tag/v0.4.0_m2) | 🧪 Pre-release | Mar 28, 2024 | **4,684** |
-| 🥈 | [v0.6.1SS](https://github.com/Aspirata/MiBlend/releases/tag/v0.6.1_ss) | ✅ Stable | Jan 14, 2025 | **641** |
+| 🥇 | [V0.4.0 Milestone 2](https://github.com/Aspirata/MiBlend/releases/tag/v0.4.0_m2) | 🧪 Pre-release | Mar 28, 2024 | **4,702** |
+| 🥈 | [v0.6.1SS](https://github.com/Aspirata/MiBlend/releases/tag/v0.6.1_ss) | ✅ Stable | Jan 14, 2025 | **646** |
 | 🥉 | [v0.7.0 · Butterfly](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0) | ✅ Stable | Jun 30, 2025 | **385** |
 | 4 | [v0.7.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.1_f) | ✅ Stable | Jan 7, 2026 | **345** |
 | 5 | [v0.7.0S](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_s) | ✅ Stable | Sep 7, 2025 | **330** |
-| 6 | [v0.7.2F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2_f) | ✅ Stable | Apr 20, 2026 | **323** |
+| 6 | [v0.7.2F](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2_f) | ✅ Stable | Apr 20, 2026 | **326** |
 | 7 | [v0.7.0SF](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.0_sf) | ✅ Stable | Nov 18, 2025 | **289** |
 | 8 | [v0.8.0F](https://github.com/Aspirata/MiBlend/releases/tag/v0.8.0_f) | ✅ Stable | Jul 24, 2026 | **276** |
 | 9 | [V0.5.1F](https://github.com/Aspirata/MiBlend/releases/tag/v0.5.1_f) | ✅ Stable | Aug 26, 2024 | **253** |
-| 10 | [v0.7.2 · Nectar](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2) | ✅ Stable | Mar 10, 2026 | **197** |
+| 10 | [v0.7.2 · Nectar](https://github.com/Aspirata/MiBlend/releases/tag/v0.7.2) | ✅ Stable | Mar 10, 2026 | **200** |
 
 _Updated automatically about every week and a half from GitHub Releases._
 <!-- release-downloads:end -->
