@@ -22,6 +22,9 @@ class MIBLEND_PT_environment(Panel):
             
             sky_material = bpy.data.worlds.get("MiBlend Sky", None)
             sky_controller = get_miblend_object("sky_controller")
+            sun_light_source = get_miblend_object("sun_light_source")
+            moon_light_source = get_miblend_object("moon_light_source")
+
             if sky_material and sky_material.node_tree:
                 sky_material_node = next((node for node in sky_material.node_tree.nodes if node.type == 'GROUP'), None)
 
@@ -44,7 +47,7 @@ class MIBLEND_PT_environment(Panel):
             row.prop(context.scene.miblend_properties.environment_properties, "create_sky")
             if sky_controller and sky_material_node:
                 draw_toggle_button(row, context.scene.miblend_properties.environment_properties, "sky_settings")
-                self.draw_sky_settings(box, context, sky_material_node, sky_controller)
+                self.draw_sky_settings(box, context, sky_material_node, sky_controller, sun_light_source, moon_light_source)
 
             row = box.row()
             row.prop(context.scene.miblend_properties.environment_properties, "create_clouds")
@@ -64,7 +67,7 @@ class MIBLEND_PT_environment(Panel):
         except Exception as e:
             draw_gui_failure(self, layout)
     
-    def draw_sky_settings(self, layout, context, sky_material_node, sky_controller):
+    def draw_sky_settings(self, layout, context, sky_material_node, sky_controller, sun_light_source, moon_light_source):
         if not context.scene.miblend_properties.environment_properties.sky_settings:
             return
 
@@ -113,7 +116,13 @@ class MIBLEND_PT_environment(Panel):
             row.prop(sky_controller, '["Sun Light Strength"]', text="Sun Light Strength")
 
             row = tbox.row()
+            row.prop(sun_light_source.data, 'angle', text="Sun Light Angle")
+
+            row = tbox.row()
             row.prop(sky_controller, '["Moon Light Strength"]', text="Moon Light Strength")
+
+            row = tbox.row()
+            row.prop(moon_light_source.data, 'angle', text="Moon Light Angle")
 
         if sky_controller.get("Sky Mode") != 1:
             tbox = sbox.box()
@@ -128,7 +137,7 @@ class MIBLEND_PT_environment(Panel):
             row.label(text="Other:", icon="OPTIONS")
 
             row = sbox.row()
-            row.prop(sky_material_node.inputs["Stars Offset"], "default_value", text="Stars Offset")
+            row.prop(sky_material_node.inputs["Stars Seed"], "default_value", text="Stars Seed")
 
     def draw_cloud_settings(self, layout, context, clouds_material_node, clouds_geometry_node_modifier,
                             clouds_solidify_modifier, clouds_bevel_modifier):
@@ -151,6 +160,35 @@ class MIBLEND_PT_environment(Panel):
 
         row = sbox.row()
         row.prop(clouds_solidify_modifier, "thickness", text="Thickness")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Material Settings:", icon="MATERIAL")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Fade Distance"], "default_value", text="Fade Distance")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Fade Smoothness"], "default_value", text="Fade Smoothness")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Subsurface Weight"], "default_value", text="Subsurface Weight")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Subsurface Scale"], "default_value", text="Subsurface Scale")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["1st Layer Opacity"], "default_value", text="1st Layer Opacity")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["2nd Layer Opacity"], "default_value", text="2nd Layer Opacity")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Shadow Intensity"], "default_value", text="Shadow Intensity")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Diffuse Intensity"], "default_value", text="Diffuse Intensity")
+
     
     def draw_fog_settings(self, layout, context):
         if not context.scene.miblend_properties.environment_properties.fog_settings:
