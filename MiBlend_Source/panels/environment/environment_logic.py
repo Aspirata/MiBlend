@@ -22,9 +22,8 @@ class Environment:
             bpy.context.scene.collection.children.link(miblend_env_collection)
 
         if self.environment_properties.create_sky and \
-            not any(obj.get("miblend_id") == "sky_controller" for obj in bpy.context.scene.objects) and \
-            not any(obj.get("miblend_id") == "stars_controller" for obj in bpy.context.scene.objects) and \
-            bpy.context.scene.world.name != "MiBlend Sky":
+            not any(obj.get("miblend_id") in {"sky_controller", "stars_controller"} for obj in bpy.context.scene.objects) and \
+            (bpy.context.scene.world is None or bpy.context.scene.world.name != "MiBlend Sky"):
             self.create_sky(miblend_env_collection)
 
         if self.environment_properties.create_clouds and \
@@ -36,7 +35,11 @@ class Environment:
             self.create_fog(miblend_env_collection)
 
     def create_sky(self, miblend_env_collection):
-        with bpy.data.libraries.load(str(self.ENVIRONMENT_BLEND_FILE_PATH.expanduser().resolve()), link=False, reuse_local_id=True) as (_, data_to):
+        load_options = {"link": False}
+        if bpy.app.version >= (5, 0, 0):
+            load_options["reuse_local_id"] = True
+
+        with bpy.data.libraries.load(str(self.ENVIRONMENT_BLEND_FILE_PATH.expanduser().resolve()), **load_options) as (_, data_to):
             data_to.worlds = ["MiBlend Sky"]
             data_to.objects = ["MiBlend Sky Controller", "MiBlend Stars Controller", "MiBlend Sky Internal Buffer", 
                                 "MiBlend Sun Light Source", "MiBlend Moon Light Source"]
@@ -71,5 +74,3 @@ class Environment:
     @perf_time
     def recreate_environment(self):
         pass
-
-    

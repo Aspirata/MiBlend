@@ -44,8 +44,11 @@ def draw_gui_failure(self, layout):
 def append_from_blend(blend_file_path: Path, data_block_type: Literal["objects", "collections", "materials", "node_groups", "images", "worlds"], 
                         data_block_names: str | list[str] | None = None) -> object | list[object] | None:
     blend_file_path = str(blend_file_path.expanduser().resolve())
+    load_options = {"link": False}
+    if bpy.app.version >= (5, 0, 0):
+        load_options["reuse_local_id"] = True
 
-    with bpy.data.libraries.load(blend_file_path, link=False, reuse_local_id=True) as (source_library, target_library):
+    with bpy.data.libraries.load(blend_file_path, **load_options) as (source_library, target_library):
         available_names = getattr(source_library, data_block_type)
 
         if data_block_names is None:
