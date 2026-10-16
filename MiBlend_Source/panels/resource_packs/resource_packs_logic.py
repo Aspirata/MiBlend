@@ -1,9 +1,13 @@
 import bpy, os, json, zipfile, shutil, re, platform, http.client
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
-from distutils.version import LooseVersion
 from ...mib_utils import *
 from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
+
+def version_key(version: str) -> tuple:
+    return tuple((1, int(part)) if part.isdigit() else (0, part.lower())
+                 for part in re.findall(r'\d+|[A-Za-z]+', version))
+
 
 def get_resource_packs() -> dict[str, dict[str, str | bool]]:
     try:
@@ -84,7 +88,7 @@ def find_mc() -> tuple[str, str]:
                 dprint(f"{instance_path} invalid", is_deep=True, zone="rp")
         
     if versions:
-        latest_version = max(versions, key=lambda x: LooseVersion(x))
+        latest_version = max(versions, key=version_key)
         _latest_file, latest_path = versions[latest_version]
         return latest_version, latest_path
     
@@ -131,8 +135,8 @@ def update_pack(pack: str, connection=None):
         pack_path = os.path.join(resource_packs_directory, pack)
         
         needs_update = (
-            not all(LooseVersion(pack_info[0]) >= LooseVersion(v) for v in latest_pack_info[0]) or
-            LooseVersion(pack_info[1]) < LooseVersion(latest_pack_info[1]) or
+            not all(version_key(pack_info[0]) >= version_key(v) for v in latest_pack_info[0]) or
+            version_key(pack_info[1]) < version_key(latest_pack_info[1]) or
             not os.path.exists(pack_path) or
             pack_info == ("Unknown", "Unknown")
         )
@@ -152,7 +156,7 @@ def update_pack(pack: str, connection=None):
             with open(os.path.join(resource_packs_directory, "packs_info.json"), "r+") as f:
                 data = json.load(f)
                 data[pack].update({
-                    "mc_version": str(max(latest_pack_info[0], key=lambda x: LooseVersion(x))),
+                    "mc_version": str(max(latest_pack_info[0], key=version_key)),
                     "pack_version": latest_pack_info[1]
                 })
                 f.seek(0)
