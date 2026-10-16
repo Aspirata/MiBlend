@@ -41,7 +41,7 @@ class MIBLEND_PT_environment(Panel):
 
             box = layout.box()
             row = box.row()
-            row.label(text="Environment", icon="OUTLINER_DATA_VOLUME")
+            row.label(text="Environment", icon="FORCE_WIND")
 
             row = box.row()
             row.prop(context.scene.miblend_properties.environment_properties, "create_sky")
@@ -91,53 +91,46 @@ class MIBLEND_PT_environment(Panel):
             row.label(text=f"Time - {sky_controller.get('local_time'):.2f}", icon="INFO")
 
         sbox = box.box()
-        row = sbox.row() 
-        row.label(text="Lighting:", icon="LIGHT")
+        row = sbox.row()
+        row.label(text="Atmosphere:", icon="OUTLINER_DATA_VOLUME")
 
-        tbox = sbox.box()
-        row = tbox.row()
-        row.label(text="Sky:", icon="WORLD_DATA")
+        row = sbox.row()
+        row.prop(sky_material_node.inputs["Camera Sky Strength"], "default_value", text="Atmosphere Emission Strength")
 
-        row = tbox.row()
-        row.prop(sky_material_node.inputs["Camera Sky Strength"], "default_value", text="Camera Sky Strength")
-
-        row = tbox.row()
-        row.prop(sky_material_node.inputs["Non-Camera Sky Strength"], "default_value", text="Non-Camera Sky Strength")
+        row = sbox.row()
+        row.prop(sky_material_node.inputs["Non-Camera Sky Strength"], "default_value", text="Atmosphere Light Strength")
 
         if sky_controller.get("Sky Mode") == 0:
-            row = tbox.row()
-            row.prop(sky_material_node.inputs["Sun & Moon Strength"], "default_value", text="Sun & Moon Emission Strength")
-
-            tbox = sbox.box()
-            row = tbox.row()
+            sbox = box.box()
+            row = sbox.row()
             row.label(text="Sun & Moon:", icon="LIGHT_SUN")
 
-            row = tbox.row()
+            row = sbox.row()
+            row.prop(sky_material_node.inputs["Sun & Moon Strength"], "default_value", text="Sun & Moon Emission Strength")
+
+            row = sbox.row()
             row.prop(sky_controller, '["Sun Light Strength"]', text="Sun Light Strength")
 
-            row = tbox.row()
+            row = sbox.row()
             row.prop(sun_light_source.data, 'angle', text="Sun Light Angle")
 
-            row = tbox.row()
+            row = sbox.row()
             row.prop(sky_controller, '["Moon Light Strength"]', text="Moon Light Strength")
 
-            row = tbox.row()
+            row = sbox.row()
             row.prop(moon_light_source.data, 'angle', text="Moon Light Angle")
 
         if sky_controller.get("Sky Mode") != 1:
-            tbox = sbox.box()
-            row = tbox.row()
+            sbox = box.box()
+            row = sbox.row()
             row.label(text="Stars:", icon="SOLO_ON")
 
-            row = tbox.row()
-            row.prop(sky_material_node.inputs["Stars Strength"], "default_value", text="Stars Strength")
-        
-            sbox = box.box()
-            row = sbox.row() 
-            row.label(text="Other:", icon="OPTIONS")
+            row = sbox.row()
+            row.prop(sky_material_node.inputs["Stars Strength"], "default_value", text="Stars Emission Strength")
 
             row = sbox.row()
             row.prop(sky_material_node.inputs["Stars Seed"], "default_value", text="Stars Seed")
+            
 
     def draw_cloud_settings(self, layout, context, clouds_material_node, clouds_geometry_node_modifier,
                             clouds_solidify_modifier, clouds_bevel_modifier):

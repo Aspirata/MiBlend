@@ -72,7 +72,7 @@ _Обновляется автоматически примерно раз в п
 ## 👥 Контрибуторы
 
 ### `ANONIM4IK (geo nodes fanboy)`  
-Alpha Selector, Alpha Faces Deleter, помощь с обновлением списков в Data.py, общая поддержка разработки  
+Alpha Faces Deleter, помощь с обновлением списков в Data.py, общая поддержка разработки  
 🔗 [X (Twitter)](https://x.com/ANONIM4IK3327?t=BAdb71fMQMT3UQj7Y7HL7Q&s=09) | [Hipolink](https://t.co/1nE0NRJUPV)
 
 ### `zipi.zip`  

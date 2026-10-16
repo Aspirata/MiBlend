@@ -71,7 +71,7 @@ _Updated automatically about every week and a half from GitHub Releases._
 ## 👥 Contributors
 
 ### `ANONIM4IK (geo nodes fanboy)`  
-Alpha Selector, Alpha Faces Deleter, help with updating `Data.py` lists, general development support  
+Alpha Faces Deleter, help with updating `Data.py` lists, general development support  
 🔗 [X (Twitter)](https://x.com/ANONIM4IK3327?t=BAdb71fMQMT3UQj7Y7HL7Q&s=09) | [Hipolink](https://t.co/1nE0NRJUPV)
 
 ### `zipi.zip`  
