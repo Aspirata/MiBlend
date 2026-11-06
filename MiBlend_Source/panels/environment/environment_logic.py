@@ -25,14 +25,17 @@ class Environment:
             not any(obj.get("miblend_id") in {"sky_controller", "stars_controller"} for obj in bpy.context.scene.objects) and \
             (bpy.context.scene.world is None or bpy.context.scene.world.name != "MiBlend Sky"):
             sky_world, sky_controller, sun_light_source, moon_light_source = self.create_sky(miblend_env_collection)
+            self.migrate_sky(sky_world, sky_controller, sun_light_source, moon_light_source)
 
         if self.environment_properties.create_clouds and \
             not any(obj.get("miblend_id") == "clouds" for obj in bpy.context.scene.objects):
             clouds_obj = self.create_clouds(miblend_env_collection)
+            self.migrate_clouds(clouds_obj)
         
         if self.environment_properties.create_fog and \
             not any(obj.get("miblend_id") == "fog" for obj in bpy.context.scene.objects):
             fog_obj = self.create_fog(miblend_env_collection)
+            self.migrate_fog(fog_obj)
 
     def create_sky(self, miblend_env_collection):
         load_options = {"link": False}
@@ -79,6 +82,45 @@ class Environment:
 
         move_to_collection(fog_obj, miblend_env_collection)
         return fog_obj
+    
+    def migrate_sky(self, sky_world, sky_controller, sun_light_source, moon_light_source):
+        return NotImplemented
+
+    def migrate_clouds(self, clouds_obj):
+        try:
+            old_clouds_obj = next((obj for obj in bpy.data.objects if obj.get("MiBlend ID") == "Clouds"), None)
+            
+            clouds_obj.location.x, clouds_obj.location.y = old_clouds_obj.location.x, old_clouds_obj.location.y
+            # convert location z with a scale factor
+            clouds_obj.rotation_euler = old_clouds_obj.rotation_euler
+            # Migrate material properties and geonode parameters
+
+        except Exception:
+            trigger_absolute_solver("n00", traceback.format_exc()) # Replace with a custom error "Cannot Migrate data=Clouds"
+        
+        bpy.data.objects.remove(old_clouds_obj, do_unlink=True)
+
+    def migrate_fog(self, fog_obj):
+        try:
+            old_fog_obj = next((obj for obj in bpy.data.objects if obj.get("MiBlend ID") == "Fog"), None)
+            old_fog_material_tree = old_fog_obj.material_slots[0].material.node_tree.nodes
+            old_fog_node = next((node for node in old_fog_material_tree if node.type == 'GROUP' and "Fog" in node.node_tree.name), None)
+
+            fog_material_tree = fog_obj.material_slots[0].material.node_tree.nodes
+            fog_node = next((node for node in fog_material_tree if node.type == 'GROUP' and "Fog" in node.node_tree.name), None)
+        
+            fog_obj.location.x, fog_obj.location.y = old_fog_obj.location.x, old_fog_obj.location.y
+            # convert location z with a scale factor
+            fog_obj.rotation_euler = old_fog_obj.rotation_euler
+            fog_node.inputs["Density"].default_value = old_fog_node.inputs["Density"].default_value
+            fog_node.inputs["Max Distance"].default_value = old_fog_node.inputs["Max Distance"].default_value
+            fog_node.inputs["Min Distance"].default_value = old_fog_node.inputs["Min Distance"].default_value
+            fog_node.inputs["Anisotropy"].default_value = old_fog_node.inputs["Anisotropy"].default_value
+            fog_node.inputs["Emission"].default_value = old_fog_node.inputs["Emission"].default_value
+        except Exception:
+            trigger_absolute_solver("n00", traceback.format_exc()) # Replace with a custom error "Cannot Migrate data=Fog"
+
+        bpy.data.objects.remove(old_fog_obj, do_unlink=True)
 
     @perf_time
     def recreate_environment(self):
