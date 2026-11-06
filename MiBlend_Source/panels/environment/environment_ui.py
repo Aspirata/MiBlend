@@ -143,29 +143,34 @@ class MIBLEND_PT_environment(Panel):
 
         sbox = box.box()
         row = sbox.row()
-        row.label(text="Mesh Settings:", icon="PROPERTIES")
+        row.label(text="Main Settings:", icon="PROPERTIES")
 
         row = sbox.row()
         row.prop(clouds_geometry_node_modifier.properties.inputs.Socket_4, "value", text="1.21.6 Clouds")
 
         row = sbox.row()
+        row.prop(clouds_material_node.inputs["Fade Distance"], "default_value", text="Fade Distance")
+
+        row = sbox.row()
+        row.prop(clouds_material_node.inputs["Subsurface Weight"], "default_value", text="Subsurface Weight")
+
+        sbox = box.box()
+        row = sbox.row()
+        row.label(text="Mesh Settings:", icon="MESH_CUBE")
+
+        row = sbox.row()
         row.prop(clouds_geometry_node_modifier.properties.inputs.Socket_6, "value", text="Second Layer")
 
         row = sbox.row()
-        row.prop(clouds_solidify_modifier, "thickness", text="Thickness")
+        row.prop(clouds_solidify_modifier, "show_viewport", icon_only=True)
+        row.prop(clouds_solidify_modifier, "thickness", text="3D Layer Thickness")
 
         sbox = box.box()
         row = sbox.row()
         row.label(text="Material Settings:", icon="MATERIAL")
 
         row = sbox.row()
-        row.prop(clouds_material_node.inputs["Fade Distance"], "default_value", text="Fade Distance")
-
-        row = sbox.row()
         row.prop(clouds_material_node.inputs["Fade Smoothness"], "default_value", text="Fade Smoothness")
-
-        row = sbox.row()
-        row.prop(clouds_material_node.inputs["Subsurface Weight"], "default_value", text="Subsurface Weight")
 
         row = sbox.row()
         row.prop(clouds_material_node.inputs["Subsurface Scale"], "default_value", text="Subsurface Scale")
