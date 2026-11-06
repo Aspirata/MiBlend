@@ -24,15 +24,15 @@ class Environment:
         if self.environment_properties.create_sky and \
             not any(obj.get("miblend_id") in {"sky_controller", "stars_controller"} for obj in bpy.context.scene.objects) and \
             (bpy.context.scene.world is None or bpy.context.scene.world.name != "MiBlend Sky"):
-            self.create_sky(miblend_env_collection)
+            sky_world, sky_controller, sun_light_source, moon_light_source = self.create_sky(miblend_env_collection)
 
         if self.environment_properties.create_clouds and \
             not any(obj.get("miblend_id") == "clouds" for obj in bpy.context.scene.objects):
-            self.create_clouds(miblend_env_collection)
+            clouds_obj = self.create_clouds(miblend_env_collection)
         
         if self.environment_properties.create_fog and \
             not any(obj.get("miblend_id") == "fog" for obj in bpy.context.scene.objects):
-            self.create_fog(miblend_env_collection)
+            fog_obj = self.create_fog(miblend_env_collection)
 
     def create_sky(self, miblend_env_collection):
         load_options = {"link": False}
@@ -58,6 +58,7 @@ class Environment:
 
         bpy.context.scene.world = sky_world
         move_to_collection([sky_controller, stars_controller, sky_internal_buffer, sun_light_source, moon_light_source], miblend_env_collection)
+        return sky_world, sky_controller, sun_light_source, moon_light_source
 
     def create_clouds(self, miblend_env_collection):
         clouds_obj = append_from_blend(self.ENVIRONMENT_BLEND_FILE_PATH, "objects", "MiBlend Clouds")
@@ -67,9 +68,17 @@ class Environment:
             return
 
         move_to_collection(clouds_obj, miblend_env_collection)
+        return clouds_obj
 
     def create_fog(self, miblend_env_collection):
-        pass
+        fog_obj = append_from_blend(self.ENVIRONMENT_BLEND_FILE_PATH, "objects", "MiBlend Fog")
+
+        if fog_obj is None:
+            trigger_absolute_solver("n00", traceback.format_exc())
+            return
+
+        move_to_collection(fog_obj, miblend_env_collection)
+        return fog_obj
 
     @perf_time
     def recreate_environment(self):
