@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 7
+      max-parallel: 9
       matrix:
         include:
           - label: 4.2.23
@@ -35,12 +35,18 @@ jobs:
             file_name: blender-4.3.2-linux-x64.tar.xz
             url: https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
             checksum: 4da1c956673c0485e63054e563ee69198cc8f80d8157dd7592dffc8a6a5592e6
-          - label: 4.5.12
-            version: 4.5.12
+          - label: 4.4.3
+            version: 4.4.3
             preview: false
-            file_name: blender-4.5.12-linux-x64.tar.xz
-            url: https://download.blender.org/release/Blender4.5/blender-4.5.12-linux-x64.tar.xz
-            checksum: 95e3a2dfedba3bd32ca54fc355eac6b15a11986954ccb02815a07535d0120a25
+            file_name: blender-4.4.3-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender4.4/blender-4.4.3-linux-x64.tar.xz
+            checksum: 8d3be07d2bc412b502c6bfe3cfe3e22195a4164076867da987ce148d73c27946
+          - label: 4.5.15
+            version: 4.5.15
+            preview: false
+            file_name: blender-4.5.15-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender4.5/blender-4.5.15-linux-x64.tar.xz
+            checksum: 0d2b8bb2efe97e6c8eb57de6b7322f8800e1984e3125b60decca5f6771e4773e
           - label: 5.0.1
             version: 5.0.1
             preview: false
@@ -53,15 +59,23 @@ jobs:
             file_name: blender-5.1.2-linux-x64.tar.xz
             url: https://download.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
             checksum: aaccb355f50183979b698bcce7467103a76261b5fa59f4972295842662a285fb
-          - label: 5.2.0
-            version: 5.2.0
+          - label: 5.2.3
+            version: 5.2.3
             preview: false
-            file_name: blender-5.2.0-linux-x64.tar.xz
-            url: https://download.blender.org/release/Blender5.2/blender-5.2.0-linux-x64.tar.xz
-            checksum: 96f6c181a30f4950607839dc84d42a354b250d8a0231b098b59b7bc69c351c48
-          - label: 5.3 Preview
+            file_name: blender-5.2.3-linux-x64.tar.xz
+            url: https://download.blender.org/release/Blender5.2/blender-5.2.3-linux-x64.tar.xz
+            checksum: 78486c018b4443efe5e75ab54c290ed8c15abafd249b862c2c9ce2530a918eec
+          - label: 5.3 RC
             version: "5.3."
             preview: true
+            risk: candidate
+            file_name: ""
+            url: ""
+            checksum: ""
+          - label: 5.4 Alpha
+            version: "5.4."
+            preview: true
+            risk: alpha
             file_name: ""
             url: ""
             checksum: ""
@@ -86,6 +100,7 @@ jobs:
         env:
           REQUESTED_VERSION: ${{ matrix.version }}
           IS_PREVIEW: ${{ matrix.preview }}
+          REQUESTED_RISK: ${{ matrix.risk }}
           STATIC_FILE_NAME: ${{ matrix.file_name }}
           STATIC_URL: ${{ matrix.url }}
           STATIC_CHECKSUM: ${{ matrix.checksum }}
@@ -108,10 +123,12 @@ jobs:
                   and build.get("architecture") == "x86_64"
                   and build.get("file_name", "").endswith("-release.tar.xz")
                   and build.get("version", "").startswith(requested)
+                  and build.get("risk_id") == os.environ["REQUESTED_RISK"]
               ]
               if not candidates:
                   raise SystemExit(
-                      f"No official Blender preview found for {requested}"
+                      f"No official Blender {os.environ['REQUESTED_RISK']} "
+                      f"build found for {requested}"
                   )
               build = max(candidates, key=lambda item: item.get("file_mtime", 0))
               output = {

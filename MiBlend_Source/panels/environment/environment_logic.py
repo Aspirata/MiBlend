@@ -94,12 +94,11 @@ class Environment:
             # convert location z with a scale factor
             clouds_obj.rotation_euler = old_clouds_obj.rotation_euler
             # Migrate material properties and geonode parameters
+            bpy.data.objects.remove(old_clouds_obj, do_unlink=True)
 
         except Exception:
             trigger_absolute_solver("n00", traceback.format_exc()) # Replace with a custom error "Cannot Migrate data=Clouds"
         
-        bpy.data.objects.remove(old_clouds_obj, do_unlink=True)
-
     def migrate_fog(self, fog_obj):
         try:
             old_fog_obj = next((obj for obj in bpy.data.objects if obj.get("MiBlend ID") == "Fog"), None)
@@ -117,10 +116,9 @@ class Environment:
             fog_node.inputs["Min Distance"].default_value = old_fog_node.inputs["Min Distance"].default_value
             fog_node.inputs["Anisotropy"].default_value = old_fog_node.inputs["Anisotropy"].default_value
             fog_node.inputs["Emission"].default_value = old_fog_node.inputs["Emission"].default_value
+            bpy.data.objects.remove(old_fog_obj, do_unlink=True)
         except Exception:
             trigger_absolute_solver("n00", traceback.format_exc()) # Replace with a custom error "Cannot Migrate data=Fog"
-
-        bpy.data.objects.remove(old_fog_obj, do_unlink=True)
 
     @perf_time
     def recreate_environment(self):
