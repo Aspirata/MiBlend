@@ -20,6 +20,7 @@ class MIBLEND_PT_environment(Panel):
             else:
                 self.bl_options = set()
             
+            # Get Environment Objects and Nodes
             sky_material = bpy.data.worlds.get("MiBlend Sky", None)
             sky_controller = get_miblend_object("sky_controller")
             sun_light_source = get_miblend_object("sun_light_source")
@@ -39,6 +40,9 @@ class MIBLEND_PT_environment(Panel):
 
             fog_obj = get_miblend_object("fog")
 
+            is_old_environment = get_miblend_object("Clouds", True) or get_miblend_object("Fog", True) or bpy.data.worlds.get("MiBlend World", None)
+
+            # Draw UI Elements
             box = layout.box()
             row = box.row()
             row.label(text="Environment", icon="FORCE_WIND")
@@ -60,6 +64,11 @@ class MIBLEND_PT_environment(Panel):
             if fog_obj:
                 draw_toggle_button(row, context.scene.miblend_properties.environment_properties, "fog_settings")
                 self.draw_fog_settings(box, context)
+
+            if is_old_environment:
+                row = box.row()
+                row.prop(context.scene.miblend_properties.environment_properties, "migrate_old_environment")
+                row.operator("miblend.environment_migration_info", text="", icon='ERROR', emboss=False)
 
             row = box.row()
             row.scale_y = 1.4

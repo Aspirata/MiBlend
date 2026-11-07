@@ -31,7 +31,9 @@ def get_preferences() -> bpy.types.AddonPreferences:
     return bpy.context.preferences.addons[__package__].preferences
 
 
-def get_miblend_object(miblend_id: str) -> bpy.types.Object | None:
+def get_miblend_object(miblend_id: str, use_legacy_mode: bool = False) -> bpy.types.Object | None:
+    if use_legacy_mode:
+        return next((obj for obj in bpy.data.objects if obj.get("MiBlend ID") == miblend_id), None)
     return next((obj for obj in bpy.data.objects if obj.get("miblend_id") == miblend_id), None)
 
 

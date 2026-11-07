@@ -41,3 +41,8 @@ class MIBLEND_PG_environment(PropertyGroup):
     fog_settings: BoolProperty(
         default=False
     )
+
+    migrate_old_environment: BoolProperty(
+        name="Migrate Old Environment",
+        default=True
+    )

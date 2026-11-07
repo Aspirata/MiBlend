@@ -71,6 +71,19 @@ class MIBLEND_OT_recreate_environment(Operator):
         row.prop(self, "create_clouds", text='create_clouds', expand=True)
 
 
+class MIBLEND_OT_environment_migration_info(Operator):
+    bl_idname = "miblend.environment_migration_info"
+    bl_label = "Environment Migration Warning"
+    bl_description = (
+        "Compatible settings will be transferred to the new environment. "
+        "Some settings may be lost or reset. Old environment objects will be replaced"
+    )
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
 class MIBLEND_OT_create_environment(Operator):
     bl_idname = "miblend.create_environment"
     bl_label = "Create Environment"

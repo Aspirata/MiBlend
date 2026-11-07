@@ -1,7 +1,7 @@
 import bpy
 import traceback
 from pathlib import Path
-from ...mib_utils import perf_time, append_from_blend, move_to_collection
+from ...mib_utils import perf_time, append_from_blend, move_to_collection, get_miblend_object
 from ..absolute_solver.absolute_solver_logic import trigger_absolute_solver
 
 
@@ -21,21 +21,24 @@ class Environment:
             miblend_env_collection = bpy.data.collections.new("MiBlend Environment")
             bpy.context.scene.collection.children.link(miblend_env_collection)
 
-        if self.environment_properties.create_sky and \
-            not any(obj.get("miblend_id") in {"sky_controller", "stars_controller"} for obj in bpy.context.scene.objects) and \
-            (bpy.context.scene.world is None or bpy.context.scene.world.name != "MiBlend Sky"):
+        if self.environment_properties.create_sky and get_miblend_object("sky_controller") is None and get_miblend_object("stars_controller") is None \
+            and getattr(bpy.context.scene.world, "name", None) != "MiBlend Sky":
             sky_world, sky_controller, sun_light_source, moon_light_source = self.create_sky(miblend_env_collection)
-            self.migrate_sky(sky_world, sky_controller, sun_light_source, moon_light_source)
 
-        if self.environment_properties.create_clouds and \
-            not any(obj.get("miblend_id") == "clouds" for obj in bpy.context.scene.objects):
+            if self.environment_properties.migrate_old_environment and bpy.data.worlds.get("MiBlend World", None):
+                self.migrate_sky(sky_world, sky_controller, sun_light_source, moon_light_source)
+
+        if self.environment_properties.create_clouds and get_miblend_object("clouds") is None:
             clouds_obj = self.create_clouds(miblend_env_collection)
-            self.migrate_clouds(clouds_obj)
+
+            if self.environment_properties.migrate_old_environment and get_miblend_object("Clouds", True):
+                self.migrate_clouds(clouds_obj)
         
-        if self.environment_properties.create_fog and \
-            not any(obj.get("miblend_id") == "fog" for obj in bpy.context.scene.objects):
+        if self.environment_properties.create_fog and get_miblend_object("fog") is None:
             fog_obj = self.create_fog(miblend_env_collection)
-            self.migrate_fog(fog_obj)
+
+            if self.environment_properties.migrate_old_environment and get_miblend_object("Fog", True):
+                self.migrate_fog(fog_obj)
 
     def create_sky(self, miblend_env_collection):
         load_options = {"link": False}
@@ -88,12 +91,14 @@ class Environment:
 
     def migrate_clouds(self, clouds_obj):
         try:
-            old_clouds_obj = next((obj for obj in bpy.data.objects if obj.get("MiBlend ID") == "Clouds"), None)
+            old_clouds_obj = get_miblend_object("Clouds", True)
             
             clouds_obj.location.x, clouds_obj.location.y = old_clouds_obj.location.x, old_clouds_obj.location.y
             # convert location z with a scale factor
             clouds_obj.rotation_euler = old_clouds_obj.rotation_euler
+
             # Migrate material properties and geonode parameters
+
             bpy.data.objects.remove(old_clouds_obj, do_unlink=True)
 
         except Exception:
@@ -101,7 +106,8 @@ class Environment:
         
     def migrate_fog(self, fog_obj):
         try:
-            old_fog_obj = next((obj for obj in bpy.data.objects if obj.get("MiBlend ID") == "Fog"), None)
+            old_fog_obj = get_miblend_object("Fog", True)
+
             old_fog_material_tree = old_fog_obj.material_slots[0].material.node_tree.nodes
             old_fog_node = next((node for node in old_fog_material_tree if node.type == 'GROUP' and "Fog" in node.node_tree.name), None)
 
@@ -109,13 +115,18 @@ class Environment:
             fog_node = next((node for node in fog_material_tree if node.type == 'GROUP' and "Fog" in node.node_tree.name), None)
         
             fog_obj.location.x, fog_obj.location.y = old_fog_obj.location.x, old_fog_obj.location.y
-            # convert location z with a scale factor
+            fog_obj.location.z += old_fog_obj.location.z - 50.0
+            for axis, old_default_scale in enumerate((500.0, 500.0, 75.0)):
+                fog_obj.scale[axis] *= old_fog_obj.scale[axis] / old_default_scale
             fog_obj.rotation_euler = old_fog_obj.rotation_euler
+
+            fog_node.inputs["Fog Color"].default_value = old_fog_node.inputs["Fog Color"].default_value
             fog_node.inputs["Density"].default_value = old_fog_node.inputs["Density"].default_value
             fog_node.inputs["Max Distance"].default_value = old_fog_node.inputs["Max Distance"].default_value
             fog_node.inputs["Min Distance"].default_value = old_fog_node.inputs["Min Distance"].default_value
             fog_node.inputs["Anisotropy"].default_value = old_fog_node.inputs["Anisotropy"].default_value
             fog_node.inputs["Emission"].default_value = old_fog_node.inputs["Emission"].default_value
+
             bpy.data.objects.remove(old_fog_obj, do_unlink=True)
         except Exception:
             trigger_absolute_solver("n00", traceback.format_exc()) # Replace with a custom error "Cannot Migrate data=Fog"
