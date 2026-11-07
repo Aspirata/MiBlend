@@ -162,7 +162,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ env.BLENDER_DOWNLOAD_DIR }}/${{ steps.blender-build.outputs.file_name }}
-          key: blender-linux-${{ steps.blender-build.outputs.hash }}
+          key: blender-linux-${{ steps.blender-build.outputs.checksum }}
 
       - name: Download and verify Blender
         env:
@@ -172,6 +172,10 @@ jobs:
         run: |
           mkdir -p "$BLENDER_DOWNLOAD_DIR"
           archive="$BLENDER_DOWNLOAD_DIR/$BLENDER_FILE"
+          if [ -f "$archive" ] && ! echo "$BLENDER_CHECKSUM  $archive" | sha256sum --check --strict; then
+            echo "::warning::Cached Blender archive failed SHA-256 verification; downloading it again."
+            rm -- "$archive"
+          fi
           if [ ! -f "$archive" ]; then
             curl --fail --location --retry 3 --output "$archive" "$BLENDER_URL"
           fi
@@ -190,6 +194,8 @@ jobs:
       - name: Run MiBlend integration scenario
         run: |
           python .github/ci/run_miblend_ci.py \
+            --jobs 4 \
+            --threads 1 \
             --blender "${{ steps.blender.outputs.binary }}" \
             --source-root "$GITHUB_WORKSPACE/MiBlend_Source" \
             --fixture "$GITHUB_WORKSPACE/.github/ci/miblend_ci_test.blend" \

@@ -12,9 +12,11 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 import traceback
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +24,23 @@ from typing import Any
 SCRIPT_PATH = Path(__file__).resolve()
 ERROR_PREFIXES = ("e", "n")
 RESOURCE_PACKS = ("Bare Bones", "Embrace Pixels")
+# Approximate CI seconds; estimates only affect queue order, never coverage.
+ASSET_DURATION_ESTIMATES = {
+    "Separate By Material": 16.0,
+    "Beveler": 14.0,
+    "Remove Double Faces": 6.0,
+    "Wind": 6.0,
+    "Grass Rotation Fix": 2.0,
+    "Alpha Faces Deleter": 2.0,
+}
+CONSOLE_LOCK = threading.Lock()
+
+
+def positive_int(value: str) -> int:
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError("must be at least 1")
+    return number
 
 
 def parse_arguments(argv: list[str]) -> argparse.Namespace:
@@ -30,6 +49,8 @@ def parse_arguments(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--fixture", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--jobs", type=positive_int, default=4)
+    parser.add_argument("--threads", type=positive_int, default=1)
     parser.add_argument("--worker", choices=("core", "asset"))
     parser.add_argument("--result", type=Path)
     parser.add_argument("--checkpoint", type=Path)
@@ -90,17 +111,19 @@ def run_blender_worker(
         worker_args: list[str],
         log_file,
         title: str,
+        threads: int = 1,
 ) -> tuple[int, bool]:
     command = [
         str(blender),
         "--background",
         "--factory-startup",
+        "--threads",
+        str(threads),
         "--python",
         str(SCRIPT_PATH),
         "--",
         *worker_args,
     ]
-    print(f"::group::{github_escape(title)}", flush=True)
     saw_traceback = False
     process = subprocess.Popen(
         command,
@@ -120,9 +143,11 @@ def run_blender_worker(
         if "Traceback (most recent call last):" in line:
             saw_traceback = True
     return_code = process.wait()
-    if return_code != 0 or saw_traceback:
-        print("".join(tail), end="", flush=True)
-    print("::endgroup::", flush=True)
+    with CONSOLE_LOCK:
+        print(f"::group::{github_escape(title)}", flush=True)
+        if return_code != 0 or saw_traceback:
+            print("".join(tail), end="", flush=True)
+        print("::endgroup::", flush=True)
     return return_code, saw_traceback
 
 
@@ -132,6 +157,63 @@ def worker_common_args(args: argparse.Namespace) -> list[str]:
         "--fixture", str(args.fixture.resolve()),
         "--output-dir", str(args.output_dir.resolve()),
     ]
+
+
+def run_asset_worker(
+        args: argparse.Namespace,
+        asset: dict[str, str],
+        position: int,
+        total: int,
+        checkpoint: Path,
+) -> tuple[dict[str, Any], Path]:
+    asset_name = asset.get("name", "Unknown")
+    output_dir = args.output_dir.resolve()
+    worker_dir = output_dir / "asset-workers" / f"{position:03d}"
+    log_path = worker_dir / "blender.log"
+    result_path = output_dir / "asset-results" / f"{position:03d}.json"
+    started = time.perf_counter()
+    try:
+        worker_dir.mkdir(parents=True, exist_ok=True)
+        worker_args = [
+            "--worker", "asset",
+            "--source-root", str(args.source_root.resolve()),
+            "--fixture", str(args.fixture.resolve()),
+            "--output-dir", str(worker_dir),
+            "--result", str(result_path),
+            "--checkpoint", str(checkpoint),
+            "--asset-name", asset_name,
+            "--asset-path", asset.get("path", ""),
+        ]
+        with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
+            return_code, saw_traceback = run_blender_worker(
+                args.blender.resolve(), worker_args, log_file,
+                f"Asset {position}/{total}: {asset_name}", threads=args.threads,
+            )
+        result = read_json(result_path)
+        if not isinstance(result, dict) or not result:
+            result = {
+                "status": "failed",
+                "asset_name": asset_name,
+                "message": "Asset worker did not produce a valid result",
+                "warnings": [],
+                "duration_seconds": 0.0,
+            }
+        if return_code != 0:
+            result["status"] = "failed"
+            result["message"] = f"Blender process exited with code {return_code}"
+        elif saw_traceback and result.get("status") == "passed":
+            result["status"] = "failed"
+            result["message"] = "Blender log contains a traceback"
+    except Exception:
+        result = {
+            "status": "failed",
+            "asset_name": asset_name,
+            "message": traceback.format_exc(),
+            "warnings": [],
+            "duration_seconds": 0.0,
+        }
+    result["process_wall_seconds"] = time.perf_counter() - started
+    return result, log_path
 
 
 def combine_report(
@@ -199,7 +281,7 @@ def markdown_summary(report: dict[str, Any]) -> str:
         f"- Assets failed: {failed}",
         f"- Assets skipped: {skipped}",
         f"- Warnings: {len(report.get('warnings', []))}",
-        f"- Total time: {float(report.get('duration_seconds', 0.0)):.2f}s",
+        f"- Total time: {float(report.get('wall_time_seconds', report.get('duration_seconds', 0.0))):.2f}s",
     ])
 
     if assets.get("failed"):
@@ -263,6 +345,7 @@ def orchestrate(args: argparse.Namespace) -> int:
                 core_args,
                 log_file,
                 "Core pipeline",
+                threads=args.threads,
             )
             core = read_json(core_result_path) or {
                 "status": "failed",
@@ -279,51 +362,47 @@ def orchestrate(args: argparse.Namespace) -> int:
 
         if core.get("status") == "passed" and not orchestration_errors:
             compatible_assets = core.get("assets", {}).get("compatible", [])
-            for position, asset in enumerate(compatible_assets, start=1):
-                asset_name = asset.get("name", "Unknown")
-                asset_result_path = (
-                    output_dir / "asset-results" / f"{position:03d}.json"
-                )
-                worker_args = [
-                    "--worker", "asset",
-                    *worker_common_args(args),
-                    "--result", str(asset_result_path),
-                    "--checkpoint", str(checkpoint),
-                    "--asset-name", asset_name,
-                    "--asset-path", asset.get("path", ""),
-                ]
-                return_code, saw_traceback = run_blender_worker(
-                    args.blender.resolve(),
-                    worker_args,
-                    log_file,
-                    f"Asset {position}/{len(compatible_assets)}: {asset_name}",
-                )
-                asset_result = read_json(asset_result_path) or {
-                    "status": "failed",
-                    "asset_name": asset_name,
-                    "message": "Asset worker did not produce a valid result",
-                    "warnings": [],
-                    "duration_seconds": 0.0,
+            queued_assets = sorted(
+                enumerate(compatible_assets, start=1),
+                key=lambda item: ASSET_DURATION_ESTIMATES.get(
+                    item[1].get("name", ""), 1.0
+                ),
+                reverse=True,
+            )
+            results_by_position = {}
+            with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+                futures = {
+                    pool.submit(
+                        run_asset_worker, args, asset, position,
+                        len(compatible_assets), checkpoint,
+                    ): position
+                    for position, asset in queued_assets
                 }
-                if return_code != 0:
-                    asset_result["status"] = "failed"
-                    asset_result["message"] = (
-                        f"Blender process exited with code {return_code}"
+                for future in as_completed(futures):
+                    position = futures[future]
+                    asset_result, asset_log = future.result()
+                    if asset_log.is_file():
+                        log_file.write(f"\n--- Asset {position} ---\n")
+                        with asset_log.open("r", encoding="utf-8", errors="replace") as stream:
+                            for line in stream:
+                                log_file.write(line)
+                        log_file.flush()
+                    if asset_result.get("status") == "passed":
+                        result_scene = asset_result.get("result_scene")
+                        if result_scene:
+                            try:
+                                Path(result_scene).unlink()
+                            except OSError as error:
+                                orchestration_errors.append(
+                                    f"Could not remove successful asset scene "
+                                    f"{result_scene}: {error}"
+                                )
+                    write_json(
+                        output_dir / "asset-results" / f"{position:03d}.json",
+                        asset_result,
                     )
-                elif saw_traceback and asset_result.get("status") == "passed":
-                    asset_result["status"] = "failed"
-                    asset_result["message"] = "Blender log contains a traceback"
-                if asset_result.get("status") == "passed":
-                    result_scene = asset_result.get("result_scene")
-                    if result_scene:
-                        try:
-                            Path(result_scene).unlink()
-                        except OSError as error:
-                            orchestration_errors.append(
-                                f"Could not remove successful asset scene "
-                                f"{result_scene}: {error}"
-                            )
-                asset_results.append(asset_result)
+                    results_by_position[position] = asset_result
+            asset_results = [results_by_position[key] for key in sorted(results_by_position)]
 
     report = combine_report(core, asset_results, orchestration_errors)
     report["wall_time_seconds"] = time.perf_counter() - started
@@ -521,7 +600,7 @@ def save_scene(path: Path) -> None:
     import bpy
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    result = bpy.ops.wm.save_as_mainfile(filepath=str(path.resolve()), compress=True)
+    result = bpy.ops.wm.save_as_mainfile(filepath=str(path.resolve()), compress=False)
     if "FINISHED" not in result:
         raise RuntimeError(f"Could not save Blender file: {path}")
 
